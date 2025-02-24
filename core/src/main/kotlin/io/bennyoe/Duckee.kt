@@ -1,9 +1,9 @@
 package io.bennyoe
 
-import com.badlogic.gdx.Application
+import com.badlogic.gdx.Application.LOG_DEBUG
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import io.bennyoe.Screens.GameScreen
+import io.bennyoe.screens.GameScreen
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
 import ktx.async.KtxAsync
@@ -14,7 +14,7 @@ class Duckee : KtxGame<KtxScreen>() {
     private val spriteBatch: SpriteBatch by lazy { SpriteBatch() }
     private val context: Context by lazy {
         Context().apply {
-            register { bindSingleton { spriteBatch } }
+            register { bindSingleton(spriteBatch) }
         }
     }
 
@@ -23,13 +23,13 @@ class Duckee : KtxGame<KtxScreen>() {
 
         addScreen(GameScreen(context))
         setScreen<GameScreen>()
-        Gdx.app.logLevel = Application.LOG_DEBUG
+        Gdx.app.logLevel = LOG_DEBUG
     }
 
     override fun dispose() {
         context.dispose()
+        spriteBatch.dispose()
         super.dispose()
     }
-
 }
 

@@ -1,60 +1,48 @@
 package io.bennyoe.screens
 
-import Tag
-import Tog
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
-import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.utils.viewport.FitViewport
-import com.badlogic.gdx.utils.viewport.StretchViewport
-import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.components.Image
-import io.bennyoe.systems.RenderSystem
+import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AnimationType
+import io.bennyoe.components.ImageComponent
+import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.SceneRenderSystem
 import ktx.app.KtxScreen
 import ktx.app.clearScreen
 import ktx.inject.Context
-import ktx.log.logger
-
-private val LOG = logger<GameScreen>()
 
 class GameScreen(
     context: Context,
 ) : KtxScreen {
     private val textureAtlas = TextureAtlas("textures/player.atlas")
-    private val gameViewport by lazy { FitViewport(16f, 9f) }
-    private val extendViewport by lazy { StretchViewport(16f, 9f) }
-    private val stage = Stage(extendViewport)
+    private val stage = context.inject<Stage>()
+    private val gameViewport = context.inject<FitViewport>()
     private val world = configureWorld {
         injectables {
             add(context.inject<SpriteBatch>())
             add("gameViewport", gameViewport)
             add(stage)
         }
-        families {
-        }
         systems {
+            add(AnimationSystem(textureAtlas))
             add(SceneRenderSystem())
-            add(RenderSystem())
-        }
-        onAddEntity { entity: Entity ->
-            LOG.info { "On Add called" }
-        }
-        onRemoveEntity { entity: Entity ->
-            LOG.info { "On Remove called" }
         }
     }
 
     override fun show() {
-        world.entity {
-            it += Image((TextureRegion(textureAtlas.findRegion("attack01/attack01"))))
-            it += Tog
-        }
-        world.entity {
-            it += Image((TextureRegion(textureAtlas.findRegion("walking01/walking01"))))
-            it += Tag
+       world.entity {
+            val player = AnimationComponent()
+            player.nextAnimation(AnimationType.WALKING01)
+
+            it += player
+
+            val image = ImageComponent(stage, 2f, 1f)
+            image.image = Image()
+            it += image
         }
         super.show()
     }
@@ -64,13 +52,8 @@ class GameScreen(
         world.update(delta)
     }
 
-    override fun resize(width: Int, height: Int) {
-        super.resize(width, height)
-        gameViewport.update(width, height, true)
-        extendViewport.update(width, height, true)
-    }
-
     override fun dispose() {
+        textureAtlas.dispose()
         world.dispose()
     }
 }

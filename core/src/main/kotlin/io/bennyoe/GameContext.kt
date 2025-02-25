@@ -1,0 +1,22 @@
+package io.bennyoe
+
+import com.badlogic.gdx.Application.LOG_DEBUG
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.utils.viewport.FitViewport
+import ktx.inject.Context
+import ktx.inject.register
+
+class GameContext : Context(){
+    init {
+        Gdx.app.logLevel = LOG_DEBUG
+        val spriteBatch: SpriteBatch by lazy { SpriteBatch() }
+        val gameViewport by lazy { FitViewport(16f, 9f) }
+        val stage by lazy { Stage(gameViewport) }
+
+        register { bindSingleton(spriteBatch) }
+        register { bindSingleton(stage) }
+        register { bindSingleton(gameViewport) }
+    }
+}

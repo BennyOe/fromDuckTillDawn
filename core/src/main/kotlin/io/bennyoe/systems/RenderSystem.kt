@@ -7,17 +7,18 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
 
-class SceneRenderSystem(
+class RenderSystem(
     private val stage: Stage = inject()
 ) : IteratingSystem(family { all(ImageComponent) }) {
 
     override fun onTick() {
         with(stage) {
             viewport.apply()
+            camera.update()
             act(deltaTime)
         }
-        super.onTick()
         stage.draw()
+        super.onTick()
     }
 
     override fun onTickEntity(entity: Entity) {

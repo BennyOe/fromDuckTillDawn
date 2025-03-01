@@ -6,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
+import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationComponent.Companion.NO_ANIMATION
 import io.bennyoe.components.ImageComponent
@@ -13,32 +14,33 @@ import ktx.app.gdxError
 import ktx.collections.map
 
 class AnimationSystem(
-    private val textureAtlas: TextureAtlas,
+    private val textureAtlas: TextureAtlas = inject(),
 ) : IteratingSystem(family { all(AnimationComponent, ImageComponent) }) {
     private val cachedAnimations = mutableMapOf<String, Animation<TextureRegionDrawable>>()
 
     override fun onTickEntity(entity: Entity) {
 
         val aniCmp = entity[AnimationComponent]
-        if (aniCmp.nextAnimation != NO_ANIMATION){
-            aniCmp.run {
-                animation = animation(aniCmp.nextAnimation)
-                stateTime = 0f
-                nextAnimation = NO_ANIMATION
-            }
-        } else {
-            aniCmp.run {
-                aniCmp.stateTime += deltaTime
-                aniCmp.animation.playMode = aniCmp.playMode
-                aniCmp.animation.getKeyFrame(aniCmp.stateTime)
+        with(entity[ImageComponent]) {
+            image.drawable = if (aniCmp.nextAnimation != NO_ANIMATION) {
+                aniCmp.run {
+                    animation = setTexturesToAnimation(aniCmp.nextAnimation)
+                    clearAnimation()
+                    stateTime = 0f
+                    animation.playMode = playMode
+                    animation.getKeyFrame(0f)
+                }
+            } else {
+                aniCmp.run {
+                    stateTime += deltaTime
+                    animation.playMode = playMode
+                    animation.getKeyFrame(aniCmp.stateTime)
+                }
             }
         }
-
-        aniCmp.animation.playMode = aniCmp.playMode
-        entity[ImageComponent].image.drawable = aniCmp.animation.getKeyFrame(aniCmp.stateTime)
     }
 
-    private fun animation(aniKeyPath: String): Animation<TextureRegionDrawable> {
+    private fun setTexturesToAnimation(aniKeyPath: String): Animation<TextureRegionDrawable> {
         return cachedAnimations.getOrPut(aniKeyPath) {
             val regions = textureAtlas.findRegions(aniKeyPath)
             if (regions.isEmpty) {

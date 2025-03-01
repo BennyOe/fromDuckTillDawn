@@ -1,6 +1,6 @@
 package io.bennyoe
 
-import com.badlogic.gdx.utils.viewport.FitViewport
+import com.badlogic.gdx.scenes.scene2d.Stage
 import io.bennyoe.screens.GameScreen
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
@@ -21,6 +21,6 @@ class Duckee : KtxGame<KtxScreen>() {
 
     override fun resize(width: Int, height: Int) {
         super.resize(width, height)
-        context.inject<FitViewport>().update(width, height, true)
+        context.inject<Stage>().viewport.update(width, height, true)
     }
 }

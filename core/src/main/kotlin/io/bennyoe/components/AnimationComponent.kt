@@ -13,9 +13,14 @@ class AnimationComponent(
     override fun type() = AnimationComponent
     lateinit var animation: Animation<TextureRegionDrawable>
     var nextAnimation: String = NO_ANIMATION
+        private set
 
     fun nextAnimation(type: AnimationType) {
         nextAnimation = type.atlasKey
+    }
+
+    fun clearAnimation() {
+        nextAnimation = NO_ANIMATION
     }
 
     companion object : ComponentType<AnimationComponent>() {
@@ -24,8 +29,8 @@ class AnimationComponent(
 }
 
 enum class AnimationType(
+    val atlasKey: String
 ) {
-    IDLE01, WALKING01, RUN, ATTACK01, CROUCH, HURT, DIE, JUMP01;
-    val atlasKey: String = this.toString().lowercase()
+    IDLE("idle01");
 }
 

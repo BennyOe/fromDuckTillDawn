@@ -8,7 +8,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationComponent.Companion.NO_ANIMATION
+import io.bennyoe.components.AnimationType
 import io.bennyoe.components.ImageComponent
 import ktx.app.gdxError
 import ktx.collections.map
@@ -22,9 +22,10 @@ class AnimationSystem(
 
         val aniCmp = entity[AnimationComponent]
         with(entity[ImageComponent]) {
-            image.drawable = if (aniCmp.nextAnimation != NO_ANIMATION) {
+            flipImage = aniCmp.flipImage
+            image.drawable = if (aniCmp.nextAnimation != AnimationType.NONE) {
                 aniCmp.run {
-                    animation = setTexturesToAnimation(aniCmp.nextAnimation)
+                    animation = setTexturesToAnimation(aniCmp.nextAnimation.atlasKey)
                     clearAnimation()
                     stateTime = 0f
                     animation.playMode = playMode

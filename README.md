@@ -15,16 +15,21 @@ tba
 
 ## To Do
 
+- [ ] Fix the jump bug
+- [ ] Fix the jump animation
+- [ ] Faster attack animation
+- [ ] Movement with acceleration
+
 ### Basic setup
 
 - [x] Set up project
 - [x] Set up git
-- [ ] Viewport and resize
-- [ ] ECS
+- [x] Viewport and resize
+- [x] ECS
 - [ ] Asset manager
 - [ ] Soundsystem
-- [ ] Scene2d
-- [ ] Box2d
+- [x] Scene2d
+- [x] Box2d
 - [ ] Box2dLights
 - [ ] Shader system?
 - [ ] Particle system?

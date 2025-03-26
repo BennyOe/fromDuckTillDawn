@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.g2d.Animation
+import com.badlogic.gdx.graphics.g2d.Animation.PlayMode
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
@@ -12,6 +13,7 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.components.ImageComponent
 import ktx.app.gdxError
 import ktx.collections.map
+import ktx.log.logger
 
 class AnimationSystem(
     private val textureAtlas: TextureAtlas = inject(),
@@ -23,35 +25,38 @@ class AnimationSystem(
         val aniCmp = entity[AnimationComponent]
         with(entity[ImageComponent]) {
             flipImage = aniCmp.flipImage
-            image.drawable = if (aniCmp.nextAnimation != AnimationType.NONE) {
+            image.drawable = if (aniCmp.nextAnimation == AnimationType.NONE) {
                 aniCmp.run {
-                    animation = setTexturesToAnimation(aniCmp.nextAnimation.atlasKey)
-                    clearAnimation()
-                    stateTime = 0f
-                    animation.playMode = playMode
-                    animation.getKeyFrame(0f)
+                    stateTime += deltaTime
+                    animation.getKeyFrame(aniCmp.stateTime)
                 }
             } else {
                 aniCmp.run {
-                    stateTime += deltaTime
-                    animation.playMode = playMode
-                    animation.getKeyFrame(aniCmp.stateTime)
+                    animation = setTexturesToAnimation(nextAnimation.atlasKey, nextAnimation.speed, nextAnimation.playMode)
+                    clearAnimation()
+                    stateTime = 0f
+                    animation.playMode = nextAnimation.playMode
+//                    LOG.debug { animation.playMode.toString() }
+                    animation.getKeyFrame(0f)
                 }
             }
         }
     }
 
-    private fun setTexturesToAnimation(aniKeyPath: String): Animation<TextureRegionDrawable> {
+    private fun setTexturesToAnimation(aniKeyPath: String, speed: Float, playMode: PlayMode): Animation<TextureRegionDrawable> {
         return cachedAnimations.getOrPut(aniKeyPath) {
             val regions = textureAtlas.findRegions(aniKeyPath)
             if (regions.isEmpty) {
                 gdxError("There are no regions for $aniKeyPath")
             }
-            Animation(DEFAULT_FRAME_DURATION, regions.map { TextureRegionDrawable(it) })
+            Animation(speed, regions.map { TextureRegionDrawable(it) }).apply {
+                this.playMode = playMode
+            }
         }
     }
 
     companion object {
         const val DEFAULT_FRAME_DURATION = 1 / 8f
+        private val LOG = logger<AnimationSystem>()
     }
 }

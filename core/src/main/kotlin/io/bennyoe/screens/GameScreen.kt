@@ -30,7 +30,7 @@ class GameScreen(
     private val textureAtlas = TextureAtlas("textures/player.atlas")
     private val stage = context.inject<Stage>()
     private var tiledMap: TiledMap? = null
-    private val phyWorld = createWorld(gravity = Vector2(0f, -9.81f), true).apply {
+    private val phyWorld = createWorld(gravity = Vector2(0f, -25.81f), true).apply {
         autoClearForces = false
     }
     private val entityWorld = configureWorld {
@@ -60,7 +60,7 @@ class GameScreen(
             }
         }
 
-        tiledMap = TmxMapLoader().load("map/inTheWoods/inTheWoods1.tmx") // map gets loaded
+        tiledMap = TmxMapLoader().load("map/testMap.tmx") // map gets loaded
         stage.fire(MapChangedEvent(tiledMap!!)) // mapChangeEvent gets fired
 
         super.show()

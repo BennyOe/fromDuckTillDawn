@@ -24,6 +24,8 @@ import io.bennyoe.components.SpawnCfg
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.event.MapChangedEvent
 import ktx.app.gdxError
+import ktx.box2d.box
+import ktx.box2d.fixture
 import ktx.log.logger
 import ktx.tiled.layer
 import ktx.tiled.type
@@ -54,7 +56,7 @@ class EntitySpawnSystem(
 
     private fun spawnCfg(type: String): SpawnCfg = cachedCfgs.getOrPut(type) {
         when (type) {
-            "player" -> SpawnCfg(AnimationType.IDLE)
+            "playerStart" -> SpawnCfg(AnimationType.IDLE)
             else -> gdxError("There is no spawn configuration for entity-type $type")
         }
     }
@@ -62,7 +64,7 @@ class EntitySpawnSystem(
     override fun handle(event: Event): Boolean {
         when (event) {
             is MapChangedEvent -> {
-                val entityLayer = event.map.layer("entities")
+                val entityLayer = event.map.layer("playerStart")
                 entityLayer.objects.forEach { mapObj ->
                     val cfg = spawnCfg(mapObj.type!!)
                     val relativeSize = size(cfg.model)
@@ -71,7 +73,7 @@ class EntitySpawnSystem(
                         animation.nextAnimation(AnimationType.IDLE)
                         it += animation
 
-                        val image = ImageComponent(stage, 2f, 1f).apply {
+                        val image = ImageComponent(stage, 4f, 2f).apply {
                             image = Image().apply {
                                 setPosition(mapObj.x * UNIT_SCALE, mapObj.y * UNIT_SCALE)
                                 setSize(relativeSize.x, relativeSize.y)
@@ -83,9 +85,16 @@ class EntitySpawnSystem(
                             phyWorld,
                             image.image,
                             BodyDef.BodyType.DynamicBody,
-                            scalePhysicX = 0.1f,
-                            scalePhysicY = 0.2f
+                            scalePhysicX = 0.2f,
+                            scalePhysicY = 0.5f,
+                            setUserdata = it,
                         )
+
+                        // set ground collision sensor
+                        physics.body.box(physics.size.x * 0.99f, 0.01f, Vector2(0f, 0f - physics.size.y * 0.5f)) {
+                            isSensor = true
+                            userData = "GROUND_COLLISION"
+                        }
                         it += physics
 
                         val move = MoveComponent()
@@ -102,6 +111,7 @@ class EntitySpawnSystem(
         }
         return false
     }
+
     companion object {
         private val LOG = logger<EntitySpawnSystem>()
     }

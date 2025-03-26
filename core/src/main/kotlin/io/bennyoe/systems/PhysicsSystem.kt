@@ -1,7 +1,6 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.math.MathUtils
-import com.badlogic.gdx.physics.box2d.BodyDef.BodyType.DynamicBody
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType.StaticBody
 import com.badlogic.gdx.physics.box2d.Contact
 import com.badlogic.gdx.physics.box2d.ContactImpulse
@@ -15,7 +14,9 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.PlayerComponent
 import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2
@@ -23,6 +24,7 @@ import ktx.math.component2
 class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(1 / 60f)), ContactListener {
+    private var groundContacts: Int = 0
 
     init {
         phyWorld.setContactListener(this)
@@ -44,10 +46,24 @@ class PhysicsSystem(
 
     override fun onTickEntity(entity: Entity) {
         val physicCmp = entity[PhysicComponent]
+        val moveCmp = entity[MoveComponent]
+        val playerEntity = physicCmp.body.userData as Entity
+
         physicCmp.prevPos.set(physicCmp.body.position)
+
+        if (groundContacts > 0) {
+            playerEntity.configure {
+                it += HasGroundContact
+            }
+        } else {
+            playerEntity.configure {
+                it -= HasGroundContact
+            }
+        }
 
         if (!physicCmp.impulse.isZero) {
             physicCmp.body.applyLinearImpulse(physicCmp.impulse, physicCmp.body.worldCenter, true)
+            moveCmp.jumpRequest = false
             physicCmp.impulse.setZero()
         }
     }
@@ -69,27 +85,16 @@ class PhysicsSystem(
     }
 
     override fun beginContact(contact: Contact) {
-        if ((contact.fixtureA.body.type == StaticBody && contact.fixtureB.body.type == DynamicBody)
-        ) {
-            val entity = contact.fixtureB.body.userData as? Entity ?: return
-            val normal = contact.worldManifold.normal
-
-            // check, if collision is on bottom of player (stands on ground)
-            if (normal.y > 0) {
-                entity.configure {
-                    it += HasGroundContact
-                }
-            }
+        if (hasGroundContact(contact)) {
+            groundContacts++
         }
     }
 
+
     override fun endContact(contact: Contact) {
-        if ((contact.fixtureA.body.type == StaticBody && contact.fixtureB.body.type == DynamicBody)
+        if ((hasGroundContact(contact))
         ) {
-            val entity = contact.fixtureB.body.userData as? Entity ?: return
-            entity.configure {
-                it -= HasGroundContact
-            }
+            groundContacts--
         }
     }
 
@@ -99,6 +104,11 @@ class PhysicsSystem(
     }
 
     override fun postSolve(contact: Contact, impulse: ContactImpulse) {
+    }
+
+    private fun hasGroundContact(contact: Contact): Boolean {
+        return (contact.fixtureA.body.type == StaticBody && contact.fixtureB.userData == "GROUND_COLLISION" ||
+            contact.fixtureB.body.type == StaticBody && contact.fixtureA.userData == "GROUND_COLLISION")
     }
 
     companion object {

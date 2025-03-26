@@ -26,26 +26,47 @@ class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, 
 
         // set new animation
         val newAnimation = when {
-            moveCmp.yMovement > 0 -> AnimationType.JUMP
+            entity hasNo HasGroundContact -> AnimationType.JUMP
             moveCmp.attack -> AnimationType.ATTACK
-            moveCmp.xMovement != 0f -> AnimationType.WALK
+            moveCmp.xDirection != 0f -> AnimationType.WALK
             else -> AnimationType.IDLE
         }
 
         // only update when animation changed
         updateAnimation(animCmp, newAnimation)
 
-        // set impulses
-        var impulseY = 0f
-        if (entity has HasGroundContact) {
-            impulseY = if (moveCmp.yMovement > 0) mass * moveCmp.jumpBoost * moveCmp.yMovement + velY else 0f
+        if (entity has HasGroundContact && velY <= 0) {
+            if (moveCmp.jumpCounter > 0) {
+                LOG.debug { "Resetting jumpCounter from ${moveCmp.jumpCounter} due to ground contact!" }
+            }
+            moveCmp.timeSinceGrounded = 0f
+            moveCmp.jumpCounter = 0
+        } else {
+            moveCmp.timeSinceGrounded += deltaTime
         }
-        val impulseX = if (moveCmp.xMovement != 0f) mass * moveCmp.speed * moveCmp.xMovement - velX else -mass * velX
-        phyCmp.impulse = Vector2(impulseX, impulseY)
+
+        // set impulses
+        if ((moveCmp.jumpCounter > 2) ||
+            (moveCmp.jumpCounter == 2 && moveCmp.jumpRequest && (moveCmp.timeSinceGrounded > moveCmp.maxCoyoteTime))) {
+            LOG.debug { "TOO MANY JUMPS!!!" }
+            moveCmp.jumpRequest = false
+        }
+
+        if (moveCmp.jumpRequest) {
+            moveCmp.jumpCounter++
+            LOG.debug { "time: ${moveCmp.maxCoyoteTime - moveCmp.timeSinceGrounded}" }
+            val impulseY = mass * moveCmp.jumpBoost * 7
+            phyCmp.impulse = Vector2(0f, impulseY)
+            LOG.debug { "counter: ${moveCmp.jumpCounter}" }
+        }
+
+        val desiredVelocityX = moveCmp.speed * moveCmp.xDirection
+        phyCmp.body.linearVelocity = Vector2(desiredVelocityX, phyCmp.body.linearVelocity.y)
+
 
         // flip image if necessary
-        if (moveCmp.xMovement != 0f) {
-            animCmp.flipImage = moveCmp.xMovement < 0
+        if (moveCmp.xDirection != 0f) {
+            animCmp.flipImage = moveCmp.xDirection < 0
         }
     }
 

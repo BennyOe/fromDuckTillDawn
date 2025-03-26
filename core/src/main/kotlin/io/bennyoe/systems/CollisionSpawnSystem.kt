@@ -46,6 +46,16 @@ class CollisionSpawnSystem(
     override fun handle(event: Event): Boolean {
         when (event) {
             is MapChangedEvent -> {
+                event.map.layers.get("collisionBoxes").apply {
+                    objects.forEach { mapObject ->
+                        world.entity{
+                            physicsComponentFromShape2D(
+                                phyWorld = phyWorld,
+                                shape = mapObject.shape,
+                            )
+                        }
+                    }
+                }
                 event.map.forEachLayer<TiledMapTileLayer> { layer ->
                     layer.forEachCell(0, 0, max(event.map.width, event.map.height)) { cell, x, y ->
 
@@ -53,7 +63,7 @@ class CollisionSpawnSystem(
 
                         cell.tile.objects.forEach { mapObject ->
                             world.entity {
-                                physicsComponentFromShape2D(phyWorld, x, y, mapObject.shape)
+                                physicsComponentFromShape2D(phyWorld, mapObject.shape, x, y)
                             }
                         }
                     }

@@ -20,7 +20,7 @@ import com.github.quillraven.fleks.World as entityWorld
 
 class PhysicComponent() : Component<PhysicComponent> {
     private val offset: Vector2 = Vector2()
-    private val size: Vector2 = Vector2()
+    val size: Vector2 = Vector2()
     var prevPos: Vector2 = Vector2()
     var impulse: Vector2 = Vector2()
     lateinit var body: Body
@@ -28,12 +28,14 @@ class PhysicComponent() : Component<PhysicComponent> {
     override fun type() = PhysicComponent
 
     companion object : ComponentType<PhysicComponent>() {
+
         fun physicsComponentFromShape2D(
             phyWorld: World,
-            x: Int,
-            y: Int,
             shape: Shape2D,
-            myFriction: Float = 0f
+            x: Int = 0,
+            y: Int = 0,
+            myFriction: Float = 0f,
+            setUserData: Entity? = null
         ): PhysicComponent {
             when (shape) {
                 is Rectangle -> {
@@ -46,6 +48,7 @@ class PhysicComponent() : Component<PhysicComponent> {
                             position.set(bodyX, bodyY)
                             fixedRotation = true
                             allowSleep = false
+                            userData = setUserData
                             loop(
                                 vec2(0f, 0f),
                                 vec2(bodyW, 0f),
@@ -57,6 +60,7 @@ class PhysicComponent() : Component<PhysicComponent> {
                         }
                     }
                 }
+
                 else -> gdxError("No valid shape for creating a physics component given")
             }
         }
@@ -73,6 +77,7 @@ class PhysicComponent() : Component<PhysicComponent> {
             fixedRotation: Boolean = true,
             allowSleep: Boolean = true,
             isSensor: Boolean = false,
+            setUserdata: Entity? = null
         ): PhysicComponent {
             val x = image.x
             val y = image.y
@@ -84,6 +89,7 @@ class PhysicComponent() : Component<PhysicComponent> {
                 position.set(x + width * 0.5f, y + height * 0.5f)
                 this.fixedRotation = fixedRotation
                 this.allowSleep = allowSleep
+                userData = setUserdata
             }
 
             // fixture as box
@@ -101,12 +107,7 @@ class PhysicComponent() : Component<PhysicComponent> {
         }
     }
 
-    override fun entityWorld.onAdd(entity: Entity) {
-        body.userData = entity
-    }
-
     override fun entityWorld.onRemove(entity: Entity) {
         body.world.destroyBody(body)
-        body.userData = null
     }
 }

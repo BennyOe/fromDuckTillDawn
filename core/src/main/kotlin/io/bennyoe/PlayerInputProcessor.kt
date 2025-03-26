@@ -13,6 +13,7 @@ class PlayerInputProcessor(
 ) : KtxInputAdapter {
 
     private val playerEntities = world.family { all(PlayerComponent) }
+    private var isJumpKeyPressed = false
 
     // Mapping der Steuerungstasten zu Aktionen
     private val keyActions = mapOf(
@@ -36,15 +37,21 @@ class PlayerInputProcessor(
         return true
     }
 
-    private fun handleAction(action: Action, active: Boolean) {
+    private fun handleAction(action: Action, pressed: Boolean) {
         playerEntities.forEach { playerEntity ->
             val moveComponent = playerEntity[MoveComponent]
 
             when (action) {
-                Action.JUMP -> moveComponent.yMovement = if (active) 1f else 0f
-                Action.MOVE_LEFT -> moveComponent.xMovement = if (active) -1f else 0f
-                Action.MOVE_RIGHT -> moveComponent.xMovement = if (active) 1f else 0f
-                Action.ATTACK -> moveComponent.attack = active
+                Action.JUMP -> {
+                    if (pressed && !isJumpKeyPressed) {
+                        moveComponent.jumpRequest = true
+                    }
+                    isJumpKeyPressed = pressed
+                }
+
+                Action.MOVE_LEFT -> moveComponent.xDirection = if (pressed) -1f else 0f
+                Action.MOVE_RIGHT -> moveComponent.xDirection = if (pressed) 1f else 0f
+                Action.ATTACK -> moveComponent.attack = pressed
             }
         }
     }

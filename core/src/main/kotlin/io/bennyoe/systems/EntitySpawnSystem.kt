@@ -15,7 +15,10 @@ import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.Duckee.Companion.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
+import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
@@ -25,16 +28,12 @@ import io.bennyoe.components.SpawnComponent
 import io.bennyoe.event.MapChangedEvent
 import ktx.app.gdxError
 import ktx.box2d.box
-import ktx.box2d.fixture
 import ktx.log.logger
 import ktx.tiled.layer
 import ktx.tiled.type
 import ktx.tiled.x
 import ktx.tiled.y
 
-/*
-The spawn system iterates over the entities in a map and spawns them
- */
 class EntitySpawnSystem(
     private val stage: Stage = inject(),
     private val phyWorld: World = inject("phyWorld"),
@@ -47,8 +46,8 @@ class EntitySpawnSystem(
     override fun onTickEntity(entity: Entity) {
     }
 
-    private fun size(type: AnimationType): Vector2 = sizesCache.getOrPut(type) {
-        val regions = atlas.findRegions(type.atlasKey)
+    private fun size(model: AnimationModel, type: AnimationType, variant: AnimationVariant): Vector2 = sizesCache.getOrPut(type) {
+        val regions = atlas.findRegions(model.atlasKey + type.atlasKey + variant.atlasKey)
         if (regions.isEmpty) gdxError("There are no regions for the idle animation of model $type")
         val firstFrame = regions.first()
         return Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
@@ -56,7 +55,7 @@ class EntitySpawnSystem(
 
     private fun spawnCfg(type: String): SpawnCfg = cachedCfgs.getOrPut(type) {
         when (type) {
-            "playerStart" -> SpawnCfg(AnimationType.IDLE)
+            "playerStart" -> SpawnCfg(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
             else -> gdxError("There is no spawn configuration for entity-type $type")
         }
     }
@@ -67,10 +66,10 @@ class EntitySpawnSystem(
                 val entityLayer = event.map.layer("playerStart")
                 entityLayer.objects.forEach { mapObj ->
                     val cfg = spawnCfg(mapObj.type!!)
-                    val relativeSize = size(cfg.model)
+                    val relativeSize = size(cfg.model , cfg.type , cfg.variant)
                     world.entity {
                         val animation = AnimationComponent()
-                        animation.nextAnimation(AnimationType.IDLE)
+                        animation.nextAnimation(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
                         it += animation
 
                         val image = ImageComponent(stage, 4f, 2f).apply {
@@ -96,6 +95,9 @@ class EntitySpawnSystem(
                             userData = "GROUND_COLLISION"
                         }
                         it += physics
+
+                        val attack = AttackComponent()
+                        it += attack
 
                         val move = MoveComponent()
                         it += move

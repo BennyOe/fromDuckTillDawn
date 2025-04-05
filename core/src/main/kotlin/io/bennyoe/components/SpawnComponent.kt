@@ -15,5 +15,7 @@ data class SpawnComponent(
 }
 
 data class SpawnCfg(
-    val model: AnimationType
+    val model: AnimationModel,
+    val type: AnimationType,
+    val variant: AnimationVariant
 )

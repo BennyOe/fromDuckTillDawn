@@ -9,7 +9,9 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
+import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.ImageComponent
 import ktx.app.gdxError
 import ktx.collections.map
@@ -23,22 +25,19 @@ class AnimationSystem(
     override fun onTickEntity(entity: Entity) {
 
         val aniCmp = entity[AnimationComponent]
+
         with(entity[ImageComponent]) {
             flipImage = aniCmp.flipImage
-            image.drawable = if (aniCmp.nextAnimation == AnimationType.NONE) {
+            image.drawable = if (aniCmp.nextAnimationType == AnimationType.NONE) {
                 aniCmp.run {
+                    if (animation.playMode == PlayMode.NORMAL && animation.isAnimationFinished(stateTime)) {
+                        nextAnimation(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
+                    }
                     stateTime += deltaTime
-                    animation.getKeyFrame(aniCmp.stateTime)
+                    animation.getKeyFrame(stateTime)
                 }
             } else {
-                aniCmp.run {
-                    animation = setTexturesToAnimation(nextAnimation.atlasKey, nextAnimation.speed, nextAnimation.playMode)
-                    clearAnimation()
-                    stateTime = 0f
-                    animation.playMode = nextAnimation.playMode
-//                    LOG.debug { animation.playMode.toString() }
-                    animation.getKeyFrame(0f)
-                }
+                applyNextAnimation(aniCmp)
             }
         }
     }
@@ -53,6 +52,17 @@ class AnimationSystem(
                 this.playMode = playMode
             }
         }
+    }
+
+    private fun applyNextAnimation(aniCmp: AnimationComponent): TextureRegionDrawable {
+        aniCmp.animation = setTexturesToAnimation(
+            aniCmp.nextAnimationModel.atlasKey + aniCmp.nextAnimationType.atlasKey + aniCmp.nextAnimationVariant.atlasKey,
+            aniCmp.nextAnimationType.speed,
+            aniCmp.nextAnimationType.playMode
+        )
+        aniCmp.clearAnimation()
+        aniCmp.stateTime = 0f
+        return aniCmp.animation.getKeyFrame(0f)
     }
 
     companion object {

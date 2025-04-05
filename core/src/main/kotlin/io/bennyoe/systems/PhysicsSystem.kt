@@ -16,7 +16,6 @@ import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2
@@ -24,7 +23,7 @@ import ktx.math.component2
 class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(1 / 60f)), ContactListener {
-    private var groundContacts: Int = 0
+    private var activeGroundContacts: Int = 0
 
     init {
         phyWorld.setContactListener(this)
@@ -51,7 +50,17 @@ class PhysicsSystem(
 
         physicCmp.prevPos.set(physicCmp.body.position)
 
-        if (groundContacts > 0) {
+        setGroundContact(playerEntity)
+
+        if (!physicCmp.impulse.isZero) {
+            physicCmp.body.applyLinearImpulse(physicCmp.impulse, physicCmp.body.worldCenter, true)
+            moveCmp.jumpRequest = false
+            physicCmp.impulse.setZero()
+        }
+    }
+
+    private fun setGroundContact(playerEntity: Entity) {
+        if (activeGroundContacts > 0) {
             playerEntity.configure {
                 it += HasGroundContact
             }
@@ -59,12 +68,6 @@ class PhysicsSystem(
             playerEntity.configure {
                 it -= HasGroundContact
             }
-        }
-
-        if (!physicCmp.impulse.isZero) {
-            physicCmp.body.applyLinearImpulse(physicCmp.impulse, physicCmp.body.worldCenter, true)
-            moveCmp.jumpRequest = false
-            physicCmp.impulse.setZero()
         }
     }
 
@@ -86,7 +89,7 @@ class PhysicsSystem(
 
     override fun beginContact(contact: Contact) {
         if (hasGroundContact(contact)) {
-            groundContacts++
+            activeGroundContacts++
         }
     }
 
@@ -94,7 +97,7 @@ class PhysicsSystem(
     override fun endContact(contact: Contact) {
         if ((hasGroundContact(contact))
         ) {
-            groundContacts--
+            activeGroundContacts--
         }
     }
 

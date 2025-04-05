@@ -10,18 +10,30 @@ class AnimationComponent(
     var stateTime: Float = 0f,
     var flipImage: Boolean = false
 ) : Component<AnimationComponent> {
-
     override fun type() = AnimationComponent
+
     lateinit var animation: Animation<TextureRegionDrawable>
-    var nextAnimation: AnimationType = AnimationType.NONE
+    var nextAnimationModel: AnimationModel = AnimationModel.NONE
+        private set
+    var nextAnimationType: AnimationType = AnimationType.NONE
+        private set
+    var nextAnimationVariant: AnimationVariant = AnimationVariant.NONE
         private set
 
-    fun nextAnimation(type: AnimationType) {
-        nextAnimation = type
+    fun nextAnimation(
+        model: AnimationModel,
+        type: AnimationType,
+        variant: AnimationVariant
+    ) {
+        nextAnimationModel = model
+        nextAnimationType = type
+        nextAnimationVariant = variant
     }
 
     fun clearAnimation() {
-        nextAnimation = AnimationType.NONE
+        nextAnimationModel = AnimationModel.NONE
+        nextAnimationType = AnimationType.NONE
+        nextAnimationVariant = AnimationVariant.NONE
     }
 
     companion object : ComponentType<AnimationComponent>() {
@@ -31,24 +43,43 @@ class AnimationComponent(
 enum class AnimationModel(
     val atlasKey: String
 ) {
-    PLAYER("player")
+    NONE(""),
+    PLAYER_DAWN("player/dawn/"),
+    ENEMY_MUSHROOM("enemy/mushroom/")
 }
 
 enum class AnimationType(
     val atlasKey: String,
     val playMode: PlayMode = PlayMode.LOOP,
-    val speed: Float = 1/8f
+    val speed: Float = 1 / 8f
 ) {
     NONE(""),
-    IDLE("player/idle01"),
-    WALK("player/walking01"),
+    IDLE("idle"),
+    WALK("walking"),
     JUMP(
-        atlasKey = "player/jump01",
-        playMode = PlayMode.NORMAL
+        atlasKey = "jump",
+        playMode = PlayMode.LOOP
     ),
     ATTACK(
-        atlasKey = "player/attack04",
+        atlasKey = "attack",
         PlayMode.NORMAL,
         speed = 1 / 14f
-    );
+    ),
+    BASH(
+        atlasKey = "bash",
+        PlayMode.NORMAL,
+        speed = 1 / 20f
+    ),
+    CROUCH_IDLE(atlasKey = "crouching_idle"),
+    CROUCH_WALK(atlasKey = "crouching_walking")
+}
+
+enum class AnimationVariant(
+    val atlasKey: String
+) {
+    NONE(""),
+    FIRST("01"),
+    SECOND("02"),
+    THIRD("03"),
+    FOURTH("04"),
 }

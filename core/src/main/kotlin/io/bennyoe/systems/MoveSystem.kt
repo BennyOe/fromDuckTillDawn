@@ -5,13 +5,20 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
+import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2
+
+private const val FALLING_THRESHOLD= -8f
+
+private const val JUMP_FALLING_BOOST= 1.8f
 
 class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, AnimationComponent) }) {
 
@@ -21,13 +28,15 @@ class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, 
         val moveCmp = entity[MoveComponent]
         val phyCmp = entity[PhysicComponent]
         val animCmp = entity[AnimationComponent]
+        val attackCmp = entity[AttackComponent]
         val mass = phyCmp.body.mass
-        val (velX, velY) = phyCmp.body.linearVelocity
+        val (_, velY) = phyCmp.body.linearVelocity
 
         // set new animation
         val newAnimation = when {
             entity hasNo HasGroundContact -> AnimationType.JUMP
-            moveCmp.attack -> AnimationType.ATTACK
+            moveCmp.crouchMode && moveCmp.xDirection != 0f -> AnimationType.CROUCH_WALK
+            moveCmp.crouchMode && moveCmp.xDirection == 0f -> AnimationType.CROUCH_IDLE
             moveCmp.xDirection != 0f -> AnimationType.WALK
             else -> AnimationType.IDLE
         }
@@ -35,33 +44,36 @@ class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, 
         // only update when animation changed
         updateAnimation(animCmp, newAnimation)
 
-        if (entity has HasGroundContact && velY <= 0) {
-            if (moveCmp.jumpCounter > 0) {
-                LOG.debug { "Resetting jumpCounter from ${moveCmp.jumpCounter} due to ground contact!" }
-            }
-            moveCmp.timeSinceGrounded = 0f
-            moveCmp.jumpCounter = 0
-        } else {
-            moveCmp.timeSinceGrounded += deltaTime
-        }
+        calculateJumpProperties(entity, velY, moveCmp)
 
         // set impulses
         if ((moveCmp.jumpCounter > 2) ||
-            (moveCmp.jumpCounter == 2 && moveCmp.jumpRequest && (moveCmp.timeSinceGrounded > moveCmp.maxCoyoteTime))) {
-            LOG.debug { "TOO MANY JUMPS!!!" }
+            (moveCmp.jumpCounter == 2 &&
+                moveCmp.jumpRequest &&
+                (moveCmp.timeSinceGrounded > moveCmp.maxCoyoteTime))
+        ) {
             moveCmp.jumpRequest = false
         }
-
         if (moveCmp.jumpRequest) {
+            // TODO sometimes when walking off a platform and jumping in the air, the first jump is counted twice and no airjump is possible. I
+            //  think this is because the jump button is recognized in multiple frames
             moveCmp.jumpCounter++
-            LOG.debug { "time: ${moveCmp.maxCoyoteTime - moveCmp.timeSinceGrounded}" }
-            val impulseY = mass * moveCmp.jumpBoost * 7
+            var impulseY = mass * moveCmp.jumpBoost
+
+            impulseY = if (phyCmp.body.linearVelocity.y < FALLING_THRESHOLD) {
+                impulseY * JUMP_FALLING_BOOST
+            } else {
+                impulseY
+            }
             phyCmp.impulse = Vector2(0f, impulseY)
-            LOG.debug { "counter: ${moveCmp.jumpCounter}" }
         }
 
-        val desiredVelocityX = moveCmp.speed * moveCmp.xDirection
-        phyCmp.body.linearVelocity = Vector2(desiredVelocityX, phyCmp.body.linearVelocity.y)
+
+        // ignore when bash is active
+        if (!attackCmp.bashActive) {
+            val desiredVelocityX = moveCmp.speed * moveCmp.xDirection
+            phyCmp.body.linearVelocity = Vector2(desiredVelocityX, phyCmp.body.linearVelocity.y)
+        }
 
 
         // flip image if necessary
@@ -70,9 +82,18 @@ class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, 
         }
     }
 
+    private fun calculateJumpProperties(entity: Entity, velY: Float, moveCmp: MoveComponent) {
+        if (entity has HasGroundContact && velY <= 0) {
+            moveCmp.timeSinceGrounded = 0f
+            moveCmp.jumpCounter = 0
+        } else {
+            moveCmp.timeSinceGrounded += deltaTime
+        }
+    }
+
     private fun updateAnimation(animCmp: AnimationComponent, newAnimation: AnimationType) {
         if (currentAnimation != newAnimation) {
-            animCmp.nextAnimation(newAnimation)
+            animCmp.nextAnimation(AnimationModel.PLAYER_DAWN, newAnimation, AnimationVariant.FIRST)
             currentAnimation = newAnimation
         }
     }

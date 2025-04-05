@@ -15,10 +15,10 @@ tba
 
 ## To Do
 
-- [ ] Fix the jump bug
-- [ ] Fix the jump animation
-- [ ] Faster attack animation
-- [ ] Movement with acceleration
+- [x] Fix the jump bug
+- [x] Fix the jump animation
+- [x] Play the attack animation one time
+- [x] create a bash animation
 
 ### Basic setup
 
@@ -41,10 +41,10 @@ tba
 ### Player
 
 - [ ] Movement
-    - [ ] Jumping
+    - [x] Jumping
     - [ ] Ducking
-    - [ ] Running
-    - [ ] Attacking
+    - [x] Running
+    - [x] Attacking
 
 ### Enemies
 

@@ -3,6 +3,7 @@ package io.bennyoe
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Keys
 import com.github.quillraven.fleks.World
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PlayerComponent
 import ktx.app.KtxInputAdapter
@@ -20,7 +21,9 @@ class PlayerInputProcessor(
         Keys.W to Action.JUMP,
         Keys.A to Action.MOVE_LEFT,
         Keys.D to Action.MOVE_RIGHT,
-        Keys.SPACE to Action.ATTACK
+        Keys.S to Action.CROUCH,
+        Keys.SPACE to Action.ATTACK,
+        Keys.J to Action.BASH
     )
 
     init {
@@ -40,6 +43,7 @@ class PlayerInputProcessor(
     private fun handleAction(action: Action, pressed: Boolean) {
         playerEntities.forEach { playerEntity ->
             val moveComponent = playerEntity[MoveComponent]
+            val attackComponent = playerEntity[AttackComponent]
 
             when (action) {
                 Action.JUMP -> {
@@ -51,7 +55,9 @@ class PlayerInputProcessor(
 
                 Action.MOVE_LEFT -> moveComponent.xDirection = if (pressed) -1f else 0f
                 Action.MOVE_RIGHT -> moveComponent.xDirection = if (pressed) 1f else 0f
-                Action.ATTACK -> moveComponent.attack = pressed
+                Action.CROUCH -> moveComponent.crouchMode = pressed
+                Action.ATTACK -> attackComponent.attack = pressed
+                Action.BASH -> attackComponent.bashRequest = pressed
             }
         }
     }
@@ -61,6 +67,6 @@ class PlayerInputProcessor(
     }
 
     enum class Action {
-        JUMP, MOVE_LEFT, MOVE_RIGHT, ATTACK
+        JUMP, MOVE_LEFT, MOVE_RIGHT, ATTACK, BASH, CROUCH
     }
 }

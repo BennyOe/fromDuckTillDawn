@@ -23,10 +23,72 @@ import ktx.tiled.shape
 import ktx.tiled.width
 import kotlin.math.max
 
-
 class CollisionSpawnSystem(
     private val phyWorld: World = inject("phyWorld")
 ) : IteratingSystem(family { all(PhysicComponent) }), EventListener {
+
+    override fun onTickEntity(entity: Entity) {}
+
+    override fun handle(event: Event): Boolean {
+        when (event) {
+            is MapChangedEvent -> {
+                drawCollisionBoxes(event)
+                drawTileCollisionBoxes(event)
+                drawMapBorderCollisions(event)
+            }
+        }
+        return true
+    }
+
+    private fun drawTileCollisionBoxes(event: MapChangedEvent) {
+        event.map.forEachLayer<TiledMapTileLayer> { layer ->
+            layer.forEachCell(0, 0, max(event.map.width, event.map.height)) { cell, x, y ->
+
+                if (cell.tile.objects.isEmpty()) return@forEachCell
+
+                cell.tile.objects.forEach { mapObject ->
+                    world.entity {
+                        physicsComponentFromShape2D(phyWorld, mapObject.shape, x, y)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun drawCollisionBoxes(event: MapChangedEvent) {
+        event.map.layers.get("collisionBoxes").apply {
+            objects.forEach { mapObject ->
+                world.entity {
+                    physicsComponentFromShape2D(
+                        phyWorld = phyWorld,
+                        shape = mapObject.shape,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun drawMapBorderCollisions(event: MapChangedEvent) {
+        world.entity {
+            val w = event.map.width
+            val h = event.map.height
+            PhysicComponent().apply {
+                body = phyWorld.body(StaticBody) {
+                    position.set(0f, 0f)
+                    fixedRotation = true
+                    allowSleep = false
+                    loop(
+                        vec2(0f, 0f),
+                        vec2(w.toFloat(), 0f),
+                        vec2(w.toFloat(), h.toFloat()),
+                        vec2(0f, h.toFloat())
+                    ) {
+                        friction = 0f
+                    }
+                }
+            }
+        }
+    }
 
     private fun TiledMapTileLayer.forEachCell(
         startX: Int,
@@ -39,59 +101,6 @@ class CollisionSpawnSystem(
                 this.getCell(x, y)?.let { action(it, x, y) }
             }
         }
-    }
-
-    override fun onTickEntity(entity: Entity) {}
-
-    override fun handle(event: Event): Boolean {
-        when (event) {
-            is MapChangedEvent -> {
-                event.map.layers.get("collisionBoxes").apply {
-                    objects.forEach { mapObject ->
-                        world.entity{
-                            physicsComponentFromShape2D(
-                                phyWorld = phyWorld,
-                                shape = mapObject.shape,
-                            )
-                        }
-                    }
-                }
-                event.map.forEachLayer<TiledMapTileLayer> { layer ->
-                    layer.forEachCell(0, 0, max(event.map.width, event.map.height)) { cell, x, y ->
-
-                        if (cell.tile.objects.isEmpty()) return@forEachCell
-
-                        cell.tile.objects.forEach { mapObject ->
-                            world.entity {
-                                physicsComponentFromShape2D(phyWorld, mapObject.shape, x, y)
-                            }
-                        }
-                    }
-                }
-
-                // draw collision border around the map
-                world.entity {
-                    val w = event.map.width
-                    val h = event.map.height
-                    PhysicComponent().apply {
-                        body = phyWorld.body(StaticBody) {
-                            position.set(0f, 0f)
-                            fixedRotation = true
-                            allowSleep = false
-                            loop(
-                                vec2(0f, 0f),
-                                vec2(w.toFloat(), 0f),
-                                vec2(w.toFloat(), h.toFloat()),
-                                vec2(0f, h.toFloat())
-                            ) {
-                                friction = 0f
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return true
     }
 
     companion object {

@@ -97,6 +97,7 @@ class PhysicComponent() : Component<PhysicComponent> {
                 this.isSensor = isSensor
                 this.userData = "IMAGE_HITBOX"
                 this.filter.categoryBits = categoryBit
+                density = 1f
             }
 
             return PhysicComponent().apply {

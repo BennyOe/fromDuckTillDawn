@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
+import io.bennyoe.systems.AnimationSortingSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.CameraSystem
@@ -31,7 +32,7 @@ class GameScreen(
     private val textureAtlas = TextureAtlas("textures/player.atlas")
     private val stage = context.inject<Stage>()
     private var tiledMap: TiledMap? = null
-    private val phyWorld = createWorld(gravity = Vector2(0f, -25.81f), true).apply {
+    private val phyWorld = createWorld(gravity = Vector2(0f, -50.81f), true).apply {
         autoClearForces = false
     }
     private val entityWorld = configureWorld {
@@ -48,6 +49,7 @@ class GameScreen(
             add(MoveSystem())
             add(AttackSystem())
             add(CameraSystem())
+            add(AnimationSortingSystem())
             add(RenderSystem())
             add(DebugSystem())
         }
@@ -79,6 +81,6 @@ class GameScreen(
     }
 
     companion object {
-        private val LOG = logger<GameScreen>()
+        private val logger = logger<GameScreen>()
     }
 }

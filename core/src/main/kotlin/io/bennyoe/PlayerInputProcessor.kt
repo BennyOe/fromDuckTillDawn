@@ -53,17 +53,24 @@ class PlayerInputProcessor(
                     isJumpKeyPressed = pressed
                 }
 
-                Action.MOVE_LEFT -> moveComponent.xDirection = if (pressed) -1f else 0f
-                Action.MOVE_RIGHT -> moveComponent.xDirection = if (pressed) 1f else 0f
                 Action.CROUCH -> moveComponent.crouchMode = pressed
                 Action.ATTACK -> attackComponent.attack = pressed
                 Action.BASH -> attackComponent.bashRequest = pressed
+                Action.MOVE_LEFT -> {
+                    moveComponent.xDirection = if (pressed) -1f else 0f
+                    moveComponent.walking = pressed
+                }
+
+                Action.MOVE_RIGHT -> {
+                    moveComponent.xDirection = if (pressed) 1f else 0f
+                    moveComponent.walking = pressed
+                }
             }
         }
     }
 
     companion object {
-        val LOG = logger<PlayerInputProcessor>()
+        val logger = logger<PlayerInputProcessor>()
     }
 
     enum class Action {

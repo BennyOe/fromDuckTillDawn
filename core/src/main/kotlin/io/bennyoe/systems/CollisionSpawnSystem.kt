@@ -104,6 +104,6 @@ class CollisionSpawnSystem(
     }
 
     companion object {
-        private val LOG = logger<CollisionSpawnSystem>()
+        private val logger = logger<CollisionSpawnSystem>()
     }
 }

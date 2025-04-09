@@ -1,0 +1,47 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "testMap.tmx",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "fire.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "groundTiles1.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "testMap.tmx": {
+            "scale": 3,
+            "selectedLayer": 8,
+            "viewCenter": {
+                "x": 120.16666666666666,
+                "y": 198.5
+            }
+        }
+    },
+    "last.imagePath": "/Users/benjamin.oechsle/private/GameDev/FromDuckTillDawn/assets/map/GandalfHardcore FREE Platformer Assets/Animated Sprites",
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "openFiles": [
+        "groundTiles1.tsx",
+        "testMap.tmx",
+        "fire.tsx"
+    ],
+    "project": "testMap.tiled-project",
+    "recentFiles": [
+        "groundTiles1.tsx",
+        "fire.tsx",
+        "testMap.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 32,
+        "width": 32
+    }
+}

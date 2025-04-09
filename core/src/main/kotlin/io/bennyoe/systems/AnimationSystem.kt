@@ -8,11 +8,11 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.AnimationCollectionComponent
 import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.MoveComponent
 import ktx.app.gdxError
 import ktx.collections.map
 import ktx.log.logger
@@ -25,13 +25,23 @@ class AnimationSystem(
     override fun onTickEntity(entity: Entity) {
 
         val aniCmp = entity[AnimationComponent]
+        val aniCollCmp = entity[AnimationCollectionComponent]
+        val moveCmp = entity[MoveComponent]
 
         with(entity[ImageComponent]) {
             flipImage = aniCmp.flipImage
             image.drawable = if (aniCmp.nextAnimationType == AnimationType.NONE) {
                 aniCmp.run {
+                    // set back to the correct LOOPED animation (e.g. IDLE, WALK) after a NORMAL one (e.g. BASH, ATTACK)
                     if (animation.playMode == PlayMode.NORMAL && animation.isAnimationFinished(stateTime)) {
-                        nextAnimation(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
+                        when {
+                            moveCmp.crouchMode &&
+                                moveCmp.walking -> aniCollCmp.animations.add(AnimationType.CROUCH_WALK)
+
+                            moveCmp.crouchMode -> aniCollCmp.animations.add(AnimationType.CROUCH_IDLE)
+                            moveCmp.walking -> aniCollCmp.animations.add(AnimationType.WALK)
+                            else -> aniCollCmp.animations.add(AnimationType.IDLE)
+                        }
                     }
                     stateTime += deltaTime
                     animation.getKeyFrame(stateTime)
@@ -67,6 +77,6 @@ class AnimationSystem(
 
     companion object {
         const val DEFAULT_FRAME_DURATION = 1 / 8f
-        private val LOG = logger<AnimationSystem>()
+        private val logger = logger<AnimationSystem>()
     }
 }

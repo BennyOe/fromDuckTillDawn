@@ -16,7 +16,7 @@ class DebugSystem(
 
     init {
         if (enabled) {
-            LOG.debug { "Debug started" }
+            logger.debug { "Debug started" }
             physicsRenderer = Box2DDebugRenderer()
         }
     }
@@ -32,6 +32,6 @@ class DebugSystem(
     }
 
     companion object {
-        private val LOG = logger<DebugSystem>()
+        private val logger = logger<DebugSystem>()
     }
 }

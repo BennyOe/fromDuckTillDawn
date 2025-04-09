@@ -31,7 +31,7 @@ class PhysicsSystem(
 
     override fun onUpdate() {
         if (phyWorld.autoClearForces) {
-            LOG.error { "AutoClearForces must be set to false" }
+            logger.error { "AutoClearForces must be set to false" }
             phyWorld.autoClearForces = false
         }
         super.onUpdate()
@@ -115,6 +115,6 @@ class PhysicsSystem(
     }
 
     companion object {
-        private val LOG = logger<PhysicsSystem>()
+        private val logger = logger<PhysicsSystem>()
     }
 }

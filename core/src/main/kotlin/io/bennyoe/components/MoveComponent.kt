@@ -14,7 +14,8 @@ data class MoveComponent(
     var jumpRequest: Boolean = false,
     var timeSinceGrounded: Float = 0f,
     val maxCoyoteTime: Float = .1f,
-    var crouchMode: Boolean = false
+    var crouchMode: Boolean = false,
+    var walking: Boolean = false
 ) : Component<MoveComponent> {
 
 

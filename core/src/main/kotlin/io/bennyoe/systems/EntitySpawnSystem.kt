@@ -14,6 +14,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.Duckee.Companion.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
+import io.bennyoe.components.AnimationCollectionComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -68,7 +69,12 @@ class EntitySpawnSystem(
                     val cfg = spawnCfg(mapObj.type!!)
                     val relativeSize = size(cfg.model , cfg.type , cfg.variant)
                     world.entity {
+                        val animationCollection = AnimationCollectionComponent()
+                        animationCollection.animations + AnimationType.IDLE
+                        it += animationCollection
+
                         val animation = AnimationComponent()
+                        // set first animation without AnimationSortingSystem because of initialization
                         animation.nextAnimation(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
                         it += animation
 
@@ -115,6 +121,6 @@ class EntitySpawnSystem(
     }
 
     companion object {
-        private val LOG = logger<EntitySpawnSystem>()
+        private val logger = logger<EntitySpawnSystem>()
     }
 }

@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
+import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.BodyDef
 import com.badlogic.gdx.physics.box2d.World
@@ -57,6 +58,7 @@ class EntitySpawnSystem(
     private fun spawnCfg(type: String): SpawnCfg = cachedCfgs.getOrPut(type) {
         when (type) {
             "playerStart" -> SpawnCfg(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
+            "enemy" -> SpawnCfg(AnimationModel.ENEMY_MUSHROOM, AnimationType.IDLE, AnimationVariant.FIRST)
             else -> gdxError("There is no spawn configuration for entity-type $type")
         }
     }
@@ -64,60 +66,102 @@ class EntitySpawnSystem(
     override fun handle(event: Event): Boolean {
         when (event) {
             is MapChangedEvent -> {
-                val entityLayer = event.map.layer("playerStart")
-                entityLayer.objects.forEach { mapObj ->
+                val playerEntityLayer = event.map.layer("playerStart")
+                playerEntityLayer.objects.forEach { mapObj ->
                     val cfg = spawnCfg(mapObj.type!!)
-                    val relativeSize = size(cfg.model , cfg.type , cfg.variant)
-                    world.entity {
-                        val animationCollection = AnimationCollectionComponent()
-                        animationCollection.animations + AnimationType.IDLE
-                        it += animationCollection
-
-                        val animation = AnimationComponent()
-                        // set first animation without AnimationSortingSystem because of initialization
-                        animation.nextAnimation(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
-                        it += animation
-
-                        val image = ImageComponent(stage, 4f, 2f).apply {
-                            image = Image().apply {
-                                setPosition(mapObj.x * UNIT_SCALE, mapObj.y * UNIT_SCALE)
-                                setSize(relativeSize.x, relativeSize.y)
-                            }
-                        }
-                        it += image
-
-                        val physics = PhysicComponent.physicsComponentFromImage(
-                            phyWorld,
-                            image.image,
-                            BodyDef.BodyType.DynamicBody,
-                            scalePhysicX = 0.2f,
-                            scalePhysicY = 0.5f,
-                            setUserdata = it,
-                        )
-
-                        // set ground collision sensor
-                        physics.body.box(physics.size.x * 0.99f, 0.01f, Vector2(0f, 0f - physics.size.y * 0.5f)) {
-                            isSensor = true
-                            userData = "GROUND_COLLISION"
-                        }
-                        it += physics
-
-                        val attack = AttackComponent()
-                        it += attack
-
-                        val move = MoveComponent()
-                        it += move
-
-                        val player = PlayerComponent()
-                        it += player
-
-                        PlayerInputProcessor(world = world)
-                    }
+                    createPlayerEntity(mapObj, cfg)
+                }
+                val enemyEntityLayer = event.map.layer("enemies")
+                enemyEntityLayer.objects.forEach { enemyObj ->
+                    val cfg = spawnCfg(enemyObj.type!!)
+                    createEnemyEntity(enemyObj, cfg)
                 }
                 return true
             }
         }
         return false
+    }
+
+    private fun createEnemyEntity(enemyObj: MapObject, cfg: SpawnCfg) {
+        val relativeSize = size(cfg.model, cfg.type, cfg.variant)
+        world.entity {
+            val animationCollection = AnimationCollectionComponent()
+            animationCollection.animations + AnimationType.IDLE
+            it += animationCollection
+
+            val animation = AnimationComponent()
+            animation.nextAnimation(cfg.model, cfg.type, cfg.variant)
+            it += animation
+
+            val image = ImageComponent(stage, 3f, 3f).apply {
+                image = Image().apply {
+                    setPosition(enemyObj.x * UNIT_SCALE, enemyObj.y * UNIT_SCALE)
+                    setSize(relativeSize.x, relativeSize.y)
+                }
+            }
+            it += image
+
+            val physic = PhysicComponent.physicsComponentFromImage(
+                phyWorld,
+                image.image,
+                BodyDef.BodyType.DynamicBody,
+                scalePhysicX = 0.2f,
+                scalePhysicY = 0.4f,
+                offsetY = -0.8f,
+                myFriction = 0f
+            )
+
+            it += physic
+
+        }
+    }
+
+    private fun createPlayerEntity(mapObj: MapObject, cfg: SpawnCfg) {
+        val relativeSize = size(cfg.model, cfg.type, cfg.variant)
+        world.entity {
+            val animationCollection = AnimationCollectionComponent()
+            animationCollection.animations + AnimationType.IDLE
+            it += animationCollection
+
+            val animation = AnimationComponent()
+            // set first animation without AnimationSortingSystem because of initialization
+            animation.nextAnimation(cfg.model, cfg.type, cfg.variant)
+            it += animation
+
+            val image = ImageComponent(stage, 4f, 2f).apply {
+                image = Image().apply {
+                    setPosition(mapObj.x * UNIT_SCALE, mapObj.y * UNIT_SCALE)
+                    setSize(relativeSize.x, relativeSize.y)
+                }
+            }
+            it += image
+
+            val physics = PhysicComponent.physicsComponentFromImage(
+                phyWorld,
+                image.image,
+                BodyDef.BodyType.DynamicBody,
+                scalePhysicX = 0.2f,
+                scalePhysicY = 0.5f,
+            )
+
+            // set ground collision sensor
+            physics.body.box(physics.size.x * 0.99f, 0.01f, Vector2(0f, 0f - physics.size.y * 0.5f)) {
+                isSensor = true
+                userData = "GROUND_COLLISION"
+            }
+            it += physics
+
+            val attack = AttackComponent()
+            it += attack
+
+            val move = MoveComponent()
+            it += move
+
+            val player = PlayerComponent()
+            it += player
+
+            PlayerInputProcessor(world = world)
+        }
     }
 
     companion object {

@@ -77,7 +77,8 @@ class PhysicComponent() : Component<PhysicComponent> {
             fixedRotation: Boolean = true,
             allowSleep: Boolean = true,
             isSensor: Boolean = false,
-            setUserdata: Entity? = null
+            setUserdata: Entity? = null,
+            myFriction: Float = 1f
         ): PhysicComponent {
             val x = image.x
             val y = image.y
@@ -98,6 +99,7 @@ class PhysicComponent() : Component<PhysicComponent> {
                 this.userData = "IMAGE_HITBOX"
                 this.filter.categoryBits = categoryBit
                 density = 1f
+                friction = myFriction
             }
 
             return PhysicComponent().apply {

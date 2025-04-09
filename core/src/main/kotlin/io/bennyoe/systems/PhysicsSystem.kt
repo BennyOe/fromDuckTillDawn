@@ -45,16 +45,16 @@ class PhysicsSystem(
 
     override fun onTickEntity(entity: Entity) {
         val physicCmp = entity[PhysicComponent]
-        val moveCmp = entity[MoveComponent]
-        val playerEntity = physicCmp.body.userData as Entity
+        val moveCmp = entity.getOrNull(MoveComponent)
+
+        setGroundContact(entity)
 
         physicCmp.prevPos.set(physicCmp.body.position)
 
-        setGroundContact(playerEntity)
 
         if (!physicCmp.impulse.isZero) {
             physicCmp.body.applyLinearImpulse(physicCmp.impulse, physicCmp.body.worldCenter, true)
-            moveCmp.jumpRequest = false
+            moveCmp?.jumpRequest = false
             physicCmp.impulse.setZero()
         }
     }

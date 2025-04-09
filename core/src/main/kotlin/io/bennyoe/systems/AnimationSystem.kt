@@ -23,31 +23,37 @@ class AnimationSystem(
     private val cachedAnimations = mutableMapOf<String, Animation<TextureRegionDrawable>>()
 
     override fun onTickEntity(entity: Entity) {
-
         val aniCmp = entity[AnimationComponent]
         val aniCollCmp = entity[AnimationCollectionComponent]
-        val moveCmp = entity[MoveComponent]
+        val moveCmp = entity.getOrNull(MoveComponent)
 
         with(entity[ImageComponent]) {
             flipImage = aniCmp.flipImage
             image.drawable = if (aniCmp.nextAnimationType == AnimationType.NONE) {
                 aniCmp.run {
-                    // set back to the correct LOOPED animation (e.g. IDLE, WALK) after a NORMAL one (e.g. BASH, ATTACK)
-                    if (animation.playMode == PlayMode.NORMAL && animation.isAnimationFinished(stateTime)) {
-                        when {
-                            moveCmp.crouchMode &&
-                                moveCmp.walking -> aniCollCmp.animations.add(AnimationType.CROUCH_WALK)
-
-                            moveCmp.crouchMode -> aniCollCmp.animations.add(AnimationType.CROUCH_IDLE)
-                            moveCmp.walking -> aniCollCmp.animations.add(AnimationType.WALK)
-                            else -> aniCollCmp.animations.add(AnimationType.IDLE)
-                        }
-                    }
+                    setBackLoopedAnimation(moveCmp, aniCollCmp)
                     stateTime += deltaTime
                     animation.getKeyFrame(stateTime)
                 }
             } else {
                 applyNextAnimation(aniCmp)
+            }
+        }
+    }
+
+    // set back to the correct LOOPED animation (e.g. IDLE, WALK) after a NORMAL one (e.g. BASH, ATTACK)
+    private fun AnimationComponent.setBackLoopedAnimation(
+        moveCmp: MoveComponent?,
+        aniCollCmp: AnimationCollectionComponent
+    ) {
+        if (moveCmp != null && animation.playMode == PlayMode.NORMAL && animation.isAnimationFinished(stateTime)) {
+            when {
+                moveCmp.crouchMode &&
+                    moveCmp.walking -> aniCollCmp.animations.add(AnimationType.CROUCH_WALK)
+
+                moveCmp.crouchMode -> aniCollCmp.animations.add(AnimationType.CROUCH_IDLE)
+                moveCmp.walking -> aniCollCmp.animations.add(AnimationType.WALK)
+                else -> aniCollCmp.animations.add(AnimationType.IDLE)
             }
         }
     }

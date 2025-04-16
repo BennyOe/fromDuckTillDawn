@@ -37,12 +37,13 @@ tba
 ### Assets
 
 - [x] Main character
+- [x] Mushroom
 
 ### Player
 
 - [ ] Movement
     - [x] Jumping
-    - [ ] Ducking
+    - [x] Ducking
     - [x] Running
     - [x] Attacking
 

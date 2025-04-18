@@ -24,7 +24,7 @@ class AnimationSortingSystem : IteratingSystem(family { all(AnimationCollectionC
             animCmp.currentAnimation.canInterrupt
         ) {
 
-        logger.debug { "list ${animColCmp.animations.firstOrNull()}}" }
+//        logger.debug { "list ${animColCmp.animations.firstOrNull()}}" }
             animCmp.nextAnimation(AnimationModel.PLAYER_DAWN, newAnimation, AnimationVariant.FIRST)
             animCmp.currentAnimation = newAnimation
         }

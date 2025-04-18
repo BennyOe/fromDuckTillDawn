@@ -7,8 +7,10 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.configureWorld
+import io.bennyoe.components.InputComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
+import io.bennyoe.systems.AiSystem
 import io.bennyoe.systems.AnimationSortingSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
@@ -51,6 +53,7 @@ class GameScreen(
             add(CameraSystem())
             add(AnimationSortingSystem())
             add(RenderSystem())
+            add(AiSystem())
             add(DebugSystem())
         }
     }
@@ -59,13 +62,18 @@ class GameScreen(
 
         // this adds all EventListenerSystems also to Scene2D
         entityWorld.systems.forEach { system ->
-            if (system is EventListener){
+            if (system is EventListener) {
                 stage.addListener(system)
             }
         }
 
         tiledMap = TmxMapLoader().load("map/testMap.tmx") // map gets loaded
         stage.fire(MapChangedEvent(tiledMap!!)) // mapChangeEvent gets fired
+
+        entityWorld.entity {
+            val inputComponent = InputComponent()
+            it += inputComponent
+        }
 
         super.show()
     }

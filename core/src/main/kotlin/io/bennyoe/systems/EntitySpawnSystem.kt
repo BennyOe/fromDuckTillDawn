@@ -15,6 +15,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.Duckee.Companion.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
+import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationCollectionComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
@@ -27,6 +28,7 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnCfg
 import io.bennyoe.components.SpawnComponent
+import io.bennyoe.components.StateContext
 import io.bennyoe.event.MapChangedEvent
 import ktx.app.gdxError
 import ktx.box2d.box
@@ -143,7 +145,6 @@ class EntitySpawnSystem(
                 scalePhysicX = 0.2f,
                 scalePhysicY = 0.5f,
             )
-
             // set ground collision sensor
             physics.body.box(physics.size.x * 0.99f, 0.01f, Vector2(0f, 0f - physics.size.y * 0.5f)) {
                 isSensor = true
@@ -159,6 +160,10 @@ class EntitySpawnSystem(
 
             val player = PlayerComponent()
             it += player
+
+            val ai = AiComponent(world)
+            ai.context = StateContext(animation, physics, move, ai)
+            it += ai
 
             PlayerInputProcessor(world = world)
         }

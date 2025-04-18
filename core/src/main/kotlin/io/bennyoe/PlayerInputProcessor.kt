@@ -3,9 +3,7 @@ package io.bennyoe
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Keys
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.AttackComponent
-import io.bennyoe.components.MoveComponent
-import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.InputComponent
 import ktx.app.KtxInputAdapter
 import ktx.log.logger
 
@@ -13,8 +11,7 @@ class PlayerInputProcessor(
     world: World
 ) : KtxInputAdapter {
 
-    private val playerEntities = world.family { all(PlayerComponent) }
-    private var isJumpKeyPressed = false
+    private val inputEntities = world.family { all(InputComponent) }
 
     // Mapping der Steuerungstasten zu Aktionen
     private val keyActions = mapOf(
@@ -41,30 +38,15 @@ class PlayerInputProcessor(
     }
 
     private fun handleAction(action: Action, pressed: Boolean) {
-        playerEntities.forEach { playerEntity ->
-            val moveComponent = playerEntity[MoveComponent]
-            val attackComponent = playerEntity[AttackComponent]
-
+        inputEntities.forEach { input ->
+            val inputComponent = input[InputComponent]
             when (action) {
-                Action.JUMP -> {
-                    if (pressed && !isJumpKeyPressed) {
-                        moveComponent.jumpRequest = true
-                    }
-                    isJumpKeyPressed = pressed
-                }
-
-                Action.CROUCH -> moveComponent.crouchMode = pressed
-                Action.ATTACK -> attackComponent.attack = pressed
-                Action.BASH -> attackComponent.bashRequest = pressed
-                Action.MOVE_LEFT -> {
-                    moveComponent.xDirection = if (pressed) -1f else 0f
-                    moveComponent.walking = pressed
-                }
-
-                Action.MOVE_RIGHT -> {
-                    moveComponent.xDirection = if (pressed) 1f else 0f
-                    moveComponent.walking = pressed
-                }
+                Action.JUMP -> inputComponent.jump = pressed
+                Action.CROUCH -> inputComponent.crouch = pressed
+                Action.ATTACK -> inputComponent.attack = pressed
+                Action.BASH -> inputComponent.bash = pressed
+                Action.MOVE_LEFT -> inputComponent.xDirection = if (pressed) -1f else 0f
+                Action.MOVE_RIGHT -> inputComponent.xDirection = if (pressed) 1f else 0f
             }
         }
     }

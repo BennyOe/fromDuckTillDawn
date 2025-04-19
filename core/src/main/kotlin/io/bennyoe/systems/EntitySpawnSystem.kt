@@ -23,6 +23,7 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.InputComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
@@ -121,6 +122,9 @@ class EntitySpawnSystem(
     private fun createPlayerEntity(mapObj: MapObject, cfg: SpawnCfg) {
         val relativeSize = size(cfg.model, cfg.type, cfg.variant)
         world.entity {
+            val input = InputComponent()
+            it += input
+
             val animationCollection = AnimationCollectionComponent()
             animationCollection.animations + AnimationType.IDLE
             it += animationCollection
@@ -162,7 +166,7 @@ class EntitySpawnSystem(
             it += player
 
             val ai = AiComponent(world)
-            ai.context = StateContext(animation, physics, move, ai)
+            ai.context = StateContext(animation, physics, move, input, ai)
             it += ai
 
             PlayerInputProcessor(world = world)

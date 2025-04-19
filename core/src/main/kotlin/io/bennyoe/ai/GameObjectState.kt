@@ -17,12 +17,23 @@ sealed class GameObjectState : State<StateContext> {
         }
 
         override fun update(context: StateContext) {
-            if (context.aiComponent.nextStateIntent == JUMP) {
+            if (context.inputComponent.jump) {
                 context.aiComponent.stateMachine.changeState(JUMP)
             }
-            if (context.aiComponent.nextStateIntent == CROUCH) {
-                context.aiComponent.stateMachine.changeState(CROUCH)
+            if (context.inputComponent.crouch) {
+                context.aiComponent.stateMachine.changeState(CROUCH_IDLE)
             }
+        }
+    }
+
+    data object WALK : GameObjectState() {
+        override fun enter(context: StateContext) {
+            logger.debug { "Entering WALK" }
+            animation(context, AnimationType.WALK)
+        }
+
+        override fun update(context: StateContext) {
+            // TODO NOT IMPLEMENTED
         }
     }
 
@@ -34,29 +45,110 @@ sealed class GameObjectState : State<StateContext> {
 
         override fun update(context: StateContext) {
             if (context.animationComponent.animation.isAnimationFinished(context.animationComponent.stateTime)) {
-                if (context.aiComponent.nextStateIntent == IDLE) {
+                if (!context.inputComponent.jump) {
                     context.aiComponent.stateMachine.changeState(IDLE)
                 }
             }
         }
     }
 
-    data object CROUCH : GameObjectState() {
+    data object DOUBLE_JUMP : GameObjectState() {
         override fun enter(context: StateContext) {
-            logger.debug { "Entering Crouch" }
+            logger.debug { "Entering DOUBLE_JUMP" }
+            animation(context, AnimationType.JUMP)
+        }
+
+        override fun update(context: StateContext) {
+            // TODO NOT IMPLEMENTED
+        }
+    }
+
+    data object FALL : GameObjectState() {
+        override fun enter(context: StateContext) {
+            logger.debug { "Entering FALL" }
+            animation(context, AnimationType.CROUCH_IDLE)
+        }
+
+        override fun update(context: StateContext) {
+            // TODO NOT IMPLEMENTED
+        }
+    }
+
+    data object CROUCH_IDLE : GameObjectState() {
+        override fun enter(context: StateContext) {
+            logger.debug { "Entering CROUCH_IDLE" }
             animation(context, AnimationType.CROUCH_IDLE)
         }
 
         override fun update(context: StateContext) {
             if (context.animationComponent.animation.isAnimationFinished(context.animationComponent.stateTime)) {
-                if (context.aiComponent.nextStateIntent == IDLE) {
+                if (!context.inputComponent.crouch) {
                     context.aiComponent.stateMachine.changeState(IDLE)
                 }
             }
         }
     }
 
-    fun animation(context: StateContext, type: AnimationType, playMode: Animation.PlayMode = Animation.PlayMode.LOOP) {
+    data object CROUCH_WALK : GameObjectState() {
+        override fun enter(context: StateContext) {
+            logger.debug { "Entering CROUCH_WALK" }
+            animation(context, AnimationType.CROUCH_WALK)
+        }
+
+        override fun update(context: StateContext) {
+            // TODO NOT IMPLEMENTED
+        }
+    }
+
+    data object ATTACK_1 : GameObjectState() {
+        override fun enter(context: StateContext) {
+            logger.debug { "Entering ATTACK_1" }
+            animation(context, AnimationType.ATTACK)
+        }
+
+        override fun update(context: StateContext) {
+            // TODO NOT IMPLEMENTED
+        }
+    }
+
+    data object ATTACK_2 : GameObjectState() {
+        override fun enter(context: StateContext) {
+            logger.debug { "Entering ATTACK_2" }
+            animation(context, AnimationType.ATTACK, variant = AnimationVariant.SECOND)
+        }
+
+        override fun update(context: StateContext) {
+            // TODO NOT IMPLEMENTED
+        }
+    }
+
+    data object ATTACK3 : GameObjectState() {
+        override fun enter(context: StateContext) {
+            logger.debug { "Entering ATTACK_3" }
+            animation(context, AnimationType.ATTACK, variant = AnimationVariant.THIRD)
+        }
+
+        override fun update(context: StateContext) {
+            // TODO NOT IMPLEMENTED
+        }
+    }
+
+    data object BASH : GameObjectState() {
+        override fun enter(context: StateContext) {
+            logger.debug { "Entering BASH" }
+            animation(context, AnimationType.BASH)
+        }
+
+        override fun update(context: StateContext) {
+            // TODO NOT IMPLEMENTED
+        }
+    }
+    fun animation(
+        context: StateContext,
+        type: AnimationType,
+        playMode: Animation.PlayMode = Animation.PlayMode.LOOP,
+        variant: AnimationVariant = AnimationVariant.FIRST,
+    ) {
         context.animationComponent.nextAnimation(AnimationModel.PLAYER_DAWN, type, AnimationVariant.FIRST)
         context.animationComponent.animation.playMode = playMode
     }

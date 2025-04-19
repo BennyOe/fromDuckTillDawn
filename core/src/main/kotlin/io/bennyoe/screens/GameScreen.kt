@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.components.InputComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.systems.AiSystem
@@ -69,11 +68,6 @@ class GameScreen(
 
         tiledMap = TmxMapLoader().load("map/testMap.tmx") // map gets loaded
         stage.fire(MapChangedEvent(tiledMap!!)) // mapChangeEvent gets fired
-
-        entityWorld.entity {
-            val inputComponent = InputComponent()
-            it += inputComponent
-        }
 
         super.show()
     }

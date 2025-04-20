@@ -20,6 +20,7 @@ import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.EntitySpawnSystem
+import io.bennyoe.systems.JumpSystem
 import ktx.app.KtxScreen
 import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
@@ -47,12 +48,13 @@ class GameScreen(
             add(EntitySpawnSystem())
             add(CollisionSpawnSystem())
             add(PhysicsSystem())
+            add(AiSystem())
             add(MoveSystem())
             add(AttackSystem())
             add(CameraSystem())
+            add(JumpSystem(phyWorld))
             add(AnimationSortingSystem())
             add(RenderSystem())
-            add(AiSystem())
             add(DebugSystem())
         }
     }

@@ -5,18 +5,18 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.ai.GameObjectState
+import io.bennyoe.ai.PlayerFSM
+import io.bennyoe.ai.StateContext
 
 data class AiComponent(
     val world: World,
     var stateTime: Float = 0f,
-    val stateMachine: DefaultStateMachine<StateContext, GameObjectState> = DefaultStateMachine(),
+    val stateMachine: DefaultStateMachine<StateContext, PlayerFSM> = DefaultStateMachine(),
 ) : Component<AiComponent> {
-    lateinit var context: StateContext
 
     override fun World.onAdd(entity: Entity) {
-        stateMachine.owner = context
-        stateMachine.setInitialState(GameObjectState.IDLE)
+        stateMachine.owner = StateContext(entity, world)
+        stateMachine.setInitialState(PlayerFSM.IDLE)
     }
 
     override fun type() = AiComponent
@@ -25,11 +25,3 @@ data class AiComponent(
         val logger = ktx.log.logger<AiComponent>()
     }
 }
-
-data class StateContext(
-    val animationComponent: AnimationComponent,
-    val physicComponent: PhysicComponent,
-    val moveComponent: MoveComponent,
-    val inputComponent: InputComponent,
-    val aiComponent: AiComponent,
-)

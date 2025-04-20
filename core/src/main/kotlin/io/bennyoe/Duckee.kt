@@ -25,5 +25,6 @@ class Duckee : KtxGame<KtxScreen>() {
     }
     companion object {
         const val UNIT_SCALE = 1 / 16f
+        const val PHYSIC_TIME_STEP = 1 / 45f
     }
 }

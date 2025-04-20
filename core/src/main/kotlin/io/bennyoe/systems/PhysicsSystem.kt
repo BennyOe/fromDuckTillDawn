@@ -12,8 +12,10 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.Duckee
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import ktx.log.logger
@@ -22,7 +24,7 @@ import ktx.math.component2
 
 class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
-) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(1 / 60f)), ContactListener {
+) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(Duckee.PHYSIC_TIME_STEP)), ContactListener {
     private var activeGroundContacts: Int = 0
 
     init {
@@ -46,6 +48,16 @@ class PhysicsSystem(
     override fun onTickEntity(entity: Entity) {
         val physicCmp = entity[PhysicComponent]
         val moveCmp = entity.getOrNull(MoveComponent)
+        val jumpComponent = entity.getOrNull(JumpComponent)
+
+        jumpComponent?.let { jump ->
+            physicCmp.impulse.y = physicCmp.body.mass * (jump.jumpVelocity - physicCmp.body.linearVelocity.y)
+            entity.configure { it -= JumpComponent }
+        }
+
+        moveCmp?.let {
+            physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity - physicCmp.body.linearVelocity.x)
+        }
 
         setGroundContact(entity)
 
@@ -54,7 +66,6 @@ class PhysicsSystem(
 
         if (!physicCmp.impulse.isZero) {
             physicCmp.body.applyLinearImpulse(physicCmp.impulse, physicCmp.body.worldCenter, true)
-            moveCmp?.jumpRequest = false
             physicCmp.impulse.setZero()
         }
     }

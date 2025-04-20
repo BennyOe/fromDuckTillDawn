@@ -29,7 +29,6 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnCfg
 import io.bennyoe.components.SpawnComponent
-import io.bennyoe.components.StateContext
 import io.bennyoe.event.MapChangedEvent
 import ktx.app.gdxError
 import ktx.box2d.box
@@ -166,7 +165,6 @@ class EntitySpawnSystem(
             it += player
 
             val ai = AiComponent(world)
-            ai.context = StateContext(animation, physics, move, input, ai)
             it += ai
 
             PlayerInputProcessor(world = world)

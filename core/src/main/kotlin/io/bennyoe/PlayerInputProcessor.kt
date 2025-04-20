@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Keys
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.WalkDirection
 import ktx.app.KtxInputAdapter
 import ktx.log.logger
 
@@ -41,12 +42,12 @@ class PlayerInputProcessor(
         inputEntities.forEach { input ->
             val inputComponent = input[InputComponent]
             when (action) {
-                Action.JUMP -> inputComponent.jump = pressed
+                Action.JUMP -> inputComponent.jumpJustPressed = pressed
                 Action.CROUCH -> inputComponent.crouch = pressed
-                Action.ATTACK -> inputComponent.attack = pressed
-                Action.BASH -> inputComponent.bash = pressed
-                Action.MOVE_LEFT -> inputComponent.xDirection = if (pressed) -1f else 0f
-                Action.MOVE_RIGHT -> inputComponent.xDirection = if (pressed) 1f else 0f
+                Action.ATTACK -> inputComponent.attackJustPressed = pressed
+                Action.BASH -> inputComponent.bashJustPressed = pressed
+                Action.MOVE_LEFT -> inputComponent.direction = if (pressed) WalkDirection.LEFT else WalkDirection.NONE
+                Action.MOVE_RIGHT -> inputComponent.direction = if (pressed) WalkDirection.RIGHT else WalkDirection.NONE
             }
         }
     }

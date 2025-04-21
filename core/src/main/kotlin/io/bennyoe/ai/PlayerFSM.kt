@@ -9,9 +9,9 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.WalkDirection
 
 sealed class PlayerFSM : State<StateContext> {
-    protected fun shouldJump(ctx: StateContext) = ctx.inputComponent.jumpJustPressed
-    protected fun shouldWalk(ctx: StateContext) = ctx.inputComponent.direction != WalkDirection.NONE
     protected fun shouldIdle(ctx: StateContext) = ctx.inputComponent.direction == WalkDirection.NONE
+    protected fun shouldWalk(ctx: StateContext) = ctx.inputComponent.direction != WalkDirection.NONE
+    protected fun shouldJump(ctx: StateContext) = ctx.inputComponent.jumpJustPressed
     protected fun shouldFall(ctx: StateContext) = ctx.physicComponent.body.linearVelocity.y < 0
     protected fun shouldCrouch(ctx: StateContext) = ctx.inputComponent.crouch
     protected fun shouldAttack(ctx: StateContext) = ctx.inputComponent.attackJustPressed

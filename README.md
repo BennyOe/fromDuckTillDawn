@@ -26,6 +26,7 @@ tba
 - [x] Set up git
 - [x] Viewport and resize
 - [x] ECS
+- [x] FSM
 - [ ] Asset manager
 - [ ] Soundsystem
 - [x] Scene2d
@@ -46,6 +47,11 @@ tba
     - [x] Ducking
     - [x] Running
     - [x] Attacking
+    - [x] Idle
+    - [ ] Falling
+    - [ ] Dying
+    - [ ] Hurt
+    - [x] Bash
 
 ### Enemies
 

@@ -20,11 +20,6 @@ class AiSystem : IteratingSystem(family { all(AiComponent) }) {
         aiComponent.stateMachine.update()
     }
 
-    override fun onUpdate() {
-        GdxAI.getTimepiece().update(deltaTime)
-        super.onUpdate()
-    }
-
     companion object {
         val logger = ktx.log.logger<AiSystem>()
     }

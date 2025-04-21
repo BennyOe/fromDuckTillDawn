@@ -36,8 +36,24 @@ dependencies {
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
   api "io.github.quillraven.fleks:Fleks-jvm:$fleksVersion"
+// Test Setup
+  testImplementation "org.jetbrains.kotlin:kotlin-test-junit5"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.2"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.2"
+
+  testImplementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+  testImplementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+  testImplementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+  testImplementation files(rootProject.file('assets').path)
 
   if (enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
+  }
+}
+
+test {
+  useJUnitPlatform()
+  testLogging {
+    events "passed", "skipped", "failed"
   }
 }

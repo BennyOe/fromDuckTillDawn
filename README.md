@@ -19,6 +19,10 @@ tba
 - [x] Fix the jump animation
 - [x] Play the attack animation one time
 - [x] create a bash animation
+- [ ] create a animation debug screen
+- [ ] create unit tests
+- [ ] create a debug label with state for entities
+- [ ] create a enable/disable debug mode key switch
 
 ### Basic setup
 

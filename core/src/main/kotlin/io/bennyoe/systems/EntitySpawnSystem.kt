@@ -21,7 +21,6 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
-import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.MoveComponent
@@ -154,9 +153,6 @@ class EntitySpawnSystem(
                 userData = "GROUND_COLLISION"
             }
             it += physics
-
-            val attack = AttackComponent()
-            it += attack
 
             val move = MoveComponent()
             it += move

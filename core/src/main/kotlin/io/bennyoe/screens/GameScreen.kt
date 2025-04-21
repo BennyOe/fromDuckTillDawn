@@ -12,7 +12,6 @@ import io.bennyoe.event.fire
 import io.bennyoe.systems.AiSystem
 import io.bennyoe.systems.AnimationSortingSystem
 import io.bennyoe.systems.AnimationSystem
-import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DebugSystem
@@ -50,7 +49,6 @@ class GameScreen(
             add(PhysicsSystem())
             add(AiSystem())
             add(MoveSystem())
-            add(AttackSystem())
             add(CameraSystem())
             add(JumpSystem(phyWorld))
             add(AnimationSortingSystem())

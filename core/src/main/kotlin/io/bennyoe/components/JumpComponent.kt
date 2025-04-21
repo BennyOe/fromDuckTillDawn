@@ -5,10 +5,7 @@ import com.github.quillraven.fleks.ComponentType
 
 class JumpComponent(
     var jumpVelocity: Float = 0f,
-    var maxHeight: Float = 2f,
-    var jumpCounter: Int = 0,
-    var timeSinceGrounded: Float = 0f,
-    val maxCoyoteTime: Float = .1f,
+    var maxHeight: Float = 3f,
 ) : Component<JumpComponent> {
     override fun type() = JumpComponent
 

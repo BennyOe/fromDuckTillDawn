@@ -13,6 +13,8 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.Duckee
+import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.JumpComponent
@@ -48,9 +50,11 @@ class PhysicsSystem(
     override fun onTickEntity(entity: Entity) {
         val physicCmp = entity[PhysicComponent]
         val moveCmp = entity.getOrNull(MoveComponent)
-        val jumpComponent = entity.getOrNull(JumpComponent)
+        val jumpCmp = entity.getOrNull(JumpComponent)
+        val bashCmp = entity.getOrNull(BashComponent)
+        val animationCmp = entity[AnimationComponent]
 
-        jumpComponent?.let { jump ->
+        jumpCmp?.let { jump ->
             physicCmp.impulse.y = physicCmp.body.mass * (jump.jumpVelocity - physicCmp.body.linearVelocity.y)
             entity.configure { it -= JumpComponent }
         }
@@ -59,12 +63,23 @@ class PhysicsSystem(
             physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity - physicCmp.body.linearVelocity.x)
         }
 
+        bashCmp?.let {
+            val inverse = if (animationCmp.flipImage) -1 else 1
+            physicCmp.impulse.x = inverse * physicCmp.body.mass * bashCmp.bashPower
+            if (bashCmp.bashCooldown <= 0) {
+                entity.configure { it -= BashComponent }
+            } else {
+                bashCmp.bashCooldown -= deltaTime
+            }
+        }
+
         setGroundContact(entity)
 
         physicCmp.prevPos.set(physicCmp.body.position)
 
 
         if (!physicCmp.impulse.isZero) {
+            logger.debug { "impulse ${physicCmp.impulse}" }
             physicCmp.body.applyLinearImpulse(physicCmp.impulse, physicCmp.body.worldCenter, true)
             physicCmp.impulse.setZero()
         }

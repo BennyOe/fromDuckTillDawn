@@ -2,29 +2,36 @@ package io.bennyoe.ai
 
 import com.badlogic.gdx.ai.fsm.State
 import com.badlogic.gdx.ai.msg.Telegram
-import com.badlogic.gdx.graphics.g2d.Animation
-import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.BashComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.WalkDirection
 
 sealed class PlayerFSM : State<StateContext> {
+    protected fun shouldJump(ctx: StateContext) = ctx.inputComponent.jumpJustPressed
+    protected fun shouldWalk(ctx: StateContext) = ctx.inputComponent.direction != WalkDirection.NONE
+    protected fun shouldIdle(ctx: StateContext) = ctx.inputComponent.direction == WalkDirection.NONE
+    protected fun shouldFall(ctx: StateContext) = ctx.physicComponent.body.linearVelocity.y < 0
+    protected fun shouldCrouch(ctx: StateContext) = ctx.inputComponent.crouch
+    protected fun shouldAttack(ctx: StateContext) = ctx.inputComponent.attackJustPressed
+    protected fun shouldAttack2(ctx: StateContext) = ctx.inputComponent.attack2JustPressed
+    protected fun shouldAttack3(ctx: StateContext) = ctx.inputComponent.attack3JustPressed
+    protected fun shouldBash(ctx: StateContext) = ctx.inputComponent.bashJustPressed
+
     data object IDLE : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering IDLE" }
-            animation(ctx, AnimationType.IDLE)
+            ctx.setAnimation(AnimationType.IDLE)
         }
 
         override fun update(ctx: StateContext) {
-            if (ctx.inputComponent.jumpJustPressed) {
-                ctx.aiComponent.stateMachine.changeState(JUMP)
-            }
-            if (ctx.inputComponent.crouch) {
-                ctx.aiComponent.stateMachine.changeState(CROUCH_IDLE)
-            }
-            if (ctx.inputComponent.direction != WalkDirection.NONE) {
-                ctx.aiComponent.stateMachine.changeState(WALK)
+            when {
+                shouldJump(ctx) -> ctx.changeState(JUMP)
+                shouldCrouch(ctx) -> ctx.changeState(CROUCH_IDLE)
+                shouldWalk(ctx) -> ctx.changeState(WALK)
+                shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
+                shouldBash(ctx) -> ctx.changeState(BASH)
             }
         }
     }
@@ -32,15 +39,14 @@ sealed class PlayerFSM : State<StateContext> {
     data object WALK : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering WALK" }
-            animation(ctx, AnimationType.WALK)
+            ctx.setAnimation(AnimationType.WALK)
         }
 
         override fun update(ctx: StateContext) {
-            if (ctx.inputComponent.direction == WalkDirection.NONE) {
-                ctx.aiComponent.stateMachine.changeState(IDLE)
-            }
-            if (ctx.inputComponent.jumpJustPressed){
-                ctx.aiComponent.stateMachine.changeState(JUMP)
+            when {
+                shouldIdle(ctx) -> ctx.changeState(IDLE)
+                shouldJump(ctx) -> ctx.changeState(JUMP)
+                shouldCrouch(ctx) -> ctx.changeState(CROUCH_WALK)
             }
         }
     }
@@ -49,16 +55,15 @@ sealed class PlayerFSM : State<StateContext> {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering JUMP" }
             ctx.inputComponent.jumpJustPressed = false
-            animation(ctx, AnimationType.JUMP)
+            ctx.setAnimation(AnimationType.JUMP)
             ctx.add(JumpComponent())
         }
 
         override fun update(ctx: StateContext) {
-            if (ctx.inputComponent.jumpJustPressed) {
-                ctx.aiComponent.stateMachine.changeState(DOUBLE_JUMP)
-            }
-            if (ctx.physicComponent.body.linearVelocity.y < 0) {
-                ctx.aiComponent.stateMachine.changeState(FALL)
+            when {
+                shouldBash(ctx) -> ctx.changeState(BASH)
+                shouldJump(ctx) -> ctx.changeState(DOUBLE_JUMP)
+                shouldFall(ctx) -> ctx.changeState(FALL)
             }
         }
     }
@@ -67,12 +72,13 @@ sealed class PlayerFSM : State<StateContext> {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering DOUBLE_JUMP" }
             ctx.add(JumpComponent())
-            animation(ctx, AnimationType.JUMP)
+            ctx.setAnimation(AnimationType.JUMP)
         }
 
         override fun update(ctx: StateContext) {
-            if (ctx.physicComponent.body.linearVelocity.y < 0) {
-                ctx.aiComponent.stateMachine.changeState(FALL)
+            when {
+                shouldBash(ctx) -> ctx.changeState(BASH)
+                shouldFall(ctx) -> ctx.changeState(FALL)
             }
         }
     }
@@ -80,15 +86,13 @@ sealed class PlayerFSM : State<StateContext> {
     data object FALL : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering FALL" }
-            animation(ctx, AnimationType.CROUCH_IDLE)
+            ctx.setAnimation(AnimationType.CROUCH_IDLE)
         }
 
         override fun update(ctx: StateContext) {
-            if (ctx.inputComponent.jumpJustPressed && ctx.aiComponent.stateMachine.previousState != DOUBLE_JUMP) {
-                ctx.aiComponent.stateMachine.changeState(DOUBLE_JUMP)
-            }
-            if (ctx.physicComponent.body.linearVelocity.y >= 0) {
-                ctx.aiComponent.stateMachine.changeState(IDLE)
+            when {
+                shouldJump(ctx) && ctx.aiComponent.stateMachine.previousState != DOUBLE_JUMP -> ctx.changeState(DOUBLE_JUMP)
+                !shouldFall(ctx) -> ctx.changeState(IDLE)
             }
         }
     }
@@ -96,15 +100,13 @@ sealed class PlayerFSM : State<StateContext> {
     data object CROUCH_IDLE : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering CROUCH_IDLE" }
-            animation(ctx, AnimationType.CROUCH_IDLE)
+            ctx.setAnimation(AnimationType.CROUCH_IDLE)
         }
 
         override fun update(ctx: StateContext) {
-            if (!ctx.inputComponent.crouch) {
-                ctx.aiComponent.stateMachine.changeState(IDLE)
-            }
-            if (ctx.inputComponent.direction != WalkDirection.NONE) {
-                ctx.aiComponent.stateMachine.changeState(CROUCH_WALK)
+            when {
+                shouldIdle(ctx) && !shouldCrouch(ctx) -> ctx.changeState(IDLE)
+                shouldWalk(ctx) && shouldCrouch(ctx) -> ctx.changeState(CROUCH_WALK)
             }
         }
     }
@@ -112,12 +114,13 @@ sealed class PlayerFSM : State<StateContext> {
     data object CROUCH_WALK : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering CROUCH_WALK" }
-            animation(ctx, AnimationType.CROUCH_WALK)
+            ctx.setAnimation(AnimationType.CROUCH_WALK)
         }
 
         override fun update(ctx: StateContext) {
-            if (ctx.inputComponent.direction == WalkDirection.NONE) {
-                ctx.aiComponent.stateMachine.changeState(CROUCH_IDLE)
+            when {
+                !shouldCrouch(ctx) && shouldWalk(ctx) -> ctx.changeState(WALK)
+                shouldIdle(ctx) && shouldCrouch(ctx) -> ctx.changeState(CROUCH_IDLE)
             }
         }
     }
@@ -125,55 +128,65 @@ sealed class PlayerFSM : State<StateContext> {
     data object ATTACK_1 : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering ATTACK_1" }
-            animation(ctx, AnimationType.ATTACK)
+            ctx.inputComponent.attackJustPressed = false
+            ctx.setAnimation(AnimationType.ATTACK)
         }
 
         override fun update(ctx: StateContext) {
-            // TODO NOT IMPLEMENTED
+            if (shouldAttack(ctx)) ctx.inputComponent.attack2JustPressed = true
+            if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
+                when {
+                    shouldAttack2(ctx) -> ctx.changeState(ATTACK_2)
+                    else -> ctx.changeState(ctx.aiComponent.stateMachine.previousState)
+                }
+            }
         }
     }
 
     data object ATTACK_2 : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering ATTACK_2" }
-            animation(ctx, AnimationType.ATTACK, variant = AnimationVariant.SECOND)
+            ctx.inputComponent.attack2JustPressed = false
+            ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.SECOND)
         }
 
         override fun update(ctx: StateContext) {
-            // TODO NOT IMPLEMENTED
+            if (shouldAttack(ctx)) ctx.inputComponent.attack3JustPressed = true
+            if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
+                when {
+                    shouldAttack3(ctx) -> ctx.changeState(ATTACK_3)
+                    else -> ctx.changeState(IDLE)
+                }
+            }
         }
     }
 
-    data object ATTACK3 : PlayerFSM() {
+    data object ATTACK_3 : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering ATTACK_3" }
-            animation(ctx, AnimationType.ATTACK, variant = AnimationVariant.THIRD)
+            ctx.inputComponent.attack3JustPressed = false
+            ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.THIRD)
         }
 
         override fun update(ctx: StateContext) {
-            // TODO NOT IMPLEMENTED
+            if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
+                ctx.changeState(IDLE)
+            }
         }
     }
 
     data object BASH : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering BASH" }
-            animation(ctx, AnimationType.BASH)
+            ctx.add(BashComponent())
+            ctx.setAnimation(AnimationType.BASH)
         }
 
         override fun update(ctx: StateContext) {
-            // TODO NOT IMPLEMENTED
+            if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
+                ctx.changeState(IDLE)
+            }
         }
-    }
-
-    fun animation(
-        ctx: StateContext,
-        type: AnimationType,
-        playMode: Animation.PlayMode = Animation.PlayMode.LOOP,
-        variant: AnimationVariant = AnimationVariant.FIRST,
-    ) {
-        ctx.animationComponent.nextAnimation(AnimationModel.PLAYER_DAWN, type, variant)
-        ctx.animationComponent.animation.playMode = playMode
     }
 
     override fun enter(ctx: StateContext) = Unit

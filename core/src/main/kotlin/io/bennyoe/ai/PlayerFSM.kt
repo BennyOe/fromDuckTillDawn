@@ -44,6 +44,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldIdle(ctx) -> ctx.changeState(IDLE)
                 shouldJump(ctx) -> ctx.changeState(JUMP)
                 shouldCrouch(ctx) -> ctx.changeState(CROUCH_WALK)
@@ -91,6 +92,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldJump(ctx) && ctx.aiComponent.stateMachine.previousState != DOUBLE_JUMP -> ctx.changeState(DOUBLE_JUMP)
                 !shouldFall(ctx) -> ctx.changeState(IDLE)
             }

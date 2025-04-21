@@ -54,15 +54,25 @@ class PhysicsSystem(
         val bashCmp = entity.getOrNull(BashComponent)
         val animationCmp = entity[AnimationComponent]
 
-        jumpCmp?.let { jump ->
-            physicCmp.impulse.y = physicCmp.body.mass * (jump.jumpVelocity - physicCmp.body.linearVelocity.y)
-            entity.configure { it -= JumpComponent }
-        }
+        setJumpImpulse(jumpCmp, physicCmp, entity)
+        setWalkImpulse(moveCmp, physicCmp)
+        setBashImpulse(bashCmp, animationCmp, physicCmp, entity)
+        setGroundContact(entity)
 
-        moveCmp?.let {
-            physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity - physicCmp.body.linearVelocity.x)
-        }
+        physicCmp.prevPos.set(physicCmp.body.position)
 
+        if (!physicCmp.impulse.isZero) {
+            physicCmp.body.applyLinearImpulse(physicCmp.impulse, physicCmp.body.worldCenter, true)
+            physicCmp.impulse.setZero()
+        }
+    }
+
+    private fun setBashImpulse(
+        bashCmp: BashComponent?,
+        animationCmp: AnimationComponent,
+        physicCmp: PhysicComponent,
+        entity: Entity
+    ) {
         bashCmp?.let {
             val inverse = if (animationCmp.flipImage) -1 else 1
             physicCmp.impulse.x = inverse * physicCmp.body.mass * bashCmp.bashPower
@@ -72,16 +82,22 @@ class PhysicsSystem(
                 bashCmp.bashCooldown -= deltaTime
             }
         }
+    }
 
-        setGroundContact(entity)
+    private fun setWalkImpulse(moveCmp: MoveComponent?, physicCmp: PhysicComponent) {
+        moveCmp?.let {
+            physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity - physicCmp.body.linearVelocity.x)
+        }
+    }
 
-        physicCmp.prevPos.set(physicCmp.body.position)
-
-
-        if (!physicCmp.impulse.isZero) {
-            logger.debug { "impulse ${physicCmp.impulse}" }
-            physicCmp.body.applyLinearImpulse(physicCmp.impulse, physicCmp.body.worldCenter, true)
-            physicCmp.impulse.setZero()
+    private fun setJumpImpulse(
+        jumpCmp: JumpComponent?,
+        physicCmp: PhysicComponent,
+        entity: Entity
+    ) {
+        jumpCmp?.let { jump ->
+            physicCmp.impulse.y = physicCmp.body.mass * (jump.jumpVelocity - physicCmp.body.linearVelocity.y)
+            entity.configure { it -= JumpComponent }
         }
     }
 

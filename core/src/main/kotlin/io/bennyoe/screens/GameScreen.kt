@@ -10,7 +10,6 @@ import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.systems.AiSystem
-import io.bennyoe.systems.AnimationSortingSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
@@ -51,7 +50,6 @@ class GameScreen(
             add(MoveSystem())
             add(CameraSystem())
             add(JumpSystem(phyWorld))
-            add(AnimationSortingSystem())
             add(RenderSystem())
             add(DebugSystem())
         }

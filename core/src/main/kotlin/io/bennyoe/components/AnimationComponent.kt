@@ -12,7 +12,6 @@ class AnimationComponent(
 ) : Component<AnimationComponent> {
     override fun type() = AnimationComponent
 
-    var currentAnimation: AnimationType = AnimationType.NONE
     lateinit var animation: Animation<TextureRegionDrawable>
     var nextAnimationModel: AnimationModel = AnimationModel.NONE
         private set
@@ -53,8 +52,6 @@ enum class AnimationType(
     val atlasKey: String,
     val playMode: PlayMode = PlayMode.LOOP,
     val speed: Float = 1 / 8f,
-    val priority: Int = 0,
-    val canInterrupt: Boolean = true,
 ) {
     NONE(""),
     IDLE("idle"),
@@ -67,15 +64,11 @@ enum class AnimationType(
         atlasKey = "attack",
         PlayMode.NORMAL,
         speed = 1 / 14f,
-        priority = 20,
-        canInterrupt = false
     ),
     BASH(
         atlasKey = "bash",
         PlayMode.NORMAL,
         speed = 1 / 20f,
-        priority = 30,
-        canInterrupt = false
     ),
     CROUCH_IDLE(atlasKey = "crouching_idle"),
     CROUCH_WALK(atlasKey = "crouching_walking")
@@ -88,5 +81,4 @@ enum class AnimationVariant(
     FIRST("01"),
     SECOND("02"),
     THIRD("03"),
-    FOURTH("04"),
 }

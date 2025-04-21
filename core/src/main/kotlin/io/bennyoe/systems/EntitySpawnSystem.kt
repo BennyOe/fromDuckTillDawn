@@ -16,7 +16,6 @@ import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.Duckee.Companion.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.components.AiComponent
-import io.bennyoe.components.AnimationCollectionComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -86,9 +85,6 @@ class EntitySpawnSystem(
     private fun createEnemyEntity(enemyObj: MapObject, cfg: SpawnCfg) {
         val relativeSize = size(cfg.model, cfg.type, cfg.variant)
         world.entity {
-            val animationCollection = AnimationCollectionComponent()
-            animationCollection.animations + AnimationType.IDLE
-            it += animationCollection
 
             val animation = AnimationComponent()
             animation.nextAnimation(cfg.model, cfg.type, cfg.variant)
@@ -123,12 +119,7 @@ class EntitySpawnSystem(
             val input = InputComponent()
             it += input
 
-            val animationCollection = AnimationCollectionComponent()
-            animationCollection.animations + AnimationType.IDLE
-            it += animationCollection
-
             val animation = AnimationComponent()
-            // set first animation without AnimationSortingSystem because of initialization
             animation.nextAnimation(cfg.model, cfg.type, cfg.variant)
             it += animation
 

@@ -1,12 +1,12 @@
-import io.bennyoe.systems.MoveSystem
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.MoveComponent
-import io.bennyoe.components.InputComponent
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.InputComponent
+import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
+import io.bennyoe.systems.MoveSystem
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

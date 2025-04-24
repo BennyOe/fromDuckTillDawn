@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//Note, the above license and copyright applies to this file only.
+// Note, the above license and copyright applies to this file only.
 package io.bennyoe.lwjgl3
 
 import org.lwjgl.system.macosx.LibC
@@ -39,6 +39,7 @@ class StartupHelper private constructor() {
 
     companion object {
         private const val JVM_RESTARTED_ARG = "jvmIsRestarted"
+
         /**
          * Starts a new JVM if the application was started on macOS without the
          * `-XstartOnFirstThread` argument. This also includes some code for
@@ -104,7 +105,7 @@ class StartupHelper private constructor() {
             // The following line is used assuming you target Java 8, the minimum for LWJGL3.
             val javaExecPath = System.getProperty("java.home") + separator + "bin" + separator + "java"
             // If targeting Java 9 or higher, you could use the following instead of the above line:
-            //String javaExecPath = ProcessHandle.current().info().command().orElseThrow();
+            // String javaExecPath = ProcessHandle.current().info().command().orElseThrow();
             if (!File(javaExecPath).exists()) {
                 System.err.println(
                     "A Java installation could not be found. If you are distributing this app with a bundled JRE, be sure to set the -XstartOnFirstThread argument manually!"

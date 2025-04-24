@@ -42,7 +42,7 @@ data class StateContext(
     fun setAnimation(
         type: AnimationType,
         playMode: Animation.PlayMode = Animation.PlayMode.LOOP,
-        variant: AnimationVariant = AnimationVariant.FIRST,
+        variant: AnimationVariant = AnimationVariant.FIRST
     ) {
         animationComponent.nextAnimation(AnimationModel.PLAYER_DAWN, type, variant)
         animationComponent.animation.playMode = playMode

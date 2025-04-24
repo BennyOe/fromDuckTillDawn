@@ -11,7 +11,7 @@ import io.bennyoe.ai.StateContext
 data class AiComponent(
     val world: World,
     var stateTime: Float = 0f,
-    val stateMachine: DefaultStateMachine<StateContext, PlayerFSM> = DefaultStateMachine(),
+    val stateMachine: DefaultStateMachine<StateContext, PlayerFSM> = DefaultStateMachine()
 ) : Component<AiComponent> {
 
     override fun World.onAdd(entity: Entity) {

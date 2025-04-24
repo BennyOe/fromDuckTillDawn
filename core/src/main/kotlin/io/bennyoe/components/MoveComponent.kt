@@ -8,7 +8,6 @@ data class MoveComponent(
     var moveVelocity: Float = 0f
 ) : Component<MoveComponent> {
 
-
     override fun type() = MoveComponent
 
     companion object : ComponentType<MoveComponent>() {}

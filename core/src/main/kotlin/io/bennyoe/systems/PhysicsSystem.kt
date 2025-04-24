@@ -25,7 +25,7 @@ import ktx.math.component1
 import ktx.math.component2
 
 class PhysicsSystem(
-    private val phyWorld: World = inject("phyWorld"),
+    private val phyWorld: World = inject("phyWorld")
 ) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(Duckee.PHYSIC_TIME_STEP)), ContactListener {
     private var activeGroundContacts: Int = 0
 
@@ -135,7 +135,6 @@ class PhysicsSystem(
         }
     }
 
-
     override fun endContact(contact: Contact) {
         if ((hasGroundContact(contact))
         ) {
@@ -152,8 +151,10 @@ class PhysicsSystem(
     }
 
     private fun hasGroundContact(contact: Contact): Boolean {
-        return (contact.fixtureA.body.type == StaticBody && contact.fixtureB.userData == "GROUND_COLLISION" ||
-            contact.fixtureB.body.type == StaticBody && contact.fixtureA.userData == "GROUND_COLLISION")
+        return (
+            contact.fixtureA.body.type == StaticBody && contact.fixtureB.userData == "GROUND_COLLISION" ||
+                contact.fixtureB.body.type == StaticBody && contact.fixtureA.userData == "GROUND_COLLISION"
+            )
     }
 
     companion object {

@@ -5,7 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
-import com.github.quillraven.fleks.*
+import com.github.quillraven.fleks.World
 
 class ImageComponent(
     private val stage: Stage,
@@ -30,5 +30,4 @@ class ImageComponent(
 
     companion object : ComponentType<ImageComponent>() {
     }
-
 }

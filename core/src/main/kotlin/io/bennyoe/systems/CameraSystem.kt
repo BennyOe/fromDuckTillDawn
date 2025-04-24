@@ -60,5 +60,4 @@ class CameraSystem(
 
         return Pair(xPos, yPos)
     }
-
 }

@@ -16,7 +16,7 @@ import ktx.collections.map
 import ktx.log.logger
 
 class AnimationSystem(
-    private val textureAtlas: TextureAtlas = inject(),
+    private val textureAtlas: TextureAtlas = inject()
 ) : IteratingSystem(family { all(AnimationComponent, ImageComponent) }) {
     private val cachedAnimations = mutableMapOf<String, Animation<TextureRegionDrawable>>()
 

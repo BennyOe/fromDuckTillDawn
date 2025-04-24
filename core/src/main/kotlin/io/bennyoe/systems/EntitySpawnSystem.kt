@@ -85,7 +85,6 @@ class EntitySpawnSystem(
     private fun createEnemyEntity(enemyObj: MapObject, cfg: SpawnCfg) {
         val relativeSize = size(cfg.model, cfg.type, cfg.variant)
         world.entity {
-
             val animation = AnimationComponent()
             animation.nextAnimation(cfg.model, cfg.type, cfg.variant)
             it += animation
@@ -109,7 +108,6 @@ class EntitySpawnSystem(
             )
 
             it += physic
-
         }
     }
 
@@ -136,7 +134,7 @@ class EntitySpawnSystem(
                 image.image,
                 BodyDef.BodyType.DynamicBody,
                 scalePhysicX = 0.2f,
-                scalePhysicY = 0.5f,
+                scalePhysicY = 0.5f
             )
             // set ground collision sensor
             physics.body.box(physics.size.x * 0.99f, 0.01f, Vector2(0f, 0f - physics.size.y * 0.5f)) {

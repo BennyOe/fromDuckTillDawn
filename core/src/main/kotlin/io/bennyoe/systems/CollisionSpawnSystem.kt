@@ -61,7 +61,7 @@ class CollisionSpawnSystem(
                 world.entity {
                     physicsComponentFromShape2D(
                         phyWorld = phyWorld,
-                        shape = mapObject.shape,
+                        shape = mapObject.shape
                     )
                 }
             }

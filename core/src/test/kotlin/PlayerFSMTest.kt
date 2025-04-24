@@ -17,7 +17,6 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.systems.AiSystem
-import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.MoveSystem
 import io.mockk.every
 import io.mockk.mockk
@@ -69,7 +68,6 @@ class PlayerFSMTest {
         }
         stateContext = StateContext(entity, world)
     }
-
 
     /*
     States:
@@ -161,10 +159,7 @@ class PlayerFSMTest {
     Double Jump -> Idle
     Double Jump -> Walk
     Double Jump -> Jump
-
-
      */
-
 
     @Test
     fun `default state should be IDLE`() {
@@ -211,7 +206,6 @@ class PlayerFSMTest {
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
     }
-
 
     @Test
     fun `when bash is pressed from IDLE then state should be BASH`() {
@@ -264,7 +258,6 @@ class PlayerFSMTest {
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
     }
-
 
     @Test
     fun `when crouch is pressed then state should be CROUCH_IDLE`() {

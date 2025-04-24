@@ -14,11 +14,11 @@ import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DebugSystem
+import io.bennyoe.systems.EntitySpawnSystem
+import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
-import io.bennyoe.systems.EntitySpawnSystem
-import io.bennyoe.systems.JumpSystem
 import ktx.app.KtxScreen
 import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
@@ -26,9 +26,9 @@ import ktx.inject.Context
 import ktx.log.logger
 
 class GameScreen(
-    context: Context,
+    context: Context
 ) : KtxScreen {
-    //TODO implement asset manager
+    // TODO implement asset manager
     private val textureAtlas = TextureAtlas("textures/player.atlas")
     private val stage = context.inject<Stage>()
     private var tiledMap: TiledMap? = null
@@ -56,7 +56,6 @@ class GameScreen(
     }
 
     override fun show() {
-
         // this adds all EventListenerSystems also to Scene2D
         entityWorld.systems.forEach { system ->
             if (system is EventListener) {

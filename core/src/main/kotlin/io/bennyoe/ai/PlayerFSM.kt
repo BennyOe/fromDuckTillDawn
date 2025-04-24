@@ -113,8 +113,9 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
-                shouldIdle(ctx) && !shouldCrouch(ctx) -> ctx.changeState(IDLE)
                 shouldWalk(ctx) && shouldCrouch(ctx) -> ctx.changeState(CROUCH_WALK)
+                shouldIdle(ctx) && !shouldCrouch(ctx) -> ctx.changeState(IDLE)
+                shouldWalk(ctx) && !shouldCrouch(ctx) -> ctx.changeState(WALK)
             }
         }
     }
@@ -146,6 +147,7 @@ sealed class PlayerFSM : State<StateContext> {
             if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
                 when {
                     shouldAttack2(ctx) -> ctx.changeState(ATTACK_2)
+                    shouldFall(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
             }
@@ -164,6 +166,7 @@ sealed class PlayerFSM : State<StateContext> {
             if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
                 when {
                     shouldAttack3(ctx) -> ctx.changeState(ATTACK_3)
+                    shouldFall(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
             }
@@ -179,7 +182,10 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
-                ctx.changeState(IDLE)
+                when {
+                    shouldFall(ctx) -> ctx.changeState(FALL)
+                    else -> ctx.changeState(IDLE)
+                }
             }
         }
     }
@@ -193,7 +199,10 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
-                ctx.changeState(IDLE)
+                when {
+                    shouldJump(ctx) -> ctx.changeState(JUMP)
+                    else -> ctx.changeState(IDLE)
+                }
             }
         }
     }

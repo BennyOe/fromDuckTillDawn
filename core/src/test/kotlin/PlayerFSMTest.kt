@@ -162,6 +162,7 @@ class PlayerFSMTest {
     fun `when WalkDirection is not NONE then state should be WALK`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+
         inputComponent.direction = WalkDirection.LEFT
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, aiComponent.stateMachine.currentState)
@@ -179,6 +180,7 @@ class PlayerFSMTest {
     fun `when jump is pressed state should be JUMP`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
@@ -188,6 +190,7 @@ class PlayerFSMTest {
     fun `when jump is double pressed state should be DOUBLE_JUMP`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         inputComponent.jumpJustPressed = true
@@ -224,12 +227,11 @@ class PlayerFSMTest {
     fun `should not allow transition from IDLE to ATTACK_2`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+        givenState(PlayerFSM.IDLE)
 
-        aiComponent.stateMachine.changeState(PlayerFSM.IDLE)
         inputComponent.attackJustPressed = true
         aiComponent.stateMachine.update()
         aiComponent.stateMachine.update()
-
         assertEquals(PlayerFSM.ATTACK_1, aiComponent.stateMachine.currentState)
     }
 
@@ -254,6 +256,7 @@ class PlayerFSMTest {
     fun `when crouch is pressed then state should be CROUCH_IDLE`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+
         inputComponent.crouch = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, aiComponent.stateMachine.currentState)
@@ -263,6 +266,7 @@ class PlayerFSMTest {
     fun `when crouch is pressed when walking then state should be CROUCH_WALK`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+
         inputComponent.direction = WalkDirection.LEFT
         aiComponent.stateMachine.update()
         inputComponent.crouch = true
@@ -274,11 +278,12 @@ class PlayerFSMTest {
     fun `when jump is pressed and then state should be FALLING`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
 
-        givenNegativeYVelocity()
+        setNegativeYVelocity()
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
     }
@@ -287,9 +292,11 @@ class PlayerFSMTest {
     fun `crouch when jumping should not be possible`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
+
         inputComponent.crouch = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
@@ -299,9 +306,11 @@ class PlayerFSMTest {
     fun `jump when crouching should not be possible`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+
         inputComponent.crouch = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, aiComponent.stateMachine.currentState)
+
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, aiComponent.stateMachine.currentState)
@@ -312,7 +321,7 @@ class PlayerFSMTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
         val animationComponent = with(world) { entity[AnimationComponent] }
-        every { animationComponent.animation.isAnimationFinished(any()) } returns true
+        givenAnimationIsFinished(animationComponent)
 
         inputComponent.attackJustPressed = true
         aiComponent.stateMachine.update()
@@ -342,26 +351,15 @@ class PlayerFSMTest {
 
         inputComponent.attackJustPressed = true
         aiComponent.stateMachine.update()
-        aiComponent.stateMachine.update()
         assertNotEquals(PlayerFSM.ATTACK_2, aiComponent.stateMachine.currentState)
-    }
-
-    private fun givenNegativeYVelocity() {
-        val velocity = Vector2(0f, -5f)
-        every { bodyMock.linearVelocity } returns velocity
     }
 
     @Test
     fun `should transition from FALL to IDLE when landing`() {
         val aiComponent = with(world) { entity[AiComponent] }
+        givenState(PlayerFSM.FALL)
 
-        // Set initial state to FALL
-        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
-
-        // Simulate landing (no vertical velocity)
-        val velocity = Vector2(0f, 0f)
-        every { bodyMock.linearVelocity } returns velocity
-
+        givenZeroVelocity()
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
@@ -370,9 +368,7 @@ class PlayerFSMTest {
     fun `should transition from FALL to DOUBLE_JUMP when jump pressed`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
-
-        // Set initial state to FALL
-        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
+        givenState(PlayerFSM.FALL)
 
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
@@ -383,12 +379,8 @@ class PlayerFSMTest {
     fun `should transition from BASH to IDLE when animation finished`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val animationComponent = with(world) { entity[AnimationComponent] }
-
-        // Set initial state to BASH
-        aiComponent.stateMachine.changeState(PlayerFSM.BASH)
-
-        // Simulate animation finished
-        every { animationComponent.animation.isAnimationFinished(any()) } returns true
+        givenAnimationIsFinished(animationComponent)
+        givenState(PlayerFSM.BASH)
 
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
@@ -399,14 +391,10 @@ class PlayerFSMTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
         val animationComponent = with(world) { entity[AnimationComponent] }
+        givenAnimationIsFinished(animationComponent)
+        givenState(PlayerFSM.BASH)
 
-        // Set initial state to BASH
-        aiComponent.stateMachine.changeState(PlayerFSM.BASH)
-
-        // Simulate animation finished and jump pressed
-        every { animationComponent.animation.isAnimationFinished(any()) } returns true
         inputComponent.jumpJustPressed = true
-
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
     }
@@ -416,12 +404,10 @@ class PlayerFSMTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        // Set initial state to CROUCH_IDLE
         inputComponent.crouch = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, aiComponent.stateMachine.currentState)
 
-        // Release crouch
         inputComponent.crouch = false
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
@@ -432,13 +418,11 @@ class PlayerFSMTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        // Set up CROUCH_WALK state
         inputComponent.crouch = true
         inputComponent.direction = WalkDirection.LEFT
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_WALK, aiComponent.stateMachine.currentState)
 
-        // Stop walking but keep crouching
         inputComponent.direction = WalkDirection.NONE
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, aiComponent.stateMachine.currentState)
@@ -449,13 +433,11 @@ class PlayerFSMTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        // Set up WALK state
         inputComponent.direction = WalkDirection.RIGHT
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, aiComponent.stateMachine.currentState)
 
-        // Simulate falling
-        givenNegativeYVelocity()
+        setNegativeYVelocity()
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
     }
@@ -464,14 +446,14 @@ class PlayerFSMTest {
     fun `should transition from ATTACK_1 to FALL when falling`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+        val animationComponent = with(world) { entity[AnimationComponent] }
+        givenAnimationIsFinished(animationComponent)
 
-        // Set up ATTACK_1 state
         inputComponent.attackJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.ATTACK_1, aiComponent.stateMachine.currentState)
 
-        // Simulate falling
-        givenNegativeYVelocity()
+        setNegativeYVelocity()
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
     }
@@ -481,19 +463,16 @@ class PlayerFSMTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
         val animationComponent = with(world) { entity[AnimationComponent] }
+        givenAnimationIsFinished(animationComponent)
 
-        // Set up ATTACK_1 state first
         inputComponent.attackJustPressed = true
         aiComponent.stateMachine.update()
 
-        // Setup for ATTACK_2
-        every { animationComponent.animation.isAnimationFinished(any()) } returns true
-        inputComponent.attackJustPressed = true
+        inputComponent.attack2JustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.ATTACK_2, aiComponent.stateMachine.currentState)
 
-        // Simulate falling
-        givenNegativeYVelocity()
+        setNegativeYVelocity()
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
     }
@@ -503,14 +482,12 @@ class PlayerFSMTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        // Setup DOUBLE_JUMP state
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
 
-        // Press bash
         inputComponent.bashJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.BASH, aiComponent.stateMachine.currentState)
@@ -520,45 +497,125 @@ class PlayerFSMTest {
     fun `should transition from ATTACK_3 to IDLE when animation finished`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val animationComponent = with(world) { entity[AnimationComponent] }
-
-        // Setup ATTACK_3 state directly
-        aiComponent.stateMachine.changeState(PlayerFSM.ATTACK_3)
-
-        // Simulate animation finished
-        every { animationComponent.animation.isAnimationFinished(any()) } returns true
+        givenAnimationIsFinished(animationComponent)
+        givenState(PlayerFSM.ATTACK_3)
 
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
 
     @Test
-    fun `should not allow transition from JUMP to IDLE`() {
-        val aiComponent = with(world) { entity[AiComponent] }
-
-        // Set initial state to JUMP
-        aiComponent.stateMachine.changeState(PlayerFSM.JUMP)
-
-        // Try to change to IDLE
-        aiComponent.stateMachine.changeState(PlayerFSM.IDLE)
-
-        // Should still be in JUMP state
-        assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
-    }
-
-    @Test
     fun `should not allow transition from DOUBLE_JUMP to CROUCH_WALK`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+        givenState(PlayerFSM.DOUBLE_JUMP)
 
-        // Set up DOUBLE_JUMP state
-        aiComponent.stateMachine.changeState(PlayerFSM.DOUBLE_JUMP)
-
-        // Try to crouch and walk
         inputComponent.crouch = true
         inputComponent.direction = WalkDirection.RIGHT
         aiComponent.stateMachine.update()
-
-        // Should still be in DOUBLE_JUMP state
         assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should not transition to ATTACK_2 if animation not finished`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+        val animationComponent = with(world) { entity[AnimationComponent] }
+
+        every { animationComponent.animation.isAnimationFinished(any()) } returns false
+        inputComponent.attackJustPressed = true
+        aiComponent.stateMachine.update()
+
+        assertEquals(PlayerFSM.ATTACK_1, aiComponent.stateMachine.currentState)
+
+        inputComponent.attackJustPressed = true
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.ATTACK_1, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should remain in IDLE if no input given`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+
+        repeat(3) {
+            aiComponent.stateMachine.update()
+            assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+        }
+    }
+
+    @Test
+    fun `should not chain to ATTACK_2 if no additional attack input`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+        val animationComponent = with(world) { entity[AnimationComponent] }
+        givenAnimationIsFinished(animationComponent)
+
+        inputComponent.attackJustPressed = true
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.ATTACK_1, aiComponent.stateMachine.currentState)
+
+        aiComponent.stateMachine.update()
+
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should transition from CROUCH_IDLE to WALK when crouch released and direction is not NONE`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+
+        inputComponent.crouch = true
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.CROUCH_IDLE, aiComponent.stateMachine.currentState)
+
+        inputComponent.crouch = false
+        inputComponent.direction = WalkDirection.RIGHT
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.WALK, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should transition from CROUCH_WALK to IDLE when crouch released and direction is NONE`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+
+        inputComponent.crouch = true
+        inputComponent.direction = WalkDirection.LEFT
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.CROUCH_WALK, aiComponent.stateMachine.currentState)
+
+        inputComponent.crouch = false
+        inputComponent.direction = WalkDirection.NONE
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should remain in FALL if still falling`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        givenState(PlayerFSM.FALL)
+        setNegativeYVelocity()
+
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
+    }
+
+    private fun givenState(state: PlayerFSM) {
+        val aiComponent = with(world) { entity[AiComponent] }
+        aiComponent.stateMachine.changeState(state)
+    }
+
+    private fun givenAnimationIsFinished(animationComponent: AnimationComponent) {
+        every { animationComponent.animation.isAnimationFinished(any()) } returns true
+    }
+
+    private fun givenZeroVelocity() {
+        val velocity = Vector2(0f, 0f)
+        every { bodyMock.linearVelocity } returns velocity
+    }
+
+    private fun setNegativeYVelocity() {
+        val velocity = Vector2(0f, -5f)
+        every { bodyMock.linearVelocity } returns velocity
     }
 }

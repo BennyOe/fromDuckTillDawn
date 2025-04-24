@@ -1,7 +1,10 @@
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.g2d.Animation
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
@@ -14,9 +17,11 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.systems.AiSystem
+import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.MoveSystem
 import io.mockk.every
 import io.mockk.mockk
+import ktx.collections.gdxArrayOf
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -35,7 +40,16 @@ class PlayerFSMTest {
 
         bodyMock = mockk<Body>(relaxed = true)
 
-        val mockAnimationComponent = mockk<AnimationComponent>(relaxed = true)
+        val atlasMock = mockk<TextureAtlas>(relaxed = true)
+        val animationMock = mockk<Animation<TextureRegionDrawable>>(relaxed = true)
+        val regionMock = mockk<TextureAtlas.AtlasRegion>(relaxed = true)
+
+        every { atlasMock.findRegions(any()) } returns gdxArrayOf(regionMock)
+        every { animationMock.isAnimationFinished(any()) } returns false
+
+        val animationComponent = AnimationComponent().apply {
+            animation = animationMock
+        }
 
         world = configureWorld {
             systems {
@@ -50,7 +64,7 @@ class PlayerFSMTest {
             it += physicCmp
             it += MoveComponent(maxSpeed = 10f)
             it += InputComponent()
-            it += mockAnimationComponent
+            it += animationComponent
             it += AiComponent(world)
         }
         stateContext = StateContext(entity, world)

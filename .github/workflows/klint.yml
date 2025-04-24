@@ -1,0 +1,29 @@
+name: KtLint Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ktlint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17' # Passe die Java-Version an dein Projekt an
+
+      - name: Install ktlint
+        run: |
+          curl -sSLO https://github.com/pinterest/ktlint/releases/download/0.49.0/ktlint &&
+          chmod a+x ktlint
+
+      - name: Run ktlint
+        run: |
+          ./ktlint --relative "**/*.kt"

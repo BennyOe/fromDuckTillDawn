@@ -71,5 +71,10 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
 
+      - name: 🔍 Debug JVM + Classpath
+        run: |
+          java -version
+          ./gradlew dependencies --configuration testRuntimeClasspath
+
       - name: Run tests
         run: ./gradlew test

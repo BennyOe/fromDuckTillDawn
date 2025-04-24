@@ -27,11 +27,13 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                shouldCrouch(ctx) && shouldWalk(ctx) -> ctx.changeState(CROUCH_WALK)
                 shouldJump(ctx) -> ctx.changeState(JUMP)
                 shouldCrouch(ctx) -> ctx.changeState(CROUCH_IDLE)
                 shouldWalk(ctx) -> ctx.changeState(WALK)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldBash(ctx) -> ctx.changeState(BASH)
+                shouldFall(ctx) -> ctx.changeState(FALL)
             }
         }
     }
@@ -45,9 +47,11 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             when {
                 shouldBash(ctx) -> ctx.changeState(BASH)
+                shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldIdle(ctx) -> ctx.changeState(IDLE)
                 shouldJump(ctx) -> ctx.changeState(JUMP)
                 shouldCrouch(ctx) -> ctx.changeState(CROUCH_WALK)
+                shouldFall(ctx) -> ctx.changeState(FALL)
             }
         }
     }
@@ -63,6 +67,7 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             when {
                 shouldBash(ctx) -> ctx.changeState(BASH)
+                shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldJump(ctx) -> ctx.changeState(DOUBLE_JUMP)
                 shouldFall(ctx) -> ctx.changeState(FALL)
             }
@@ -79,6 +84,7 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             when {
                 shouldBash(ctx) -> ctx.changeState(BASH)
+                shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldFall(ctx) -> ctx.changeState(FALL)
             }
         }
@@ -92,8 +98,8 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
-                shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldJump(ctx) && ctx.aiComponent.stateMachine.previousState != DOUBLE_JUMP -> ctx.changeState(DOUBLE_JUMP)
+                shouldBash(ctx) -> ctx.changeState(BASH)
                 !shouldFall(ctx) -> ctx.changeState(IDLE)
             }
         }
@@ -121,8 +127,9 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                !shouldCrouch(ctx) && shouldIdle(ctx) -> ctx.changeState(IDLE)
                 !shouldCrouch(ctx) && shouldWalk(ctx) -> ctx.changeState(WALK)
-                shouldIdle(ctx) && shouldCrouch(ctx) -> ctx.changeState(CROUCH_IDLE)
+                shouldCrouch(ctx) && shouldIdle(ctx) -> ctx.changeState(CROUCH_IDLE)
             }
         }
     }
@@ -139,7 +146,7 @@ sealed class PlayerFSM : State<StateContext> {
             if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
                 when {
                     shouldAttack2(ctx) -> ctx.changeState(ATTACK_2)
-                    else -> ctx.changeState(ctx.aiComponent.stateMachine.previousState)
+                    else -> ctx.changeState(IDLE)
                 }
             }
         }

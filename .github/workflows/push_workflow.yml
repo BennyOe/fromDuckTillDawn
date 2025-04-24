@@ -27,9 +27,7 @@ jobs:
         uses: ScaCap/action-ktlint@master
         with:
           github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review
-          fail_on_error: true
-          ktlint_version: '0.50.0'
+          reporter: github-pr-check
 
   build:
     name: Build Project

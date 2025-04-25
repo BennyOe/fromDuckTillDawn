@@ -39,29 +39,35 @@ import ktx.tiled.y
 class EntitySpawnSystem(
     private val stage: Stage = inject(),
     private val phyWorld: World = inject("phyWorld"),
-    private val atlas: TextureAtlas = inject()
-) :
-    IteratingSystem(family { all(SpawnComponent) }), EventListener {
+    private val atlas: TextureAtlas = inject(),
+) : IteratingSystem(family { all(SpawnComponent) }),
+    EventListener {
     private val cachedCfgs = mutableMapOf<String, SpawnCfg>()
     private val sizesCache = mutableMapOf<AnimationType, Vector2>()
 
     override fun onTickEntity(entity: Entity) {
     }
 
-    private fun size(model: AnimationModel, type: AnimationType, variant: AnimationVariant): Vector2 = sizesCache.getOrPut(type) {
-        val regions = atlas.findRegions(model.atlasKey + type.atlasKey + variant.atlasKey)
-        if (regions.isEmpty) gdxError("There are no regions for the idle animation of model $type")
-        val firstFrame = regions.first()
-        return Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
-    }
-
-    private fun spawnCfg(type: String): SpawnCfg = cachedCfgs.getOrPut(type) {
-        when (type) {
-            "playerStart" -> SpawnCfg(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
-            "enemy" -> SpawnCfg(AnimationModel.ENEMY_MUSHROOM, AnimationType.IDLE, AnimationVariant.FIRST)
-            else -> gdxError("There is no spawn configuration for entity-type $type")
+    private fun size(
+        model: AnimationModel,
+        type: AnimationType,
+        variant: AnimationVariant,
+    ): Vector2 =
+        sizesCache.getOrPut(type) {
+            val regions = atlas.findRegions(model.atlasKey + type.atlasKey + variant.atlasKey)
+            if (regions.isEmpty) gdxError("There are no regions for the idle animation of model $type")
+            val firstFrame = regions.first()
+            return Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
         }
-    }
+
+    private fun spawnCfg(type: String): SpawnCfg =
+        cachedCfgs.getOrPut(type) {
+            when (type) {
+                "playerStart" -> SpawnCfg(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
+                "enemy" -> SpawnCfg(AnimationModel.ENEMY_MUSHROOM, AnimationType.IDLE, AnimationVariant.FIRST)
+                else -> gdxError("There is no spawn configuration for entity-type $type")
+            }
+        }
 
     override fun handle(event: Event): Boolean {
         when (event) {
@@ -82,36 +88,45 @@ class EntitySpawnSystem(
         return false
     }
 
-    private fun createEnemyEntity(enemyObj: MapObject, cfg: SpawnCfg) {
+    private fun createEnemyEntity(
+        enemyObj: MapObject,
+        cfg: SpawnCfg,
+    ) {
         val relativeSize = size(cfg.model, cfg.type, cfg.variant)
         world.entity {
             val animation = AnimationComponent()
             animation.nextAnimation(cfg.model, cfg.type, cfg.variant)
             it += animation
 
-            val image = ImageComponent(stage, 3f, 3f).apply {
-                image = Image().apply {
-                    setPosition(enemyObj.x * UNIT_SCALE, enemyObj.y * UNIT_SCALE)
-                    setSize(relativeSize.x, relativeSize.y)
+            val image =
+                ImageComponent(stage, 3f, 3f).apply {
+                    image =
+                        Image().apply {
+                            setPosition(enemyObj.x * UNIT_SCALE, enemyObj.y * UNIT_SCALE)
+                            setSize(relativeSize.x, relativeSize.y)
+                        }
                 }
-            }
             it += image
 
-            val physic = PhysicComponent.physicsComponentFromImage(
-                phyWorld,
-                image.image,
-                BodyDef.BodyType.DynamicBody,
-                scalePhysicX = 0.2f,
-                scalePhysicY = 0.4f,
-                offsetY = -0.8f,
-                myFriction = 0f
-            )
+            val physic =
+                PhysicComponent.physicsComponentFromImage(
+                    phyWorld,
+                    image.image,
+                    BodyDef.BodyType.DynamicBody,
+                    scalePhysicX = 0.2f,
+                    scalePhysicY = 0.4f,
+                    offsetY = -0.8f,
+                    myFriction = 0f,
+                )
 
             it += physic
         }
     }
 
-    private fun createPlayerEntity(mapObj: MapObject, cfg: SpawnCfg) {
+    private fun createPlayerEntity(
+        mapObj: MapObject,
+        cfg: SpawnCfg,
+    ) {
         val relativeSize = size(cfg.model, cfg.type, cfg.variant)
         world.entity {
             val input = InputComponent()
@@ -121,21 +136,24 @@ class EntitySpawnSystem(
             animation.nextAnimation(cfg.model, cfg.type, cfg.variant)
             it += animation
 
-            val image = ImageComponent(stage, 4f, 2f).apply {
-                image = Image().apply {
-                    setPosition(mapObj.x * UNIT_SCALE, mapObj.y * UNIT_SCALE)
-                    setSize(relativeSize.x, relativeSize.y)
+            val image =
+                ImageComponent(stage, 4f, 2f).apply {
+                    image =
+                        Image().apply {
+                            setPosition(mapObj.x * UNIT_SCALE, mapObj.y * UNIT_SCALE)
+                            setSize(relativeSize.x, relativeSize.y)
+                        }
                 }
-            }
             it += image
 
-            val physics = PhysicComponent.physicsComponentFromImage(
-                phyWorld,
-                image.image,
-                BodyDef.BodyType.DynamicBody,
-                scalePhysicX = 0.2f,
-                scalePhysicY = 0.5f
-            )
+            val physics =
+                PhysicComponent.physicsComponentFromImage(
+                    phyWorld,
+                    image.image,
+                    BodyDef.BodyType.DynamicBody,
+                    scalePhysicX = 0.2f,
+                    scalePhysicY = 0.5f,
+                )
             // set ground collision sensor
             physics.body.box(physics.size.x * 0.99f, 0.01f, Vector2(0f, 0f - physics.size.y * 0.5f)) {
                 isSensor = true

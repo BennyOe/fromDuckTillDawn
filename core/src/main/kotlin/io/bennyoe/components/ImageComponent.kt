@@ -11,9 +11,10 @@ class ImageComponent(
     private val stage: Stage,
     val scaleX: Float = 1f,
     val scaleY: Float = 1f,
-    var flipImage: Boolean = false
+    var flipImage: Boolean = false,
 ) : Component<ImageComponent> {
     lateinit var image: Image
+
     override fun type(): ComponentType<ImageComponent> = ImageComponent
 
     override fun World.onAdd(entity: Entity) {

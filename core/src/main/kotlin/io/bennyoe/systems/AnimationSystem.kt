@@ -16,7 +16,7 @@ import ktx.collections.map
 import ktx.log.logger
 
 class AnimationSystem(
-    private val textureAtlas: TextureAtlas = inject()
+    private val textureAtlas: TextureAtlas = inject(),
 ) : IteratingSystem(family { all(AnimationComponent, ImageComponent) }) {
     private val cachedAnimations = mutableMapOf<String, Animation<TextureRegionDrawable>>()
 
@@ -25,19 +25,24 @@ class AnimationSystem(
 
         with(entity[ImageComponent]) {
             flipImage = aniCmp.flipImage
-            image.drawable = if (aniCmp.nextAnimationType == AnimationType.NONE) {
-                aniCmp.run {
-                    stateTime += deltaTime
-                    animation.getKeyFrame(stateTime)
+            image.drawable =
+                if (aniCmp.nextAnimationType == AnimationType.NONE) {
+                    aniCmp.run {
+                        stateTime += deltaTime
+                        animation.getKeyFrame(stateTime)
+                    }
+                } else {
+                    applyNextAnimation(aniCmp)
                 }
-            } else {
-                applyNextAnimation(aniCmp)
-            }
         }
     }
 
-    private fun setTexturesToAnimation(aniKeyPath: String, speed: Float, playMode: PlayMode): Animation<TextureRegionDrawable> {
-        return cachedAnimations.getOrPut(aniKeyPath) {
+    private fun setTexturesToAnimation(
+        aniKeyPath: String,
+        speed: Float,
+        playMode: PlayMode,
+    ): Animation<TextureRegionDrawable> =
+        cachedAnimations.getOrPut(aniKeyPath) {
             val regions = textureAtlas.findRegions(aniKeyPath)
             if (regions.isEmpty) {
                 gdxError("There are no regions for $aniKeyPath")
@@ -46,14 +51,14 @@ class AnimationSystem(
                 this.playMode = playMode
             }
         }
-    }
 
     private fun applyNextAnimation(aniCmp: AnimationComponent): TextureRegionDrawable {
-        aniCmp.animation = setTexturesToAnimation(
-            aniCmp.nextAnimationModel.atlasKey + aniCmp.nextAnimationType.atlasKey + aniCmp.nextAnimationVariant.atlasKey,
-            aniCmp.nextAnimationType.speed,
-            aniCmp.nextAnimationType.playMode
-        )
+        aniCmp.animation =
+            setTexturesToAnimation(
+                aniCmp.nextAnimationModel.atlasKey + aniCmp.nextAnimationType.atlasKey + aniCmp.nextAnimationVariant.atlasKey,
+                aniCmp.nextAnimationType.speed,
+                aniCmp.nextAnimationType.playMode,
+            )
         aniCmp.clearAnimation()
         aniCmp.stateTime = 0f
         return aniCmp.animation.getKeyFrame(0f)

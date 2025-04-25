@@ -12,24 +12,25 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class MoveSystemTest {
-
     private lateinit var world: World
     private lateinit var entity: Entity
 
     @BeforeEach
     fun setup() {
-        world = configureWorld {
-            systems {
-                add(MoveSystem())
+        world =
+            configureWorld {
+                systems {
+                    add(MoveSystem())
+                }
             }
-        }
 
-        entity = world.entity {
-            it += PhysicComponent()
-            it += MoveComponent(maxSpeed = 10f)
-            it += InputComponent(direction = WalkDirection.RIGHT)
-            it += AnimationComponent()
-        }
+        entity =
+            world.entity {
+                it += PhysicComponent()
+                it += MoveComponent(maxSpeed = 10f)
+                it += InputComponent(direction = WalkDirection.RIGHT)
+                it += AnimationComponent()
+            }
     }
 
     @Test

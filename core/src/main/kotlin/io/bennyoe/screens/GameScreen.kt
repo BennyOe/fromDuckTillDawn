@@ -26,34 +26,36 @@ import ktx.inject.Context
 import ktx.log.logger
 
 class GameScreen(
-    context: Context
+    context: Context,
 ) : KtxScreen {
     // TODO implement asset manager
     private val textureAtlas = TextureAtlas("textures/player.atlas")
     private val stage = context.inject<Stage>()
     private var tiledMap: TiledMap? = null
-    private val phyWorld = createWorld(gravity = Vector2(0f, -50.81f), true).apply {
-        autoClearForces = false
-    }
-    private val entityWorld = configureWorld {
-        injectables {
-            add("phyWorld", phyWorld)
-            add(textureAtlas)
-            add(stage)
+    private val phyWorld =
+        createWorld(gravity = Vector2(0f, -50.81f), true).apply {
+            autoClearForces = false
         }
-        systems {
-            add(AnimationSystem())
-            add(EntitySpawnSystem())
-            add(CollisionSpawnSystem())
-            add(PhysicsSystem())
-            add(AiSystem())
-            add(MoveSystem())
-            add(CameraSystem())
-            add(JumpSystem(phyWorld))
-            add(RenderSystem())
-            add(DebugSystem())
+    private val entityWorld =
+        configureWorld {
+            injectables {
+                add("phyWorld", phyWorld)
+                add(textureAtlas)
+                add(stage)
+            }
+            systems {
+                add(AnimationSystem())
+                add(EntitySpawnSystem())
+                add(CollisionSpawnSystem())
+                add(PhysicsSystem())
+                add(AiSystem())
+                add(MoveSystem())
+                add(CameraSystem())
+                add(JumpSystem(phyWorld))
+                add(RenderSystem())
+                add(DebugSystem())
+            }
         }
-    }
 
     override fun show() {
         // this adds all EventListenerSystems also to Scene2D

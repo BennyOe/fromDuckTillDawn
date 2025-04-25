@@ -46,26 +46,29 @@ class PlayerFSMTest {
         every { atlasMock.findRegions(any()) } returns gdxArrayOf(regionMock)
         every { animationMock.isAnimationFinished(any()) } returns false
 
-        val animationComponent = AnimationComponent().apply {
-            animation = animationMock
-        }
-
-        world = configureWorld {
-            systems {
-                add(MoveSystem())
-                add(AiSystem())
+        val animationComponent =
+            AnimationComponent().apply {
+                animation = animationMock
             }
-        }
 
-        entity = world.entity {
-            val physicCmp = PhysicComponent()
-            physicCmp.body = bodyMock
-            it += physicCmp
-            it += MoveComponent(maxSpeed = 10f)
-            it += InputComponent()
-            it += animationComponent
-            it += AiComponent(world)
-        }
+        world =
+            configureWorld {
+                systems {
+                    add(MoveSystem())
+                    add(AiSystem())
+                }
+            }
+
+        entity =
+            world.entity {
+                val physicCmp = PhysicComponent()
+                physicCmp.body = bodyMock
+                it += physicCmp
+                it += MoveComponent(maxSpeed = 10f)
+                it += InputComponent()
+                it += animationComponent
+                it += AiComponent(world)
+            }
         stateContext = StateContext(entity, world)
     }
 

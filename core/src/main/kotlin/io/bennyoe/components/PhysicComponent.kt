@@ -18,7 +18,7 @@ import ktx.box2d.loop
 import ktx.math.vec2
 import com.github.quillraven.fleks.World as entityWorld
 
-class PhysicComponent() : Component<PhysicComponent> {
+class PhysicComponent : Component<PhysicComponent> {
     private val offset: Vector2 = Vector2()
     val size: Vector2 = Vector2()
     var prevPos: Vector2 = Vector2()
@@ -28,14 +28,13 @@ class PhysicComponent() : Component<PhysicComponent> {
     override fun type() = PhysicComponent
 
     companion object : ComponentType<PhysicComponent>() {
-
         fun physicsComponentFromShape2D(
             phyWorld: World,
             shape: Shape2D,
             x: Int = 0,
             y: Int = 0,
             myFriction: Float = 0f,
-            setUserData: Entity? = null
+            setUserData: Entity? = null,
         ): PhysicComponent {
             when (shape) {
                 is Rectangle -> {
@@ -44,20 +43,21 @@ class PhysicComponent() : Component<PhysicComponent> {
                     val bodyW = shape.width * UNIT_SCALE
                     val bodyH = shape.height * UNIT_SCALE
                     return PhysicComponent().apply {
-                        body = phyWorld.body(BodyDef.BodyType.StaticBody) {
-                            position.set(bodyX, bodyY)
-                            fixedRotation = true
-                            allowSleep = false
-                            userData = setUserData
-                            loop(
-                                vec2(0f, 0f),
-                                vec2(bodyW, 0f),
-                                vec2(bodyW, bodyH),
-                                vec2(0f, bodyH)
-                            ) {
-                                friction = myFriction
+                        body =
+                            phyWorld.body(BodyDef.BodyType.StaticBody) {
+                                position.set(bodyX, bodyY)
+                                fixedRotation = true
+                                allowSleep = false
+                                userData = setUserData
+                                loop(
+                                    vec2(0f, 0f),
+                                    vec2(bodyW, 0f),
+                                    vec2(bodyW, bodyH),
+                                    vec2(0f, bodyH),
+                                ) {
+                                    friction = myFriction
+                                }
                             }
-                        }
                     }
                 }
 
@@ -78,7 +78,7 @@ class PhysicComponent() : Component<PhysicComponent> {
             allowSleep: Boolean = true,
             isSensor: Boolean = false,
             setUserdata: Entity? = null,
-            myFriction: Float = 1f
+            myFriction: Float = 1f,
         ): PhysicComponent {
             val x = image.x
             val y = image.y
@@ -86,12 +86,13 @@ class PhysicComponent() : Component<PhysicComponent> {
             val height = image.height * scalePhysicY
 
             // create the Box2D body
-            val body = phyWorld.body(bodyType) {
-                position.set(x + width * 0.5f, y + height * 0.5f)
-                this.fixedRotation = fixedRotation
-                this.allowSleep = allowSleep
-                userData = setUserdata
-            }
+            val body =
+                phyWorld.body(bodyType) {
+                    position.set(x + width * 0.5f, y + height * 0.5f)
+                    this.fixedRotation = fixedRotation
+                    this.allowSleep = allowSleep
+                    userData = setUserdata
+                }
 
             // fixture as box
             body.box(width, height, Vector2(offsetX, offsetY)) {

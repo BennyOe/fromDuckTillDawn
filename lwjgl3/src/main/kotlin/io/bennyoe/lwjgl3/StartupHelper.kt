@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 damios
  *
@@ -13,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 // Note, the above license and copyright applies to this file only.
 package io.bennyoe.lwjgl3
 
@@ -21,7 +21,8 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.lang.management.ManagementFactory
-import java.util.*
+import java.nio.file.FileSystems
+import java.util.Locale
 
 /**
  * Adds some utilities to ensure that the JVM was started with the
@@ -93,22 +94,21 @@ class StartupHelper private constructor() {
             // check whether the JVM was previously restarted
             // avoids looping, but most certainly leads to a crash
             if ("true" == System.getProperty(JVM_RESTARTED_ARG)) {
-                System.err.println(
-                    "There was a problem evaluating whether the JVM was started with the -XstartOnFirstThread argument."
-                )
+                System.err.println("There was a problem evaluating whether the JVM was started with the -XstartOnFirstThread argument.")
                 return false
             }
 
             // Restart the JVM with -XstartOnFirstThread
             val jvmArgs = ArrayList<String?>()
-            val separator = System.getProperty("file.separator")
+            val separator = FileSystems.getDefault().separator
             // The following line is used assuming you target Java 8, the minimum for LWJGL3.
             val javaExecPath = System.getProperty("java.home") + separator + "bin" + separator + "java"
             // If targeting Java 9 or higher, you could use the following instead of the above line:
             // String javaExecPath = ProcessHandle.current().info().command().orElseThrow();
             if (!File(javaExecPath).exists()) {
                 System.err.println(
-                    "A Java installation could not be found. If you are distributing this app with a bundled JRE, be sure to set the -XstartOnFirstThread argument manually!"
+                    "A Java installation could not be found. If you are distributing this app with a bundled JRE, be sure to set " +
+                        "the -XstartOnFirstThread argument manually!",
                 )
                 return false
             }
@@ -120,25 +120,33 @@ class StartupHelper private constructor() {
             jvmArgs.add(System.getProperty("java.class.path"))
             var mainClass = System.getenv("JAVA_MAIN_CLASS_$pid")
             if (mainClass == null) {
-                val trace = Thread.currentThread().stackTrace
-                mainClass = if (trace.isNotEmpty()) {
-                    trace[trace.size - 1].className
-                } else {
-                    System.err.println("The main class could not be determined.")
-                    return false
-                }
+                val trace =
+                    Thread.currentThread().stackTrace
+                mainClass =
+                    if (trace.isNotEmpty()) {
+                        trace[trace.size - 1]
+                            .className
+                    } else {
+                        System.err.println("The main class could not be determined.")
+                        return false
+                    }
             }
             jvmArgs.add(mainClass)
             try {
                 if (!redirectOutput) {
-                    val processBuilder = ProcessBuilder(jvmArgs)
-                    processBuilder.start()
+                    val processBuilder =
+                        ProcessBuilder(jvmArgs)
+                    processBuilder
+                        .start()
                 } else {
-                    val process = ProcessBuilder(jvmArgs)
-                        .redirectErrorStream(true).start()
-                    val processOutput = BufferedReader(
-                        InputStreamReader(process.inputStream)
-                    )
+                    val process =
+                        ProcessBuilder(jvmArgs)
+                            .redirectErrorStream(true)
+                            .start()
+                    val processOutput =
+                        BufferedReader(
+                            InputStreamReader(process.inputStream),
+                        )
                     var line: String?
                     while (processOutput.readLine().also { line = it } != null) {
                         println(line)

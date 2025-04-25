@@ -24,9 +24,9 @@ import ktx.tiled.width
 import kotlin.math.max
 
 class CollisionSpawnSystem(
-    private val phyWorld: World = inject("phyWorld")
-) : IteratingSystem(family { all(PhysicComponent) }), EventListener {
-
+    private val phyWorld: World = inject("phyWorld"),
+) : IteratingSystem(family { all(PhysicComponent) }),
+    EventListener {
     override fun onTickEntity(entity: Entity) {}
 
     override fun handle(event: Event): Boolean {
@@ -61,7 +61,7 @@ class CollisionSpawnSystem(
                 world.entity {
                     physicsComponentFromShape2D(
                         phyWorld = phyWorld,
-                        shape = mapObject.shape
+                        shape = mapObject.shape,
                     )
                 }
             }
@@ -73,19 +73,20 @@ class CollisionSpawnSystem(
             val w = event.map.width
             val h = event.map.height
             PhysicComponent().apply {
-                body = phyWorld.body(StaticBody) {
-                    position.set(0f, 0f)
-                    fixedRotation = true
-                    allowSleep = false
-                    loop(
-                        vec2(0f, 0f),
-                        vec2(w.toFloat(), 0f),
-                        vec2(w.toFloat(), h.toFloat()),
-                        vec2(0f, h.toFloat())
-                    ) {
-                        friction = 0f
+                body =
+                    phyWorld.body(StaticBody) {
+                        position.set(0f, 0f)
+                        fixedRotation = true
+                        allowSleep = false
+                        loop(
+                            vec2(0f, 0f),
+                            vec2(w.toFloat(), 0f),
+                            vec2(w.toFloat(), h.toFloat()),
+                            vec2(0f, h.toFloat()),
+                        ) {
+                            friction = 0f
+                        }
                     }
-                }
             }
         }
     }
@@ -94,7 +95,7 @@ class CollisionSpawnSystem(
         startX: Int,
         startY: Int,
         size: Int,
-        action: (TiledMapTileLayer.Cell, Int, Int) -> Unit
+        action: (TiledMapTileLayer.Cell, Int, Int) -> Unit,
     ) {
         for (x in startX - size..startX + size) {
             for (y in startY - size..startY + size) {

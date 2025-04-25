@@ -9,7 +9,9 @@ import io.bennyoe.Duckee
 import io.bennyoe.components.JumpComponent
 import kotlin.math.sqrt
 
-class JumpSystem(val physicWorld: World) : IteratingSystem(family { all(JumpComponent) }) {
+class JumpSystem(
+    val physicWorld: World,
+) : IteratingSystem(family { all(JumpComponent) }) {
     private val gravityPerStep = Vector2()
 
     // formula taken from: https://www.iforce2d.net/b2dtut/projected-trajectory

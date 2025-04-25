@@ -1,5 +1,6 @@
 package io.bennyoe.systems
 
+import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
@@ -15,6 +16,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.Duckee.Companion.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
+import io.bennyoe.ai.FsmMessageTypes
 import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
@@ -44,6 +46,7 @@ class EntitySpawnSystem(
     EventListener {
     private val cachedCfgs = mutableMapOf<String, SpawnCfg>()
     private val sizesCache = mutableMapOf<AnimationType, Vector2>()
+    private val messageDispatcher = MessageManager.getInstance()
 
     override fun onTickEntity(entity: Entity) {
     }
@@ -168,6 +171,7 @@ class EntitySpawnSystem(
             it += player
 
             val ai = AiComponent(world)
+            messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.HEAL.ordinal)
             it += ai
 
             PlayerInputProcessor(world = world)

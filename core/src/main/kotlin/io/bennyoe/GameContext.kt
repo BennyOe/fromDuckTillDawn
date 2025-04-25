@@ -8,7 +8,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport
 import ktx.inject.Context
 import ktx.inject.register
 
-class GameContext : Context(){
+class GameContext : Context() {
     init {
         Gdx.app.logLevel = LOG_DEBUG
         val spriteBatch: SpriteBatch by lazy { SpriteBatch() }

@@ -17,7 +17,6 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.systems.AiSystem
-import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.MoveSystem
 import io.mockk.every
 import io.mockk.mockk
@@ -47,29 +46,31 @@ class PlayerFSMTest {
         every { atlasMock.findRegions(any()) } returns gdxArrayOf(regionMock)
         every { animationMock.isAnimationFinished(any()) } returns false
 
-        val animationComponent = AnimationComponent().apply {
-            animation = animationMock
-        }
-
-        world = configureWorld {
-            systems {
-                add(MoveSystem())
-                add(AiSystem())
+        val animationComponent =
+            AnimationComponent().apply {
+                animation = animationMock
             }
-        }
 
-        entity = world.entity {
-            val physicCmp = PhysicComponent()
-            physicCmp.body = bodyMock
-            it += physicCmp
-            it += MoveComponent(maxSpeed = 10f)
-            it += InputComponent()
-            it += animationComponent
-            it += AiComponent(world)
-        }
+        world =
+            configureWorld {
+                systems {
+                    add(MoveSystem())
+                    add(AiSystem())
+                }
+            }
+
+        entity =
+            world.entity {
+                val physicCmp = PhysicComponent()
+                physicCmp.body = bodyMock
+                it += physicCmp
+                it += MoveComponent(maxSpeed = 10f)
+                it += InputComponent()
+                it += animationComponent
+                it += AiComponent(world)
+            }
         stateContext = StateContext(entity, world)
     }
-
 
     /*
     States:
@@ -161,10 +162,7 @@ class PlayerFSMTest {
     Double Jump -> Idle
     Double Jump -> Walk
     Double Jump -> Jump
-
-
      */
-
 
     @Test
     fun `default state should be IDLE`() {
@@ -211,7 +209,6 @@ class PlayerFSMTest {
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
     }
-
 
     @Test
     fun `when bash is pressed from IDLE then state should be BASH`() {
@@ -264,7 +261,6 @@ class PlayerFSMTest {
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
     }
-
 
     @Test
     fun `when crouch is pressed then state should be CROUCH_IDLE`() {

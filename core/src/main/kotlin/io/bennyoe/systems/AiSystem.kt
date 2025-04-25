@@ -7,7 +7,6 @@ import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.AiComponent
 
 class AiSystem : IteratingSystem(family { all(AiComponent) }) {
-
     override fun onTick() {
         GdxAI.getTimepiece().update(deltaTime)
         super.onTick()

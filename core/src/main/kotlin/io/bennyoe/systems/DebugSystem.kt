@@ -10,7 +10,7 @@ import ktx.log.logger
 
 class DebugSystem(
     private val phyWorld: World = inject("phyWorld"),
-    private val stage: Stage = inject()
+    private val stage: Stage = inject(),
 ) : IntervalSystem(enabled = false) {
     private lateinit var physicsRenderer: Box2DDebugRenderer
 

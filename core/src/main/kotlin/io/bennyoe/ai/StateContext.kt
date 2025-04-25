@@ -16,7 +16,7 @@ import io.bennyoe.components.PhysicComponent
 
 data class StateContext(
     val entity: Entity,
-    val world: World
+    val world: World,
 ) {
     val animationComponent: AnimationComponent
     val inputComponent: InputComponent
@@ -36,7 +36,9 @@ data class StateContext(
 
     // helper methods for ECS
     inline fun <reified T : Component<T>> get(type: ComponentType<T>): T = with(world) { entity[type] }
+
     inline fun <reified T : Component<T>> remove(type: ComponentType<T>) = with(world) { entity.configure { it -= type } }
+
     inline fun <reified T : Component<T>> add(component: T) = with(world) { entity.configure { it += component } }
 
     fun setAnimation(

@@ -19,10 +19,14 @@ class Duckee : KtxGame<KtxScreen>() {
         super.dispose()
     }
 
-    override fun resize(width: Int, height: Int) {
+    override fun resize(
+        width: Int,
+        height: Int,
+    ) {
         super.resize(width, height)
         context.inject<Stage>().viewport.update(width, height, true)
     }
+
     companion object {
         const val UNIT_SCALE = 1 / 16f
         const val PHYSIC_TIME_STEP = 1 / 45f

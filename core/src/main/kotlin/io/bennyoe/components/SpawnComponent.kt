@@ -7,7 +7,7 @@ import ktx.math.vec2
 
 data class SpawnComponent(
     var type: String = "",
-    var location: Vector2 = vec2()
+    var location: Vector2 = vec2(),
 ) : Component<SpawnComponent> {
     override fun type() = SpawnComponent
 
@@ -17,5 +17,5 @@ data class SpawnComponent(
 data class SpawnCfg(
     val model: AnimationModel,
     val type: AnimationType,
-    val variant: AnimationVariant
+    val variant: AnimationVariant,
 )

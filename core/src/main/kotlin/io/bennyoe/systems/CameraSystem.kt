@@ -17,8 +17,9 @@ import kotlin.math.max
 import kotlin.math.min
 
 class CameraSystem(
-    stage: Stage = inject()
-) : IteratingSystem(family { all(ImageComponent, PlayerComponent) }), EventListener {
+    stage: Stage = inject(),
+) : IteratingSystem(family { all(ImageComponent, PlayerComponent) }),
+    EventListener {
     private val camera = stage.camera
     private var maxW = 0f
     private var maxH = 0f
@@ -60,5 +61,4 @@ class CameraSystem(
 
         return Pair(xPos, yPos)
     }
-
 }

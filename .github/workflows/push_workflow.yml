@@ -2,7 +2,6 @@ name: Kotlin CI
 
 on:
   push:
-  pull_request:
 
 jobs:
   lint:
@@ -27,9 +26,7 @@ jobs:
         uses: ScaCap/action-ktlint@master
         with:
           github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review
-          fail_on_error: true
-          ktlint_version: '0.50.0'
+          reporter: github-pr-check
 
   build:
     name: Build Project
@@ -47,7 +44,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          cache-read-only: false
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
 
       - name: Build with Gradle
         run: ./gradlew build -x test

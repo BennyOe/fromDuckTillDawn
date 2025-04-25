@@ -9,20 +9,20 @@ import ktx.app.KtxInputAdapter
 import ktx.log.logger
 
 class PlayerInputProcessor(
-    world: World
+    world: World,
 ) : KtxInputAdapter {
-
     private val inputEntities = world.family { all(InputComponent) }
 
     // Mapping der Steuerungstasten zu Aktionen
-    private val keyActions = mapOf(
-        Keys.W to Action.JUMP,
-        Keys.A to Action.MOVE_LEFT,
-        Keys.D to Action.MOVE_RIGHT,
-        Keys.S to Action.CROUCH,
-        Keys.SPACE to Action.ATTACK,
-        Keys.J to Action.BASH
-    )
+    private val keyActions =
+        mapOf(
+            Keys.W to Action.JUMP,
+            Keys.A to Action.MOVE_LEFT,
+            Keys.D to Action.MOVE_RIGHT,
+            Keys.S to Action.CROUCH,
+            Keys.SPACE to Action.ATTACK,
+            Keys.J to Action.BASH,
+        )
 
     init {
         Gdx.input.inputProcessor = this
@@ -38,7 +38,10 @@ class PlayerInputProcessor(
         return true
     }
 
-    private fun handleAction(action: Action, pressed: Boolean) {
+    private fun handleAction(
+        action: Action,
+        pressed: Boolean,
+    ) {
         inputEntities.forEach { input ->
             val inputComponent = input[InputComponent]
             when (action) {
@@ -57,6 +60,11 @@ class PlayerInputProcessor(
     }
 
     enum class Action {
-        JUMP, MOVE_LEFT, MOVE_RIGHT, ATTACK, BASH, CROUCH
+        JUMP,
+        MOVE_LEFT,
+        MOVE_RIGHT,
+        ATTACK,
+        BASH,
+        CROUCH,
     }
 }

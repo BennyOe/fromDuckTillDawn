@@ -13,7 +13,6 @@ data class AiComponent(
     var stateTime: Float = 0f,
     val stateMachine: DefaultStateMachine<StateContext, PlayerFSM> = DefaultStateMachine(),
 ) : Component<AiComponent> {
-
     override fun World.onAdd(entity: Entity) {
         stateMachine.owner = StateContext(entity, world)
         stateMachine.setInitialState(PlayerFSM.IDLE)

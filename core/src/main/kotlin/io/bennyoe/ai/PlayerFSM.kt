@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:class-naming")
+
 package io.bennyoe.ai
 
 import com.badlogic.gdx.ai.fsm.State
@@ -10,13 +12,21 @@ import io.bennyoe.components.WalkDirection
 
 sealed class PlayerFSM : State<StateContext> {
     protected fun shouldIdle(ctx: StateContext) = ctx.inputComponent.direction == WalkDirection.NONE
+
     protected fun shouldWalk(ctx: StateContext) = ctx.inputComponent.direction != WalkDirection.NONE
+
     protected fun shouldJump(ctx: StateContext) = ctx.inputComponent.jumpJustPressed
+
     protected fun shouldFall(ctx: StateContext) = ctx.physicComponent.body.linearVelocity.y < 0
+
     protected fun shouldCrouch(ctx: StateContext) = ctx.inputComponent.crouch
+
     protected fun shouldAttack(ctx: StateContext) = ctx.inputComponent.attackJustPressed
+
     protected fun shouldAttack2(ctx: StateContext) = ctx.inputComponent.attack2JustPressed
+
     protected fun shouldAttack3(ctx: StateContext) = ctx.inputComponent.attack3JustPressed
+
     protected fun shouldBash(ctx: StateContext) = ctx.inputComponent.bashJustPressed
 
     data object IDLE : PlayerFSM() {
@@ -208,9 +218,15 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     override fun enter(ctx: StateContext) = Unit
+
     override fun update(ctx: StateContext) = Unit
+
     override fun exit(ctx: StateContext) = Unit
-    override fun onMessage(ctx: StateContext, telegram: Telegram) = false
+
+    override fun onMessage(
+        ctx: StateContext,
+        telegram: Telegram,
+    ) = false
 
     companion object {
         val logger = ktx.log.logger<PlayerFSM>()

@@ -22,8 +22,9 @@ import ktx.tiled.forEachLayer
 import ktx.tiled.layer
 
 class RenderSystem(
-    private val stage: Stage = inject()
-) : IteratingSystem(family { all(ImageComponent) }), EventListener {
+    private val stage: Stage = inject(),
+) : IteratingSystem(family { all(ImageComponent) }),
+    EventListener {
     private val mapRenderer = OrthogonalTiledMapRenderer(null, UNIT_SCALE, stage.batch)
     private val mapTileLayer: MutableList<TiledMapTileLayer> = mutableListOf()
     private var mapObjectsLayer: MapLayer = MapLayer()
@@ -88,7 +89,7 @@ class RenderSystem(
                     x,
                     y,
                     width,
-                    height
+                    height,
                 )
             }
         }

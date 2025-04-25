@@ -26,7 +26,8 @@ import ktx.math.component2
 
 class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
-) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(Duckee.PHYSIC_TIME_STEP)), ContactListener {
+) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(Duckee.PHYSIC_TIME_STEP)),
+    ContactListener {
     private var activeGroundContacts: Int = 0
 
     init {
@@ -71,7 +72,7 @@ class PhysicsSystem(
         bashCmp: BashComponent?,
         animationCmp: AnimationComponent,
         physicCmp: PhysicComponent,
-        entity: Entity
+        entity: Entity,
     ) {
         bashCmp?.let {
             val inverse = if (animationCmp.flipImage) -1 else 1
@@ -84,7 +85,10 @@ class PhysicsSystem(
         }
     }
 
-    private fun setWalkImpulse(moveCmp: MoveComponent?, physicCmp: PhysicComponent) {
+    private fun setWalkImpulse(
+        moveCmp: MoveComponent?,
+        physicCmp: PhysicComponent,
+    ) {
         moveCmp?.let {
             physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity - physicCmp.body.linearVelocity.x)
         }
@@ -93,7 +97,7 @@ class PhysicsSystem(
     private fun setJumpImpulse(
         jumpCmp: JumpComponent?,
         physicCmp: PhysicComponent,
-        entity: Entity
+        entity: Entity,
     ) {
         jumpCmp?.let { jump ->
             physicCmp.impulse.y = physicCmp.body.mass * (jump.jumpVelocity - physicCmp.body.linearVelocity.y)
@@ -115,7 +119,10 @@ class PhysicsSystem(
 
     // alpha is the offset between two frames
     // this is for interpolating the animation
-    override fun onAlphaEntity(entity: Entity, alpha: Float) {
+    override fun onAlphaEntity(
+        entity: Entity,
+        alpha: Float,
+    ) {
         val imageCmp = entity[ImageComponent]
         val physicCmp = entity[PhysicComponent]
 
@@ -124,7 +131,7 @@ class PhysicsSystem(
         imageCmp.image.run {
             setPosition(
                 MathUtils.lerp(prevX, bodyX, alpha) - width * 0.5f,
-                MathUtils.lerp(prevY, bodyY, alpha) - height * 0.5f
+                MathUtils.lerp(prevY, bodyY, alpha) - height * 0.5f,
             )
         }
     }
@@ -135,7 +142,6 @@ class PhysicsSystem(
         }
     }
 
-
     override fun endContact(contact: Contact) {
         if ((hasGroundContact(contact))
         ) {
@@ -143,18 +149,27 @@ class PhysicsSystem(
         }
     }
 
-    override fun preSolve(contact: Contact, oldManifold: Manifold) {
+    override fun preSolve(
+        contact: Contact,
+        oldManifold: Manifold,
+    ) {
         // here you can check if the type is dynamic or static and decide which are going to collide (contact.fixture.body.type)
         contact.isEnabled = true
     }
 
-    override fun postSolve(contact: Contact, impulse: ContactImpulse) {
+    override fun postSolve(
+        contact: Contact,
+        impulse: ContactImpulse,
+    ) {
     }
 
-    private fun hasGroundContact(contact: Contact): Boolean {
-        return (contact.fixtureA.body.type == StaticBody && contact.fixtureB.userData == "GROUND_COLLISION" ||
-            contact.fixtureB.body.type == StaticBody && contact.fixtureA.userData == "GROUND_COLLISION")
-    }
+    private fun hasGroundContact(contact: Contact): Boolean =
+        (
+            contact.fixtureA.body.type == StaticBody &&
+                contact.fixtureB.userData == "GROUND_COLLISION" ||
+                contact.fixtureB.body.type == StaticBody &&
+                contact.fixtureA.userData == "GROUND_COLLISION"
+        )
 
     companion object {
         private val logger = logger<PhysicsSystem>()

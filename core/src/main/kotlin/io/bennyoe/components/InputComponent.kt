@@ -17,6 +17,8 @@ data class InputComponent(
     companion object : ComponentType<InputComponent>()
 }
 
-enum class WalkDirection{
-    NONE, LEFT, RIGHT
+enum class WalkDirection {
+    NONE,
+    LEFT,
+    RIGHT,
 }

@@ -1,35 +1,36 @@
-import io.bennyoe.systems.MoveSystem
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.MoveComponent
-import io.bennyoe.components.InputComponent
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.InputComponent
+import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
+import io.bennyoe.systems.MoveSystem
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class MoveSystemTest {
-
     private lateinit var world: World
     private lateinit var entity: Entity
 
     @BeforeEach
     fun setup() {
-        world = configureWorld {
-            systems {
-                add(MoveSystem())
+        world =
+            configureWorld {
+                systems {
+                    add(MoveSystem())
+                }
             }
-        }
 
-        entity = world.entity {
-            it += PhysicComponent()
-            it += MoveComponent(maxSpeed = 10f)
-            it += InputComponent(direction = WalkDirection.RIGHT)
-            it += AnimationComponent()
-        }
+        entity =
+            world.entity {
+                it += PhysicComponent()
+                it += MoveComponent(maxSpeed = 10f)
+                it += InputComponent(direction = WalkDirection.RIGHT)
+                it += AnimationComponent()
+            }
     }
 
     @Test

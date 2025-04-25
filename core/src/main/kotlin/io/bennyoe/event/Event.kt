@@ -8,4 +8,4 @@ fun Stage.fire(event: Event) {
     this.root.fire(event)
 }
 
-data class MapChangedEvent(val map: TiledMap): Event()
+data class MapChangedEvent(val map: TiledMap) : Event()

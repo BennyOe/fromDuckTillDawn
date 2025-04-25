@@ -10,7 +10,7 @@ buildscript {
   }
   dependencies {
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-
+    classpath "org.jlleitschuh.gradle:ktlint-gradle:12.2.0" // aktuelle Version prüfen
   }
 }
 
@@ -28,6 +28,7 @@ allprojects {
 }
 
 configure(subprojects) {
+  apply plugin: 'org.jlleitschuh.gradle.ktlint'
   apply plugin: 'java-library'
   apply plugin: 'kotlin'
   sourceCompatibility = 17
@@ -50,6 +51,10 @@ configure(subprojects) {
       assetsFile.append(it + "\n")
     }
   }
+  tasks.named("build") {
+    dependsOn "ktlintCheck"
+  }
+
   processResources.dependsOn 'generateAssetList'
 
   compileJava {

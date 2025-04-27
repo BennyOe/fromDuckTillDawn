@@ -26,6 +26,7 @@ class PlayerInputProcessor(
             Keys.SPACE to Action.ATTACK,
             Keys.J to Action.BASH,
             Keys.V to Action.MESSAGE,
+            Keys.C to Action.MESSAGE2,
         )
 
     init {
@@ -61,6 +62,12 @@ class PlayerInputProcessor(
                         FsmMessageTypes.HEAL.ordinal,
                         pressed,
                     )
+                Action.MESSAGE2 ->
+                    messageDispatcher.dispatchMessage(
+                        1f,
+                        FsmMessageTypes.ATTACK.ordinal,
+                        pressed,
+                    )
             }
         }
     }
@@ -77,5 +84,6 @@ class PlayerInputProcessor(
         BASH,
         CROUCH,
         MESSAGE,
+        MESSAGE2,
     }
 }

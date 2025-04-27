@@ -172,6 +172,7 @@ class EntitySpawnSystem(
 
             val ai = AiComponent(world)
             messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.HEAL.ordinal)
+            messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.ATTACK.ordinal)
             it += ai
 
             PlayerInputProcessor(world = world)

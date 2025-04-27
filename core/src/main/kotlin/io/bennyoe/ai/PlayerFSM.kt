@@ -46,6 +46,18 @@ sealed class PlayerFSM : State<StateContext> {
                 shouldFall(ctx) -> ctx.changeState(FALL)
             }
         }
+
+        override fun onMessage(
+            ctx: StateContext,
+            telegram: Telegram,
+        ): Boolean {
+            if (telegram.message == FsmMessageTypes.HEAL.ordinal && telegram.extraInfo == true) {
+                logger.debug { "MESSAGE WITH HEAL RECEIVED INSTANTLY" }
+            } else if (telegram.message == FsmMessageTypes.ATTACK.ordinal && telegram.extraInfo == true) {
+                logger.debug { "MESSAGE WITH ATTACK RECEIVED AFTER A DELAY" }
+            }
+            return true
+        }
     }
 
     data object WALK : PlayerFSM() {

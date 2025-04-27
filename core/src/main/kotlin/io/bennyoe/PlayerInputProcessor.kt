@@ -2,7 +2,9 @@ package io.bennyoe
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Keys
+import com.badlogic.gdx.ai.msg.MessageManager
 import com.github.quillraven.fleks.World
+import io.bennyoe.ai.FsmMessageTypes
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.WalkDirection
 import ktx.app.KtxInputAdapter
@@ -12,6 +14,7 @@ class PlayerInputProcessor(
     world: World,
 ) : KtxInputAdapter {
     private val inputEntities = world.family { all(InputComponent) }
+    private val messageDispatcher = MessageManager.getInstance()
 
     // Mapping der Steuerungstasten zu Aktionen
     private val keyActions =
@@ -22,6 +25,8 @@ class PlayerInputProcessor(
             Keys.S to Action.CROUCH,
             Keys.SPACE to Action.ATTACK,
             Keys.J to Action.BASH,
+            Keys.V to Action.MESSAGE,
+            Keys.C to Action.MESSAGE2,
         )
 
     init {
@@ -51,6 +56,18 @@ class PlayerInputProcessor(
                 Action.BASH -> inputComponent.bashJustPressed = pressed
                 Action.MOVE_LEFT -> inputComponent.direction = if (pressed) WalkDirection.LEFT else WalkDirection.NONE
                 Action.MOVE_RIGHT -> inputComponent.direction = if (pressed) WalkDirection.RIGHT else WalkDirection.NONE
+                Action.MESSAGE ->
+                    messageDispatcher.dispatchMessage(
+                        0f,
+                        FsmMessageTypes.HEAL.ordinal,
+                        pressed,
+                    )
+                Action.MESSAGE2 ->
+                    messageDispatcher.dispatchMessage(
+                        1f,
+                        FsmMessageTypes.ATTACK.ordinal,
+                        pressed,
+                    )
             }
         }
     }
@@ -66,5 +83,7 @@ class PlayerInputProcessor(
         ATTACK,
         BASH,
         CROUCH,
+        MESSAGE,
+        MESSAGE2,
     }
 }

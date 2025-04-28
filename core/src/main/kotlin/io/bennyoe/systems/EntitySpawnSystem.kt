@@ -44,7 +44,7 @@ class EntitySpawnSystem(
     private val stage: Stage = inject("stage"),
     private val phyWorld: World = inject("phyWorld"),
     private val atlas: TextureAtlas = inject(),
-    private val uiStage: Stage = inject("uiStage")
+    private val uiStage: Stage = inject("uiStage"),
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener {
     private val cachedCfgs = mutableMapOf<String, SpawnCfg>()

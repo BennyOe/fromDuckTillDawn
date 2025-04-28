@@ -19,6 +19,7 @@ import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
+import io.bennyoe.systems.StateBubbleSystem
 import ktx.app.KtxScreen
 import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
@@ -51,6 +52,7 @@ class GameScreen(
                 add(AiSystem())
                 add(MoveSystem())
                 add(CameraSystem())
+                add(StateBubbleSystem())
                 add(JumpSystem(phyWorld))
                 add(RenderSystem())
                 add(DebugSystem())
@@ -67,6 +69,7 @@ class GameScreen(
 
         tiledMap = TmxMapLoader().load("map/testMap.tmx") // map gets loaded
         stage.fire(MapChangedEvent(tiledMap!!)) // mapChangeEvent gets fired
+        stage.isDebugAll = true
 
         super.show()
     }

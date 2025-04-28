@@ -18,6 +18,7 @@ import io.bennyoe.Duckee.Companion.UNIT_SCALE
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.event.MapChangedEvent
 import ktx.graphics.use
+import ktx.log.logger
 import ktx.tiled.forEachLayer
 import ktx.tiled.layer
 
@@ -93,5 +94,9 @@ class RenderSystem(
                 )
             }
         }
+    }
+
+    companion object {
+        val logger = logger<RenderSystem>()
     }
 }

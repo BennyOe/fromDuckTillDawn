@@ -2,6 +2,7 @@ package io.bennyoe
 
 import com.badlogic.gdx.scenes.scene2d.Stage
 import io.bennyoe.screens.GameScreen
+import io.bennyoe.widgets.createSkin
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
 import ktx.inject.Context
@@ -10,6 +11,7 @@ class Duckee : KtxGame<KtxScreen>() {
     private val context: Context by lazy { GameContext() }
 
     override fun create() {
+        createSkin()
         addScreen(GameScreen(context))
         setScreen<GameScreen>()
     }

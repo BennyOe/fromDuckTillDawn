@@ -23,8 +23,8 @@ import ktx.tiled.forEachLayer
 import ktx.tiled.layer
 
 class RenderSystem(
-    private val stage: Stage = inject(),
-) : IteratingSystem(family { all(ImageComponent) }),
+    private val stage: Stage = inject("stage"),
+) : IteratingSystem(family { all(ImageComponent) }, enabled = true),
     EventListener {
     private val mapRenderer = OrthogonalTiledMapRenderer(null, UNIT_SCALE, stage.batch)
     private val mapTileLayer: MutableList<TiledMapTileLayer> = mutableListOf()

@@ -6,17 +6,20 @@ import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.widgets.StateBubbleWidget
+import ktx.log.logger
 
 class StateBubbleComponent(
-    private val stage: Stage,
+    private val uiStage: Stage,
 ) : Component<StateBubbleComponent> {
     val bubble by lazy { StateBubbleWidget() }
 
     override fun World.onAdd(entity: Entity) {
-        stage.addActor(bubble)
+        uiStage.addActor(bubble)
     }
 
     override fun type() = StateBubbleComponent
 
-    companion object : ComponentType<StateBubbleComponent>()
+    companion object : ComponentType<StateBubbleComponent>() {
+        val logger = logger<StateBubbleComponent>()
+    }
 }

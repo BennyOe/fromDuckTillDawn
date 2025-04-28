@@ -21,8 +21,8 @@ fun createSkin() {
 
             textField("default") {
                 this.font = font
-                fontColor = color(1f, 1f, 1f, 1f)
-                background = createColorDrawable(0.2f, 0.2f, 0.2f, 1f)
+                fontColor = color(0f, 0f, 0f, 1f)
+                background = createColorDrawable(1f, 1f, 1f, 0.8f)
             }
         }
 }

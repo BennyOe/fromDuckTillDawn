@@ -17,7 +17,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class CameraSystem(
-    stage: Stage = inject(),
+    stage: Stage = inject("stage"),
 ) : IteratingSystem(family { all(ImageComponent, PlayerComponent) }),
     EventListener {
     private val camera = stage.camera

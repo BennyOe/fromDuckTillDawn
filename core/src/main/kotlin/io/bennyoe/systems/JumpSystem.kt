@@ -5,12 +5,13 @@ import com.badlogic.gdx.physics.box2d.World
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
+import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.Duckee
 import io.bennyoe.components.JumpComponent
 import kotlin.math.sqrt
 
 class JumpSystem(
-    val physicWorld: World,
+    val physicWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(JumpComponent) }) {
     private val gravityPerStep = Vector2()
 

@@ -30,6 +30,7 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnCfg
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateBubbleComponent
+import io.bennyoe.components.UiComponent
 import io.bennyoe.event.MapChangedEvent
 import ktx.app.gdxError
 import ktx.box2d.box
@@ -40,9 +41,10 @@ import ktx.tiled.x
 import ktx.tiled.y
 
 class EntitySpawnSystem(
-    private val stage: Stage = inject(),
+    private val stage: Stage = inject("stage"),
     private val phyWorld: World = inject("phyWorld"),
     private val atlas: TextureAtlas = inject(),
+    private val uiStage: Stage = inject("uiStage")
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener {
     private val cachedCfgs = mutableMapOf<String, SpawnCfg>()
@@ -150,7 +152,8 @@ class EntitySpawnSystem(
                 }
             it += image
 
-            it += StateBubbleComponent(stage)
+            it += StateBubbleComponent(uiStage)
+            it += UiComponent
 
             val physics =
                 PhysicComponent.physicsComponentFromImage(

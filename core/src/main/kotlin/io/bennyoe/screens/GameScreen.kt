@@ -5,8 +5,8 @@ import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.configureWorld
+import io.bennyoe.Stages
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.systems.AiSystem
@@ -19,6 +19,8 @@ import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
+import io.bennyoe.systems.StateBubbleSystem
+import io.bennyoe.systems.UiRenderSystem
 import ktx.app.KtxScreen
 import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
@@ -30,7 +32,9 @@ class GameScreen(
 ) : KtxScreen {
     // TODO implement asset manager
     private val textureAtlas = TextureAtlas("textures/player.atlas")
-    private val stage = context.inject<Stage>()
+    private val stages = context.inject<Stages>()
+    private val stage = stages.stage
+    private val uiStage = stages.uiStage
     private var tiledMap: TiledMap? = null
     private val phyWorld =
         createWorld(gravity = Vector2(0f, -50.81f), true).apply {
@@ -41,7 +45,8 @@ class GameScreen(
             injectables {
                 add("phyWorld", phyWorld)
                 add(textureAtlas)
-                add(stage)
+                add("stage", stage)
+                add("uiStage", uiStage)
             }
             systems {
                 add(AnimationSystem())
@@ -51,8 +56,10 @@ class GameScreen(
                 add(AiSystem())
                 add(MoveSystem())
                 add(CameraSystem())
-                add(JumpSystem(phyWorld))
+                add(StateBubbleSystem())
+                add(JumpSystem())
                 add(RenderSystem())
+                add(UiRenderSystem())
                 add(DebugSystem())
             }
         }
@@ -67,6 +74,7 @@ class GameScreen(
 
         tiledMap = TmxMapLoader().load("map/testMap.tmx") // map gets loaded
         stage.fire(MapChangedEvent(tiledMap!!)) // mapChangeEvent gets fired
+//        stage.isDebugAll = true
 
         super.show()
     }

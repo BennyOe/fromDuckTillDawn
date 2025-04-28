@@ -18,12 +18,13 @@ import io.bennyoe.Duckee.Companion.UNIT_SCALE
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.event.MapChangedEvent
 import ktx.graphics.use
+import ktx.log.logger
 import ktx.tiled.forEachLayer
 import ktx.tiled.layer
 
 class RenderSystem(
-    private val stage: Stage = inject(),
-) : IteratingSystem(family { all(ImageComponent) }),
+    private val stage: Stage = inject("stage"),
+) : IteratingSystem(family { all(ImageComponent) }, enabled = true),
     EventListener {
     private val mapRenderer = OrthogonalTiledMapRenderer(null, UNIT_SCALE, stage.batch)
     private val mapTileLayer: MutableList<TiledMapTileLayer> = mutableListOf()
@@ -93,5 +94,9 @@ class RenderSystem(
                 )
             }
         }
+    }
+
+    companion object {
+        val logger = logger<RenderSystem>()
     }
 }

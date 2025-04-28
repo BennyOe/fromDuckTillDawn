@@ -5,6 +5,8 @@ package io.bennyoe.lwjgl3
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import io.bennyoe.Duckee
+import io.bennyoe.Duckee.Companion.GAME_HEIGHT
+import io.bennyoe.Duckee.Companion.GAME_WIDTH
 
 /** Launches the desktop (LWJGL3) application. */
 fun main() {
@@ -16,7 +18,7 @@ fun main() {
         Duckee(),
         Lwjgl3ApplicationConfiguration().apply {
             setTitle("FromDuckTillDawn")
-            setWindowedMode(1280, 1024)
+            setWindowedMode(GAME_WIDTH.toInt(), GAME_HEIGHT.toInt())
             setWindowIcon(*(arrayOf(128, 64, 32, 16).map { "libgdx$it.png" }.toTypedArray()))
         },
     )

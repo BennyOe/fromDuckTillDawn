@@ -5,15 +5,23 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ExtendViewport
+import io.bennyoe.Duckee.Companion.GAME_HEIGHT
+import io.bennyoe.Duckee.Companion.GAME_WIDTH
+import io.bennyoe.Duckee.Companion.WORLD_HEIGHT
+import io.bennyoe.Duckee.Companion.WORLD_WIDTH
 import ktx.inject.Context
 import ktx.inject.register
 
 class GameContext : Context() {
     init {
         Gdx.app.logLevel = LOG_DEBUG
-        val spriteBatch: SpriteBatch by lazy { SpriteBatch() }
-        val stage by lazy { Stage(ExtendViewport(16f, 9f), spriteBatch) }
-
-        register { bindSingleton(stage) }
+        val stages = Stages()
+        register { bindSingleton(stages) }
     }
+}
+
+class Stages {
+    val spriteBatch: SpriteBatch by lazy { SpriteBatch() }
+    val stage by lazy { Stage(ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT), spriteBatch) }
+    val uiStage by lazy { Stage(ExtendViewport(GAME_WIDTH, GAME_HEIGHT), spriteBatch) }
 }

@@ -35,7 +35,7 @@ class StateBubbleSystem(
         val (prevX, prevY) = physicCmp.prevPos
         val (bodyX, bodyY) = physicCmp.body.position
 
-        val xPos = MathUtils.lerp(prevX - physicCmp.size.x / 2, bodyX - physicCmp.size.x / 2, alpha)
+        val xPos = MathUtils.lerp(prevX, bodyX, alpha)
         val yPos = MathUtils.lerp(prevY + 1.1f, bodyY + 1.1f, alpha)
 
         val pos = Vector2(xPos, yPos)

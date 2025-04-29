@@ -1,9 +1,11 @@
 package io.bennyoe.widgets
 
+import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
 import com.badlogic.gdx.utils.Align
 import ktx.actors.plusAssign
+import ktx.log.logger
 import ktx.scene2d.scene2d
 import ktx.scene2d.textField
 
@@ -12,8 +14,6 @@ class StateBubbleWidget : WidgetGroup() {
 
     private var displayState =
         scene2d.textField(state) {
-            setPosition(100f, 100f)
-            setSize(130f, 30f)
             alignment = Align.center
         }
 
@@ -25,9 +25,21 @@ class StateBubbleWidget : WidgetGroup() {
 
     fun displayState(state: String) {
         displayState.setText(state)
+        displayState.setSize(calculateWidth(state), 30f)
     }
 
     fun setPosition(position: Vector2) {
-        displayState.setPosition(position.x, position.y)
+        displayState.setPosition(position.x - displayState.width / 2, position.y)
+    }
+
+    private fun calculateWidth(text: String): Float {
+        val font = displayState.style.font
+        val layout =
+            GlyphLayout(font, text)
+        return layout.width + 20f
+    }
+
+    companion object {
+        val logger = logger<StateBubbleWidget>()
     }
 }

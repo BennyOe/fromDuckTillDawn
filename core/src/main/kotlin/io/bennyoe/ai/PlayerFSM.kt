@@ -120,7 +120,6 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
-                shouldJump(ctx) && ctx.aiComponent.stateMachine.previousState != DOUBLE_JUMP -> ctx.changeState(DOUBLE_JUMP)
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 !shouldFall(ctx) -> ctx.changeState(IDLE)
             }

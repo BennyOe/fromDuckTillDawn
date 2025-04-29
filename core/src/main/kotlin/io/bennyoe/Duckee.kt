@@ -25,14 +25,8 @@ class Duckee : KtxGame<KtxScreen>() {
         height: Int,
     ) {
         super.resize(width, height)
-        context
-            .inject<Stages>()
-            .stage.viewport
-            .update(width, height, true)
-        context
-            .inject<Stages>()
-            .uiStage.viewport
-            .update(width, height, true)
+        val ctx = context.inject<Stages>()
+        ctx.stage.viewport.update(width, height, true)
     }
 
     companion object {

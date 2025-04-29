@@ -375,14 +375,14 @@ class PlayerFSMTest {
     }
 
     @Test
-    fun `should transition from FALL to DOUBLE_JUMP when jump pressed`() {
+    fun `should not transition from FALL to DOUBLE_JUMP when jump pressed`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
         givenState(PlayerFSM.FALL)
 
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
 
     @Test

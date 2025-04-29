@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ExtendViewport
+import com.badlogic.gdx.utils.viewport.FitViewport
 import io.bennyoe.Duckee.Companion.GAME_HEIGHT
 import io.bennyoe.Duckee.Companion.GAME_WIDTH
 import io.bennyoe.Duckee.Companion.WORLD_HEIGHT
@@ -23,5 +24,5 @@ class GameContext : Context() {
 class Stages {
     val spriteBatch: SpriteBatch by lazy { SpriteBatch() }
     val stage by lazy { Stage(ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT), spriteBatch) }
-    val uiStage by lazy { Stage(ExtendViewport(GAME_WIDTH, GAME_HEIGHT), spriteBatch) }
+    val uiStage by lazy { Stage(FitViewport(GAME_WIDTH, GAME_HEIGHT), spriteBatch) }
 }

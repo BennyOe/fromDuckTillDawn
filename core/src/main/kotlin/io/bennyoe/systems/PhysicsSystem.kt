@@ -12,7 +12,7 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.Duckee
+import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
@@ -26,7 +26,7 @@ import ktx.math.component2
 
 class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
-) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(Duckee.PHYSIC_TIME_STEP)),
+) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(PHYSIC_TIME_STEP)),
     ContactListener {
     private var activeGroundContacts: Int = 0
 

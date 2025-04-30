@@ -14,7 +14,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.Duckee.Companion.UNIT_SCALE
+import io.bennyoe.GameConstants.UNIT_SCALE
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.event.MapChangedEvent
 import ktx.graphics.use

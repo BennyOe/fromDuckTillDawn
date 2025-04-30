@@ -6,7 +6,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.Duckee
+import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.components.JumpComponent
 import kotlin.math.sqrt
 
@@ -22,7 +22,7 @@ class JumpSystem(
         }
 
         // do calculation in physic step time unit
-        gravityPerStep.set(physicWorld.gravity).scl(Duckee.PHYSIC_TIME_STEP).scl(Duckee.PHYSIC_TIME_STEP)
+        gravityPerStep.set(physicWorld.gravity).scl(PHYSIC_TIME_STEP).scl(PHYSIC_TIME_STEP)
 
         val a = 0.5f / gravityPerStep.y
         val b = 0.5f
@@ -32,9 +32,9 @@ class JumpSystem(
 
         // convert result back to "per second"
         return if (quadraticSolution1 < 0) {
-            quadraticSolution2 / Duckee.PHYSIC_TIME_STEP
+            quadraticSolution2 / PHYSIC_TIME_STEP
         } else {
-            quadraticSolution1 / Duckee.PHYSIC_TIME_STEP
+            quadraticSolution1 / PHYSIC_TIME_STEP
         }
     }
 

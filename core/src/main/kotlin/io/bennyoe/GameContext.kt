@@ -6,10 +6,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import com.badlogic.gdx.utils.viewport.FitViewport
-import io.bennyoe.Duckee.Companion.GAME_HEIGHT
-import io.bennyoe.Duckee.Companion.GAME_WIDTH
-import io.bennyoe.Duckee.Companion.WORLD_HEIGHT
-import io.bennyoe.Duckee.Companion.WORLD_WIDTH
+import io.bennyoe.GameConstants.GAME_HEIGHT
+import io.bennyoe.GameConstants.GAME_WIDTH
+import io.bennyoe.GameConstants.WORLD_HEIGHT
+import io.bennyoe.GameConstants.WORLD_WIDTH
 import ktx.inject.Context
 import ktx.inject.register
 

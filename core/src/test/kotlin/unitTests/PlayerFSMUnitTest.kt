@@ -1,3 +1,5 @@
+package unitTests
+
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.Animation
@@ -26,7 +28,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
-class PlayerFSMTest {
+class PlayerFSMUnitTest {
     private lateinit var world: World
     private lateinit var entity: Entity
     private lateinit var stateContext: StateContext
@@ -71,98 +73,6 @@ class PlayerFSMTest {
             }
         stateContext = StateContext(entity, world)
     }
-
-    /*
-    States:
-    Idle
-    Walk
-    Jump
-    Double Jump
-    Fall
-    Crouch Idle
-    Crouch Walk
-    Bash
-    Attack 1
-    Attack 2
-    Attack 3
-
-    Positive transitions:
-    Idle -> Jump
-    Idle -> Walk
-    Idle -> Crouch Idle
-    Idle -> Crouch Walk
-    Idle -> Bash
-    Idle -> Attack 1
-
-    Walk -> Idle
-    Walk -> Jump
-    Walk -> Crouch Idle
-    Walk -> Crouch Walk
-    Walk -> Fall
-    Walk -> Bash
-    Walk -> Attack 1
-
-    Jump -> Double Jump
-    Jump -> Fall
-    Jump -> Bash
-    Jump -> Attack 1
-
-    Double Jump -> Fall
-    Double Jump -> Bash
-    Double Jump -> Attack 1
-
-    Fall -> Double Jump
-    Fall -> Idle
-    Fall -> Bash
-    Fall -> Attack 1
-
-    Crouch Idle -> Crouch Walk
-    Crouch Idle -> Idle
-    Crouch Idle -> Walk
-
-    Crouch Walk -> Crouch Idle
-    Crouch Walk -> Idle
-    Crouch Walk -> Walk
-
-    Bash -> Idle
-    Bash-> Jump
-
-    Attack 1 -> Idle
-    Attack 1 -> Attack 2
-    Attack 1 -> Fall
-
-    Attack 2 -> Idle
-    Attack 2 -> Attack 3
-    Attack 2 -> Fall
-
-    Attack 3 -> Idle
-    Attack 3 -> Fall
-
-    Negative transitions:
-    Idle -> Double Jump
-    Idle -> Attack 2
-    Idle -> Attack 3
-
-    Walk -> Double Jump
-    Walk -> Attack 2
-    Walk -> Attack 3
-
-    Jump -> Crouch Idle
-    Jump -> Crouch Walk
-    Jump -> Attack 2
-    Jump -> Attack 3
-    Jump -> Idle
-    Jump -> Walk
-
-
-    Double Jump -> Crouch Idle
-    Double Jump -> Crouch Walk
-    Double Jump -> Attack 2
-    Double Jump -> Attack 3
-    Double Jump -> Idle
-    Double Jump -> Walk
-    Double Jump -> Jump
-     */
 
     @Test
     fun `default state should be IDLE`() {

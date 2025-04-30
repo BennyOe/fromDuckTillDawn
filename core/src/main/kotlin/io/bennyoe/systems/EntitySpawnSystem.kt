@@ -14,7 +14,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.Duckee.Companion.UNIT_SCALE
+import io.bennyoe.GameConstants.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.ai.FsmMessageTypes
 import io.bennyoe.components.AiComponent

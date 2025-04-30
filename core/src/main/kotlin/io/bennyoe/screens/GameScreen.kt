@@ -6,6 +6,7 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.quillraven.fleks.configureWorld
+import io.bennyoe.GameConstants.GRAVITY
 import io.bennyoe.Stages
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
@@ -37,7 +38,7 @@ class GameScreen(
     private val uiStage = stages.uiStage
     private var tiledMap: TiledMap? = null
     private val phyWorld =
-        createWorld(gravity = Vector2(0f, -50.81f), true).apply {
+        createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
             autoClearForces = false
         }
     private val entityWorld =

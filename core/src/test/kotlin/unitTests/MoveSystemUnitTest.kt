@@ -1,3 +1,5 @@
+package unitTests
+
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
@@ -11,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class MoveSystemTest {
+class MoveSystemUnitTest {
     private lateinit var world: World
     private lateinit var entity: Entity
 
@@ -57,5 +59,49 @@ class MoveSystemTest {
 
         val move = with(world) { entity[MoveComponent] }
         assertEquals(-10f, move.moveVelocity)
+    }
+
+    @Test
+    fun `entity moves at max speed regardless of delta time`() {
+        // small Δt
+        world.update(0.016f)
+        val smallDtVelocity = with(world) { entity[MoveComponent].moveVelocity }
+
+        // large Δt
+        world.update(0.5f)
+        val largeDtVelocity = with(world) { entity[MoveComponent].moveVelocity }
+
+        assertEquals(
+            smallDtVelocity,
+            largeDtVelocity,
+            "Velocity should be independent of the frame's delta time",
+        )
+    }
+
+    @Test
+    fun `entity reaches max speed after multiple small updates`() {
+        repeat(10) { world.update(0.016f) } // simulate ~10 frames @60 FPS
+        val vel = with(world) { entity[MoveComponent].moveVelocity }
+        assertEquals(10f, vel)
+    }
+
+    @Test
+    fun `velocity is clamped to max speed`() {
+        with(world) { entity[MoveComponent].maxSpeed = 5f }
+        world.update(5f) // simulate a big lag spike
+        val vel = with(world) { entity[MoveComponent].moveVelocity }
+        assertEquals(5f, vel)
+    }
+
+    @Test
+    fun `entity changes direction correctly within one frame`() {
+        world.update(0.016f) // first frame moving right
+
+        // switch direction to left and update again
+        with(world) { entity[InputComponent].direction = WalkDirection.LEFT }
+        world.update(0.016f)
+
+        val vel = with(world) { entity[MoveComponent].moveVelocity }
+        assertEquals(-10f, vel)
     }
 }

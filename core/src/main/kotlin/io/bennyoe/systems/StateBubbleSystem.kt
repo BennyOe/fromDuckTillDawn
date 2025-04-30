@@ -8,7 +8,7 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.Duckee.Companion.PHYSIC_TIME_STEP
+import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.components.AiComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateBubbleComponent

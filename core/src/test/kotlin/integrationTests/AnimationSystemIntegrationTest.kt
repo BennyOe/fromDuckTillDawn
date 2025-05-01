@@ -47,10 +47,13 @@ class AnimationSystemIntegrationTest {
 
         world =
             configureWorld {
+                injectables {
+                    add(atlasMock)
+                }
                 systems {
                     add(MoveSystem())
                     add(AiSystem())
-                    add(AnimationSystem(atlasMock))
+                    add(AnimationSystem())
                 }
             }
 

@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.GameConstants.GRAVITY
 import io.bennyoe.Stages
+import io.bennyoe.components.DebugComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.systems.AiSystem
@@ -66,6 +67,12 @@ class GameScreen(
         }
 
     override fun show() {
+        // add a gameState Entity to the screen
+        val gameStateEntity =
+            entityWorld.entity {
+                it += DebugComponent()
+            }
+
         // this adds all EventListenerSystems also to Scene2D
         entityWorld.systems.forEach { system ->
             if (system is EventListener) {

@@ -17,6 +17,10 @@ class StateBubbleComponent(
         uiStage.addActor(bubble)
     }
 
+    override fun World.onRemove(entity: Entity) {
+        bubble.remove()
+    }
+
     override fun type() = StateBubbleComponent
 
     companion object : ComponentType<StateBubbleComponent>() {

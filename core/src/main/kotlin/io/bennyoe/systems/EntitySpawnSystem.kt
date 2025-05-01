@@ -29,8 +29,6 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnCfg
 import io.bennyoe.components.SpawnComponent
-import io.bennyoe.components.StateBubbleComponent
-import io.bennyoe.components.UiComponent
 import io.bennyoe.event.MapChangedEvent
 import ktx.app.gdxError
 import ktx.box2d.box
@@ -151,9 +149,6 @@ class EntitySpawnSystem(
                         }
                 }
             it += image
-
-            it += StateBubbleComponent(uiStage)
-            it += UiComponent
 
             val physics =
                 PhysicComponent.physicsComponentFromImage(

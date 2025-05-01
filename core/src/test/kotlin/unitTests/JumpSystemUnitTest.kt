@@ -24,7 +24,10 @@ class JumpSystemUnitTest {
 
         ecsWorld =
             configureWorld {
-                systems { add(JumpSystem(phyWorld)) }
+                injectables {
+                    add("phyWorld", phyWorld)
+                }
+                systems { add(JumpSystem()) }
             }
 
         entity =

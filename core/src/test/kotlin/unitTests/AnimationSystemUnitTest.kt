@@ -48,7 +48,10 @@ class AnimationSystemUnitTest {
 
         world =
             configureWorld {
-                systems { add(AnimationSystem(atlasMock)) }
+                injectables {
+                    add(atlasMock)
+                }
+                systems { add(AnimationSystem()) }
             }
 
         aniCmp =

@@ -81,8 +81,6 @@ class GameScreen(
         }
 
         stage.fire(MapChangedEvent(tiledMap)) // mapChangeEvent gets fired
-        // TODO set this in the debug system
-        stage.isDebugAll = true
 
         super.show()
     }

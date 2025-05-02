@@ -31,6 +31,7 @@ class DebugSystem(
             if (playerEntity hasNo UiComponent) {
                 world.entity { playerEntity += UiComponent }
             }
+            stage.isDebugAll = true
             physicsRenderer.render(phyWorld, stage.camera.combined)
         } else {
             if (playerEntity has StateBubbleComponent) {
@@ -39,6 +40,7 @@ class DebugSystem(
             if (playerEntity has UiComponent) {
                 playerEntity.configure { it -= UiComponent }
             }
+            stage.isDebugAll = false
         }
     }
 

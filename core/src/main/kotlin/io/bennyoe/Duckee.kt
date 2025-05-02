@@ -1,18 +1,18 @@
 package io.bennyoe
 
-import io.bennyoe.screens.GameScreen
+import io.bennyoe.screens.LoadingScreen
 import io.bennyoe.widgets.createSkin
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
 import ktx.inject.Context
 
 class Duckee : KtxGame<KtxScreen>() {
-    private val context: Context by lazy { GameContext() }
+    private val context: Context by lazy { GameContext(this) }
 
     override fun create() {
         createSkin()
-        addScreen(GameScreen(context))
-        setScreen<GameScreen>()
+        addScreen(LoadingScreen(context))
+        setScreen<LoadingScreen>()
     }
 
     override fun dispose() {

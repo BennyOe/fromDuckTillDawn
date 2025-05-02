@@ -1,13 +1,12 @@
 package io.bennyoe.screens
 
-import com.badlogic.gdx.graphics.g2d.TextureAtlas
-import com.badlogic.gdx.maps.tiled.TiledMap
-import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.GameConstants.GRAVITY
 import io.bennyoe.Stages
+import io.bennyoe.assets.MapAssets
+import io.bennyoe.assets.TextureAssets
 import io.bennyoe.components.DebugComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
@@ -24,6 +23,7 @@ import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateBubbleSystem
 import io.bennyoe.systems.UiRenderSystem
 import ktx.app.KtxScreen
+import ktx.assets.async.AssetStorage
 import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
 import ktx.inject.Context
@@ -32,12 +32,12 @@ import ktx.log.logger
 class GameScreen(
     context: Context,
 ) : KtxScreen {
-    // TODO implement asset manager
-    private val textureAtlas = TextureAtlas("textures/player.atlas")
+    private val assets = context.inject<AssetStorage>()
+    private val textureAtlas = assets[TextureAssets.PLAYER_ATLAS.descriptor]
+    private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()
     private val stage = stages.stage
     private val uiStage = stages.uiStage
-    private var tiledMap: TiledMap? = null
     private val phyWorld =
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
             autoClearForces = false
@@ -80,9 +80,9 @@ class GameScreen(
             }
         }
 
-        tiledMap = TmxMapLoader().load("map/testMap.tmx") // map gets loaded
-        stage.fire(MapChangedEvent(tiledMap!!)) // mapChangeEvent gets fired
-//        stage.isDebugAll = true
+        stage.fire(MapChangedEvent(tiledMap)) // mapChangeEvent gets fired
+        // TODO set this in the debug system
+        stage.isDebugAll = true
 
         super.show()
     }
@@ -94,7 +94,7 @@ class GameScreen(
     override fun dispose() {
         textureAtlas.dispose()
         entityWorld.dispose()
-        tiledMap?.disposeSafely()
+        tiledMap.disposeSafely()
     }
 
     companion object {

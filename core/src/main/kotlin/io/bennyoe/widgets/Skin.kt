@@ -1,5 +1,6 @@
 package io.bennyoe.widgets
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -13,10 +14,14 @@ import ktx.style.textField
 
 fun createSkin() {
     val font = BitmapFont()
+    val fpsFont = BitmapFont()
+
     Scene2DSkin.defaultSkin =
         skin {
             label("default") {
-                this.font = font
+                fpsFont.data.setScale(1.5f)
+                this.font = fpsFont
+                this.fontColor = Color(0f, 1f, 0f, 1f)
             }
 
             textField("default") {

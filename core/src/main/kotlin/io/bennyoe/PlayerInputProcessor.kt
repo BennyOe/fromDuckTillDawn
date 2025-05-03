@@ -5,9 +5,9 @@ import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.FsmMessageTypes
-import io.bennyoe.components.DebugComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.WalkDirection
+import io.bennyoe.components.debug.DebugComponent
 import ktx.app.KtxInputAdapter
 import ktx.log.logger
 

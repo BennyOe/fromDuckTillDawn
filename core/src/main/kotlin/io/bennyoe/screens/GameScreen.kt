@@ -7,21 +7,22 @@ import io.bennyoe.GameConstants.GRAVITY
 import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets
-import io.bennyoe.components.DebugComponent
+import io.bennyoe.components.GameStateComponent
+import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.systems.AiSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
-import io.bennyoe.systems.DebugSystem
 import io.bennyoe.systems.EntitySpawnSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
-import io.bennyoe.systems.StateBubbleSystem
 import io.bennyoe.systems.UiRenderSystem
+import io.bennyoe.systems.debug.DebugSystem
+import io.bennyoe.systems.debug.StateBubbleSystem
 import ktx.app.KtxScreen
 import ktx.assets.async.AssetStorage
 import ktx.assets.disposeSafely
@@ -71,6 +72,7 @@ class GameScreen(
         val gameStateEntity =
             entityWorld.entity {
                 it += DebugComponent()
+                it += GameStateComponent()
             }
 
         // this adds all EventListenerSystems also to Scene2D

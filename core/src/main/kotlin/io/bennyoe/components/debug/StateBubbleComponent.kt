@@ -1,4 +1,4 @@
-package io.bennyoe.components
+package io.bennyoe.components.debug
 
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Component

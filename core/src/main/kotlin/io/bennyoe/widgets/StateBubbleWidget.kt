@@ -18,8 +18,6 @@ class StateBubbleWidget : WidgetGroup() {
         }
 
     init {
-        debug = true
-
         this += displayState
     }
 

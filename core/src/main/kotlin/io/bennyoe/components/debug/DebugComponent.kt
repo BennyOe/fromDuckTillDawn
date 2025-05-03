@@ -4,17 +4,14 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.widgets.FpsCounterWidget
 import ktx.log.logger
 
 class DebugComponent(
     var enabled: Boolean = false,
 ) : Component<DebugComponent> {
     private var alreadyChanged: Boolean = false
-    lateinit var fpsCounterWidget: FpsCounterWidget
 
     override fun World.onAdd(entity: Entity) {
-        fpsCounterWidget = FpsCounterWidget()
     }
 
     fun toggleDebug(pressed: Boolean) {

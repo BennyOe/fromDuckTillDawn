@@ -1,25 +1,26 @@
 package io.bennyoe.widgets
 
-import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
-import ktx.actors.plusAssign
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle
 import ktx.log.logger
-import ktx.scene2d.label
-import ktx.scene2d.scene2d
 
-class FpsCounterWidget : WidgetGroup() {
-    var fps = ""
-
-    private var displayFps =
-        scene2d.label(fps) {
-            setPosition(10f, 20f)
-        }
+class FpsCounterWidget(
+    style: LabelStyle,
+) : Label("", style) {
+    private var timer = 0f
 
     init {
-        this += displayFps
+        setPosition(10f, 20f)
     }
 
-    fun displayFps(fps: String) {
-        displayFps.setText("$fps Fps")
+    override fun act(delta: Float) {
+        super.act(delta)
+        timer += delta
+        if (timer >= 0.5f) {
+            setText("${Gdx.graphics.framesPerSecond} fps")
+            timer = 0f
+        }
     }
 
     companion object {

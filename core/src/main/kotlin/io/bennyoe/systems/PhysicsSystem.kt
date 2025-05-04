@@ -55,7 +55,7 @@ class PhysicsSystem(
         val bashCmp = entity.getOrNull(BashComponent)
         val animationCmp = entity[AnimationComponent]
 
-        setJumpImpulse(jumpCmp, physicCmp, entity)
+        setJumpImpulse(jumpCmp, physicCmp)
         setWalkImpulse(moveCmp, physicCmp)
         setBashImpulse(bashCmp, animationCmp, physicCmp, entity)
         setGroundContact(entity)
@@ -97,11 +97,12 @@ class PhysicsSystem(
     private fun setJumpImpulse(
         jumpCmp: JumpComponent?,
         physicCmp: PhysicComponent,
-        entity: Entity,
     ) {
         jumpCmp?.let { jump ->
-            physicCmp.impulse.y = physicCmp.body.mass * (jump.jumpVelocity - physicCmp.body.linearVelocity.y)
-            entity.configure { it -= JumpComponent }
+            if (jumpCmp.wantsToJump) {
+                physicCmp.impulse.y = physicCmp.body.mass * (jump.jumpVelocity - physicCmp.body.linearVelocity.y)
+                jumpCmp.wantsToJump = false
+            }
         }
     }
 

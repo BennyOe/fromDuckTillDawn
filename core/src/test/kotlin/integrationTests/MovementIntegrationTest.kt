@@ -12,6 +12,7 @@ import io.bennyoe.ai.PlayerFSM
 import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
@@ -52,6 +53,7 @@ class MovementIntegrationTest {
                 it += PhysicComponent().apply { body = bodyMock }
                 it += MoveComponent(maxSpeed = 10f)
                 it += InputComponent()
+                it += JumpComponent()
                 it += AnimationComponent().apply { animation = animationMock }
                 it += AiComponent(world)
             }

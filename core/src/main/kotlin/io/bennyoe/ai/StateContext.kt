@@ -11,6 +11,7 @@ import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 
@@ -23,6 +24,7 @@ data class StateContext(
     val aiComponent: AiComponent
     val physicComponent: PhysicComponent
     val moveComponent: MoveComponent
+    val jumpComponent: JumpComponent
 
     init {
         with(world) {
@@ -31,6 +33,7 @@ data class StateContext(
             aiComponent = entity[AiComponent]
             physicComponent = entity[PhysicComponent]
             moveComponent = entity[MoveComponent]
+            jumpComponent = entity[JumpComponent]
         }
     }
 

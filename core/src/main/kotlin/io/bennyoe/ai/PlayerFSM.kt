@@ -7,7 +7,7 @@ import com.badlogic.gdx.ai.msg.Telegram
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.BashComponent
-import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.WalkDirection
 
 sealed class PlayerFSM : State<StateContext> {
@@ -16,6 +16,8 @@ sealed class PlayerFSM : State<StateContext> {
     protected fun shouldWalk(ctx: StateContext) = ctx.inputComponent.direction != WalkDirection.NONE
 
     protected fun shouldJump(ctx: StateContext) = ctx.inputComponent.jumpJustPressed
+
+    protected fun hasGroundContact(ctx: StateContext) = with(ctx.world) { ctx.entity has HasGroundContact }
 
     protected fun shouldFall(ctx: StateContext) = ctx.physicComponent.body.linearVelocity.y < 0
 
@@ -41,7 +43,8 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             when {
                 shouldCrouch(ctx) && shouldWalk(ctx) -> ctx.changeState(CROUCH_WALK)
-                shouldJump(ctx) -> ctx.changeState(JUMP)
+                // because state changes for a fraction while JUMP to IDLE before FALL, also need to check for groundContact
+                shouldJump(ctx) && hasGroundContact(ctx) -> ctx.changeState(JUMP)
                 shouldCrouch(ctx) -> ctx.changeState(CROUCH_IDLE)
                 shouldWalk(ctx) -> ctx.changeState(WALK)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
@@ -74,7 +77,8 @@ sealed class PlayerFSM : State<StateContext> {
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldIdle(ctx) -> ctx.changeState(IDLE)
-                shouldJump(ctx) -> ctx.changeState(JUMP)
+                // because state changes for a fraction while JUMP to WALK before FALL when pressing walk-key, also need to check for groundContact
+                shouldJump(ctx) && hasGroundContact(ctx) -> ctx.changeState(JUMP)
                 shouldCrouch(ctx) -> ctx.changeState(CROUCH_WALK)
                 shouldFall(ctx) -> ctx.changeState(FALL)
             }
@@ -84,9 +88,9 @@ sealed class PlayerFSM : State<StateContext> {
     data object JUMP : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering JUMP" }
+            ctx.jumpComponent.wantsToJump = true
             ctx.inputComponent.jumpJustPressed = false
             ctx.setAnimation(AnimationType.JUMP)
-            ctx.add(JumpComponent())
         }
 
         override fun update(ctx: StateContext) {
@@ -102,7 +106,8 @@ sealed class PlayerFSM : State<StateContext> {
     data object DOUBLE_JUMP : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering DOUBLE_JUMP" }
-            ctx.add(JumpComponent())
+            ctx.jumpComponent.wantsToJump = true
+            ctx.inputComponent.jumpJustPressed = false
             ctx.setAnimation(AnimationType.JUMP)
         }
 
@@ -123,6 +128,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                shouldJump(ctx) && ctx.jumpComponent.doubleJumpGraceTimer > 0f -> ctx.changeState(DOUBLE_JUMP)
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 !shouldFall(ctx) -> ctx.changeState(IDLE)
             }

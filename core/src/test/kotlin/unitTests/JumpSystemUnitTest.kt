@@ -5,8 +5,14 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
+import io.bennyoe.components.AiComponent
+import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.PhysicComponent
 import io.bennyoe.systems.JumpSystem
+import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.math.sqrt
@@ -14,15 +20,16 @@ import kotlin.test.assertEquals
 import com.badlogic.gdx.physics.box2d.World as Box2DWorld
 
 class JumpSystemUnitTest {
-    private lateinit var ecsWorld: World
+    private lateinit var world: World
     private lateinit var entity: Entity
     private lateinit var phyWorld: Box2DWorld
 
     @BeforeEach
     fun setup() {
+        val mockAnimationCmp = mockk<AnimationComponent>(relaxed = true)
         phyWorld = Box2DWorld(Vector2(0f, -9.81f), true)
 
-        ecsWorld =
+        world =
             configureWorld {
                 injectables {
                     add("phyWorld", phyWorld)
@@ -31,8 +38,13 @@ class JumpSystemUnitTest {
             }
 
         entity =
-            ecsWorld.entity {
-                it += JumpComponent(maxHeight = 3f)
+            world.entity {
+                it += mockAnimationCmp
+                it += PhysicComponent()
+                it += MoveComponent()
+                it += InputComponent()
+                it += JumpComponent()
+                it += AiComponent(world)
             }
     }
 
@@ -53,11 +65,11 @@ class JumpSystemUnitTest {
 
     @Test
     fun `jump velocity is zero for non positive height`() {
-        with(ecsWorld) { entity[JumpComponent].maxHeight = 0f }
+        with(world) { entity[JumpComponent].maxHeight = 0f }
 
-        ecsWorld.update(0f)
+        world.update(0f)
 
-        val jump = with(ecsWorld) { entity[JumpComponent] }
+        val jump = with(world) { entity[JumpComponent] }
         assertEquals(0f, jump.jumpVelocity, "Velocity should be 0 when height ≤ 0")
     }
 
@@ -65,9 +77,9 @@ class JumpSystemUnitTest {
     fun `computed velocity matches analytical formula`() {
         val desiredHeight = 3f
 
-        ecsWorld.update(0f)
+        world.update(0f)
 
-        val jump = with(ecsWorld) { entity[JumpComponent] }
+        val jump = with(world) { entity[JumpComponent] }
         val expected = expectedJumpVelocity(desiredHeight)
 
         assertEquals(
@@ -81,13 +93,13 @@ class JumpSystemUnitTest {
     @Test
     fun `velocity scales with gravity magnitude`() {
         // first run with normal gravity
-        ecsWorld.update(0f)
-        val normalVel = with(ecsWorld) { entity[JumpComponent].jumpVelocity }
+        world.update(0f)
+        val normalVel = with(world) { entity[JumpComponent].jumpVelocity }
 
         // make gravity weaker (half)
         phyWorld.gravity = Vector2(0f, -4.905f)
-        ecsWorld.update(0f)
-        val weakerVel = with(ecsWorld) { entity[JumpComponent].jumpVelocity }
+        world.update(0f)
+        val weakerVel = with(world) { entity[JumpComponent].jumpVelocity }
 
         assert(weakerVel < normalVel) {
             "With weaker gravity the jump velocity should decrease"

@@ -6,11 +6,13 @@ import com.badlogic.gdx.math.Vector2
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
+import io.bennyoe.components.AiComponent
+import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
-import io.bennyoe.systems.AiSystem
+import io.bennyoe.components.PhysicComponent
 import io.bennyoe.systems.JumpSystem
-import io.bennyoe.systems.MoveSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -30,10 +32,12 @@ class JumpSystemIntegrationTest {
     private lateinit var world: World
     private lateinit var entity: Entity
     private lateinit var phyWorld: Box2DWorld
+    private lateinit var mockAnimationCmp: AnimationComponent
 
     @BeforeEach
     fun setup() {
         Gdx.app = mockk<Application>(relaxed = true)
+        mockAnimationCmp = mockk<AnimationComponent>(relaxed = true)
 
         phyWorld = Box2DWorld(Vector2(0f, -9.81f), true)
 
@@ -43,54 +47,63 @@ class JumpSystemIntegrationTest {
                     add("phyWorld", phyWorld)
                 }
                 systems {
-                    add(MoveSystem())
-                    add(AiSystem())
                     add(JumpSystem())
                 }
             }
 
         entity =
             world.entity {
-                it += JumpComponent(maxHeight = 3f)
+                it += mockAnimationCmp
+                it += PhysicComponent()
                 it += MoveComponent()
+                it += InputComponent()
+                it += JumpComponent()
+                it += AiComponent(world)
             }
     }
 
     @Test
     fun `jump velocity is calculated based on maxHeight`() {
+        val jumpComponent = with(world) { entity[JumpComponent] }
+        jumpComponent.wantsToJump = true
         // Run the system to calculate jump velocity
         world.update(0.016f)
 
         // Get the jump component and verify its velocity is not zero
-        val jumpComponent = with(world) { entity[JumpComponent] }
         assertTrue(jumpComponent.jumpVelocity > 0f, "Jump velocity should be positive")
     }
 
     @Test
     fun `jump height affects jump velocity`() {
+        val jumpComponent = with(world) { entity[JumpComponent] }
+        jumpComponent.wantsToJump = true
         // Create a second entity with a higher jump height
         val entity2 =
             world.entity {
-                it += JumpComponent(maxHeight = 5f) // Higher jump
+                it += mockAnimationCmp
+                it += PhysicComponent()
                 it += MoveComponent()
+                it += InputComponent()
+                it += JumpComponent(maxHeight = 5f) // Higher jump
+                it += AiComponent(world)
             }
+        val jumpComponent2 = with(world) { entity2[JumpComponent] }
+        jumpComponent2.wantsToJump = true
 
         // Update the world to process both entities
         world.update(0.016f)
 
-        // Get the jump velocities
-        val jumpVelocity1 = with(world) { entity[JumpComponent].jumpVelocity }
-        val jumpVelocity2 = with(world) { entity2[JumpComponent].jumpVelocity }
-
         // The entity with higher maxHeight should have a higher jump velocity
         assertTrue(
-            jumpVelocity2 > jumpVelocity1,
+            jumpComponent2.jumpVelocity > jumpComponent.jumpVelocity,
             "Entity with higher maxHeight should have higher jump velocity",
         )
     }
 
     @Test
     fun `jump velocity scales with gravity`() {
+        val jumpComponent = with(world) { entity[JumpComponent] }
+        jumpComponent.wantsToJump = true
         // First jump with normal gravity
         world.update(0.016f)
         val normalGravityVelocity = with(world) { entity[JumpComponent].jumpVelocity }
@@ -112,7 +125,12 @@ class JumpSystemIntegrationTest {
         // Create an entity with the same jump height
         val reducedGravityEntity =
             reducedGravityEcsWorld.entity {
+                it += mockAnimationCmp
+                it += PhysicComponent()
+                it += MoveComponent()
+                it += InputComponent()
                 it += JumpComponent(maxHeight = 3f)
+                it += AiComponent(world)
             }
 
         // Apply jump with reduced gravity
@@ -128,11 +146,17 @@ class JumpSystemIntegrationTest {
 
     @Test
     fun `jump velocity is zero for non-positive height`() {
+        val jumpComponent = with(world) { entity[JumpComponent] }
+        jumpComponent.wantsToJump = true
         // Create an entity with zero jump height
         val zeroHeightEntity =
             world.entity {
-                it += JumpComponent(maxHeight = 0f)
+                it += mockAnimationCmp
+                it += PhysicComponent()
                 it += MoveComponent()
+                it += InputComponent()
+                it += JumpComponent(maxHeight = 0f)
+                it += AiComponent(world)
             }
 
         // Update the world

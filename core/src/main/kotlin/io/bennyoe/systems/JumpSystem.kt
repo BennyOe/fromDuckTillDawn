@@ -7,6 +7,9 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
+import io.bennyoe.ai.PlayerFSM
+import io.bennyoe.components.AiComponent
+import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.JumpComponent
 import kotlin.math.sqrt
 
@@ -39,8 +42,17 @@ class JumpSystem(
     }
 
     override fun onTickEntity(entity: Entity) {
-        val jumpComponent = entity[JumpComponent]
-        jumpComponent.jumpVelocity = getJumpVelocity(jumpComponent.maxHeight)
+        val jumpCmp = entity[JumpComponent]
+        val aiCmp = entity[AiComponent]
+        jumpCmp.jumpVelocity = getJumpVelocity(jumpCmp.maxHeight)
+
+        if (aiCmp.stateMachine.currentState == PlayerFSM.FALL) {
+            jumpCmp.doubleJumpGraceTimer -= deltaTime
+        }
+
+        if (entity has HasGroundContact) {
+            jumpCmp.resetDoubleJumpGraceTimer()
+        }
     }
 
     companion object {

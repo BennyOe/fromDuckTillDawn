@@ -3,9 +3,12 @@ package integrationTests
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
+import io.bennyoe.GameConstants.DOUBLE_JUMP_GRACE_TIME
+import io.bennyoe.ai.PlayerFSM
 import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.InputComponent
@@ -38,6 +41,7 @@ class JumpSystemIntegrationTest {
     fun setup() {
         Gdx.app = mockk<Application>(relaxed = true)
         mockAnimationCmp = mockk<AnimationComponent>(relaxed = true)
+        val mockBody = mockk<Body>(relaxed = true)
 
         phyWorld = Box2DWorld(Vector2(0f, -9.81f), true)
 
@@ -54,7 +58,9 @@ class JumpSystemIntegrationTest {
         entity =
             world.entity {
                 it += mockAnimationCmp
-                it += PhysicComponent()
+                val physicCmp = PhysicComponent()
+                physicCmp.body = mockBody
+                it += physicCmp
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent()
@@ -165,5 +171,40 @@ class JumpSystemIntegrationTest {
         // Verify the jump velocity is zero
         val jumpVelocity = with(world) { zeroHeightEntity[JumpComponent].jumpVelocity }
         assertEquals(0f, jumpVelocity, "Jump velocity should be zero for non-positive height")
+    }
+
+    @Test
+    fun `double jump should be possible in DOUBLE_JUMP_GRACE_TIME`() {
+        val jumpComponent = with(world) { entity[JumpComponent] }
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+        val dt = 0.05f
+
+        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
+        world.update(dt)
+        assertEquals(DOUBLE_JUMP_GRACE_TIME - dt, jumpComponent.doubleJumpGraceTimer)
+        inputComponent.jumpJustPressed = true
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `double jump should NOT be possible outside of DOUBLE_JUMP_GRACE_TIME`() {
+        val jumpComponent = with(world) { entity[JumpComponent] }
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+        val dt = 0.1f
+
+        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
+        world.update(dt)
+        assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
+        world.update(dt)
+        assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
+        world.update(dt)
+        assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
+        assertTrue(jumpComponent.doubleJumpGraceTimer < 0)
+        inputComponent.jumpJustPressed = true
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
 }

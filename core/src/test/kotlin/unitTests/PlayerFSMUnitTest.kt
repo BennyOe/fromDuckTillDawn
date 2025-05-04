@@ -14,7 +14,9 @@ import io.bennyoe.ai.PlayerFSM
 import io.bennyoe.ai.StateContext
 import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
@@ -69,6 +71,7 @@ class PlayerFSMUnitTest {
                 it += MoveComponent(maxSpeed = 10f)
                 it += InputComponent()
                 it += animationComponent
+                it += JumpComponent()
                 it += AiComponent(world)
             }
         stateContext = StateContext(entity, world)
@@ -103,6 +106,7 @@ class PlayerFSMUnitTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
+        with(world) { entity.configure { it += HasGroundContact } }
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
@@ -113,6 +117,7 @@ class PlayerFSMUnitTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
+        with(world) { entity.configure { it += HasGroundContact } }
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         inputComponent.jumpJustPressed = true
@@ -135,6 +140,7 @@ class PlayerFSMUnitTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
+        with(world) { entity.configure { it += HasGroundContact } }
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
@@ -161,6 +167,7 @@ class PlayerFSMUnitTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
+        with(world) { entity.configure { it += HasGroundContact } }
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         inputComponent.jumpJustPressed = true
@@ -200,6 +207,7 @@ class PlayerFSMUnitTest {
         val inputComponent = with(world) { entity[InputComponent] }
 
         inputComponent.jumpJustPressed = true
+        with(world) { entity.configure { it += HasGroundContact } }
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
 
@@ -213,6 +221,7 @@ class PlayerFSMUnitTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
+        with(world) { entity.configure { it += HasGroundContact } }
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
@@ -265,6 +274,7 @@ class PlayerFSMUnitTest {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
+        with(world) { entity.configure { it += HasGroundContact } }
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
@@ -285,14 +295,29 @@ class PlayerFSMUnitTest {
     }
 
     @Test
-    fun `should not transition from FALL to DOUBLE_JUMP when jump pressed`() {
+    fun `should not transition from FALL to DOUBLE_JUMP when jump pressed but grace is 0`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+        val jumpComponent = with(world) { entity[JumpComponent] }
+        jumpComponent.disableDoubleJumpGraceTimer()
         givenState(PlayerFSM.FALL)
 
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should transition from FALL to DOUBLE_JUMP when jump pressed and grace is gt 0`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+        val jumpComponent = with(world) { entity[JumpComponent] }
+        jumpComponent.resetDoubleJumpGraceTimer()
+        givenState(PlayerFSM.FALL)
+
+        inputComponent.jumpJustPressed = true
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
     }
 
     @Test
@@ -401,6 +426,7 @@ class PlayerFSMUnitTest {
     fun `should transition from DOUBLE_JUMP to BASH when bash pressed`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+        with(world) { entity.configure { it += HasGroundContact } }
 
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()

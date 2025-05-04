@@ -12,7 +12,9 @@ import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
+import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
@@ -62,6 +64,8 @@ class AnimationSystemIntegrationTest {
                 it += MoveComponent()
                 it += PhysicComponent().apply { body = bodyMock }
                 it += animationComponent
+                it += JumpComponent()
+                it += HasGroundContact
                 it += InputComponent(direction = WalkDirection.NONE)
                 it += AiComponent(world)
             }
@@ -109,8 +113,8 @@ class AnimationSystemIntegrationTest {
      */
     @Test
     fun `jump flag enqueues jump animation`() {
-        val animationCmp = with(world) { entity[AnimationComponent.Companion] }
-        val inputCmp = with(world) { entity[InputComponent.Companion] }
+        val animationCmp = with(world) { entity[AnimationComponent] }
+        val inputCmp = with(world) { entity[InputComponent] }
 
         inputCmp.jumpJustPressed = true
         world.update(0.016f)

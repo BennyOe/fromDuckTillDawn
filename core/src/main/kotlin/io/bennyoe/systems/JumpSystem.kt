@@ -46,8 +46,10 @@ class JumpSystem(
         val aiCmp = entity[AiComponent]
         jumpCmp.jumpVelocity = getJumpVelocity(jumpCmp.maxHeight)
 
-        if (aiCmp.stateMachine.currentState == PlayerFSM.FALL) {
-            jumpCmp.doubleJumpGraceTimer -= deltaTime
+        when (aiCmp.stateMachine.currentState) {
+            PlayerFSM.FALL -> jumpCmp.doubleJumpGraceTimer -= deltaTime
+            PlayerFSM.DOUBLE_JUMP -> jumpCmp.disableDoubleJumpGraceTimer()
+            else -> Unit
         }
 
         if (entity has HasGroundContact) {

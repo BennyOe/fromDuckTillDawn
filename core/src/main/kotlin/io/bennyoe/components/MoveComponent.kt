@@ -2,9 +2,10 @@ package io.bennyoe.components
 
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
+import io.bennyoe.GameConstants.WALK_MAX_SPEED
 
 data class MoveComponent(
-    var maxSpeed: Float = 5f,
+    var maxSpeed: Float = WALK_MAX_SPEED,
     var moveVelocity: Float = 0f,
 ) : Component<MoveComponent> {
     override fun type() = MoveComponent

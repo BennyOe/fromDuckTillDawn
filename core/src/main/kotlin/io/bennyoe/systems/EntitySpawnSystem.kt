@@ -24,6 +24,7 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
@@ -164,6 +165,8 @@ class EntitySpawnSystem(
                 userData = "GROUND_COLLISION"
             }
             it += physics
+
+            it += JumpComponent()
 
             val move = MoveComponent()
             it += move

@@ -123,7 +123,7 @@ sealed class PlayerFSM : State<StateContext> {
     data object FALL : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering FALL" }
-            ctx.setAnimation(AnimationType.CROUCH_IDLE)
+            ctx.setAnimation(AnimationType.JUMP)
         }
 
         override fun update(ctx: StateContext) {

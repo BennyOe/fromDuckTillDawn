@@ -60,7 +60,10 @@ class PlayerInputProcessor(
         inputEntities.forEach { input ->
             val inputComponent = input[InputComponent]
             when (action) {
-                Action.JUMP -> inputComponent.jumpJustPressed = pressed
+                Action.JUMP -> {
+                    inputComponent.jumpJustPressed = pressed
+                    inputComponent.jumpIsPressed = pressed
+                }
                 Action.CROUCH -> inputComponent.crouch = pressed
                 Action.ATTACK -> inputComponent.attackJustPressed = pressed
                 Action.BASH -> inputComponent.bashJustPressed = pressed

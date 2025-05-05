@@ -11,6 +11,8 @@ object GameConstants {
 
     // Physic constants
     const val GRAVITY = -50.81f
+    const val JUMP_CUT_FACTOR = 0.15f
+    const val FALL_GRAVITY_SCALE = 1.4f
 
     // Player constats
     const val DOUBLE_JUMP_GRACE_TIME = 0.2f

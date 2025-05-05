@@ -6,11 +6,15 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.GameConstants.FALL_GRAVITY_SCALE
+import io.bennyoe.GameConstants.JUMP_CUT_FACTOR
 import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.ai.PlayerFSM
 import io.bennyoe.components.AiComponent
 import io.bennyoe.components.HasGroundContact
+import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.PhysicComponent
 import kotlin.math.sqrt
 
 class JumpSystem(
@@ -44,7 +48,18 @@ class JumpSystem(
     override fun onTickEntity(entity: Entity) {
         val jumpCmp = entity[JumpComponent]
         val aiCmp = entity[AiComponent]
+        val physicCmp = entity[PhysicComponent]
+        val inputCmp = entity[InputComponent]
         jumpCmp.jumpVelocity = getJumpVelocity(jumpCmp.maxHeight)
+
+        val vel = physicCmp.body.linearVelocity
+
+        if (!inputCmp.jumpIsPressed && vel.y > 0) {
+            jumpCmp.wantsToJump = true
+            jumpCmp.jumpVelocity = vel.y * JUMP_CUT_FACTOR
+        }
+
+        physicCmp.body.gravityScale = if (vel.y < 0f) FALL_GRAVITY_SCALE else 1f
 
         when (aiCmp.stateMachine.currentState) {
             PlayerFSM.FALL -> jumpCmp.doubleJumpGraceTimer -= deltaTime

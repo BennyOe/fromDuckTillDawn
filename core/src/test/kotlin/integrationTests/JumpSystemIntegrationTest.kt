@@ -11,6 +11,7 @@ import io.bennyoe.GameConstants.DOUBLE_JUMP_GRACE_TIME
 import io.bennyoe.ai.PlayerFSM
 import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
@@ -211,6 +212,7 @@ class JumpSystemIntegrationTest {
         assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
         assertTrue(jumpComponent.doubleJumpGraceTimer < 0)
         inputComponent.jumpJustPressed = true
+        with(world) { entity.configure { it += HasGroundContact } }
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }

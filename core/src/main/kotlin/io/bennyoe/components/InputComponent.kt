@@ -7,6 +7,7 @@ data class InputComponent(
     var attackJustPressed: Boolean = false,
     var attack2JustPressed: Boolean = false,
     var attack3JustPressed: Boolean = false,
+    var jumpIsPressed: Boolean = false,
     var jumpJustPressed: Boolean = false,
     var bashJustPressed: Boolean = false,
     var crouch: Boolean = false,

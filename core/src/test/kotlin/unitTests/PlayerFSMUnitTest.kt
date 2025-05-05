@@ -212,6 +212,7 @@ class PlayerFSMUnitTest {
         assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
 
         setNegativeYVelocity()
+        with(world) { entity.configure { it -= HasGroundContact } }
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
     }
@@ -290,8 +291,20 @@ class PlayerFSMUnitTest {
         givenState(PlayerFSM.FALL)
 
         givenZeroVelocity()
+        with(world) { entity.configure { it += HasGroundContact } }
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should NOT transition from FALL to IDLE when yVel is still above threshold`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        givenState(PlayerFSM.FALL)
+
+        givenYVelocityAboveThreshold()
+        with(world) { entity.configure { it += HasGroundContact } }
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
     }
 
     @Test
@@ -303,6 +316,7 @@ class PlayerFSMUnitTest {
         givenState(PlayerFSM.FALL)
 
         inputComponent.jumpJustPressed = true
+        with(world) { entity.configure { it += HasGroundContact } }
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
@@ -557,6 +571,11 @@ class PlayerFSMUnitTest {
 
     private fun givenZeroVelocity() {
         val velocity = Vector2(0f, 0f)
+        every { bodyMock.linearVelocity } returns velocity
+    }
+
+    private fun givenYVelocityAboveThreshold() {
+        val velocity = Vector2(0f, -.11f)
         every { bodyMock.linearVelocity } returns velocity
     }
 

@@ -9,6 +9,10 @@ import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.WalkDirection
+import kotlin.math.abs
+
+// Constant defining the minimum vertical velocity threshold to detect landing
+private const val LANDING_VELOCITY_EPS = 0.1f
 
 sealed class PlayerFSM : State<StateContext> {
     protected fun shouldIdle(ctx: StateContext) = ctx.inputComponent.direction == WalkDirection.NONE
@@ -19,7 +23,11 @@ sealed class PlayerFSM : State<StateContext> {
 
     protected fun hasGroundContact(ctx: StateContext) = with(ctx.world) { ctx.entity has HasGroundContact }
 
-    protected fun shouldFall(ctx: StateContext) = ctx.physicComponent.body.linearVelocity.y < 0
+    protected fun shouldFall(ctx: StateContext): Boolean {
+        val vy = ctx.physicComponent.body.linearVelocity.y
+        // Only treat as "falling" if we are clearly moving downward AND not touching the ground
+        return vy < -LANDING_VELOCITY_EPS && !hasGroundContact(ctx)
+    }
 
     protected fun shouldCrouch(ctx: StateContext) = ctx.inputComponent.crouch
 
@@ -37,6 +45,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering IDLE" }
+            logger.debug { "yVelo: ${ctx.physicComponent.body.linearVelocity.y}" }
             ctx.setAnimation(AnimationType.IDLE)
         }
 
@@ -123,14 +132,17 @@ sealed class PlayerFSM : State<StateContext> {
     data object FALL : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering FALL" }
-            ctx.setAnimation(AnimationType.CROUCH_IDLE)
+            ctx.setAnimation(AnimationType.JUMP)
         }
 
         override fun update(ctx: StateContext) {
+            val velY = ctx.physicComponent.body.linearVelocity.y
             when {
                 shouldJump(ctx) && ctx.jumpComponent.doubleJumpGraceTimer > 0f -> ctx.changeState(DOUBLE_JUMP)
                 shouldBash(ctx) -> ctx.changeState(BASH)
-                !shouldFall(ctx) -> ctx.changeState(IDLE)
+                // Land only when we actually touch the ground *and* vertical speed is ~0
+                hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
+                // otherwise remain in FALL
             }
         }
     }

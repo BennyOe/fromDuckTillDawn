@@ -36,12 +36,13 @@ class JumpSystemIntegrationTest {
     private lateinit var entity: Entity
     private lateinit var phyWorld: Box2DWorld
     private lateinit var mockAnimationCmp: AnimationComponent
+    private lateinit var mockBody: Body
 
     @BeforeEach
     fun setup() {
         Gdx.app = mockk<Application>(relaxed = true)
         mockAnimationCmp = mockk<AnimationComponent>(relaxed = true)
-        val mockBody = mockk<Body>(relaxed = true)
+        mockBody = mockk<Body>(relaxed = true)
 
         phyWorld = Box2DWorld(Vector2(0f, -9.81f), true)
 
@@ -87,7 +88,9 @@ class JumpSystemIntegrationTest {
         val entity2 =
             world.entity {
                 it += mockAnimationCmp
-                it += PhysicComponent()
+                val physicCmp = PhysicComponent()
+                physicCmp.body = mockBody
+                it += physicCmp
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 5f) // Higher jump
@@ -115,7 +118,7 @@ class JumpSystemIntegrationTest {
         val normalGravityVelocity = with(world) { entity[JumpComponent].jumpVelocity }
 
         // Create a new world with reduced gravity
-        val reducedGravityWorld = Box2DWorld(Vector2(0f, -4.905f), true)
+        val reducedGravityWorld = Box2DWorld(Vector2(0f, -2.905f), true)
 
         // Configure a new world with the reduced gravity
         val reducedGravityEcsWorld =
@@ -132,7 +135,9 @@ class JumpSystemIntegrationTest {
         val reducedGravityEntity =
             reducedGravityEcsWorld.entity {
                 it += mockAnimationCmp
-                it += PhysicComponent()
+                val physicCmp = PhysicComponent()
+                physicCmp.body = mockBody
+                it += physicCmp
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 3f)
@@ -158,7 +163,9 @@ class JumpSystemIntegrationTest {
         val zeroHeightEntity =
             world.entity {
                 it += mockAnimationCmp
-                it += PhysicComponent()
+                val physicCmp = PhysicComponent()
+                physicCmp.body = mockBody
+                it += physicCmp
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 0f)

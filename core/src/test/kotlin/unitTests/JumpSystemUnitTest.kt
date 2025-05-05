@@ -1,6 +1,7 @@
 package unitTests
 
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
@@ -23,11 +24,13 @@ class JumpSystemUnitTest {
     private lateinit var world: World
     private lateinit var entity: Entity
     private lateinit var phyWorld: Box2DWorld
+    private lateinit var mockBody: Body
 
     @BeforeEach
     fun setup() {
         val mockAnimationCmp = mockk<AnimationComponent>(relaxed = true)
         phyWorld = Box2DWorld(Vector2(0f, -9.81f), true)
+        mockBody = mockk<Body>(relaxed = true)
 
         world =
             configureWorld {
@@ -40,7 +43,9 @@ class JumpSystemUnitTest {
         entity =
             world.entity {
                 it += mockAnimationCmp
-                it += PhysicComponent()
+                val physicCmp = PhysicComponent()
+                physicCmp.body = mockBody
+                it += physicCmp
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent()

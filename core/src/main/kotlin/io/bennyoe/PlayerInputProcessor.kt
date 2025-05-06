@@ -64,11 +64,30 @@ class PlayerInputProcessor(
                     inputComponent.jumpJustPressed = pressed
                     inputComponent.jumpIsPressed = pressed
                 }
+
                 Action.CROUCH -> inputComponent.crouch = pressed
                 Action.ATTACK -> inputComponent.attackJustPressed = pressed
                 Action.BASH -> inputComponent.bashJustPressed = pressed
-                Action.MOVE_LEFT -> inputComponent.direction = if (pressed) WalkDirection.LEFT else WalkDirection.NONE
-                Action.MOVE_RIGHT -> inputComponent.direction = if (pressed) WalkDirection.RIGHT else WalkDirection.NONE
+                Action.MOVE_LEFT ->
+                    inputComponent.direction =
+                        if (!pressed && inputComponent.direction == WalkDirection.LEFT) {
+                            WalkDirection.NONE
+                        } else if (pressed) {
+                            WalkDirection.LEFT
+                        } else {
+                            inputComponent.direction
+                        }
+
+                Action.MOVE_RIGHT ->
+                    inputComponent.direction =
+                        if (!pressed && inputComponent.direction == WalkDirection.RIGHT) {
+                            WalkDirection.NONE
+                        } else if (pressed) {
+                            WalkDirection.RIGHT
+                        } else {
+                            inputComponent.direction
+                        }
+
                 Action.MESSAGE ->
                     messageDispatcher.dispatchMessage(
                         0f,

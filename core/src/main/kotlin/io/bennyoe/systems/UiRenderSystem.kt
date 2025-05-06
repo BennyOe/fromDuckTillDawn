@@ -10,9 +10,10 @@ class UiRenderSystem(
 ) : IntervalSystem(enabled = true) {
     override fun onTick() {
         with(uiStage) {
-            uiStage.viewport.apply()
-            uiStage.act()
-            uiStage.draw()
+            viewport.apply()
+            act(deltaTime)
+            camera.update()
+            draw()
         }
     }
 

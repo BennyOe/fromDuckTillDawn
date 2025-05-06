@@ -50,8 +50,8 @@ class RenderSystem(
             }
             camera.update()
             act(deltaTime)
+            draw()
         }
-        stage.draw()
         super.onTick()
     }
 

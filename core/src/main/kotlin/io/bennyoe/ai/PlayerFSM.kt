@@ -45,7 +45,6 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering IDLE" }
-            logger.debug { "yVelo: ${ctx.physicComponent.body.linearVelocity.y}" }
             ctx.setAnimation(AnimationType.IDLE)
         }
 

@@ -62,8 +62,8 @@ class GameScreen(
                 add(CameraSystem())
                 add(StateBubbleSystem())
                 add(RenderSystem())
-                add(UiRenderSystem())
                 add(DebugSystem())
+                add(UiRenderSystem())
             }
         }
 

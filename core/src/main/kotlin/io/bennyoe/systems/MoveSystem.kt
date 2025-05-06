@@ -8,6 +8,7 @@ import io.bennyoe.components.InputComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
+import ktx.log.logger
 
 class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, AnimationComponent, InputComponent) }, enabled = true) {
     override fun onTickEntity(entity: Entity) {
@@ -26,5 +27,9 @@ class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, 
                 moveCmp.moveVelocity = moveCmp.maxSpeed
             }
         }
+    }
+
+    companion object {
+        val logger = logger<MoveSystem>()
     }
 }

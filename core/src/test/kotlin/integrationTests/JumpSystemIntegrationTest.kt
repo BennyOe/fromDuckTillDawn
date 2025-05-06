@@ -188,6 +188,8 @@ class JumpSystemIntegrationTest {
         val inputComponent = with(world) { entity[InputComponent] }
         val dt = 0.05f
 
+        aiComponent.stateMachine.changeState(PlayerFSM.JUMP)
+        aiComponent.stateMachine.update()
         aiComponent.stateMachine.changeState(PlayerFSM.FALL)
         world.update(dt)
         assertEquals(DOUBLE_JUMP_GRACE_TIME - dt, jumpComponent.doubleJumpGraceTimer)

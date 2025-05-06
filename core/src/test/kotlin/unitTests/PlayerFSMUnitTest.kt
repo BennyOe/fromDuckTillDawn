@@ -229,7 +229,7 @@ class PlayerFSMUnitTest {
 
         inputComponent.crouch = true
         aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
     }
 
     @Test
@@ -327,6 +327,8 @@ class PlayerFSMUnitTest {
         val inputComponent = with(world) { entity[InputComponent] }
         val jumpComponent = with(world) { entity[JumpComponent] }
         jumpComponent.resetDoubleJumpGraceTimer()
+        givenState(PlayerFSM.JUMP)
+        aiComponent.stateMachine.update()
         givenState(PlayerFSM.FALL)
 
         inputComponent.jumpJustPressed = true
@@ -473,7 +475,7 @@ class PlayerFSMUnitTest {
         inputComponent.crouch = true
         inputComponent.direction = WalkDirection.RIGHT
         aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
     }
 
     @Test

@@ -107,7 +107,6 @@ sealed class PlayerFSM : State<StateContext> {
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldJump(ctx) -> ctx.changeState(DOUBLE_JUMP)
                 shouldFall(ctx) -> ctx.changeState(FALL)
-                else -> ctx.changeState(IDLE)
             }
         }
     }
@@ -125,7 +124,7 @@ sealed class PlayerFSM : State<StateContext> {
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldFall(ctx) -> ctx.changeState(FALL)
-                else -> ctx.changeState(IDLE)
+                hasGroundContact(ctx) -> ctx.changeState(IDLE)
             }
         }
     }
@@ -139,7 +138,9 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             val velY = ctx.physicComponent.body.linearVelocity.y
             when {
-                shouldJump(ctx) && ctx.jumpComponent.doubleJumpGraceTimer > 0f -> ctx.changeState(DOUBLE_JUMP)
+                shouldJump(ctx) && ctx.jumpComponent.doubleJumpGraceTimer > 0f && ctx.previousState() == JUMP ->
+                    ctx.changeState(DOUBLE_JUMP)
+
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)

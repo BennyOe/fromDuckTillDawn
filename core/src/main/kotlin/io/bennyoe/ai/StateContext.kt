@@ -56,4 +56,6 @@ data class StateContext(
     fun changeState(state: PlayerFSM) {
         aiComponent.stateMachine.changeState(state)
     }
+
+    fun previousState(): PlayerFSM = aiComponent.stateMachine.previousState
 }

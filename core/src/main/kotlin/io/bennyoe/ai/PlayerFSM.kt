@@ -107,6 +107,7 @@ sealed class PlayerFSM : State<StateContext> {
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldJump(ctx) -> ctx.changeState(DOUBLE_JUMP)
                 shouldFall(ctx) -> ctx.changeState(FALL)
+                else -> ctx.changeState(IDLE)
             }
         }
     }
@@ -124,6 +125,7 @@ sealed class PlayerFSM : State<StateContext> {
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldFall(ctx) -> ctx.changeState(FALL)
+                else -> ctx.changeState(IDLE)
             }
         }
     }
@@ -241,7 +243,7 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
                 when {
-                    shouldJump(ctx) -> ctx.changeState(JUMP)
+                    shouldFall(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
             }

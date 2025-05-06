@@ -176,7 +176,7 @@ class PlayerFSMUnitTest {
 
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
 
     @Test
@@ -229,7 +229,7 @@ class PlayerFSMUnitTest {
 
         inputComponent.crouch = true
         aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
 
     @Test
@@ -346,7 +346,7 @@ class PlayerFSMUnitTest {
     }
 
     @Test
-    fun `should transition from BASH to JUMP when animation finished and jump pressed`() {
+    fun `should NOT transition from BASH to JUMP when animation finished and jump pressed`() {
         val aiComponent = with(world) { entity[AiComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
         val animationComponent = with(world) { entity[AnimationComponent] }
@@ -355,7 +355,7 @@ class PlayerFSMUnitTest {
 
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
 
     @Test
@@ -473,7 +473,7 @@ class PlayerFSMUnitTest {
         inputComponent.crouch = true
         inputComponent.direction = WalkDirection.RIGHT
         aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
 
     @Test

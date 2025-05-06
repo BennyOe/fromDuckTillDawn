@@ -35,19 +35,7 @@ class RenderSystem(
     override fun onTick() {
         with(stage) {
             viewport.apply()
-            AnimatedTiledMapTile.updateAnimationBaseTime() // is called to render animated tiles in the map
-
-            mapRenderer.setView(orthoCam)
-            // this is rendering the map
-            stage.batch.use(orthoCam.combined) {
-                mapBg.forEach {
-                    mapRenderer.renderImageLayer(it)
-                }
-                mapTileLayer.forEach {
-                    mapRenderer.renderTileLayer(it)
-                }
-                renderObjects()
-            }
+            renderMap()
             camera.update()
             act(deltaTime)
             draw()
@@ -74,6 +62,21 @@ class RenderSystem(
             }
         }
         return true
+    }
+
+    private fun renderMap() {
+        AnimatedTiledMapTile.updateAnimationBaseTime() // is called to render animated tiles in the map
+        mapRenderer.setView(orthoCam)
+        // this is rendering the map
+        stage.batch.use(orthoCam.combined) {
+            mapBg.forEach {
+                mapRenderer.renderImageLayer(it)
+            }
+            mapTileLayer.forEach {
+                mapRenderer.renderTileLayer(it)
+            }
+            renderObjects()
+        }
     }
 
     private fun renderObjects() {

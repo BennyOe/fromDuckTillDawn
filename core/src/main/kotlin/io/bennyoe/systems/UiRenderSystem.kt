@@ -11,8 +11,8 @@ class UiRenderSystem(
     override fun onTick() {
         with(uiStage) {
             viewport.apply()
-            act(deltaTime)
             camera.update()
+            act(deltaTime)
             draw()
         }
     }

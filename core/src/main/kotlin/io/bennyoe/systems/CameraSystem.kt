@@ -1,8 +1,5 @@
 package io.bennyoe.systems
 
-import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.math.Circle
-import com.badlogic.gdx.math.Ellipse
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -11,9 +8,12 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.GameConstants.LOOKING_DIRECTION_OFFSET
+import io.bennyoe.GameConstants.SMOOTHING_FACTOR
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.event.MapChangedEvent
+import ktx.log.logger
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import ktx.log.logger
@@ -30,9 +30,6 @@ class CameraSystem(
     private val camera = stage.camera
     private var maxW = 0f
     private var maxH = 0f
-    val circ = Circle(0f, 0f, 1f)
-    val ellips = Ellipse(0f, 0f, 0f, 0f)
-    val circ2 = Circle(0f, -0.5f, 1f)
 
     override fun onTickEntity(entity: Entity) {
         val imageCmps = entity[ImageComponent]
@@ -42,12 +39,6 @@ class CameraSystem(
         val (xPos, yPos) = calculateCameraPosition(imageCmps.image)
 
         camera.position.set(xPos, yPos, camera.position.z)
-        circ.set(camera.position.x - 1f, camera.position.y + 1f, 1f)
-        ellips.set(camera.position.x - 1f, camera.position.y - 1f, 8f, 2f)
-        circ2.set(camera.position.x - 1f, camera.position.y - 1f, 1f)
-        circ.addToDebugView(debugRenderService, Color.CYAN, "Linkes Ei")
-        ellips.addToDebugView(debugRenderService, Color.CYAN, "")
-        circ2.addToDebugView(debugRenderService, Color.CYAN, "Rechtes Ei")
     }
 
     override fun handle(event: Event): Boolean {
@@ -72,7 +63,7 @@ class CameraSystem(
         val camMaxH = max(viewH, maxH - viewH)
 
         // for not jumping with the camera when image gets flipped
-        val xPos = (image.x + image.width * 0.5f).coerceIn(camMinW, camMaxW)
+        val xPos = (image.x + image.width * LOOKING_DIRECTION_OFFSET).coerceIn(camMinW, camMaxW)
         val yPos = (image.y + image.height * 0.5f).coerceIn(camMinH, camMaxH)
 
         return Pair(xPos, yPos)

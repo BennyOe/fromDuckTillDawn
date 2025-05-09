@@ -1,5 +1,9 @@
 package io.bennyoe.screens
 
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.quillraven.fleks.configureWorld
@@ -11,6 +15,7 @@ import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
+import io.bennyoe.service.DebugRenderService
 import io.bennyoe.systems.AiSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.CameraSystem
@@ -23,7 +28,6 @@ import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.UiRenderSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem
-import ktx.app.KtxScreen
 import ktx.assets.async.AssetStorage
 import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
@@ -32,17 +36,19 @@ import ktx.log.logger
 
 class GameScreen(
     context: Context,
-) : KtxScreen {
+) : AbstractScreen(context) {
     private val assets = context.inject<AssetStorage>()
     private val textureAtlas = assets[TextureAssets.PLAYER_ATLAS.descriptor]
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()
     private val stage = stages.stage
     private val uiStage = stages.uiStage
+    private val spriteBatch = context.inject<SpriteBatch>()
     private val phyWorld =
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
             autoClearForces = false
         }
+    private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val entityWorld =
         configureWorld {
             injectables {
@@ -50,6 +56,10 @@ class GameScreen(
                 add(textureAtlas)
                 add("stage", stage)
                 add("uiStage", uiStage)
+                add("shapeRenderer", ShapeRenderer())
+                add("debugRenderService", DebugRenderService())
+                add("spriteBatch", spriteBatch)
+                add("profiler", profiler)
             }
             systems {
                 add(AnimationSystem())
@@ -68,12 +78,12 @@ class GameScreen(
         }
 
     override fun show() {
+        profiler.enable()
         // add a gameState Entity to the screen
-        val gameStateEntity =
-            entityWorld.entity {
-                it += DebugComponent()
-                it += GameStateComponent()
-            }
+        entityWorld.entity {
+            it += DebugComponent()
+            it += GameStateComponent()
+        }
 
         // this adds all EventListenerSystems also to Scene2D
         entityWorld.systems.forEach { system ->
@@ -88,6 +98,7 @@ class GameScreen(
     }
 
     override fun render(delta: Float) {
+        profiler.reset()
         entityWorld.update(delta.coerceAtMost(0.25f))
     }
 

@@ -7,27 +7,15 @@ import ktx.app.KtxScreen
 import ktx.inject.Context
 
 class Duckee : KtxGame<KtxScreen>() {
-    private val context: Context by lazy { GameContext(this) }
+    private val context: Context by lazy { GameContext() }
 
     override fun create() {
         createSkin()
-        addScreen(LoadingScreen(context))
+        addScreen(LoadingScreen(context, this))
         setScreen<LoadingScreen>()
     }
 
     override fun dispose() {
-        context.dispose()
         super.dispose()
-    }
-
-    override fun resize(
-        width: Int,
-        height: Int,
-    ) {
-        super.resize(width, height)
-        context
-            .inject<Stages>()
-            .stage.viewport
-            .update(width, height, true)
     }
 }

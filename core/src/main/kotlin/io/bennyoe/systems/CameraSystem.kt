@@ -1,7 +1,8 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.math.Rectangle
+import com.badlogic.gdx.math.Circle
+import com.badlogic.gdx.math.Ellipse
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -29,7 +30,9 @@ class CameraSystem(
     private val camera = stage.camera
     private var maxW = 0f
     private var maxH = 0f
-    val deadzone = Rectangle(0f, 0f, 1f, 1f)
+    val circ = Circle(0f, 0f, 1f)
+    val ellips = Ellipse(0f, 0f, 0f, 0f)
+    val circ2 = Circle(0f, -0.5f, 1f)
 
     override fun onTickEntity(entity: Entity) {
         val imageCmps = entity[ImageComponent]
@@ -39,7 +42,12 @@ class CameraSystem(
         val (xPos, yPos) = calculateCameraPosition(imageCmps.image)
 
         camera.position.set(xPos, yPos, camera.position.z)
-        deadzone.set(camera.position.x - 1f, camera.position.y - 1f, 2f, 2f).addToDebugView(debugRenderService, Color.CYAN, "Deadzone")
+        circ.set(camera.position.x - 1f, camera.position.y + 1f, 1f)
+        ellips.set(camera.position.x - 1f, camera.position.y - 1f, 8f, 2f)
+        circ2.set(camera.position.x - 1f, camera.position.y - 1f, 1f)
+        circ.addToDebugView(debugRenderService, Color.CYAN, "")
+        ellips.addToDebugView(debugRenderService, Color.CYAN, "")
+        circ2.addToDebugView(debugRenderService, Color.CYAN, "")
     }
 
     override fun handle(event: Event): Boolean {

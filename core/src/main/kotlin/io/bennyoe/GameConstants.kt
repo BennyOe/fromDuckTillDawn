@@ -16,6 +16,7 @@ object GameConstants {
 
     // Player constats
     const val DOUBLE_JUMP_GRACE_TIME = 0.2f
+    const val JUMP_BUFFER = .2f
     const val JUMP_MAX_HEIGHT = 3f
     const val WALK_MAX_SPEED = 5f
     const val BASH_COOLDOWN = .2f

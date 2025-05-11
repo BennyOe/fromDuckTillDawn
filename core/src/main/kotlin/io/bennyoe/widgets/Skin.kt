@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import ktx.graphics.color
 import ktx.scene2d.Scene2DSkin
+import ktx.style.label
 import ktx.style.skin
 import ktx.style.textField
 
@@ -19,6 +20,10 @@ fun createSkin() {
                 this.font = font
                 fontColor = color(0f, 0f, 0f, 1f)
                 background = createColorDrawable(1f, 1f, 1f, 0.8f)
+            }
+            label("default") {
+                this.font = font
+                fontColor = color(1f, 1f, 1f, 1f)
             }
         }
 }

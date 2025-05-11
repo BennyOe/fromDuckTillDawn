@@ -25,9 +25,11 @@ import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.DebugShape
 import io.bennyoe.widgets.DrawCallsCounterWidget
 import io.bennyoe.widgets.FpsCounterWidget
+import io.bennyoe.widgets.LabelWidget
 import ktx.assets.disposeSafely
 import ktx.graphics.use
 import ktx.log.logger
+import ktx.scene2d.actors
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
 
 class DebugSystem(
@@ -47,8 +49,8 @@ class DebugSystem(
         inject("profiler"),
 ) : IntervalSystem(enabled = true) {
     private val physicsRenderer by lazy { Box2DDebugRenderer() }
-    private val debugFont = BitmapFont()
     private val fpsLabelStyle = LabelStyle(BitmapFont().apply { data.setScale(1.5f) }, Color(0f, 1f, 0f, 1f))
+    private val labels = hashMapOf<DebugShape, LabelWidget>()
     private val fpsCounter =
         FpsCounterWidget(fpsLabelStyle).apply {
             setPosition(10f, 20f)
@@ -81,14 +83,19 @@ class DebugSystem(
             fpsCounter.act(deltaTime)
             drawCallsCounter.act(deltaTime)
             physicsRenderer.render(phyWorld, stage.camera.combined)
+            val currentShapes = debugRenderingService.shapes.toSet()
             drawDebugLines()
+            purgeStaleLabels(currentShapes)
         } else {
+            uiStage.actors.removeAll { it is LabelWidget }
             if (playerEntity has StateBubbleComponent) {
                 playerEntity.configure { it -= StateBubbleComponent }
             }
             if (playerEntity has UiComponent) {
                 playerEntity.configure { it -= UiComponent }
             }
+            labels.values.forEach { it.remove() }
+            labels.clear()
         }
     }
 
@@ -118,7 +125,7 @@ class DebugSystem(
                     }
 
                     is Circle -> {
-                        it.circle(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.radius)
+                        it.arc(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.radius, 0f, 360f, 30)
                         drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
                     }
 
@@ -129,12 +136,12 @@ class DebugSystem(
 
                     is Polyline -> {
                         it.polyline(dbgShape.shape.vertices)
-                        drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
+                        drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
                     }
 
                     is Polygon -> {
                         it.polygon(dbgShape.shape.vertices)
-                        drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
+                        drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
                     }
                 }
             }
@@ -156,21 +163,25 @@ class DebugSystem(
         y: Float,
         dbgShape: DebugShape,
     ) {
-        val tmpVec =
-            Vector3(x, y, 0f)
-
+        val tmpVec = Vector3(x, y, 0f)
         // converts tmpVec worldUnits -> pixel
         stage.viewport.project(tmpVec)
 
-        // convert from screen pixels to uiStage coordinates so that resizing works
-        uiStage.viewport.unproject(tmpVec)
+        val label =
+            labels.getOrPut(dbgShape) {
+                LabelWidget(dbgShape.label, dbgShape.color).also { uiStage.addActor(it) }
+            }
 
-        // sets spriteBatch matrix to pixel
-        spriteBatch.projectionMatrix = uiStage.camera.combined
-        spriteBatch.use {
-            dbgShape.label?.let { txt ->
-                debugFont.color = dbgShape.color
-                debugFont.draw(spriteBatch, txt, tmpVec.x, tmpVec.y)
+        label.setPosition(tmpVec.x, tmpVec.y)
+    }
+
+    private fun purgeStaleLabels(activeShapes: Set<DebugShape>) {
+        val itr = labels.iterator()
+        while (itr.hasNext()) {
+            val (shape, label) = itr.next()
+            if (shape !in activeShapes) {
+                label.remove()
+                itr.remove()
             }
         }
     }

@@ -1,5 +1,3 @@
-@file:Suppress("ktlint:standard:class-naming")
-
 package io.bennyoe.ai
 
 import com.badlogic.gdx.ai.fsm.State
@@ -26,6 +24,7 @@ sealed class PlayerFSM : State<StateContext> {
     protected fun shouldFall(ctx: StateContext): Boolean {
         val vy = ctx.physicComponent.body.linearVelocity.y
         // Only treat as "falling" if we are clearly moving downward AND not touching the ground
+        logger.debug { "y: $vy" }
         return vy < -LANDING_VELOCITY_EPS && !hasGroundContact(ctx)
     }
 
@@ -105,8 +104,8 @@ sealed class PlayerFSM : State<StateContext> {
             when {
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
-                shouldJump(ctx) -> ctx.changeState(DOUBLE_JUMP)
                 shouldFall(ctx) -> ctx.changeState(FALL)
+                shouldJump(ctx) -> ctx.changeState(DOUBLE_JUMP)
             }
         }
     }
@@ -138,13 +137,16 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             val velY = ctx.physicComponent.body.linearVelocity.y
             when {
-                shouldJump(ctx) && ctx.jumpComponent.doubleJumpGraceTimer > 0f && ctx.previousState() == JUMP ->
+                shouldJump(ctx) && ctx.jumpComponent.doubleJumpGraceTimer > 0f && ctx.previousState() == JUMP -> {
                     ctx.changeState(DOUBLE_JUMP)
+                    ctx.inputComponent.jumpJustPressed = false
+                }
 
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
                 // otherwise remain in FALL
+                else -> ctx.inputComponent.jumpJustPressed = false
             }
         }
     }

@@ -21,6 +21,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import com.badlogic.gdx.physics.box2d.World as Box2DWorld
 
@@ -216,6 +217,39 @@ class JumpSystemIntegrationTest {
         inputComponent.jumpJustPressed = true
         with(world) { entity.configure { it += HasGroundContact } }
         aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `jump should be possible in jumpBuffer time`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+        val dt = 0.05f
+
+        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
+        inputComponent.jumpJustPressed = true
+        world.update(dt)
+        aiComponent.stateMachine.update()
+        with(world) { entity.configure { it += HasGroundContact } }
+        world.update(dt)
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `jump should NOT be possible outside of jumpBuffer time`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+        val dt = 0.5f
+
+        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
+        inputComponent.jumpJustPressed = true
+        world.update(dt)
+        aiComponent.stateMachine.update()
+        with(world) { entity.configure { it += HasGroundContact } }
+        world.update(dt)
+        aiComponent.stateMachine.update()
+        assertNotEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
 }

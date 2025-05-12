@@ -45,9 +45,9 @@ class CameraSystem(
         circ.set(camera.position.x - 1f, camera.position.y + 1f, 1f)
         ellips.set(camera.position.x - 1f, camera.position.y - 1f, 8f, 2f)
         circ2.set(camera.position.x - 1f, camera.position.y - 1f, 1f)
-        circ.addToDebugView(debugRenderService, Color.CYAN, "")
+        circ.addToDebugView(debugRenderService, Color.CYAN, "Linkes Ei")
         ellips.addToDebugView(debugRenderService, Color.CYAN, "")
-        circ2.addToDebugView(debugRenderService, Color.CYAN, "")
+        circ2.addToDebugView(debugRenderService, Color.CYAN, "Rechtes Ei")
     }
 
     override fun handle(event: Event): Boolean {

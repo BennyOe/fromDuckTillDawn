@@ -20,6 +20,7 @@ class AiSystem : IteratingSystem(family { all(AiComponent) }) {
         val aiComponent = entity[AiComponent]
 
         aiComponent.stateTime += deltaTime
+        aiComponent.stateMachine.owner.deltaTime = deltaTime
         aiComponent.stateMachine.update()
     }
 

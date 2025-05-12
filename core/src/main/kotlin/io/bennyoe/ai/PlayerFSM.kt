@@ -11,8 +11,14 @@ import kotlin.math.abs
 
 // Constant defining the minimum vertical velocity threshold to detect landing
 private const val LANDING_VELOCITY_EPS = 0.1f
+private const val DOUBLE_JUMP_FALL_DELAY_DURATION = .1f
 
+@Suppress("ClassName")
 sealed class PlayerFSM : State<StateContext> {
+    // a delta time to prevent switching from DOUBLE_JUMP to FALL instantly because of the async time-steps (fixed time in physicSystem and frames in
+    // FSM) and therefore having for a short time a negative y-velocity
+    protected var doubleJumpFallDelay = 0f
+
     protected fun shouldIdle(ctx: StateContext) = ctx.inputComponent.direction == WalkDirection.NONE
 
     protected fun shouldWalk(ctx: StateContext) = ctx.inputComponent.direction != WalkDirection.NONE
@@ -24,7 +30,6 @@ sealed class PlayerFSM : State<StateContext> {
     protected fun shouldFall(ctx: StateContext): Boolean {
         val vy = ctx.physicComponent.body.linearVelocity.y
         // Only treat as "falling" if we are clearly moving downward AND not touching the ground
-        logger.debug { "y: $vy" }
         return vy < -LANDING_VELOCITY_EPS && !hasGroundContact(ctx)
     }
 
@@ -116,9 +121,14 @@ sealed class PlayerFSM : State<StateContext> {
             ctx.jumpComponent.wantsToJump = true
             ctx.inputComponent.jumpJustPressed = false
             ctx.setAnimation(AnimationType.JUMP)
+            doubleJumpFallDelay = DOUBLE_JUMP_FALL_DELAY_DURATION
         }
 
         override fun update(ctx: StateContext) {
+            if (doubleJumpFallDelay > 0f) {
+                doubleJumpFallDelay -= ctx.deltaTime
+                return
+            }
             when {
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)

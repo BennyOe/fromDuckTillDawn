@@ -44,7 +44,7 @@ class StateBubbleSystem(
         val yPosWU = MathUtils.lerp(prevY + STATE_BUBBLE_OFFSET_Y, bodyY + STATE_BUBBLE_OFFSET_Y, alpha)
 
         // world units -> pixel transformation (with camera not viewport because the uiStage calculates the viewport already)
-        val screenVec = stage.camera.project(Vector3(xPosWU, yPosWU, 0f))
+        val screenVec = stage.viewport.project(Vector3(xPosWU, yPosWU, 0f))
 
         // LibGDX screen coordinates have their origin at the BOTTOM-left,
         // Scene2D.screenToStageCoordinates expects the origin at the TOP-left.

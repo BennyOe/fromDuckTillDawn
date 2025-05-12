@@ -17,13 +17,18 @@ class DebugRenderService {
 data class DebugShape(
     val shape: Shape2D,
     val color: Color,
-    val label: String? = null,
-)
+    val label: String = "",
+) {
+    // has to be overwritten because position can change and then the label is rendered multiple times
+    override fun equals(other: Any?): Boolean = other is DebugShape && other.label == label
+
+    override fun hashCode(): Int = label.hashCode()
+}
 
 fun Rectangle.addToDebugView(
     service: DebugRenderService,
     color: Color = Color.RED,
-    label: String? = null,
+    label: String = "",
 ) {
     service.shapes.add(DebugShape(this, color, label))
 }
@@ -31,7 +36,7 @@ fun Rectangle.addToDebugView(
 fun Circle.addToDebugView(
     service: DebugRenderService,
     color: Color = Color.RED,
-    label: String? = null,
+    label: String = "",
 ) {
     service.shapes.add(DebugShape(this, color, label))
 }
@@ -39,7 +44,7 @@ fun Circle.addToDebugView(
 fun Ellipse.addToDebugView(
     service: DebugRenderService,
     color: Color = Color.RED,
-    label: String? = null,
+    label: String = "",
 ) {
     service.shapes.add(DebugShape(this, color, label))
 }
@@ -47,7 +52,7 @@ fun Ellipse.addToDebugView(
 fun Polyline.addToDebugView(
     service: DebugRenderService,
     color: Color = Color.RED,
-    label: String? = null,
+    label: String = "",
 ) {
     service.shapes.add(DebugShape(this, color, label))
 }
@@ -55,7 +60,7 @@ fun Polyline.addToDebugView(
 fun Polygon.addToDebugView(
     service: DebugRenderService,
     color: Color = Color.RED,
-    label: String? = null,
+    label: String = "",
 ) {
     service.shapes.add(DebugShape(this, color, label))
 }

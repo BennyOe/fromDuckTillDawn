@@ -8,9 +8,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.utils.viewport.ExtendViewport
-import io.bennyoe.GameConstants.GAME_HEIGHT
-import io.bennyoe.GameConstants.GAME_WIDTH
+import com.badlogic.gdx.utils.viewport.FitViewport
+import com.badlogic.gdx.utils.viewport.ScreenViewport
 import io.bennyoe.GameConstants.WORLD_HEIGHT
 import io.bennyoe.GameConstants.WORLD_WIDTH
 import ktx.assets.async.AssetStorage
@@ -48,6 +47,6 @@ class GameContext : Context() {
 class Stages(
     val spriteBatch: SpriteBatch,
 ) {
-    val stage by lazy { Stage(ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT), spriteBatch) }
-    val uiStage by lazy { Stage(ExtendViewport(GAME_WIDTH, GAME_HEIGHT), spriteBatch) }
+    val stage by lazy { Stage(FitViewport(WORLD_WIDTH, WORLD_HEIGHT), spriteBatch) }
+    val uiStage by lazy { Stage(ScreenViewport(), spriteBatch) }
 }

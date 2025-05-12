@@ -20,10 +20,70 @@ import kotlin.math.sqrt
 class JumpSystem(
     val physicWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(JumpComponent) }) {
-    private val gravityPerStep = Vector2()
+    override fun onTickEntity(entity: Entity) {
+        val jumpCmp = entity[JumpComponent]
+        val aiCmp = entity[AiComponent]
+        val physicCmp = entity[PhysicComponent]
+        val inputCmp = entity[InputComponent]
+        jumpCmp.jumpVelocity = getJumpVelocity(jumpCmp.maxHeight)
+
+        val vel = physicCmp.body.linearVelocity
+
+        // if jumpKey is released and still jumping -> cut the jump velocity
+        handleJumpKeyReleasedWhileJumping(inputCmp, vel, jumpCmp)
+
+        calculateJumpBuffer(inputCmp, entity, jumpCmp)
+
+        // get extra fall speed
+        physicCmp.body.gravityScale = if (vel.y < 0f) FALL_GRAVITY_SCALE else 1f
+
+        when (aiCmp.stateMachine.currentState) {
+            PlayerFSM.FALL -> jumpCmp.doubleJumpGraceTimer -= deltaTime
+            PlayerFSM.DOUBLE_JUMP -> jumpCmp.disableDoubleJumpGraceTimer()
+            else -> Unit
+        }
+
+        if (entity has HasGroundContact) {
+            if (jumpCmp.jumpBuffer > 0f) {
+                logger.debug { "Jump from BUFFER " }
+                aiCmp.stateMachine.changeState(PlayerFSM.JUMP)
+            }
+            jumpCmp.disableJumpBuffer()
+            jumpCmp.resetDoubleJumpGraceTimer()
+        }
+    }
+
+    private fun handleJumpKeyReleasedWhileJumping(
+        inputCmp: InputComponent,
+        vel: Vector2,
+        jumpCmp: JumpComponent,
+    ) {
+        if (!inputCmp.jumpIsPressed && vel.y > 0) {
+            jumpCmp.wantsToJump = true
+            jumpCmp.jumpVelocity = vel.y * JUMP_CUT_FACTOR
+        }
+    }
+
+    private fun calculateJumpBuffer(
+        inputCmp: InputComponent,
+        entity: Entity,
+        jumpCmp: JumpComponent,
+    ) {
+        // calculate jumpBuffer
+        if (inputCmp.jumpJustPressed &&
+            entity hasNo HasGroundContact
+        ) {
+            jumpCmp.resetJumpBuffer()
+        }
+
+        if (jumpCmp.jumpBuffer > 0f) {
+            jumpCmp.jumpBuffer -= deltaTime
+        }
+    }
 
     // formula taken from: https://www.iforce2d.net/b2dtut/projected-trajectory
     private fun getJumpVelocity(desiredHeight: Float): Float {
+        val gravityPerStep = Vector2()
         if (desiredHeight <= 0) {
             return 0f
         }
@@ -42,33 +102,6 @@ class JumpSystem(
             quadraticSolution2 / PHYSIC_TIME_STEP
         } else {
             quadraticSolution1 / PHYSIC_TIME_STEP
-        }
-    }
-
-    override fun onTickEntity(entity: Entity) {
-        val jumpCmp = entity[JumpComponent]
-        val aiCmp = entity[AiComponent]
-        val physicCmp = entity[PhysicComponent]
-        val inputCmp = entity[InputComponent]
-        jumpCmp.jumpVelocity = getJumpVelocity(jumpCmp.maxHeight)
-
-        val vel = physicCmp.body.linearVelocity
-
-        if (!inputCmp.jumpIsPressed && vel.y > 0) {
-            jumpCmp.wantsToJump = true
-            jumpCmp.jumpVelocity = vel.y * JUMP_CUT_FACTOR
-        }
-
-        physicCmp.body.gravityScale = if (vel.y < 0f) FALL_GRAVITY_SCALE else 1f
-
-        when (aiCmp.stateMachine.currentState) {
-            PlayerFSM.FALL -> jumpCmp.doubleJumpGraceTimer -= deltaTime
-            PlayerFSM.DOUBLE_JUMP -> jumpCmp.disableDoubleJumpGraceTimer()
-            else -> Unit
-        }
-
-        if (entity has HasGroundContact) {
-            jumpCmp.resetDoubleJumpGraceTimer()
         }
     }
 

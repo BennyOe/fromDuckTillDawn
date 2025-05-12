@@ -174,8 +174,28 @@ class PlayerFSMUnitTest {
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
 
+        world.update(0.2f)
         inputComponent.jumpJustPressed = true
         aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should not allow transition from DOUBLE_JUMP to IDLE without 100ms delay`() {
+        val aiComponent = with(world) { entity[AiComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+
+        with(world) { entity.configure { it += HasGroundContact } }
+        inputComponent.jumpJustPressed = true
+        aiComponent.stateMachine.update()
+        inputComponent.jumpJustPressed = true
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
+        aiComponent.stateMachine.update()
+        assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
+        world.update(0.2f)
+        aiComponent.stateMachine.update()
+
         assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
     }
 
@@ -450,6 +470,8 @@ class PlayerFSMUnitTest {
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
 
+        aiComponent.stateMachine.update()
+        world.update(0.3f)
         inputComponent.bashJustPressed = true
         aiComponent.stateMachine.update()
         assertEquals(PlayerFSM.BASH, aiComponent.stateMachine.currentState)

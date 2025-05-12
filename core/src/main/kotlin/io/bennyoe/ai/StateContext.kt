@@ -18,6 +18,7 @@ import io.bennyoe.components.PhysicComponent
 data class StateContext(
     val entity: Entity,
     val world: World,
+    var deltaTime: Float = 0f,
 ) {
     val animationComponent: AnimationComponent
     val inputComponent: InputComponent

@@ -1,5 +1,3 @@
-@file:Suppress("ktlint:standard:class-naming")
-
 package io.bennyoe.ai
 
 import com.badlogic.gdx.ai.fsm.State
@@ -13,8 +11,14 @@ import kotlin.math.abs
 
 // Constant defining the minimum vertical velocity threshold to detect landing
 private const val LANDING_VELOCITY_EPS = 0.1f
+private const val DOUBLE_JUMP_FALL_DELAY_DURATION = .1f
 
+@Suppress("ClassName")
 sealed class PlayerFSM : State<StateContext> {
+    // a delta time to prevent switching from DOUBLE_JUMP to FALL instantly because of the async time-steps (fixed time in physicSystem and frames in
+    // FSM) and therefore having for a short time a negative y-velocity
+    protected var doubleJumpFallDelay = 0f
+
     protected fun shouldIdle(ctx: StateContext) = ctx.inputComponent.direction == WalkDirection.NONE
 
     protected fun shouldWalk(ctx: StateContext) = ctx.inputComponent.direction != WalkDirection.NONE
@@ -105,8 +109,8 @@ sealed class PlayerFSM : State<StateContext> {
             when {
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
-                shouldJump(ctx) -> ctx.changeState(DOUBLE_JUMP)
                 shouldFall(ctx) -> ctx.changeState(FALL)
+                shouldJump(ctx) -> ctx.changeState(DOUBLE_JUMP)
             }
         }
     }
@@ -117,9 +121,14 @@ sealed class PlayerFSM : State<StateContext> {
             ctx.jumpComponent.wantsToJump = true
             ctx.inputComponent.jumpJustPressed = false
             ctx.setAnimation(AnimationType.JUMP)
+            doubleJumpFallDelay = DOUBLE_JUMP_FALL_DELAY_DURATION
         }
 
         override fun update(ctx: StateContext) {
+            if (doubleJumpFallDelay > 0f) {
+                doubleJumpFallDelay -= ctx.deltaTime
+                return
+            }
             when {
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
@@ -138,13 +147,16 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             val velY = ctx.physicComponent.body.linearVelocity.y
             when {
-                shouldJump(ctx) && ctx.jumpComponent.doubleJumpGraceTimer > 0f && ctx.previousState() == JUMP ->
+                shouldJump(ctx) && ctx.jumpComponent.doubleJumpGraceTimer > 0f && ctx.previousState() == JUMP -> {
                     ctx.changeState(DOUBLE_JUMP)
+                    ctx.inputComponent.jumpJustPressed = false
+                }
 
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
                 // otherwise remain in FALL
+                else -> ctx.inputComponent.jumpJustPressed = false
             }
         }
     }

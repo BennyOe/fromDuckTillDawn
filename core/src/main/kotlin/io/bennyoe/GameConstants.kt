@@ -23,6 +23,5 @@ object GameConstants {
     const val BASH_POWER = 5f
 
     // Camera constants
-    const val LOOKING_DIRECTION_OFFSET = 0.9f
-    const val SMOOTHING_FACTOR = 0.04f
+    const val CAMERA_SMOOTHING_FACTOR = 0.04f
 }

@@ -1,5 +1,7 @@
 package io.bennyoe.systems
 
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -9,11 +11,9 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.GameConstants.LOOKING_DIRECTION_OFFSET
-import io.bennyoe.GameConstants.SMOOTHING_FACTOR
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.event.MapChangedEvent
-import ktx.log.logger
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import ktx.log.logger
@@ -30,6 +30,7 @@ class CameraSystem(
     private val camera = stage.camera
     private var maxW = 0f
     private var maxH = 0f
+    val deadzone = Rectangle(0f, 0f, 1f, 1f)
 
     override fun onTickEntity(entity: Entity) {
         val imageCmps = entity[ImageComponent]
@@ -39,6 +40,8 @@ class CameraSystem(
         val (xPos, yPos) = calculateCameraPosition(imageCmps.image)
 
         camera.position.set(xPos, yPos, camera.position.z)
+        deadzone.set(camera.position.x - 0.5f, camera.position.y - 0.5f, 1f, 2f)
+        deadzone.addToDebugView(debugRenderService, Color.CYAN, "camera deadzone")
     }
 
     override fun handle(event: Event): Boolean {

@@ -2,15 +2,16 @@ package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Circle
-import com.badlogic.gdx.math.Ellipse
+import com.badlogic.gdx.math.MathUtils.lerp
+import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.event.MapChangedEvent
@@ -30,24 +31,20 @@ class CameraSystem(
     private val camera = stage.camera
     private var maxW = 0f
     private var maxH = 0f
-    val circ = Circle(0f, 0f, 1f)
-    val ellips = Ellipse(0f, 0f, 0f, 0f)
-    val circ2 = Circle(0f, -0.5f, 1f)
+    private var cameraTargetX = 0f
+    val deadzone = Rectangle(0f, 0f, 1f, 1f)
 
     override fun onTickEntity(entity: Entity) {
         val imageCmps = entity[ImageComponent]
         // we center on the image because it has an
         // interpolated position for rendering which makes
         // the game smoother
-        val (xPos, yPos) = calculateCameraPosition(imageCmps.image)
+        val (xPos, yPos) = calculateCameraPosition(imageCmps)
 
         camera.position.set(xPos, yPos, camera.position.z)
-        circ.set(camera.position.x - 1f, camera.position.y + 1f, 1f)
-        ellips.set(camera.position.x - 1f, camera.position.y - 1f, 8f, 2f)
-        circ2.set(camera.position.x - 1f, camera.position.y - 1f, 1f)
-        circ.addToDebugView(debugRenderService, Color.CYAN, "Linkes Ei")
-        ellips.addToDebugView(debugRenderService, Color.CYAN, "")
-        circ2.addToDebugView(debugRenderService, Color.CYAN, "Rechtes Ei")
+
+        deadzone.set(camera.position.x - 1f, camera.position.y - 1f, 2f, 4f)
+        deadzone.addToDebugView(debugRenderService, Color.CYAN, "camera deadzone")
     }
 
     override fun handle(event: Event): Boolean {
@@ -61,21 +58,24 @@ class CameraSystem(
         return false
     }
 
-    private fun calculateCameraPosition(image: Image): Pair<Float, Float> {
+    private fun calculateCameraPosition(imageCmp: ImageComponent): Pair<Float, Float> {
         val viewW = camera.viewportWidth * 0.5f
         val viewH = camera.viewportHeight * 0.5f
 
-        // set borders for the camera that it stays inside the map
+        // set map boundaries for the camera
         val camMinW = min(viewW, maxW - viewW)
         val camMaxW = max(viewW, maxW - viewW)
         val camMinH = min(viewH, maxH - viewH)
         val camMaxH = max(viewH, maxH - viewH)
 
-        // for not jumping with the camera when image gets flipped
-        val xPos = (image.x + image.width * 0.5f).coerceIn(camMinW, camMaxW)
-        val yPos = (image.y + image.height * 0.5f).coerceIn(camMinH, camMaxH)
+        val desiredX = imageCmp.image.x + imageCmp.image.width
+        Circle(desiredX, 3.8f, 0.2f).addToDebugView(debugRenderService, Color.RED, "player")
+        cameraTargetX = lerp(cameraTargetX, desiredX, CAMERA_SMOOTHING_FACTOR)
 
-        return Pair(xPos, yPos)
+        val clampedX = cameraTargetX.coerceIn(camMinW, camMaxW)
+        val yPos = (imageCmp.image.y + imageCmp.image.height * 0.5f).coerceIn(camMinH, camMaxH)
+
+        return clampedX to yPos
     }
 
     companion object {

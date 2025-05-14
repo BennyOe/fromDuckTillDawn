@@ -1,5 +1,6 @@
 package io.bennyoe.ai
 
+import com.badlogic.gdx.ai.fsm.State
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
@@ -10,6 +11,7 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
@@ -26,6 +28,7 @@ data class StateContext(
     val physicComponent: PhysicComponent
     val moveComponent: MoveComponent
     val jumpComponent: JumpComponent
+    val healthComponent: HealthComponent
 
     init {
         with(world) {
@@ -35,6 +38,7 @@ data class StateContext(
             physicComponent = entity[PhysicComponent]
             moveComponent = entity[MoveComponent]
             jumpComponent = entity[JumpComponent]
+            healthComponent = entity[HealthComponent]
         }
     }
 
@@ -58,5 +62,5 @@ data class StateContext(
         aiComponent.stateMachine.changeState(state)
     }
 
-    fun previousState(): PlayerFSM = aiComponent.stateMachine.previousState
+    fun previousState(): State<StateContext> = aiComponent.stateMachine.previousState
 }

@@ -30,6 +30,7 @@ class PlayerInputProcessor(
             Keys.V to Action.MESSAGE,
             Keys.C to Action.MESSAGE2,
             Keys.BACKSPACE to Action.DEBUG,
+            Keys.K to Action.KILL,
         )
 
     init {
@@ -102,6 +103,13 @@ class PlayerInputProcessor(
                         pressed,
                     )
 
+                Action.KILL ->
+                    messageDispatcher.dispatchMessage(
+                        0f,
+                        FsmMessageTypes.KILL.ordinal,
+                        pressed,
+                    )
+
                 else -> Unit
             }
         }
@@ -121,5 +129,6 @@ class PlayerInputProcessor(
         MESSAGE,
         MESSAGE2,
         DEBUG,
+        KILL,
     }
 }

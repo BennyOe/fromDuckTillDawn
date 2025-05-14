@@ -72,6 +72,10 @@ enum class AnimationType(
     ),
     CROUCH_IDLE(atlasKey = "crouching_idle"),
     CROUCH_WALK(atlasKey = "crouching_walking"),
+    DYING(
+        atlasKey = "dying",
+        PlayMode.NORMAL,
+    ),
 }
 
 enum class AnimationVariant(

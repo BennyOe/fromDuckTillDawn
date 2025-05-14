@@ -71,10 +71,12 @@ sealed class PlayerFSM : State<StateContext> {
         ): Boolean {
             if (telegram.message == FsmMessageTypes.HEAL.ordinal && telegram.extraInfo == true) {
                 logger.debug { "MESSAGE WITH HEAL RECEIVED INSTANTLY" }
+                return true
             } else if (telegram.message == FsmMessageTypes.ATTACK.ordinal && telegram.extraInfo == true) {
                 logger.debug { "MESSAGE WITH ATTACK RECEIVED AFTER A DELAY" }
+                return true
             }
-            return true
+            return false
         }
     }
 
@@ -260,6 +262,13 @@ sealed class PlayerFSM : State<StateContext> {
                     else -> ctx.changeState(IDLE)
                 }
             }
+        }
+    }
+
+    data object SHOW_DEATH : PlayerFSM() {
+        override fun enter(ctx: StateContext) {
+            logger.debug { "Showing DEATH" }
+            ctx.setAnimation(AnimationType.DYING)
         }
     }
 

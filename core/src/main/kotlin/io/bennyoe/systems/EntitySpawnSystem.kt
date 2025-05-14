@@ -22,6 +22,7 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
@@ -174,9 +175,12 @@ class EntitySpawnSystem(
             val player = PlayerComponent()
             it += player
 
+            it += HealthComponent()
+
             val ai = AiComponent(world)
             messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.HEAL.ordinal)
             messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.ATTACK.ordinal)
+            messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.KILL.ordinal)
             it += ai
 
             PlayerInputProcessor(world = world)

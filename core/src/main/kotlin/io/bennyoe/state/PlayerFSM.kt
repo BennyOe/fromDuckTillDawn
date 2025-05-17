@@ -269,7 +269,14 @@ sealed class PlayerFSM : State<StateContext> {
     data object DEATH : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering DEATH" }
-            ctx.setAnimation(AnimationType.DYING, Animation.PlayMode.NORMAL)
+            ctx.setAnimation(
+                AnimationType.DYING,
+                Animation.PlayMode.NORMAL,
+                AnimationVariant.FIRST,
+                resetStateTime = true,
+                // isReversed has to be set to prevent flickering because animation is played back reversed in RESURRECT state
+                isReversed = true,
+            )
             ctx.moveComponent.lockMovement = true
             ctx.stateComponent.stateMachine.globalState = null
             ctx.moveComponent.moveVelocity = 0f
@@ -280,9 +287,7 @@ sealed class PlayerFSM : State<StateContext> {
             telegram: Telegram,
         ): Boolean {
             if (telegram.message == FsmMessageTypes.KILL.ordinal && telegram.extraInfo == true) {
-                // TODO here we can resurrect the player. But due to the reversed animation in the RESURRECT state there is a flicker. This can be
-                //  minimized when setting the getKeyFrame-state time in the applyNextAnimation() method in the AnimationSystem to 1f
-//                ctx.changeState(RESURRECT)
+                ctx.changeState(RESURRECT)
                 return true
             }
             return false
@@ -297,14 +302,15 @@ sealed class PlayerFSM : State<StateContext> {
                 Animation.PlayMode.REVERSED,
                 AnimationVariant.FIRST,
                 true,
+                true,
             )
             ctx.healthComponent.resetHealth()
-            ctx.moveComponent.lockMovement = false
             ctx.stateComponent.stateMachine.globalState = GlobalState.CHECK_ALIVE
         }
 
         override fun update(ctx: StateContext) {
             if (ctx.animationComponent.isAnimationFinished()) {
+                ctx.moveComponent.lockMovement = false
                 ctx.changeState(IDLE)
             }
         }

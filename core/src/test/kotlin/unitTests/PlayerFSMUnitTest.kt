@@ -2,6 +2,7 @@ package unitTests
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.math.Vector2
@@ -19,6 +20,7 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
+import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.PlayerFSM
 import io.bennyoe.state.StateContext
 import io.bennyoe.systems.MoveSystem
@@ -609,6 +611,23 @@ class PlayerFSMUnitTest {
         stateComponent.stateMachine.update()
         world.update(1f)
         assertNotEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should change state to RESURRECT when in DEATH state`() {
+        val messageDispatcher = MessageManager.getInstance()
+        val stateComponent = with(world) { entity[StateComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+        givenState(PlayerFSM.DEATH)
+
+        messageDispatcher.dispatchMessage(
+            0f,
+            FsmMessageTypes.KILL.ordinal,
+            true,
+        )
+        stateComponent.stateMachine.update()
+        world.update(1f)
+        assertNotEquals(PlayerFSM.RESURRECT, stateComponent.stateMachine.currentState)
     }
 
     private fun givenState(state: PlayerFSM) {

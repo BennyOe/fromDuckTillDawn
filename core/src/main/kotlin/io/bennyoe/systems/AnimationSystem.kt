@@ -49,7 +49,16 @@ class AnimationSystem(
             )
         aniCmp.clearAnimation()
         aniCmp.stateTime = 0f
-        return aniCmp.animation.getKeyFrame(0f)
+
+        // this is for the reversed animation. Without it there is a flickering before the animation.
+        val firstFrame =
+            if (aniCmp.isReversed) {
+                aniCmp.animation.keyFrames.size
+                    .toFloat()
+            } else {
+                0f
+            }
+        return aniCmp.animation.getKeyFrame(firstFrame)
     }
 
     private fun setTexturesToAnimation(

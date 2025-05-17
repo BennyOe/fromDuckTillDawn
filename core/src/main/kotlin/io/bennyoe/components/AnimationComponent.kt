@@ -10,6 +10,7 @@ class AnimationComponent(
     var stateTime: Float = 0f,
     var flipImage: Boolean = false,
     var mode: PlayMode = PlayMode.LOOP,
+    var isReversed: Boolean = false,
 ) : Component<AnimationComponent> {
     override fun type() = AnimationComponent
 

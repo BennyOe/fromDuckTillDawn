@@ -16,8 +16,6 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.GameConstants.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
-import io.bennyoe.state.FsmMessageTypes
-import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -31,7 +29,9 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnCfg
 import io.bennyoe.components.SpawnComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.event.MapChangedEvent
+import io.bennyoe.state.FsmMessageTypes
 import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.log.logger

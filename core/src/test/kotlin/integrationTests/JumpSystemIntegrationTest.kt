@@ -8,14 +8,15 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.GameConstants.DOUBLE_JUMP_GRACE_TIME
-import io.bennyoe.state.PlayerFSM
-import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.HasGroundContact
+import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.StateComponent
+import io.bennyoe.state.PlayerFSM
 import io.bennyoe.systems.JumpSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
@@ -65,6 +66,7 @@ class JumpSystemIntegrationTest {
                 physicCmp.body = mockBody
                 it += physicCmp
                 it += MoveComponent()
+                it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent()
                 it += StateComponent(world)
@@ -95,6 +97,7 @@ class JumpSystemIntegrationTest {
                 it += physicCmp
                 it += MoveComponent()
                 it += InputComponent()
+                it += HealthComponent()
                 it += JumpComponent(maxHeight = 5f) // Higher jump
                 it += StateComponent(world)
             }
@@ -169,6 +172,7 @@ class JumpSystemIntegrationTest {
                 physicCmp.body = mockBody
                 it += physicCmp
                 it += MoveComponent()
+                it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 0f)
                 it += StateComponent(world)

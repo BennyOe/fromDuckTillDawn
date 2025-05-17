@@ -9,18 +9,19 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.HasGroundContact
+import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
-import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.StateSystem
 import io.mockk.every
 import io.mockk.mockk
 import ktx.collections.gdxArrayOf
@@ -63,6 +64,7 @@ class AnimationSystemIntegrationTest {
             world.entity {
                 it += MoveComponent()
                 it += PhysicComponent().apply { body = bodyMock }
+                it += HealthComponent()
                 it += animationComponent
                 it += JumpComponent()
                 it += HasGroundContact

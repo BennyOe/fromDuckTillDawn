@@ -8,16 +8,17 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.state.PlayerFSM
-import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
-import io.bennyoe.systems.StateSystem
+import io.bennyoe.state.PlayerFSM
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.StateSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -52,6 +53,7 @@ class MovementIntegrationTest {
             world.entity {
                 it += PhysicComponent().apply { body = bodyMock }
                 it += MoveComponent(maxSpeed = 10f)
+                it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent()
                 it += AnimationComponent().apply { animation = animationMock }
@@ -86,6 +88,20 @@ class MovementIntegrationTest {
         world.update(0.016f)
 
         assertEquals(PlayerFSM.IDLE, ai.stateMachine.currentState)
+        assertEquals(0f, move.moveVelocity)
+    }
+
+    @Test
+    fun `input RIGHT does nothing when in DEATH state`() {
+        val input = with(world) { entity[InputComponent] }
+        val ai = with(world) { entity[StateComponent] }
+        val move = with(world) { entity[MoveComponent] }
+        ai.changeState(PlayerFSM.DEATH)
+
+        input.direction = WalkDirection.RIGHT
+        repeat(10) { world.update(0.016f) } // ~10 Frames at 60 FPS
+
+        assertEquals(PlayerFSM.DEATH, ai.stateMachine.currentState)
         assertEquals(0f, move.moveVelocity)
     }
 }

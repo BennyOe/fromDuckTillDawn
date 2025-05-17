@@ -10,18 +10,19 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.state.PlayerFSM
-import io.bennyoe.state.StateContext
-import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.HasGroundContact
+import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
-import io.bennyoe.systems.StateSystem
+import io.bennyoe.state.PlayerFSM
+import io.bennyoe.state.StateContext
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.StateSystem
 import io.mockk.every
 import io.mockk.mockk
 import ktx.collections.gdxArrayOf
@@ -68,6 +69,7 @@ class PlayerFSMUnitTest {
                 val physicCmp = PhysicComponent()
                 physicCmp.body = bodyMock
                 it += physicCmp
+                it += HealthComponent()
                 it += MoveComponent(maxSpeed = 10f)
                 it += InputComponent()
                 it += animationComponent
@@ -582,6 +584,31 @@ class PlayerFSMUnitTest {
 
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.FALL, stateComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should switch to DEATH state when health is 0`() {
+        val stateComponent = with(world) { entity[StateComponent] }
+        val healthComponent = with(world) { entity[HealthComponent] }
+
+        givenState(PlayerFSM.IDLE)
+        healthComponent.current = 0
+
+        stateComponent.stateMachine.update()
+        assertEquals(PlayerFSM.DEATH, stateComponent.stateMachine.currentState)
+    }
+
+    @Test
+    fun `should not change state when in DEATH state`() {
+        val stateComponent = with(world) { entity[StateComponent] }
+        val inputComponent = with(world) { entity[InputComponent] }
+        givenState(PlayerFSM.DEATH)
+        with(world) { entity.configure { it += HasGroundContact } }
+
+        inputComponent.jumpJustPressed = true
+        stateComponent.stateMachine.update()
+        world.update(1f)
+        assertNotEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)
     }
 
     private fun givenState(state: PlayerFSM) {

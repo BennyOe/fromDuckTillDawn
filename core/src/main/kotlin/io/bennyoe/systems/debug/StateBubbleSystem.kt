@@ -11,8 +11,8 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
-import io.bennyoe.components.StateComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.debug.StateBubbleComponent
 import ktx.log.logger
 import ktx.math.component1

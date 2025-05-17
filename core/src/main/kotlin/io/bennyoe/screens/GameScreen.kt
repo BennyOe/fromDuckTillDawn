@@ -16,7 +16,6 @@ import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.service.DebugRenderService
-import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
@@ -25,6 +24,7 @@ import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
+import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem

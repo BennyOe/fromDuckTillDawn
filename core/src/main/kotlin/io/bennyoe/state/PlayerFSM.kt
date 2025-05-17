@@ -1,7 +1,8 @@
-package io.bennyoe.ai
+package io.bennyoe.state
 
 import com.badlogic.gdx.ai.fsm.State
 import com.badlogic.gdx.ai.msg.Telegram
+import com.badlogic.gdx.graphics.g2d.Animation
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.BashComponent
@@ -71,10 +72,12 @@ sealed class PlayerFSM : State<StateContext> {
         ): Boolean {
             if (telegram.message == FsmMessageTypes.HEAL.ordinal && telegram.extraInfo == true) {
                 logger.debug { "MESSAGE WITH HEAL RECEIVED INSTANTLY" }
+                return true
             } else if (telegram.message == FsmMessageTypes.ATTACK.ordinal && telegram.extraInfo == true) {
                 logger.debug { "MESSAGE WITH ATTACK RECEIVED AFTER A DELAY" }
+                return true
             }
-            return true
+            return false
         }
     }
 
@@ -200,7 +203,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             if (shouldAttack(ctx)) ctx.inputComponent.attack2JustPressed = true
-            if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
+            if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     shouldAttack2(ctx) -> ctx.changeState(ATTACK_2)
                     shouldFall(ctx) -> ctx.changeState(FALL)
@@ -219,7 +222,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             if (shouldAttack(ctx)) ctx.inputComponent.attack3JustPressed = true
-            if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
+            if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     shouldAttack3(ctx) -> ctx.changeState(ATTACK_3)
                     shouldFall(ctx) -> ctx.changeState(FALL)
@@ -237,7 +240,7 @@ sealed class PlayerFSM : State<StateContext> {
         }
 
         override fun update(ctx: StateContext) {
-            if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
+            if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     shouldFall(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
@@ -254,11 +257,55 @@ sealed class PlayerFSM : State<StateContext> {
         }
 
         override fun update(ctx: StateContext) {
-            if (ctx.animationComponent.animation.isAnimationFinished(ctx.animationComponent.stateTime)) {
+            if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     shouldFall(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
+            }
+        }
+    }
+
+    data object DEATH : PlayerFSM() {
+        override fun enter(ctx: StateContext) {
+            logger.debug { "Entering DEATH" }
+            ctx.setAnimation(AnimationType.DYING, Animation.PlayMode.NORMAL)
+            ctx.moveComponent.lockMovement = true
+            ctx.stateComponent.stateMachine.globalState = null
+            ctx.moveComponent.moveVelocity = 0f
+        }
+
+        override fun onMessage(
+            ctx: StateContext,
+            telegram: Telegram,
+        ): Boolean {
+            if (telegram.message == FsmMessageTypes.KILL.ordinal && telegram.extraInfo == true) {
+                // TODO here we can resurrect the player. But due to the reversed animation in the RESURRECT state there is a flicker. This can be
+                //  minimized when setting the getKeyFrame-state time in the applyNextAnimation() method in the AnimationSystem to 1f
+//                ctx.changeState(RESURRECT)
+                return true
+            }
+            return false
+        }
+    }
+
+    data object RESURRECT : PlayerFSM() {
+        override fun enter(ctx: StateContext) {
+            logger.debug { "Entering RESURRECT" }
+            ctx.setAnimation(
+                AnimationType.DYING,
+                Animation.PlayMode.REVERSED,
+                AnimationVariant.FIRST,
+                true,
+            )
+            ctx.healthComponent.resetHealth()
+            ctx.moveComponent.lockMovement = false
+            ctx.stateComponent.stateMachine.globalState = GlobalState.CHECK_ALIVE
+        }
+
+        override fun update(ctx: StateContext) {
+            if (ctx.animationComponent.isAnimationFinished()) {
+                ctx.changeState(IDLE)
             }
         }
     }

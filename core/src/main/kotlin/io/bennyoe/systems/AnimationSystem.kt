@@ -27,14 +27,29 @@ class AnimationSystem(
             flipImage = aniCmp.flipImage
             image.drawable =
                 if (aniCmp.nextAnimationType == AnimationType.NONE) {
+                    // then we are in an animation
                     aniCmp.run {
                         stateTime += deltaTime
+                        aniCmp.animation.playMode = aniCmp.mode
                         animation.getKeyFrame(stateTime)
                     }
                 } else {
+                    // then we set a new animation
                     applyNextAnimation(aniCmp)
                 }
         }
+    }
+
+    private fun applyNextAnimation(aniCmp: AnimationComponent): TextureRegionDrawable {
+        aniCmp.animation =
+            setTexturesToAnimation(
+                aniCmp.nextAnimationModel.atlasKey + aniCmp.nextAnimationType.atlasKey + aniCmp.nextAnimationVariant.atlasKey,
+                aniCmp.nextAnimationType.speed,
+                aniCmp.nextAnimationType.playMode,
+            )
+        aniCmp.clearAnimation()
+        aniCmp.stateTime = 0f
+        return aniCmp.animation.getKeyFrame(0f)
     }
 
     private fun setTexturesToAnimation(
@@ -51,18 +66,6 @@ class AnimationSystem(
                 this.playMode = playMode
             }
         }
-
-    private fun applyNextAnimation(aniCmp: AnimationComponent): TextureRegionDrawable {
-        aniCmp.animation =
-            setTexturesToAnimation(
-                aniCmp.nextAnimationModel.atlasKey + aniCmp.nextAnimationType.atlasKey + aniCmp.nextAnimationVariant.atlasKey,
-                aniCmp.nextAnimationType.speed,
-                aniCmp.nextAnimationType.playMode,
-            )
-        aniCmp.clearAnimation()
-        aniCmp.stateTime = 0f
-        return aniCmp.animation.getKeyFrame(0f)
-    }
 
     companion object {
         const val DEFAULT_FRAME_DURATION = 1 / 8f

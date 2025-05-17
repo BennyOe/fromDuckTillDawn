@@ -15,6 +15,11 @@ class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, 
         val moveCmp = entity[MoveComponent]
         val inputCmp = entity[InputComponent]
         val animationCmp = entity[AnimationComponent]
+
+        if (moveCmp.lockMovement) {
+            return
+        }
+
         when (inputCmp.direction) {
             WalkDirection.NONE -> moveCmp.moveVelocity = 0f
             WalkDirection.LEFT -> {

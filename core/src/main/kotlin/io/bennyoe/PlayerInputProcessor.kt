@@ -4,10 +4,10 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.github.quillraven.fleks.World
-import io.bennyoe.ai.FsmMessageTypes
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.debug.DebugComponent
+import io.bennyoe.state.FsmMessageTypes
 import ktx.app.KtxInputAdapter
 import ktx.log.logger
 
@@ -30,6 +30,7 @@ class PlayerInputProcessor(
             Keys.V to Action.MESSAGE,
             Keys.C to Action.MESSAGE2,
             Keys.BACKSPACE to Action.DEBUG,
+            Keys.K to Action.KILL,
         )
 
     init {
@@ -102,6 +103,13 @@ class PlayerInputProcessor(
                         pressed,
                     )
 
+                Action.KILL ->
+                    messageDispatcher.dispatchMessage(
+                        0f,
+                        FsmMessageTypes.KILL.ordinal,
+                        pressed,
+                    )
+
                 else -> Unit
             }
         }
@@ -121,5 +129,6 @@ class PlayerInputProcessor(
         MESSAGE,
         MESSAGE2,
         DEBUG,
+        KILL,
     }
 }

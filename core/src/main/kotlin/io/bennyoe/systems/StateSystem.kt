@@ -5,9 +5,9 @@ import com.badlogic.gdx.ai.msg.MessageManager
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
-import io.bennyoe.components.AiComponent
+import io.bennyoe.components.StateComponent
 
-class AiSystem : IteratingSystem(family { all(AiComponent) }) {
+class StateSystem : IteratingSystem(family { all(StateComponent) }) {
     private val messageDispatcher = MessageManager.getInstance()
 
     override fun onTick() {
@@ -17,14 +17,14 @@ class AiSystem : IteratingSystem(family { all(AiComponent) }) {
     }
 
     override fun onTickEntity(entity: Entity) {
-        val aiComponent = entity[AiComponent]
+        val stateComponent = entity[StateComponent]
 
-        aiComponent.stateTime += deltaTime
-        aiComponent.stateMachine.owner.deltaTime = deltaTime
-        aiComponent.stateMachine.update()
+        stateComponent.stateTime += deltaTime
+        stateComponent.stateMachine.owner.deltaTime = deltaTime
+        stateComponent.stateMachine.update()
     }
 
     companion object {
-        val logger = ktx.log.logger<AiSystem>()
+        val logger = ktx.log.logger<StateSystem>()
     }
 }

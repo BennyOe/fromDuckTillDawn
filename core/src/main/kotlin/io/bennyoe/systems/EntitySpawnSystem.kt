@@ -16,12 +16,11 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.GameConstants.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
-import io.bennyoe.ai.FsmMessageTypes
-import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
@@ -30,7 +29,9 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnCfg
 import io.bennyoe.components.SpawnComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.event.MapChangedEvent
+import io.bennyoe.state.FsmMessageTypes
 import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.log.logger
@@ -174,9 +175,12 @@ class EntitySpawnSystem(
             val player = PlayerComponent()
             it += player
 
-            val ai = AiComponent(world)
+            it += HealthComponent()
+
+            val ai = StateComponent(world)
             messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.HEAL.ordinal)
             messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.ATTACK.ordinal)
+            messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.KILL.ordinal)
             it += ai
 
             PlayerInputProcessor(world = world)

@@ -16,7 +16,7 @@ import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.service.DebugRenderService
-import io.bennyoe.systems.AiSystem
+import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
@@ -67,7 +67,7 @@ class GameScreen(
                 add(CollisionSpawnSystem())
                 add(JumpSystem())
                 add(PhysicsSystem())
-                add(AiSystem())
+                add(StateSystem())
                 add(MoveSystem())
                 add(CameraSystem())
                 add(RenderSystem())

@@ -6,7 +6,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
-import io.bennyoe.components.AiComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
@@ -49,7 +49,7 @@ class JumpSystemUnitTest {
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent()
-                it += AiComponent(world)
+                it += StateComponent(world)
             }
     }
 

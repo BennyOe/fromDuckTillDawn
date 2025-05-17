@@ -9,6 +9,7 @@ import com.github.quillraven.fleks.ComponentType
 class AnimationComponent(
     var stateTime: Float = 0f,
     var flipImage: Boolean = false,
+    var mode: PlayMode = PlayMode.LOOP
 ) : Component<AnimationComponent> {
     override fun type() = AnimationComponent
 
@@ -35,6 +36,8 @@ class AnimationComponent(
         nextAnimationType = AnimationType.NONE
         nextAnimationVariant = AnimationVariant.NONE
     }
+
+    fun isAnimationFinished(): Boolean = animation.isAnimationFinished(stateTime)
 
     companion object : ComponentType<AnimationComponent>() {
     }

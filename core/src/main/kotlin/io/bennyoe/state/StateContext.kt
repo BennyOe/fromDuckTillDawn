@@ -1,4 +1,4 @@
-package io.bennyoe.ai
+package io.bennyoe.state
 
 import com.badlogic.gdx.ai.fsm.State
 import com.badlogic.gdx.graphics.g2d.Animation
@@ -6,7 +6,7 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.AiComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -24,7 +24,7 @@ data class StateContext(
 ) {
     val animationComponent: AnimationComponent
     val inputComponent: InputComponent
-    val aiComponent: AiComponent
+    val stateComponent: StateComponent
     val physicComponent: PhysicComponent
     val moveComponent: MoveComponent
     val jumpComponent: JumpComponent
@@ -34,7 +34,7 @@ data class StateContext(
         with(world) {
             animationComponent = entity[AnimationComponent]
             inputComponent = entity[InputComponent]
-            aiComponent = entity[AiComponent]
+            stateComponent = entity[StateComponent]
             physicComponent = entity[PhysicComponent]
             moveComponent = entity[MoveComponent]
             jumpComponent = entity[JumpComponent]
@@ -53,14 +53,16 @@ data class StateContext(
         type: AnimationType,
         playMode: Animation.PlayMode = Animation.PlayMode.LOOP,
         variant: AnimationVariant = AnimationVariant.FIRST,
+        resetStateTime: Boolean = false,
     ) {
         animationComponent.nextAnimation(AnimationModel.PLAYER_DAWN, type, variant)
-        animationComponent.animation.playMode = playMode
+        if (resetStateTime) animationComponent.stateTime = 0f
+        animationComponent.mode = playMode
     }
 
     fun changeState(state: PlayerFSM) {
-        aiComponent.stateMachine.changeState(state)
+        stateComponent.changeState(state)
     }
 
-    fun previousState(): State<StateContext> = aiComponent.stateMachine.previousState
+    fun previousState(): State<StateContext> = stateComponent.stateMachine.previousState
 }

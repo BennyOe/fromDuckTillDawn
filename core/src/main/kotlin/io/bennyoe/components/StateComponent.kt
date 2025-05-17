@@ -6,24 +6,30 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.ai.DefaultState
-import io.bennyoe.ai.PlayerFSM
-import io.bennyoe.ai.StateContext
+import io.bennyoe.state.GlobalState
+import io.bennyoe.state.PlayerFSM
+import io.bennyoe.state.StateContext
 
-data class AiComponent(
+data class StateComponent(
     val world: World,
     var stateTime: Float = 0f,
     val stateMachine: DefaultStateMachine<StateContext, State<StateContext>> = DefaultStateMachine(),
-) : Component<AiComponent> {
+) : Component<StateComponent> {
     override fun World.onAdd(entity: Entity) {
         stateMachine.owner = StateContext(entity, world)
-        stateMachine.globalState = DefaultState.NONE
+        stateMachine.globalState = GlobalState.CHECK_ALIVE
         stateMachine.setInitialState(PlayerFSM.IDLE)
     }
 
-    override fun type() = AiComponent
+    fun changeState(newState: State<StateContext>) {
+        if (newState != stateMachine.currentState) {
+            stateMachine.changeState(newState)
+        }
+    }
 
-    companion object : ComponentType<AiComponent>() {
-        val logger = ktx.log.logger<AiComponent>()
+    override fun type() = StateComponent
+
+    companion object : ComponentType<StateComponent>() {
+        val logger = ktx.log.logger<StateComponent>()
     }
 }

@@ -9,6 +9,10 @@ class HealthComponent(
 ) : Component<HealthComponent> {
     val isDead get() = current <= 0
 
+    fun resetHealth() {
+        current = max
+    }
+
     override fun type() = HealthComponent
 
     companion object : ComponentType<HealthComponent>()

@@ -8,8 +8,8 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.GameConstants.DOUBLE_JUMP_GRACE_TIME
-import io.bennyoe.ai.PlayerFSM
-import io.bennyoe.components.AiComponent
+import io.bennyoe.state.PlayerFSM
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.InputComponent
@@ -67,7 +67,7 @@ class JumpSystemIntegrationTest {
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent()
-                it += AiComponent(world)
+                it += StateComponent(world)
             }
     }
 
@@ -96,7 +96,7 @@ class JumpSystemIntegrationTest {
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 5f) // Higher jump
-                it += AiComponent(world)
+                it += StateComponent(world)
             }
         val jumpComponent2 = with(world) { entity2[JumpComponent] }
         jumpComponent2.wantsToJump = true
@@ -143,7 +143,7 @@ class JumpSystemIntegrationTest {
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 3f)
-                it += AiComponent(world)
+                it += StateComponent(world)
             }
 
         // Apply jump with reduced gravity
@@ -171,7 +171,7 @@ class JumpSystemIntegrationTest {
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 0f)
-                it += AiComponent(world)
+                it += StateComponent(world)
             }
 
         // Update the world
@@ -185,71 +185,71 @@ class JumpSystemIntegrationTest {
     @Test
     fun `double jump should be possible in DOUBLE_JUMP_GRACE_TIME`() {
         val jumpComponent = with(world) { entity[JumpComponent] }
-        val aiComponent = with(world) { entity[AiComponent] }
+        val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
         val dt = 0.05f
 
-        aiComponent.stateMachine.changeState(PlayerFSM.JUMP)
-        aiComponent.stateMachine.update()
-        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
+        stateComponent.changeState(PlayerFSM.JUMP)
+        stateComponent.stateMachine.update()
+        stateComponent.changeState(PlayerFSM.FALL)
         world.update(dt)
         assertEquals(DOUBLE_JUMP_GRACE_TIME - dt, jumpComponent.doubleJumpGraceTimer)
         inputComponent.jumpJustPressed = true
-        aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.DOUBLE_JUMP, aiComponent.stateMachine.currentState)
+        stateComponent.stateMachine.update()
+        assertEquals(PlayerFSM.DOUBLE_JUMP, stateComponent.stateMachine.currentState)
     }
 
     @Test
     fun `double jump should NOT be possible outside of DOUBLE_JUMP_GRACE_TIME`() {
         val jumpComponent = with(world) { entity[JumpComponent] }
-        val aiComponent = with(world) { entity[AiComponent] }
+        val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
         val dt = 0.1f
 
-        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
+        stateComponent.changeState(PlayerFSM.FALL)
         world.update(dt)
-        assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.FALL, stateComponent.stateMachine.currentState)
         world.update(dt)
-        assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.FALL, stateComponent.stateMachine.currentState)
         world.update(dt)
-        assertEquals(PlayerFSM.FALL, aiComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.FALL, stateComponent.stateMachine.currentState)
         assertTrue(jumpComponent.doubleJumpGraceTimer < 0)
         inputComponent.jumpJustPressed = true
         with(world) { entity.configure { it += HasGroundContact } }
-        aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+        stateComponent.stateMachine.update()
+        assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
     }
 
     @Test
     fun `jump should be possible in jumpBuffer time`() {
-        val aiComponent = with(world) { entity[AiComponent] }
+        val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
         val dt = 0.05f
 
-        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
+        stateComponent.changeState(PlayerFSM.FALL)
         inputComponent.jumpJustPressed = true
         world.update(dt)
-        aiComponent.stateMachine.update()
+        stateComponent.stateMachine.update()
         with(world) { entity.configure { it += HasGroundContact } }
         world.update(dt)
-        aiComponent.stateMachine.update()
-        assertEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
+        stateComponent.stateMachine.update()
+        assertEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)
     }
 
     @Test
     fun `jump should NOT be possible outside of jumpBuffer time`() {
-        val aiComponent = with(world) { entity[AiComponent] }
+        val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
         val dt = 0.5f
 
-        aiComponent.stateMachine.changeState(PlayerFSM.FALL)
+        stateComponent.changeState(PlayerFSM.FALL)
         inputComponent.jumpJustPressed = true
         world.update(dt)
-        aiComponent.stateMachine.update()
+        stateComponent.stateMachine.update()
         with(world) { entity.configure { it += HasGroundContact } }
         world.update(dt)
-        aiComponent.stateMachine.update()
-        assertNotEquals(PlayerFSM.JUMP, aiComponent.stateMachine.currentState)
-        assertEquals(PlayerFSM.IDLE, aiComponent.stateMachine.currentState)
+        stateComponent.stateMachine.update()
+        assertNotEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
     }
 }

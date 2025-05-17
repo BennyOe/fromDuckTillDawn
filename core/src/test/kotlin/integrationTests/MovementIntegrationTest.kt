@@ -8,15 +8,15 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.ai.PlayerFSM
-import io.bennyoe.components.AiComponent
+import io.bennyoe.state.PlayerFSM
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
-import io.bennyoe.systems.AiSystem
+import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.MoveSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
@@ -44,7 +44,7 @@ class MovementIntegrationTest {
             configureWorld {
                 systems {
                     add(MoveSystem())
-                    add(AiSystem())
+                    add(StateSystem())
                 }
             }
 
@@ -55,14 +55,14 @@ class MovementIntegrationTest {
                 it += InputComponent()
                 it += JumpComponent()
                 it += AnimationComponent().apply { animation = animationMock }
-                it += AiComponent(world)
+                it += StateComponent(world)
             }
     }
 
     @Test
     fun `input RIGHT leads to WALK state and maximum velocity`() {
         val input = with(world) { entity[InputComponent] }
-        val ai = with(world) { entity[AiComponent] }
+        val ai = with(world) { entity[StateComponent] }
         val move = with(world) { entity[MoveComponent] }
 
         input.direction = WalkDirection.RIGHT
@@ -75,7 +75,7 @@ class MovementIntegrationTest {
     @Test
     fun `releasing direction returns to IDLE state and zero velocity`() {
         val input = with(world) { entity[InputComponent] }
-        val ai = with(world) { entity[AiComponent] }
+        val ai = with(world) { entity[StateComponent] }
         val move = with(world) { entity[MoveComponent] }
 
         input.direction = WalkDirection.RIGHT

@@ -11,7 +11,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
-import io.bennyoe.components.AiComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.debug.StateBubbleComponent
 import ktx.log.logger
@@ -26,8 +26,8 @@ class StateBubbleSystem(
 ) : IteratingSystem(family { all(StateBubbleComponent) }, interval = Fixed(PHYSIC_TIME_STEP)) {
     override fun onTickEntity(entity: Entity) {
         val stateBubbleCmp = entity[StateBubbleComponent]
-        val aiComponent = entity[AiComponent]
-        stateBubbleCmp.bubble.displayState(aiComponent.stateMachine.currentState.toString())
+        val stateComponent = entity[StateComponent]
+        stateBubbleCmp.bubble.displayState(stateComponent.stateMachine.currentState.toString())
     }
 
     override fun onAlphaEntity(

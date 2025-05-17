@@ -1,4 +1,4 @@
-package io.bennyoe.ai
+package io.bennyoe.state
 
 enum class FsmMessageTypes {
     ATTACK,

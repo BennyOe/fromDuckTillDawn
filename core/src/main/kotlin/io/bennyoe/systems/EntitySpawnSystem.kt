@@ -16,8 +16,8 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.GameConstants.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
-import io.bennyoe.ai.FsmMessageTypes
-import io.bennyoe.components.AiComponent
+import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -177,7 +177,7 @@ class EntitySpawnSystem(
 
             it += HealthComponent()
 
-            val ai = AiComponent(world)
+            val ai = StateComponent(world)
             messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.HEAL.ordinal)
             messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.ATTACK.ordinal)
             messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.KILL.ordinal)

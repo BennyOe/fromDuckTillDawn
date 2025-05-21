@@ -22,6 +22,10 @@ object GameConstants {
     const val BASH_COOLDOWN = .2f
     const val BASH_POWER = 5f
 
+    // scaling constant because the temp player model doesn't fit the 16x16 world with its 64x100
+    const val PLAYER_SCALING_X = .2f
+    const val PLAYER_SCALING_Y = .5f
+
     // Camera constants
     const val CAMERA_SMOOTHING_FACTOR = 0.04f
 }

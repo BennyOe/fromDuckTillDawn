@@ -15,17 +15,22 @@ import ktx.app.gdxError
 import ktx.box2d.body
 import ktx.box2d.box
 import ktx.box2d.loop
+import ktx.log.logger
 import ktx.math.vec2
 import com.github.quillraven.fleks.World as entityWorld
 
 class PhysicComponent : Component<PhysicComponent> {
-    private val offset: Vector2 = Vector2()
+    val offset: Vector2 = Vector2()
     val size: Vector2 = Vector2()
     var prevPos: Vector2 = Vector2()
     var impulse: Vector2 = Vector2()
     lateinit var body: Body
 
     override fun type() = PhysicComponent
+
+    override fun entityWorld.onRemove(entity: Entity) {
+        body.world.destroyBody(body)
+    }
 
     companion object : ComponentType<PhysicComponent>() {
         fun physicsComponentFromShape2D(
@@ -97,7 +102,7 @@ class PhysicComponent : Component<PhysicComponent> {
             // fixture as box
             body.box(width, height, Vector2(offsetX, offsetY)) {
                 this.isSensor = isSensor
-                this.userData = "IMAGE_HITBOX"
+                this.userData = "HITBOX_SENSOR"
                 this.filter.categoryBits = categoryBit
                 density = 1f
                 friction = myFriction
@@ -109,9 +114,7 @@ class PhysicComponent : Component<PhysicComponent> {
                 this.offset.set(offsetX, offsetY)
             }
         }
-    }
 
-    override fun entityWorld.onRemove(entity: Entity) {
-        body.world.destroyBody(body)
+        val logger = logger<PhysicComponent>()
     }
 }

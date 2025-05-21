@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "testMap.tmx",
+    "activeFile": "groundTiles1.tsx",
     "expandedProjectPaths": [
     ],
     "fileStates": {
@@ -19,8 +19,8 @@
             "scale": 2.9774,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 200.8463760327803,
-                "y": 137.87196883186675
+                "x": 421.84456236985295,
+                "y": 214.9526432457849
             }
         }
     },
@@ -29,15 +29,15 @@
     "map.tileHeight": 16,
     "map.tileWidth": 16,
     "openFiles": [
-        "groundTiles1.tsx",
         "testMap.tmx",
-        "fire.tsx"
+        "fire.tsx",
+        "groundTiles1.tsx"
     ],
     "project": "testMap.tiled-project",
     "recentFiles": [
-        "groundTiles1.tsx",
+        "testMap.tmx",
         "fire.tsx",
-        "testMap.tmx"
+        "groundTiles1.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

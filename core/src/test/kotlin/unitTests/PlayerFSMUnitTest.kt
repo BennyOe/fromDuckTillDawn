@@ -12,6 +12,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
@@ -68,6 +69,7 @@ class PlayerFSMUnitTest {
 
         entity =
             world.entity {
+                it += AttackComponent()
                 val physicCmp = PhysicComponent()
                 physicCmp.body = bodyMock
                 it += physicCmp
@@ -594,7 +596,7 @@ class PlayerFSMUnitTest {
         val healthComponent = with(world) { entity[HealthComponent] }
 
         givenState(PlayerFSM.IDLE)
-        healthComponent.current = 0
+        healthComponent.current = 0f
 
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.DEATH, stateComponent.stateMachine.currentState)
@@ -617,7 +619,6 @@ class PlayerFSMUnitTest {
     fun `should change state to RESURRECT when in DEATH state`() {
         val messageDispatcher = MessageManager.getInstance()
         val stateComponent = with(world) { entity[StateComponent] }
-        val inputComponent = with(world) { entity[InputComponent] }
         givenState(PlayerFSM.DEATH)
 
         messageDispatcher.dispatchMessage(

@@ -17,8 +17,11 @@ import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.systems.AnimationSystem
+import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
+import io.bennyoe.systems.DamageSystem
+import io.bennyoe.systems.DeadSystem
 import io.bennyoe.systems.EntitySpawnSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
@@ -65,6 +68,8 @@ class GameScreen(
                 add(AnimationSystem())
                 add(EntitySpawnSystem())
                 add(CollisionSpawnSystem())
+                add(AttackSystem())
+                add(DamageSystem())
                 add(JumpSystem())
                 add(PhysicsSystem())
                 add(StateSystem())
@@ -74,6 +79,7 @@ class GameScreen(
                 add(DebugSystem())
                 add(StateBubbleSystem())
                 add(UiRenderSystem())
+                add(DeadSystem())
             }
         }
 

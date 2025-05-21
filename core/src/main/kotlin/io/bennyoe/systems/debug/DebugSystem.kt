@@ -3,7 +3,6 @@ package io.bennyoe.systems.debug
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Circle
@@ -29,7 +28,6 @@ import io.bennyoe.widgets.LabelWidget
 import ktx.assets.disposeSafely
 import ktx.graphics.use
 import ktx.log.logger
-import ktx.scene2d.actors
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
 
 class DebugSystem(
@@ -43,8 +41,6 @@ class DebugSystem(
         inject("debugRenderService"),
     val shapeRenderer: ShapeRenderer =
         inject("shapeRenderer"),
-    val spriteBatch: SpriteBatch =
-        inject("spriteBatch"),
     profiler: GLProfiler =
         inject("profiler"),
 ) : IntervalSystem(enabled = true) {
@@ -166,13 +162,14 @@ class DebugSystem(
         val tmpVec = Vector3(x, y, 0f)
         // converts tmpVec worldUnits -> pixel
         stage.viewport.project(tmpVec)
+        uiStage.viewport.unproject(tmpVec)
 
         val label =
             labels.getOrPut(dbgShape) {
                 LabelWidget(dbgShape.label, dbgShape.color).also { uiStage.addActor(it) }
             }
 
-        label.setPosition(tmpVec.x, tmpVec.y)
+        label.setPosition(tmpVec.x, uiStage.height - tmpVec.y)
     }
 
     private fun purgeStaleLabels(activeShapes: Set<DebugShape>) {

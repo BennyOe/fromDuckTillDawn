@@ -199,6 +199,7 @@ sealed class PlayerFSM : State<StateContext> {
             logger.debug { "Entering ATTACK_1" }
             ctx.inputComponent.attackJustPressed = false
             ctx.setAnimation(AnimationType.ATTACK)
+            ctx.attackComponent.applyAttack = true
         }
 
         override fun update(ctx: StateContext) {

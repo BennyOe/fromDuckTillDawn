@@ -10,6 +10,7 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
@@ -29,6 +30,7 @@ data class StateContext(
     val moveComponent: MoveComponent
     val jumpComponent: JumpComponent
     val healthComponent: HealthComponent
+    val attackComponent: AttackComponent
 
     init {
         with(world) {
@@ -39,6 +41,7 @@ data class StateContext(
             moveComponent = entity[MoveComponent]
             jumpComponent = entity[JumpComponent]
             healthComponent = entity[HealthComponent]
+            attackComponent = entity[AttackComponent]
         }
     }
 

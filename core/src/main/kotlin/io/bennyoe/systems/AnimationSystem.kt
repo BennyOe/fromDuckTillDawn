@@ -77,7 +77,6 @@ class AnimationSystem(
         }
 
     companion object {
-        const val DEFAULT_FRAME_DURATION = 1 / 8f
         private val logger = logger<AnimationSystem>()
     }
 }

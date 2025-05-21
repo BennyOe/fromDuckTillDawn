@@ -14,12 +14,15 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.GameConstants.PLAYER_SCALING_X
+import io.bennyoe.GameConstants.PLAYER_SCALING_Y
 import io.bennyoe.GameConstants.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
@@ -44,7 +47,6 @@ class EntitySpawnSystem(
     private val stage: Stage = inject("stage"),
     private val phyWorld: World = inject("phyWorld"),
     private val atlas: TextureAtlas = inject(),
-    private val uiStage: Stage = inject("uiStage"),
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener {
     private val cachedCfgs = mutableMapOf<String, SpawnCfg>()
@@ -54,34 +56,13 @@ class EntitySpawnSystem(
     override fun onTickEntity(entity: Entity) {
     }
 
-    private fun size(
-        model: AnimationModel,
-        type: AnimationType,
-        variant: AnimationVariant,
-    ): Vector2 =
-        sizesCache.getOrPut(type) {
-            val regions = atlas.findRegions(model.atlasKey + type.atlasKey + variant.atlasKey)
-            if (regions.isEmpty) gdxError("There are no regions for the idle animation of model $type")
-            val firstFrame = regions.first()
-            return Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
-        }
-
-    private fun spawnCfg(type: String): SpawnCfg =
-        cachedCfgs.getOrPut(type) {
-            when (type) {
-                "playerStart" -> SpawnCfg(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
-                "enemy" -> SpawnCfg(AnimationModel.ENEMY_MUSHROOM, AnimationType.IDLE, AnimationVariant.FIRST)
-                else -> gdxError("There is no spawn configuration for entity-type $type")
-            }
-        }
-
     override fun handle(event: Event): Boolean {
         when (event) {
             is MapChangedEvent -> {
                 val playerEntityLayer = event.map.layer("playerStart")
-                playerEntityLayer.objects.forEach { mapObj ->
-                    val cfg = spawnCfg(mapObj.type!!)
-                    createPlayerEntity(mapObj, cfg)
+                playerEntityLayer.objects.forEach { playerObj ->
+                    val cfg = spawnCfg(playerObj.type!!)
+                    createPlayerEntity(playerObj, cfg)
                 }
                 val enemyEntityLayer = event.map.layer("enemies")
                 enemyEntityLayer.objects.forEach { enemyObj ->
@@ -93,6 +74,15 @@ class EntitySpawnSystem(
         }
         return false
     }
+
+    private fun spawnCfg(type: String): SpawnCfg =
+        cachedCfgs.getOrPut(type) {
+            when (type) {
+                "playerStart" -> SpawnCfg(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
+                "enemy" -> SpawnCfg(AnimationModel.ENEMY_MUSHROOM, AnimationType.IDLE, AnimationVariant.FIRST)
+                else -> gdxError("There is no spawn configuration for entity-type $type")
+            }
+        }
 
     private fun createEnemyEntity(
         enemyObj: MapObject,
@@ -123,9 +113,11 @@ class EntitySpawnSystem(
                     scalePhysicY = 0.4f,
                     offsetY = -0.8f,
                     myFriction = 0f,
+                    setUserdata = it,
                 )
 
             it += physic
+            it += HealthComponent()
         }
     }
 
@@ -143,10 +135,12 @@ class EntitySpawnSystem(
             it += animation
 
             val image =
+                // scale sets the image size
                 ImageComponent(stage, 4f, 2f).apply {
                     image =
                         Image().apply {
                             setPosition(mapObj.x * UNIT_SCALE, mapObj.y * UNIT_SCALE)
+                            // this size sets the physic box
                             setSize(relativeSize.x, relativeSize.y)
                         }
                 }
@@ -157,11 +151,16 @@ class EntitySpawnSystem(
                     phyWorld,
                     image.image,
                     BodyDef.BodyType.DynamicBody,
-                    scalePhysicX = 0.2f,
-                    scalePhysicY = 0.5f,
+                    scalePhysicX = PLAYER_SCALING_X,
+                    scalePhysicY = PLAYER_SCALING_Y,
+                    setUserdata = it,
                 )
             // set ground collision sensor
-            physics.body.box(physics.size.x * 0.99f, 0.01f, Vector2(0f, 0f - physics.size.y * 0.5f)) {
+            physics.body.box(
+                physics.size.x * 0.99f,
+                0.01f,
+                Vector2(0f, 0f - physics.size.y * 0.5f),
+            ) {
                 isSensor = true
                 userData = "GROUND_COLLISION"
             }
@@ -176,16 +175,29 @@ class EntitySpawnSystem(
             it += player
 
             it += HealthComponent()
+            it += AttackComponent()
 
-            val ai = StateComponent(world)
-            messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.HEAL.ordinal)
-            messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.ATTACK.ordinal)
-            messageDispatcher.addListener(ai.stateMachine, FsmMessageTypes.KILL.ordinal)
-            it += ai
+            val state = StateComponent(world)
+            messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
+            messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
+            messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
+            it += state
 
             PlayerInputProcessor(world = world)
         }
     }
+
+    private fun size(
+        model: AnimationModel,
+        type: AnimationType,
+        variant: AnimationVariant,
+    ): Vector2 =
+        sizesCache.getOrPut(type) {
+            val regions = atlas.findRegions(model.atlasKey + type.atlasKey + variant.atlasKey)
+            if (regions.isEmpty) gdxError("There are no regions for the idle animation of model $type")
+            val firstFrame = regions.first()
+            return Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
+        }
 
     companion object {
         private val logger = logger<EntitySpawnSystem>()

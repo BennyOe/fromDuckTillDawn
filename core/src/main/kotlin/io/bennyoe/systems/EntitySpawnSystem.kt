@@ -49,7 +49,7 @@ class EntitySpawnSystem(
     private val atlas: TextureAtlas = inject(),
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener {
-    private val cachedCfgs = mutableMapOf<String, SpawnCfg>()
+    private val cachedSpawnCfgs = mutableMapOf<String, SpawnCfg>()
     private val sizesCache = mutableMapOf<AnimationType, Vector2>()
     private val messageDispatcher = MessageManager.getInstance()
 
@@ -61,13 +61,13 @@ class EntitySpawnSystem(
             is MapChangedEvent -> {
                 val playerEntityLayer = event.map.layer("playerStart")
                 playerEntityLayer.objects.forEach { playerObj ->
-                    val cfg = spawnCfg(playerObj.type!!)
-                    createPlayerEntity(playerObj, cfg)
+                    val cfg = createSpawnCfg(playerObj.type!!)
+                    createEntity(playerObj, cfg)
                 }
                 val enemyEntityLayer = event.map.layer("enemies")
                 enemyEntityLayer.objects.forEach { enemyObj ->
-                    val cfg = spawnCfg(enemyObj.type!!)
-                    createEnemyEntity(enemyObj, cfg)
+                    val cfg = createSpawnCfg(enemyObj.type!!)
+                    createEntity(enemyObj, cfg)
                 }
                 return true
             }
@@ -75,8 +75,8 @@ class EntitySpawnSystem(
         return false
     }
 
-    private fun spawnCfg(type: String): SpawnCfg =
-        cachedCfgs.getOrPut(type) {
+    private fun createSpawnCfg(type: String): SpawnCfg =
+        cachedSpawnCfgs.getOrPut(type) {
             when (type) {
                 "playerStart" ->
                     SpawnCfg(
@@ -107,45 +107,7 @@ class EntitySpawnSystem(
             }
         }
 
-    private fun createEnemyEntity(
-        enemyObj: MapObject,
-        cfg: SpawnCfg,
-    ) {
-        val relativeSize = size(cfg.animationModel, cfg.animationType, cfg.animationVariant)
-        world.entity {
-            val animation = AnimationComponent()
-            animation.nextAnimation(cfg.animationModel, cfg.animationType, cfg.animationVariant)
-            it += animation
-
-            val image =
-                ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y).apply {
-                    image =
-                        Image().apply {
-                            setPosition(enemyObj.x * UNIT_SCALE, enemyObj.y * UNIT_SCALE)
-                            setSize(relativeSize.x, relativeSize.y)
-                        }
-                }
-            it += image
-
-            val physic =
-                PhysicComponent.physicsComponentFromImage(
-                    phyWorld,
-                    image.image,
-                    cfg.bodyType,
-                    categoryBit = cfg.entityCategory,
-                    scalePhysicX = cfg.scalePhysic.x,
-                    scalePhysicY = cfg.scalePhysic.y,
-                    offsetY = cfg.offsetPhysic.y,
-                    setUserdata = it,
-                )
-            physic.categoryBits = cfg.entityCategory
-            it += physic
-
-            it += HealthComponent()
-        }
-    }
-
-    private fun createPlayerEntity(
+    private fun createEntity(
         mapObj: MapObject,
         cfg: SpawnCfg,
     ) {
@@ -178,6 +140,7 @@ class EntitySpawnSystem(
                     categoryBit = cfg.entityCategory,
                     scalePhysicX = cfg.scalePhysic.x,
                     scalePhysicY = cfg.scalePhysic.y,
+                    offsetY = cfg.offsetPhysic.y,
                     setUserdata = it,
                 )
             // set ground collision sensor
@@ -192,24 +155,33 @@ class EntitySpawnSystem(
             physics.categoryBits = cfg.entityCategory
             it += physics
 
-            it += JumpComponent()
-
-            val move = MoveComponent()
-            it += move
-
-            val player = PlayerComponent()
-            it += player
-
             it += HealthComponent()
-            it += AttackComponent()
 
-            val state = StateComponent(world)
-            messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
-            messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
-            messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
-            it += state
+            if (cfg.canAttack) {
+                val attackCmp = AttackComponent()
+                attackCmp.extraRange *= cfg.attackExtraRange
+                attackCmp.maxDamage *= cfg.scaleAttackDamage
+                it += attackCmp
+            }
 
-            PlayerInputProcessor(world = world)
+            // Player specific
+            if (cfg.animationModel == AnimationModel.PLAYER_DAWN) {
+                it += JumpComponent()
+
+                val move = MoveComponent()
+                it += move
+
+                val player = PlayerComponent()
+                it += player
+
+                val state = StateComponent(world)
+                messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
+                messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
+                messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
+                it += state
+
+                PlayerInputProcessor(world = world)
+            }
         }
     }
 

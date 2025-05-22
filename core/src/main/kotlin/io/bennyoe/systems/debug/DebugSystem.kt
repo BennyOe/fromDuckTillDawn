@@ -21,6 +21,9 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.UiComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.components.debug.StateBubbleComponent
+import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
+import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
+import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.DebugShape
 import io.bennyoe.widgets.DrawCallsCounterWidget
@@ -48,6 +51,12 @@ class DebugSystem(
     private val physicsRenderer by lazy { Box2DDebugRenderer() }
     private val fpsLabelStyle = LabelStyle(BitmapFont().apply { data.setScale(1.5f) }, Color(0f, 1f, 0f, 1f))
     private val labels = hashMapOf<DebugShape, LabelWidget>()
+    private val debugCfg =
+        mapOf(
+            DebugType.ATTACK to SHOW_ATTACK_DEBUG,
+            DebugType.PLAYER to SHOW_PLAYER_DEBUG,
+            DebugType.CAMERA to SHOW_CAMERA_DEBUG,
+        )
     private val fpsCounter =
         FpsCounterWidget(fpsLabelStyle).apply {
             setPosition(10f, 20f)
@@ -103,7 +112,7 @@ class DebugSystem(
     projection matrices for world and UI rendering, and ensures proper alignment of shapes and labels in both coordinate systems.
      */
     private fun drawDebugLines() {
-        debugRenderingService.shapes.groupBy { it.type }.forEach { (type, shapes) ->
+        debugRenderingService.shapes.filter { debugCfg[it.debugType] == true }.groupBy { it.shapeType }.forEach { (type, shapes) ->
             shapeRenderer.use(type) {
                 // this needs to be set to allow transparency alpha
                 Gdx.gl.glEnable(GL20.GL_BLEND)

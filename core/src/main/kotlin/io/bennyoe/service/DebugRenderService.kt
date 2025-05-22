@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Shape2D
 import io.bennyoe.config.GameConstants.DEBUG_ALPHA
+import io.bennyoe.systems.debug.DebugType
 import ktx.collections.GdxArray
 import ktx.collections.gdxArrayOf
 
@@ -20,9 +21,10 @@ data class DebugShape(
     val shape: Shape2D,
     val color: Color,
     val label: String = "",
-    val type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
+    val shapeType: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
     var alpha: Float = DEBUG_ALPHA,
     var ttl: Float? = null,
+    var debugType: DebugType = DebugType.NONE,
 ) {
     // has to be overwritten because position can change and then the label is rendered multiple times
     override fun equals(other: Any?): Boolean = other is DebugShape && other.label == label
@@ -37,8 +39,9 @@ fun Rectangle.addToDebugView(
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
     alpha: Float = 1f,
     ttl: Float? = null,
+    debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl))
+    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Circle.addToDebugView(
@@ -48,8 +51,9 @@ fun Circle.addToDebugView(
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
     alpha: Float = 1f,
     ttl: Float? = null,
+    debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl))
+    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Ellipse.addToDebugView(
@@ -59,8 +63,9 @@ fun Ellipse.addToDebugView(
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
     alpha: Float = 1f,
     ttl: Float? = null,
+    debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl))
+    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Polyline.addToDebugView(
@@ -70,8 +75,9 @@ fun Polyline.addToDebugView(
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
     alpha: Float = 1f,
     ttl: Float? = null,
+    debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl))
+    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Polygon.addToDebugView(
@@ -81,6 +87,7 @@ fun Polygon.addToDebugView(
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
     alpha: Float = 1f,
     ttl: Float? = null,
+    debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl))
+    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }

@@ -15,6 +15,7 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
+import io.bennyoe.systems.debug.DebugType
 import ktx.box2d.query
 import ktx.log.logger
 import ktx.math.component1
@@ -45,7 +46,7 @@ class AttackSystem(
                 y - halfH,
                 attackCmp.extraRange,
                 h,
-            ).addToDebugView(debugRenderService, Color.GOLD, "attack box", ShapeRenderer.ShapeType.Filled, 0.4f, 1f)
+            ).addToDebugView(debugRenderService, Color.GOLD, "attack box", ShapeRenderer.ShapeType.Filled, 0.4f, 1f, DebugType.ATTACK)
 
         // queries the AABB rect if there are any fixtures inside
         phyWorld.query(

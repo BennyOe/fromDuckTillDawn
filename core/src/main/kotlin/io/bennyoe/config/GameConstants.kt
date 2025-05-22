@@ -26,5 +26,8 @@ object GameConstants {
     const val CAMERA_SMOOTHING_FACTOR = 0.04f
 
     // Debug constants
+    const val SHOW_ATTACK_DEBUG = true
+    const val SHOW_PLAYER_DEBUG = true
+    const val SHOW_CAMERA_DEBUG = true
     const val DEBUG_ALPHA = 0.5f
 }

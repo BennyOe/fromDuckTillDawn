@@ -1,7 +1,6 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.math.MathUtils.lerp
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.Event

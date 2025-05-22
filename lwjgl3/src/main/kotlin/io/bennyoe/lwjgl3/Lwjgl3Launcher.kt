@@ -5,8 +5,8 @@ package io.bennyoe.lwjgl3
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import io.bennyoe.Duckee
-import io.bennyoe.GameConstants.GAME_HEIGHT
-import io.bennyoe.GameConstants.GAME_WIDTH
+import io.bennyoe.config.GameConstants.GAME_HEIGHT
+import io.bennyoe.config.GameConstants.GAME_WIDTH
 
 /** Launches the desktop (LWJGL3) application. */
 fun main() {

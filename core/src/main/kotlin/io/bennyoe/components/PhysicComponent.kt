@@ -10,7 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
-import io.bennyoe.GameConstants.UNIT_SCALE
+import io.bennyoe.config.GameConstants.UNIT_SCALE
 import ktx.app.gdxError
 import ktx.box2d.body
 import ktx.box2d.box

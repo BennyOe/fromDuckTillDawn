@@ -7,7 +7,7 @@ import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.GameConstants.DOUBLE_JUMP_GRACE_TIME
+import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact

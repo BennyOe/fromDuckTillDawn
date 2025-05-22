@@ -12,7 +12,7 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
+import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact

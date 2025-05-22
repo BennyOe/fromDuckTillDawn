@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.GameConstants.GRAVITY
+import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets

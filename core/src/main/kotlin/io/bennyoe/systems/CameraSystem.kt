@@ -10,9 +10,9 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView

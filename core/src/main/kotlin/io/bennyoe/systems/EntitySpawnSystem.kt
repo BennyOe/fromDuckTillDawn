@@ -14,9 +14,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.GameConstants.PLAYER_SCALING_X
-import io.bennyoe.GameConstants.PLAYER_SCALING_Y
-import io.bennyoe.GameConstants.UNIT_SCALE
 import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
@@ -30,14 +27,17 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
-import io.bennyoe.components.SpawnCfg
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.config.EntityCategory.*
+import io.bennyoe.config.GameConstants.UNIT_SCALE
+import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.state.FsmMessageTypes
 import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.log.logger
+import ktx.math.vec2
 import ktx.tiled.layer
 import ktx.tiled.type
 import ktx.tiled.x
@@ -78,8 +78,31 @@ class EntitySpawnSystem(
     private fun spawnCfg(type: String): SpawnCfg =
         cachedCfgs.getOrPut(type) {
             when (type) {
-                "playerStart" -> SpawnCfg(AnimationModel.PLAYER_DAWN, AnimationType.IDLE, AnimationVariant.FIRST)
-                "enemy" -> SpawnCfg(AnimationModel.ENEMY_MUSHROOM, AnimationType.IDLE, AnimationVariant.FIRST)
+                "playerStart" ->
+                    SpawnCfg(
+                        animationModel = AnimationModel.PLAYER_DAWN,
+                        animationType = AnimationType.IDLE,
+                        animationVariant = AnimationVariant.FIRST,
+                        bodyType = BodyDef.BodyType.DynamicBody,
+                        entityCategory = PLAYER.bit,
+                        canAttack = true,
+                        scaleImage = vec2(4f, 2f),
+                        scalePhysic = vec2(0.2f, 0.5f),
+                    )
+
+                "enemy" ->
+                    SpawnCfg(
+                        animationModel = AnimationModel.ENEMY_MUSHROOM,
+                        animationType = AnimationType.IDLE,
+                        animationVariant = AnimationVariant.FIRST,
+                        bodyType = BodyDef.BodyType.DynamicBody,
+                        entityCategory = ENEMY.bit,
+                        canAttack = true,
+                        scaleImage = vec2(3f, 3f),
+                        scalePhysic = vec2(0.2f, 0.4f),
+                        offsetPhysic = vec2(0f, -0.8f),
+                    )
+
                 else -> gdxError("There is no spawn configuration for entity-type $type")
             }
         }
@@ -88,14 +111,14 @@ class EntitySpawnSystem(
         enemyObj: MapObject,
         cfg: SpawnCfg,
     ) {
-        val relativeSize = size(cfg.model, cfg.type, cfg.variant)
+        val relativeSize = size(cfg.animationModel, cfg.animationType, cfg.animationVariant)
         world.entity {
             val animation = AnimationComponent()
-            animation.nextAnimation(cfg.model, cfg.type, cfg.variant)
+            animation.nextAnimation(cfg.animationModel, cfg.animationType, cfg.animationVariant)
             it += animation
 
             val image =
-                ImageComponent(stage, 3f, 3f).apply {
+                ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y).apply {
                     image =
                         Image().apply {
                             setPosition(enemyObj.x * UNIT_SCALE, enemyObj.y * UNIT_SCALE)
@@ -108,11 +131,10 @@ class EntitySpawnSystem(
                 PhysicComponent.physicsComponentFromImage(
                     phyWorld,
                     image.image,
-                    BodyDef.BodyType.DynamicBody,
-                    scalePhysicX = 0.2f,
-                    scalePhysicY = 0.4f,
-                    offsetY = -0.8f,
-                    myFriction = 0f,
+                    cfg.bodyType,
+                    scalePhysicX = cfg.scalePhysic.x,
+                    scalePhysicY = cfg.scalePhysic.y,
+                    offsetY = cfg.offsetPhysic.y,
                     setUserdata = it,
                 )
 
@@ -125,18 +147,18 @@ class EntitySpawnSystem(
         mapObj: MapObject,
         cfg: SpawnCfg,
     ) {
-        val relativeSize = size(cfg.model, cfg.type, cfg.variant)
+        val relativeSize = size(cfg.animationModel, cfg.animationType, cfg.animationVariant)
         world.entity {
             val input = InputComponent()
             it += input
 
             val animation = AnimationComponent()
-            animation.nextAnimation(cfg.model, cfg.type, cfg.variant)
+            animation.nextAnimation(cfg.animationModel, cfg.animationType, cfg.animationVariant)
             it += animation
 
             val image =
                 // scale sets the image size
-                ImageComponent(stage, 4f, 2f).apply {
+                ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y).apply {
                     image =
                         Image().apply {
                             setPosition(mapObj.x * UNIT_SCALE, mapObj.y * UNIT_SCALE)
@@ -150,9 +172,9 @@ class EntitySpawnSystem(
                 PhysicComponent.physicsComponentFromImage(
                     phyWorld,
                     image.image,
-                    BodyDef.BodyType.DynamicBody,
-                    scalePhysicX = PLAYER_SCALING_X,
-                    scalePhysicY = PLAYER_SCALING_Y,
+                    cfg.bodyType,
+                    scalePhysicX = cfg.scalePhysic.x,
+                    scalePhysicY = cfg.scalePhysic.y,
                     setUserdata = it,
                 )
             // set ground collision sensor

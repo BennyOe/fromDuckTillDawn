@@ -7,6 +7,7 @@ import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
@@ -46,6 +47,7 @@ class JumpSystemUnitTest {
                 it += mockAnimationCmp
                 val physicCmp = PhysicComponent()
                 physicCmp.body = mockBody
+                it += AttackComponent()
                 it += physicCmp
                 it += MoveComponent()
                 it += HealthComponent()

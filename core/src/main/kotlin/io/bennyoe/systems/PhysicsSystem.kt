@@ -12,7 +12,6 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
@@ -20,6 +19,7 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2

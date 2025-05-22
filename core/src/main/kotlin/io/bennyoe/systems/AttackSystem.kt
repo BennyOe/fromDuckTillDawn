@@ -58,12 +58,16 @@ class AttackSystem(
                 return@query true
             }
 
+            // not hitting me
             val fixtureEntity = fixture.body.userData as Entity
             if (fixtureEntity == entity) {
                 return@query true
             }
 
-            // TODO implement checks for only hitting enemies
+            // check to not hit entities in same category
+            if (physicCmp.categoryBits == fixture.filterData.categoryBits) {
+                return@query true
+            }
 
             logger.debug { "Fixture found" }
             fixtureEntity.configure {

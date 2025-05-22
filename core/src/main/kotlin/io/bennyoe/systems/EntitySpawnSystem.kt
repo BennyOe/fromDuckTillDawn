@@ -29,7 +29,7 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
-import io.bennyoe.config.EntityCategory.*
+import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
@@ -84,7 +84,7 @@ class EntitySpawnSystem(
                         animationType = AnimationType.IDLE,
                         animationVariant = AnimationVariant.FIRST,
                         bodyType = BodyDef.BodyType.DynamicBody,
-                        entityCategory = PLAYER.bit,
+                        entityCategory = EntityCategory.PLAYER.bit,
                         canAttack = true,
                         scaleImage = vec2(4f, 2f),
                         scalePhysic = vec2(0.2f, 0.5f),
@@ -96,7 +96,7 @@ class EntitySpawnSystem(
                         animationType = AnimationType.IDLE,
                         animationVariant = AnimationVariant.FIRST,
                         bodyType = BodyDef.BodyType.DynamicBody,
-                        entityCategory = ENEMY.bit,
+                        entityCategory = EntityCategory.ENEMY.bit,
                         canAttack = true,
                         scaleImage = vec2(3f, 3f),
                         scalePhysic = vec2(0.2f, 0.4f),
@@ -132,13 +132,15 @@ class EntitySpawnSystem(
                     phyWorld,
                     image.image,
                     cfg.bodyType,
+                    categoryBit = cfg.entityCategory,
                     scalePhysicX = cfg.scalePhysic.x,
                     scalePhysicY = cfg.scalePhysic.y,
                     offsetY = cfg.offsetPhysic.y,
                     setUserdata = it,
                 )
-
+            physic.categoryBits = cfg.entityCategory
             it += physic
+
             it += HealthComponent()
         }
     }
@@ -173,6 +175,7 @@ class EntitySpawnSystem(
                     phyWorld,
                     image.image,
                     cfg.bodyType,
+                    categoryBit = cfg.entityCategory,
                     scalePhysicX = cfg.scalePhysic.x,
                     scalePhysicY = cfg.scalePhysic.y,
                     setUserdata = it,
@@ -186,6 +189,7 @@ class EntitySpawnSystem(
                 isSensor = true
                 userData = "GROUND_COLLISION"
             }
+            physics.categoryBits = cfg.entityCategory
             it += physics
 
             it += JumpComponent()

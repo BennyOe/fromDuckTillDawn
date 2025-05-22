@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
+import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import ktx.app.gdxError
 import ktx.box2d.body
@@ -24,6 +25,7 @@ class PhysicComponent : Component<PhysicComponent> {
     val size: Vector2 = Vector2()
     var prevPos: Vector2 = Vector2()
     var impulse: Vector2 = Vector2()
+    var categoryBits = EntityCategory.WALL.bit
     lateinit var body: Body
 
     override fun type() = PhysicComponent

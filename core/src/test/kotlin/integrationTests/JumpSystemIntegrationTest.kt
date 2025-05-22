@@ -7,7 +7,6 @@ import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
@@ -17,6 +16,7 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
 import io.bennyoe.state.PlayerFSM
 import io.bennyoe.systems.JumpSystem
 import io.mockk.mockk

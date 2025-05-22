@@ -5,7 +5,6 @@ import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
@@ -14,6 +13,7 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.systems.JumpSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach

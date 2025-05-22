@@ -29,6 +29,7 @@ import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
+import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem
 import ktx.assets.async.AssetStorage
@@ -70,6 +71,7 @@ class GameScreen(
                 add(CollisionSpawnSystem())
                 add(AttackSystem())
                 add(DamageSystem())
+                add(DamageTextSystem())
                 add(JumpSystem())
                 add(PhysicsSystem())
                 add(StateSystem())

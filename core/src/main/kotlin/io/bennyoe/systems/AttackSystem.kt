@@ -2,7 +2,6 @@ package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.physics.box2d.World
 import com.github.quillraven.fleks.Entity
@@ -73,7 +72,7 @@ class AttackSystem(
             logger.debug { "Fixture found" }
             fixtureEntity.configure {
                 val healthCmp = it.getOrNull(HealthComponent)
-                healthCmp?.takenDamage += attackCmp.damage * MathUtils.random(0.9f, 1.1f)
+                healthCmp?.takeDamage(attackCmp.damage)
             }
             return@query true
         }

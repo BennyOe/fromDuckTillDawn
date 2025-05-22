@@ -1,5 +1,6 @@
 package io.bennyoe.components
 
+import com.badlogic.gdx.math.MathUtils
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 
@@ -12,6 +13,10 @@ class HealthComponent(
 
     fun resetHealth() {
         current = max
+    }
+
+    fun takeDamage(damage: Float) {
+        takenDamage += damage * MathUtils.random(0.9f, 1.1f)
     }
 
     override fun type() = HealthComponent

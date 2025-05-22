@@ -69,7 +69,7 @@ class CameraSystem(
         val camMaxH = max(viewH, maxH - viewH)
 
         val desiredX = imageCmp.image.x + imageCmp.image.width
-        Circle(desiredX, 3.8f, 0.2f).addToDebugView(debugRenderService, Color.RED, "player")
+//        Circle(desiredX, 3.8f, 0.2f).addToDebugView(debugRenderService, Color.RED, "player")
         cameraTargetX = lerp(cameraTargetX, desiredX, CAMERA_SMOOTHING_FACTOR)
 
         val clampedX = cameraTargetX.coerceIn(camMinW, camMaxW)

@@ -2,6 +2,7 @@ package io.bennyoe.systems.debug
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
@@ -102,42 +103,47 @@ class DebugSystem(
     projection matrices for world and UI rendering, and ensures proper alignment of shapes and labels in both coordinate systems.
      */
     private fun drawDebugLines() {
-        shapeRenderer.use(ShapeRenderer.ShapeType.Line) {
-            // set the shapeRenderer to WorldUnits
-            it.projectionMatrix = stage.camera.combined
-            // draw WorldUnit stuff here
+        debugRenderingService.shapes.groupBy { it.type }.forEach { (type, shapes) ->
+            shapeRenderer.use(type) {
+                // this needs to be set to allow transparency alpha
+                Gdx.gl.glEnable(GL20.GL_BLEND)
+                Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
-            debugRenderingService.shapes.forEach { dbgShape ->
-                it.color = dbgShape.color
-                when (dbgShape.shape) {
-                    is Rectangle -> {
-                        it.rect(
-                            dbgShape.shape.x,
-                            dbgShape.shape.y,
-                            dbgShape.shape.width,
-                            dbgShape.shape.height,
-                        )
-                        drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
-                    }
+                // set the shapeRenderer to WorldUnits
+                it.projectionMatrix = stage.camera.combined
+                // draw WorldUnit stuff here
+                shapes.forEach { dbgShape ->
+                    it.color = Color(dbgShape.color.r, dbgShape.color.g, dbgShape.color.b, dbgShape.alpha)
+                    when (dbgShape.shape) {
+                        is Rectangle -> {
+                            it.rect(
+                                dbgShape.shape.x,
+                                dbgShape.shape.y,
+                                dbgShape.shape.width,
+                                dbgShape.shape.height,
+                            )
+                            drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
+                        }
 
-                    is Circle -> {
-                        it.arc(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.radius, 0f, 360f, 30)
-                        drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
-                    }
+                        is Circle -> {
+                            it.arc(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.radius, 0f, 360f, 30)
+                            drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
+                        }
 
-                    is Ellipse -> {
-                        it.ellipse(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.width, dbgShape.shape.height)
-                        drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
-                    }
+                        is Ellipse -> {
+                            it.ellipse(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.width, dbgShape.shape.height)
+                            drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
+                        }
 
-                    is Polyline -> {
-                        it.polyline(dbgShape.shape.vertices)
-                        drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
-                    }
+                        is Polyline -> {
+                            it.polyline(dbgShape.shape.vertices)
+                            drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
+                        }
 
-                    is Polygon -> {
-                        it.polygon(dbgShape.shape.vertices)
-                        drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
+                        is Polygon -> {
+                            it.polygon(dbgShape.shape.vertices)
+                            drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
+                        }
                     }
                 }
             }
@@ -150,7 +156,17 @@ class DebugSystem(
         }
 
         // clear the shapes to avoid increasing draw calls per frame
-        debugRenderingService.shapes.clear()
+        clearDebugShapes()
+    }
+
+    private fun clearDebugShapes() {
+        debugRenderingService.shapes.forEach { shape ->
+            if (shape.ttl == null || shape.ttl!! <= 0f) {
+                debugRenderingService.shapes.removeValue(shape, false)
+            } else {
+                shape.ttl = shape.ttl!! - deltaTime
+            }
+        }
     }
 
     // this renders the label. Therefore, there must be used pixels instead of WU

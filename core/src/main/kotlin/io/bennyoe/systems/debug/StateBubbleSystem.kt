@@ -53,7 +53,7 @@ class StateBubbleSystem(
 
         // pixel -> uiStage WU
         val uiCoords = Vector2(screenX, screenY)
-        uiStage.screenToStageCoordinates(uiCoords)
+        uiStage.viewport.unproject(uiCoords)
 
         // place bubbles
         stateBubbleCmp.bubble.setPosition(

@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.physics.box2d.World
@@ -44,8 +45,9 @@ class AttackSystem(
                 y - halfH,
                 attackCmp.extraRange,
                 h,
-            ).addToDebugView(debugRenderService, Color.GOLD, "attack box")
+            ).addToDebugView(debugRenderService, Color.GOLD, "attack box", ShapeRenderer.ShapeType.Filled, 0.4f, 1f)
 
+        // queries the AABB rect if there are any fixtures inside
         phyWorld.query(
             AABB_Rect.x,
             AABB_Rect.y,

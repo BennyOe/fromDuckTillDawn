@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Polygon
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Shape2D
+import io.bennyoe.config.GameConstants.DEBUG_ALPHA
 import ktx.collections.GdxArray
 import ktx.collections.gdxArrayOf
 
@@ -20,7 +21,7 @@ data class DebugShape(
     val color: Color,
     val label: String = "",
     val type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
-    val alpha: Float = 1f,
+    var alpha: Float = DEBUG_ALPHA,
     var ttl: Float? = null,
 ) {
     // has to be overwritten because position can change and then the label is rendered multiple times

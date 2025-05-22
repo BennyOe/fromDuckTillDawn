@@ -113,6 +113,9 @@ class DebugSystem(
                 it.projectionMatrix = stage.camera.combined
                 // draw WorldUnit stuff here
                 shapes.forEach { dbgShape ->
+                    // fade out of shape
+                    dbgShape.alpha = (if (dbgShape.ttl != null && dbgShape.ttl!! < 1f) dbgShape.ttl else dbgShape.alpha)!!
+
                     it.color = Color(dbgShape.color.r, dbgShape.color.g, dbgShape.color.b, dbgShape.alpha)
                     when (dbgShape.shape) {
                         is Rectangle -> {

@@ -199,6 +199,7 @@ sealed class PlayerFSM : State<StateContext> {
             logger.debug { "Entering ATTACK_1" }
             ctx.inputComponent.attackJustPressed = false
             ctx.setAnimation(AnimationType.ATTACK)
+            ctx.attackComponent.applyAttack = true
         }
 
         override fun update(ctx: StateContext) {
@@ -301,16 +302,16 @@ sealed class PlayerFSM : State<StateContext> {
                 AnimationType.DYING,
                 Animation.PlayMode.REVERSED,
                 AnimationVariant.FIRST,
-                true,
-                true,
+                resetStateTime = true,
+                isReversed = true,
             )
             ctx.healthComponent.resetHealth()
-            ctx.stateComponent.stateMachine.globalState = GlobalState.CHECK_ALIVE
         }
 
         override fun update(ctx: StateContext) {
             if (ctx.animationComponent.isAnimationFinished()) {
                 ctx.moveComponent.lockMovement = false
+                ctx.stateComponent.stateMachine.globalState = GlobalState.CHECK_ALIVE
                 ctx.changeState(IDLE)
             }
         }

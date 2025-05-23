@@ -2,9 +2,9 @@ package io.bennyoe.components
 
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
-import io.bennyoe.GameConstants.DOUBLE_JUMP_GRACE_TIME
-import io.bennyoe.GameConstants.JUMP_BUFFER
-import io.bennyoe.GameConstants.JUMP_MAX_HEIGHT
+import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
+import io.bennyoe.config.GameConstants.JUMP_BUFFER
+import io.bennyoe.config.GameConstants.JUMP_MAX_HEIGHT
 
 class JumpComponent(
     var wantsToJump: Boolean = false,

@@ -7,8 +7,8 @@ import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.GameConstants.DOUBLE_JUMP_GRACE_TIME
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
@@ -16,6 +16,7 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
 import io.bennyoe.state.PlayerFSM
 import io.bennyoe.systems.JumpSystem
 import io.mockk.mockk
@@ -65,6 +66,7 @@ class JumpSystemIntegrationTest {
                 val physicCmp = PhysicComponent()
                 physicCmp.body = mockBody
                 it += physicCmp
+                it += AttackComponent()
                 it += MoveComponent()
                 it += HealthComponent()
                 it += InputComponent()
@@ -94,6 +96,7 @@ class JumpSystemIntegrationTest {
                 it += mockAnimationCmp
                 val physicCmp = PhysicComponent()
                 physicCmp.body = mockBody
+                it += AttackComponent()
                 it += physicCmp
                 it += MoveComponent()
                 it += InputComponent()
@@ -171,6 +174,7 @@ class JumpSystemIntegrationTest {
                 val physicCmp = PhysicComponent()
                 physicCmp.body = mockBody
                 it += physicCmp
+                it += AttackComponent()
                 it += MoveComponent()
                 it += HealthComponent()
                 it += InputComponent()

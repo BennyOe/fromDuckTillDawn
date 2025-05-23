@@ -11,6 +11,7 @@ import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
@@ -62,6 +63,7 @@ class AnimationSystemIntegrationTest {
 
         entity =
             world.entity {
+                it += AttackComponent()
                 it += MoveComponent()
                 it += PhysicComponent().apply { body = bodyMock }
                 it += HealthComponent()

@@ -1,7 +1,6 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.math.MathUtils.lerp
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.Event
@@ -11,9 +10,9 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
@@ -69,7 +68,7 @@ class CameraSystem(
         val camMaxH = max(viewH, maxH - viewH)
 
         val desiredX = imageCmp.image.x + imageCmp.image.width
-        Circle(desiredX, 3.8f, 0.2f).addToDebugView(debugRenderService, Color.RED, "player")
+//        Circle(desiredX, 3.8f, 0.2f).addToDebugView(debugRenderService, Color.RED, "player")
         cameraTargetX = lerp(cameraTargetX, desiredX, CAMERA_SMOOTHING_FACTOR)
 
         val clampedX = cameraTargetX.coerceIn(camMinW, camMaxW)

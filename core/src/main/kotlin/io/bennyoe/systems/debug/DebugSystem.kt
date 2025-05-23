@@ -2,8 +2,8 @@ package io.bennyoe.systems.debug
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Circle
@@ -21,6 +21,9 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.UiComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.components.debug.StateBubbleComponent
+import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
+import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
+import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.DebugShape
 import io.bennyoe.widgets.DrawCallsCounterWidget
@@ -29,7 +32,6 @@ import io.bennyoe.widgets.LabelWidget
 import ktx.assets.disposeSafely
 import ktx.graphics.use
 import ktx.log.logger
-import ktx.scene2d.actors
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
 
 class DebugSystem(
@@ -43,14 +45,18 @@ class DebugSystem(
         inject("debugRenderService"),
     val shapeRenderer: ShapeRenderer =
         inject("shapeRenderer"),
-    val spriteBatch: SpriteBatch =
-        inject("spriteBatch"),
     profiler: GLProfiler =
         inject("profiler"),
 ) : IntervalSystem(enabled = true) {
     private val physicsRenderer by lazy { Box2DDebugRenderer() }
     private val fpsLabelStyle = LabelStyle(BitmapFont().apply { data.setScale(1.5f) }, Color(0f, 1f, 0f, 1f))
     private val labels = hashMapOf<DebugShape, LabelWidget>()
+    private val debugCfg =
+        mapOf(
+            DebugType.ATTACK to SHOW_ATTACK_DEBUG,
+            DebugType.PLAYER to SHOW_PLAYER_DEBUG,
+            DebugType.CAMERA to SHOW_CAMERA_DEBUG,
+        )
     private val fpsCounter =
         FpsCounterWidget(fpsLabelStyle).apply {
             setPosition(10f, 20f)
@@ -106,42 +112,50 @@ class DebugSystem(
     projection matrices for world and UI rendering, and ensures proper alignment of shapes and labels in both coordinate systems.
      */
     private fun drawDebugLines() {
-        shapeRenderer.use(ShapeRenderer.ShapeType.Line) {
-            // set the shapeRenderer to WorldUnits
-            it.projectionMatrix = stage.camera.combined
-            // draw WorldUnit stuff here
+        debugRenderingService.shapes.filter { debugCfg[it.debugType] == true }.groupBy { it.shapeType }.forEach { (type, shapes) ->
+            shapeRenderer.use(type) {
+                // this needs to be set to allow transparency alpha
+                Gdx.gl.glEnable(GL20.GL_BLEND)
+                Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
-            debugRenderingService.shapes.forEach { dbgShape ->
-                it.color = dbgShape.color
-                when (dbgShape.shape) {
-                    is Rectangle -> {
-                        it.rect(
-                            dbgShape.shape.x,
-                            dbgShape.shape.y,
-                            dbgShape.shape.width,
-                            dbgShape.shape.height,
-                        )
-                        drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
-                    }
+                // set the shapeRenderer to WorldUnits
+                it.projectionMatrix = stage.camera.combined
+                // draw WorldUnit stuff here
+                shapes.forEach { dbgShape ->
+                    // fade out of shape
+                    dbgShape.alpha = (if (dbgShape.ttl != null && dbgShape.ttl!! < 1f) dbgShape.ttl else dbgShape.alpha)!!
 
-                    is Circle -> {
-                        it.arc(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.radius, 0f, 360f, 30)
-                        drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
-                    }
+                    it.color = Color(dbgShape.color.r, dbgShape.color.g, dbgShape.color.b, dbgShape.alpha)
+                    when (dbgShape.shape) {
+                        is Rectangle -> {
+                            it.rect(
+                                dbgShape.shape.x,
+                                dbgShape.shape.y,
+                                dbgShape.shape.width,
+                                dbgShape.shape.height,
+                            )
+                            drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
+                        }
 
-                    is Ellipse -> {
-                        it.ellipse(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.width, dbgShape.shape.height)
-                        drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
-                    }
+                        is Circle -> {
+                            it.arc(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.radius, 0f, 360f, 30)
+                            drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
+                        }
 
-                    is Polyline -> {
-                        it.polyline(dbgShape.shape.vertices)
-                        drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
-                    }
+                        is Ellipse -> {
+                            it.ellipse(dbgShape.shape.x, dbgShape.shape.y, dbgShape.shape.width, dbgShape.shape.height)
+                            drawLabel(dbgShape.shape.x, dbgShape.shape.y, dbgShape)
+                        }
 
-                    is Polygon -> {
-                        it.polygon(dbgShape.shape.vertices)
-                        drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
+                        is Polyline -> {
+                            it.polyline(dbgShape.shape.vertices)
+                            drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
+                        }
+
+                        is Polygon -> {
+                            it.polygon(dbgShape.shape.vertices)
+                            drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
+                        }
                     }
                 }
             }
@@ -154,7 +168,17 @@ class DebugSystem(
         }
 
         // clear the shapes to avoid increasing draw calls per frame
-        debugRenderingService.shapes.clear()
+        clearDebugShapes()
+    }
+
+    private fun clearDebugShapes() {
+        debugRenderingService.shapes.forEach { shape ->
+            if (shape.ttl == null || shape.ttl!! <= 0f) {
+                debugRenderingService.shapes.removeValue(shape, false)
+            } else {
+                shape.ttl = shape.ttl!! - deltaTime
+            }
+        }
     }
 
     // this renders the label. Therefore, there must be used pixels instead of WU
@@ -166,13 +190,14 @@ class DebugSystem(
         val tmpVec = Vector3(x, y, 0f)
         // converts tmpVec worldUnits -> pixel
         stage.viewport.project(tmpVec)
+        uiStage.viewport.unproject(tmpVec)
 
         val label =
             labels.getOrPut(dbgShape) {
                 LabelWidget(dbgShape.label, dbgShape.color).also { uiStage.addActor(it) }
             }
 
-        label.setPosition(tmpVec.x, tmpVec.y)
+        label.setPosition(tmpVec.x, uiStage.height - tmpVec.y)
     }
 
     private fun purgeStaleLabels(activeShapes: Set<DebugShape>) {

@@ -10,8 +10,8 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.ScreenViewport
-import io.bennyoe.GameConstants.WORLD_HEIGHT
-import io.bennyoe.GameConstants.WORLD_WIDTH
+import io.bennyoe.config.GameConstants.WORLD_HEIGHT
+import io.bennyoe.config.GameConstants.WORLD_WIDTH
 import ktx.assets.async.AssetStorage
 import ktx.async.KtxAsync
 import ktx.inject.Context

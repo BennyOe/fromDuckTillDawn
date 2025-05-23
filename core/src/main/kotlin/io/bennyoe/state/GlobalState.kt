@@ -8,8 +8,7 @@ enum class GlobalState : State<StateContext> {
         override fun enter(entity: StateContext?) = Unit
 
         override fun update(ctx: StateContext) {
-            val health = ctx.healthComponent
-            if (health.isDead) {
+            if (ctx.healthComponent.isDead) {
                 ctx.stateComponent.changeState(PlayerFSM.DEATH)
                 return
             }
@@ -22,7 +21,7 @@ enum class GlobalState : State<StateContext> {
             telegram: Telegram,
         ): Boolean {
             if (telegram.message == FsmMessageTypes.KILL.ordinal && telegram.extraInfo == true) {
-                ctx.healthComponent.current = 0
+                ctx.healthComponent.current = 0f
             }
             return true
         }

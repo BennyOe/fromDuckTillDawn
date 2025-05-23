@@ -9,6 +9,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
@@ -51,6 +52,7 @@ class MovementIntegrationTest {
 
         entity =
             world.entity {
+                it += AttackComponent()
                 it += PhysicComponent().apply { body = bodyMock }
                 it += MoveComponent(maxSpeed = 10f)
                 it += HealthComponent()

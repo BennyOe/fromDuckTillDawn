@@ -10,10 +10,10 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.debug.StateBubbleComponent
+import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2
@@ -53,7 +53,7 @@ class StateBubbleSystem(
 
         // pixel -> uiStage WU
         val uiCoords = Vector2(screenX, screenY)
-        uiStage.screenToStageCoordinates(uiCoords)
+        uiStage.viewport.unproject(uiCoords)
 
         // place bubbles
         stateBubbleCmp.bubble.setPosition(

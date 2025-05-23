@@ -7,18 +7,21 @@ import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.GameConstants.GRAVITY
 import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.debug.DebugComponent
+import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.systems.AnimationSystem
+import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
+import io.bennyoe.systems.DamageSystem
+import io.bennyoe.systems.DeadSystem
 import io.bennyoe.systems.EntitySpawnSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
@@ -26,6 +29,7 @@ import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
+import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem
 import ktx.assets.async.AssetStorage
@@ -65,6 +69,9 @@ class GameScreen(
                 add(AnimationSystem())
                 add(EntitySpawnSystem())
                 add(CollisionSpawnSystem())
+                add(AttackSystem())
+                add(DamageSystem())
+                add(DamageTextSystem())
                 add(JumpSystem())
                 add(PhysicsSystem())
                 add(StateSystem())
@@ -74,6 +81,7 @@ class GameScreen(
                 add(DebugSystem())
                 add(StateBubbleSystem())
                 add(UiRenderSystem())
+                add(DeadSystem())
             }
         }
 

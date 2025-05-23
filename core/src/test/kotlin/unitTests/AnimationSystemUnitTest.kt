@@ -13,6 +13,8 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.systems.AnimationSystem
 import io.mockk.Runs
@@ -68,6 +70,8 @@ class AnimationSystemUnitTest {
             }
 
         world.entity {
+            it += AttackComponent()
+            it += HealthComponent()
             it += aniCmp
             it += imgCmp
         }

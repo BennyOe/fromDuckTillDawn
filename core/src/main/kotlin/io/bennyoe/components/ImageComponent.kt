@@ -26,7 +26,6 @@ class ImageComponent(
 
     override fun World.onRemove(entity: Entity) {
         image.remove()
-        this.dispose()
     }
 
     companion object : ComponentType<ImageComponent>() {

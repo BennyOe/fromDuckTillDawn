@@ -1,5 +1,6 @@
 package io.bennyoe.systems.debug
 
+import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
@@ -26,7 +27,6 @@ class DamageTextSystem(
                 return
             }
             uiLocation = txtLocation.cpy()
-            logger.debug { "pos $txtLocation" }
             stage.viewport.project(uiLocation)
             uiStage.viewport.unproject(uiLocation)
 
@@ -34,9 +34,8 @@ class DamageTextSystem(
             stage.viewport.project(uiTarget)
             uiStage.viewport.unproject(uiTarget)
 
+            uiLocation.interpolate(uiTarget, (time / lifeSpan).coerceAtMost(1f), Interpolation.smooth2)
             label.setPosition(uiLocation.x, uiLocation.y)
-//            uiLocation.interpolate(uiTarget, (time / lifeSpan).coerceAtMost(1f), Interpolation.smooth2)
-//            label.setPosition(uiLocation.x, uiStage.viewport.worldHeight - uiLocation.y)
 
             time += deltaTime
         }

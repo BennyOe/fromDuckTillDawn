@@ -28,7 +28,7 @@ class DamageTextComponent(
         uiStage.addActor(label)
         txtTarget.set(
             txtLocation.x + MathUtils.random(-1.5f, 1.5f),
-            txtLocation.y + 1f,
+            txtLocation.y - 1f,
         )
     }
 

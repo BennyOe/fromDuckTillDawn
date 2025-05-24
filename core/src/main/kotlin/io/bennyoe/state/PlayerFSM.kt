@@ -222,6 +222,7 @@ sealed class PlayerFSM : State<StateContext> {
             logger.debug { "Entering ATTACK_2" }
             ctx.inputComponent.attack2JustPressed = false
             ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.SECOND)
+            ctx.attackComponent.applyAttack = true
         }
 
         override fun update(ctx: StateContext) {
@@ -241,6 +242,7 @@ sealed class PlayerFSM : State<StateContext> {
             logger.debug { "Entering ATTACK_3" }
             ctx.inputComponent.attack3JustPressed = false
             ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.THIRD)
+            ctx.attackComponent.applyAttack = true
         }
 
         override fun update(ctx: StateContext) {

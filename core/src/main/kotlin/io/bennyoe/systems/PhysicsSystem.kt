@@ -28,6 +28,7 @@ class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(PHYSIC_TIME_STEP)),
     ContactListener {
+    // TODO the activeGroundContact should be in the PhysicsComponent
     private var activeGroundContacts: Int = 0
 
     init {

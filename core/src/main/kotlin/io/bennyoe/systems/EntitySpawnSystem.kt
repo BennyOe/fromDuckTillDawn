@@ -113,9 +113,6 @@ class EntitySpawnSystem(
     ) {
         val relativeSize = size(cfg.animationModel, cfg.animationType, cfg.animationVariant)
         world.entity {
-            val input = InputComponent()
-            it += input
-
             val animation = AnimationComponent()
             animation.nextAnimation(cfg.animationModel, cfg.animationType, cfg.animationVariant)
             it += animation
@@ -144,13 +141,16 @@ class EntitySpawnSystem(
                     setUserdata = it,
                 )
             // set ground collision sensor
-            physics.body.box(
-                physics.size.x * 0.99f,
-                0.01f,
-                Vector2(0f, 0f - physics.size.y * 0.5f),
-            ) {
-                isSensor = true
-                userData = "GROUND_COLLISION"
+            // TODO make this more elegant REFACTOR!!
+            if (cfg.entityCategory == EntityCategory.PLAYER.bit) {
+                physics.body.box(
+                    physics.size.x * 0.99f,
+                    0.01f,
+                    Vector2(0f, 0f - physics.size.y * 0.5f),
+                ) {
+                    isSensor = true
+                    userData = "GROUND_COLLISION"
+                }
             }
             physics.categoryBits = cfg.entityCategory
             it += physics
@@ -165,6 +165,9 @@ class EntitySpawnSystem(
             }
 
             // Player specific
+            val input = InputComponent()
+            it += input
+
             if (cfg.animationModel == AnimationModel.PLAYER_DAWN) {
                 it += JumpComponent()
 

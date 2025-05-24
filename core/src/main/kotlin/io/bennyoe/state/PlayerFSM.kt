@@ -20,6 +20,9 @@ sealed class PlayerFSM : State<StateContext> {
     // FSM) and therefore having for a short time a negative y-velocity
     protected var doubleJumpFallDelay = 0f
 
+    // this is needed to prevent flickering of the death animation
+    protected var deathAlreadyEnteredBefore = false
+
     protected fun shouldIdle(ctx: StateContext) = ctx.inputComponent.direction == WalkDirection.NONE
 
     protected fun shouldWalk(ctx: StateContext) = ctx.inputComponent.direction != WalkDirection.NONE
@@ -270,17 +273,18 @@ sealed class PlayerFSM : State<StateContext> {
     data object DEATH : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering DEATH" }
+            logger.debug { " $deathAlreadyEnteredBefore" }
             ctx.setAnimation(
                 AnimationType.DYING,
                 Animation.PlayMode.NORMAL,
                 AnimationVariant.FIRST,
-                resetStateTime = true,
-                // isReversed has to be set to prevent flickering because animation is played back reversed in RESURRECT state
-                isReversed = true,
+                // isReversed has to be set after the first time to prevent flickering because animation is played back reversed in RESURRECT state
+                isReversed = deathAlreadyEnteredBefore,
             )
             ctx.moveComponent.lockMovement = true
             ctx.stateComponent.stateMachine.globalState = null
             ctx.moveComponent.moveVelocity = 0f
+            deathAlreadyEnteredBefore = true
         }
 
         override fun onMessage(

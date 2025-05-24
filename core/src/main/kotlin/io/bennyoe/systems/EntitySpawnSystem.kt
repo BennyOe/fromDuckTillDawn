@@ -137,6 +137,7 @@ class EntitySpawnSystem(
                     categoryBit = cfg.entityCategory,
                     scalePhysicX = cfg.scalePhysic.x,
                     scalePhysicY = cfg.scalePhysic.y,
+                    myFriction = 0f,
                     offsetY = cfg.offsetPhysic.y,
                     setUserdata = it,
                 )

@@ -142,7 +142,7 @@ class EntitySpawnSystem(
                     setUserdata = it,
                 )
             // set ground collision sensor
-            // TODO make this more elegant REFACTOR!!
+            // TODO make this more elegant REFACTOR!! (the method has to have better structure to implement more entity-types)
             if (cfg.entityCategory == EntityCategory.PLAYER.bit) {
                 physics.body.box(
                     physics.size.x * 0.99f,
@@ -165,11 +165,11 @@ class EntitySpawnSystem(
                 it += attackCmp
             }
 
-            // Player specific
-            val input = InputComponent()
-            it += input
-
             if (cfg.animationModel == AnimationModel.PLAYER_DAWN) {
+                // Player specific
+                val input = InputComponent()
+                it += input
+
                 it += JumpComponent()
 
                 val move = MoveComponent()

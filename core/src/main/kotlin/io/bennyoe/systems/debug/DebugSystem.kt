@@ -15,8 +15,11 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle
+import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.UiComponent
 import io.bennyoe.components.debug.DebugComponent
@@ -26,12 +29,14 @@ import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.DebugShape
+import io.bennyoe.service.addToDebugView
 import io.bennyoe.widgets.DrawCallsCounterWidget
 import io.bennyoe.widgets.FpsCounterWidget
 import io.bennyoe.widgets.LabelWidget
 import ktx.assets.disposeSafely
 import ktx.graphics.use
 import ktx.log.logger
+import ktx.math.vec2
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
 
 class DebugSystem(
@@ -56,6 +61,7 @@ class DebugSystem(
             DebugType.ATTACK to SHOW_ATTACK_DEBUG,
             DebugType.PLAYER to SHOW_PLAYER_DEBUG,
             DebugType.CAMERA to SHOW_CAMERA_DEBUG,
+            DebugType.NONE to true,
         )
     private val fpsCounter =
         FpsCounterWidget(fpsLabelStyle).apply {
@@ -76,6 +82,9 @@ class DebugSystem(
         val debugCmp = debugEntity.let { entity -> entity[DebugComponent.Companion] }
 
         val playerEntity = world.family { all(PlayerComponent.Companion) }.firstOrNull() ?: return
+
+        // TODO just experimental use of rays ... REFACTOR in own system
+        spawnRays(playerEntity)
 
         fpsCounter.isVisible = debugCmp.enabled
         drawCallsCounter.isVisible = debugCmp.enabled
@@ -102,6 +111,33 @@ class DebugSystem(
             }
             labels.values.forEach { it.remove() }
             labels.clear()
+        }
+    }
+
+    private fun spawnRays(playerEntity: Entity) {
+        val phyCmp = playerEntity[PhysicComponent]
+        val imageCmp = playerEntity[ImageComponent]
+        for (range in -20..20 step 4) {
+            val rangeInFloat = range.toFloat() / 10
+            val rayLength = 3
+            val rayStart = phyCmp.body.position
+            val rayEnd =
+                if (imageCmp.flipImage) {
+                    vec2(rayStart.x - rayLength, rayStart.y - rangeInFloat)
+                } else {
+                    vec2(rayStart.x + rayLength, rayStart.y + rangeInFloat)
+                }
+
+            phyWorld.rayCast({ fixture, point, normal, fraction ->
+                logger.debug { "Hit fixture ${fixture.body.userData}" }
+                1f
+            }, rayStart, rayEnd)
+            Polyline(floatArrayOf(rayStart.x, rayStart.y, rayEnd.x, rayEnd.y)).addToDebugView(
+                debugRenderingService,
+                Color.CHARTREUSE,
+                debugType =
+                    DebugType.PLAYER,
+            )
         }
     }
 

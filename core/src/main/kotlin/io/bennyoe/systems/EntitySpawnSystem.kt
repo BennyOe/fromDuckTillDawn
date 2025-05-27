@@ -4,7 +4,6 @@ import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.physics.box2d.BodyDef
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
@@ -15,6 +14,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.PlayerInputProcessor
+import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -34,10 +34,13 @@ import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.FixtureData
+import io.bennyoe.utility.FixtureType
 import ktx.app.gdxError
 import ktx.box2d.box
+import ktx.box2d.circle
 import ktx.log.logger
-import ktx.math.vec2
 import ktx.tiled.layer
 import ktx.tiled.type
 import ktx.tiled.x
@@ -49,7 +52,6 @@ class EntitySpawnSystem(
     private val atlas: TextureAtlas = inject(),
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener {
-    private val cachedSpawnCfgs = mutableMapOf<String, SpawnCfg>()
     private val sizesCache = mutableMapOf<AnimationType, Vector2>()
     private val messageDispatcher = MessageManager.getInstance()
 
@@ -61,12 +63,12 @@ class EntitySpawnSystem(
             is MapChangedEvent -> {
                 val playerEntityLayer = event.map.layer("playerStart")
                 playerEntityLayer.objects.forEach { playerObj ->
-                    val cfg = createSpawnCfg(playerObj.type!!)
+                    val cfg = SpawnCfg.createSpawnCfg(playerObj.type!!)
                     createEntity(playerObj, cfg)
                 }
                 val enemyEntityLayer = event.map.layer("enemies")
                 enemyEntityLayer.objects.forEach { enemyObj ->
-                    val cfg = createSpawnCfg(enemyObj.type!!)
+                    val cfg = SpawnCfg.createSpawnCfg(enemyObj.type!!)
                     createEntity(enemyObj, cfg)
                 }
                 return true
@@ -75,48 +77,13 @@ class EntitySpawnSystem(
         return false
     }
 
-    private fun createSpawnCfg(type: String): SpawnCfg =
-        cachedSpawnCfgs.getOrPut(type) {
-            when (type) {
-                "playerStart" ->
-                    SpawnCfg(
-                        animationModel = AnimationModel.PLAYER_DAWN,
-                        animationType = AnimationType.IDLE,
-                        animationVariant = AnimationVariant.FIRST,
-                        bodyType = BodyDef.BodyType.DynamicBody,
-                        entityCategory = EntityCategory.PLAYER.bit,
-                        canAttack = true,
-                        scaleImage = vec2(4f, 2f),
-                        scalePhysic = vec2(0.2f, 0.5f),
-                    )
-
-                "enemy" ->
-                    SpawnCfg(
-                        animationModel = AnimationModel.ENEMY_MUSHROOM,
-                        animationType = AnimationType.IDLE,
-                        animationVariant = AnimationVariant.FIRST,
-                        bodyType = BodyDef.BodyType.DynamicBody,
-                        entityCategory = EntityCategory.ENEMY.bit,
-                        canAttack = true,
-                        scaleImage = vec2(3f, 3f),
-                        scalePhysic = vec2(0.2f, 0.4f),
-                        offsetPhysic = vec2(0f, -0.8f),
-                    )
-
-                else -> gdxError("There is no spawn configuration for entity-type $type")
-            }
-        }
-
     private fun createEntity(
         mapObj: MapObject,
         cfg: SpawnCfg,
     ) {
         val relativeSize = size(cfg.animationModel, cfg.animationType, cfg.animationVariant)
         world.entity {
-            val animation = AnimationComponent()
-            animation.nextAnimation(cfg.animationModel, cfg.animationType, cfg.animationVariant)
-            it += animation
-
+            // Add general components
             val image =
                 // scale sets the image size
                 ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y).apply {
@@ -129,34 +96,29 @@ class EntitySpawnSystem(
                 }
             it += image
 
+            val animation = AnimationComponent()
+            animation.nextAnimation(cfg.animationModel, cfg.animationType, cfg.animationVariant)
+            it += animation
+
             val physics =
                 PhysicComponent.physicsComponentFromImage(
                     phyWorld,
                     image.image,
                     cfg.bodyType,
-                    categoryBit = cfg.entityCategory,
+                    categoryBit = cfg.entityCategory.bit,
                     scalePhysicX = cfg.scalePhysic.x,
                     scalePhysicY = cfg.scalePhysic.y,
                     myFriction = 0f,
                     offsetY = cfg.offsetPhysic.y,
-                    setUserdata = it,
+                    setUserdata = BodyData(cfg.entityCategory, it),
                 )
-            // set ground collision sensor
-            // TODO make this more elegant REFACTOR!! (the method has to have better structure to implement more entity-types)
-            if (cfg.entityCategory == EntityCategory.PLAYER.bit) {
-                physics.body.box(
-                    physics.size.x * 0.99f,
-                    0.01f,
-                    Vector2(0f, 0f - physics.size.y * 0.5f),
-                ) {
-                    isSensor = true
-                    userData = "GROUND_COLLISION"
-                }
-            }
-            physics.categoryBits = cfg.entityCategory
+            physics.categoryBits = cfg.entityCategory.bit
             it += physics
 
             it += HealthComponent()
+
+            val move = MoveComponent()
+            it += move
 
             if (cfg.canAttack) {
                 val attackCmp = AttackComponent()
@@ -165,26 +127,51 @@ class EntitySpawnSystem(
                 it += attackCmp
             }
 
-            if (cfg.animationModel == AnimationModel.PLAYER_DAWN) {
-                // Player specific
-                val input = InputComponent()
-                it += input
+            when (cfg.entityCategory) {
+                // Add Player specific components
+                EntityCategory.PLAYER -> {
+                    val phyCmp = it[PhysicComponent]
+                    phyCmp.body.box(
+                        physics.size.x * 0.99f,
+                        0.01f,
+                        Vector2(0f, 0f - physics.size.y * 0.5f),
+                    ) {
+                        isSensor = true
+                        userData = FixtureData(FixtureType.GROUND_SENSOR)
+                    }
 
-                it += JumpComponent()
+                    val input = InputComponent()
+                    it += input
 
-                val move = MoveComponent()
-                it += move
+                    it += JumpComponent()
 
-                val player = PlayerComponent()
-                it += player
+                    val player = PlayerComponent()
+                    it += player
 
-                val state = StateComponent(world)
-                messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
-                messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
-                messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
-                it += state
+                    val state = StateComponent(world)
+                    messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
+                    messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
+                    messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
+                    it += state
 
-                PlayerInputProcessor(world = world)
+                    PlayerInputProcessor(world = world)
+                }
+
+                // Add Enemy specific components
+                EntityCategory.ENEMY -> {
+                    val phyCmp = it[PhysicComponent]
+                    // this is the mushroom entity
+                    phyCmp.body.circle(
+                        4f,
+                        Vector2(0f, 0f),
+                    ) {
+                        isSensor = true
+                        userData = FixtureData(FixtureType.NEARBY_ENEMY_SENSOR)
+                    }
+                    it += AiComponent(world, stage, treePath = cfg.aiTreePath)
+                }
+
+                else -> return
             }
         }
     }

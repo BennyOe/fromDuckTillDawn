@@ -11,7 +11,9 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PhysicComponent.Companion.physicsComponentFromShape2D
+import io.bennyoe.config.EntityCategory
 import io.bennyoe.event.MapChangedEvent
+import io.bennyoe.utility.BodyData
 import ktx.box2d.body
 import ktx.box2d.loop
 import ktx.log.logger
@@ -27,19 +29,20 @@ class CollisionSpawnSystem(
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(PhysicComponent) }),
     EventListener {
-    override fun onTickEntity(entity: Entity) {}
+    override fun onTickEntity(entity: Entity) = Unit
 
     override fun handle(event: Event): Boolean {
         when (event) {
             is MapChangedEvent -> {
-                drawCollisionBoxes(event)
                 drawTileCollisionBoxes(event)
+                drawCollisionBoxes(event)
                 drawMapBorderCollisions(event)
             }
         }
         return true
     }
 
+    // draws the auto drawn collision boxes for the tiles
     private fun drawTileCollisionBoxes(event: MapChangedEvent) {
         event.map.forEachLayer<TiledMapTileLayer> { layer ->
             layer.forEachCell(0, 0, max(event.map.width, event.map.height)) { cell, x, y ->
@@ -48,13 +51,19 @@ class CollisionSpawnSystem(
 
                 cell.tile.objects.forEach { mapObject ->
                     world.entity {
-                        physicsComponentFromShape2D(phyWorld, mapObject.shape, x, y)
+                        physicsComponentFromShape2D(
+                            phyWorld,
+                            mapObject.shape,
+                            x,
+                            y,
+                        )
                     }
                 }
             }
         }
     }
 
+    // draws the hand drawn collision boxes
     private fun drawCollisionBoxes(event: MapChangedEvent) {
         event.map.layers.get("collisionBoxes").apply {
             objects.forEach { mapObject ->
@@ -62,6 +71,7 @@ class CollisionSpawnSystem(
                     physicsComponentFromShape2D(
                         phyWorld = phyWorld,
                         shape = mapObject.shape,
+                        setUserData = BodyData(EntityCategory.GROUND, it),
                     )
                 }
             }
@@ -86,6 +96,7 @@ class CollisionSpawnSystem(
                         ) {
                             friction = 0f
                         }
+                        userData = BodyData(EntityCategory.NONE, it)
                     }
             }
         }

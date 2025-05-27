@@ -3,7 +3,8 @@ package io.bennyoe.config
 enum class EntityCategory(
     val bit: Short,
 ) {
+    NONE(0x0000),
     PLAYER(0x0001),
     ENEMY(0x0002),
-    WALL(0x0003),
+    GROUND(0x0003),
 }

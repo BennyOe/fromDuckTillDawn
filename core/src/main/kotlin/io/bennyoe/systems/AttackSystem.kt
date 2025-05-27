@@ -15,6 +15,9 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
+import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.FixtureType
+import io.bennyoe.utility.fixtureData
 import ktx.box2d.query
 import ktx.log.logger
 import ktx.math.component1
@@ -54,13 +57,13 @@ class AttackSystem(
             AABB_Rect.x + AABB_Rect.width,
             AABB_Rect.y + AABB_Rect.height,
         ) { fixture ->
-            if (fixture.userData != "HITBOX_SENSOR") {
+            if (fixture.fixtureData?.type != FixtureType.HITBOX_SENSOR) {
                 return@query true
             }
 
             // not hitting me
-            val fixtureEntity = fixture.body.userData as Entity
-            if (fixtureEntity == entity) {
+            val bodyData = fixture.body.userData as BodyData
+            if (bodyData.entity == entity) {
                 return@query true
             }
 
@@ -70,7 +73,7 @@ class AttackSystem(
             }
 
             logger.debug { "Fixture found" }
-            fixtureEntity.configure {
+            bodyData.entity.configure {
                 val healthCmp = it.getOrNull(HealthComponent)
                 healthCmp?.takeDamage(attackCmp.damage)
             }

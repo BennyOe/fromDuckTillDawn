@@ -1,6 +1,7 @@
 package io.bennyoe.screens
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.ai.GdxAI
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
@@ -16,6 +17,7 @@ import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.service.DebugRenderService
+import io.bennyoe.systems.AiSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.CameraSystem
@@ -61,7 +63,7 @@ class GameScreen(
                 add("stage", stage)
                 add("uiStage", uiStage)
                 add("shapeRenderer", ShapeRenderer())
-                add("debugRenderService", DebugRenderService())
+                add("debugRenderService", DebugRenderService)
                 add("spriteBatch", spriteBatch)
                 add("profiler", profiler)
             }
@@ -75,6 +77,7 @@ class GameScreen(
                 add(JumpSystem())
                 add(PhysicsSystem())
                 add(StateSystem())
+                add(AiSystem())
                 add(MoveSystem())
                 add(CameraSystem())
                 add(RenderSystem())
@@ -107,6 +110,7 @@ class GameScreen(
 
     override fun render(delta: Float) {
         profiler.reset()
+        GdxAI.getTimepiece().update(delta)
         entityWorld.update(delta.coerceAtMost(0.25f))
     }
 

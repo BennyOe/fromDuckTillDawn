@@ -1,0 +1,7 @@
+import idle:"io.bennyoe.ai.IdleTask"
+import wander:"io.bennyoe.ai.WanderTask"
+
+root
+  selector
+    (random success: 0.25) idle duration:"uniform,1.0,1.5"
+    wander

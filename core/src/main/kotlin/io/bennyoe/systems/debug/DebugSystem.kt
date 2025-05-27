@@ -84,7 +84,7 @@ class DebugSystem(
         val playerEntity = world.family { all(PlayerComponent.Companion) }.firstOrNull() ?: return
 
         // TODO just experimental use of rays ... REFACTOR in own system
-        spawnRays(playerEntity)
+//        spawnRays(playerEntity)
 
         fpsCounter.isVisible = debugCmp.enabled
         drawCallsCounter.isVisible = debugCmp.enabled

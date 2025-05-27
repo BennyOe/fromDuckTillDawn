@@ -13,7 +13,7 @@ import io.bennyoe.systems.debug.DebugType
 import ktx.collections.GdxArray
 import ktx.collections.gdxArrayOf
 
-class DebugRenderService {
+object DebugRenderService {
     val shapes: GdxArray<DebugShape> = gdxArrayOf()
 }
 

@@ -16,6 +16,7 @@ import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
+import io.bennyoe.systems.debug.DebugType
 import ktx.log.logger
 import ktx.tiled.height
 import ktx.tiled.width
@@ -43,7 +44,7 @@ class CameraSystem(
         camera.position.set(xPos, yPos, camera.position.z)
 
         deadzone.set(camera.position.x - 1f, camera.position.y - 1f, 2f, 4f)
-        deadzone.addToDebugView(debugRenderService, Color.CYAN, "camera deadzone")
+        deadzone.addToDebugView(debugRenderService, Color.CYAN, "camera deadzone", debugType = DebugType.CAMERA)
     }
 
     override fun handle(event: Event): Boolean {

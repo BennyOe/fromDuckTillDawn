@@ -31,6 +31,8 @@ abstract class Action : LeafTask<AiContext>() {
         }
     }
 
+    override fun toString(): String = javaClass.simpleName.dropLast(4).uppercase()
+
     protected abstract fun enter()
 
     protected abstract fun onExecute(): Status
@@ -48,6 +50,7 @@ class IdleTask(
     private var currentDuration = 0f
 
     override fun enter() {
+        entity.currentTask = this
         logger.debug { "Entering Idle state" }
         entity.setAnimation(AnimationType.IDLE)
         currentDuration = duration?.nextFloat() ?: 1f
@@ -84,6 +87,7 @@ class WanderTask : Action() {
     private val targetPos = vec2()
 
     override fun enter() {
+        entity.currentTask = this
         IdleTask.Companion.logger.debug { "Entering Wander state" }
         entity.setAnimation(AnimationType.WALK)
         if (startPos.isZero) {

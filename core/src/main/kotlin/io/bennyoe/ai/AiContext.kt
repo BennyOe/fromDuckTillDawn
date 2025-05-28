@@ -28,6 +28,7 @@ class AiContext(
     val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
     val moveCmp: MoveComponent
+    var currentTask: Action = IdleTask()
     val location: Vector2
         get() = phyCmp.body.position
 

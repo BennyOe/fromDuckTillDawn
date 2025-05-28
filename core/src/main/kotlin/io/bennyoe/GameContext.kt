@@ -44,7 +44,7 @@ class GameContext : Context() {
     }
 }
 
-class Stages(
+data class Stages(
     val spriteBatch: SpriteBatch,
 ) {
     val stage by lazy { Stage(FitViewport(WORLD_WIDTH, WORLD_HEIGHT), spriteBatch) }

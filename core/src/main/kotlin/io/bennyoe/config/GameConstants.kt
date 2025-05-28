@@ -28,6 +28,7 @@ object GameConstants {
     // Debug constants
     const val SHOW_ATTACK_DEBUG = true
     const val SHOW_PLAYER_DEBUG = true
-    const val SHOW_CAMERA_DEBUG = true
+    const val SHOW_CAMERA_DEBUG = false
+    const val SHOW_ENEMY_DEBUG = true
     const val DEBUG_ALPHA = 0.5f
 }

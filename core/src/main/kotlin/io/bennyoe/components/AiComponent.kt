@@ -18,6 +18,8 @@ class AiComponent(
 ) : Component<AiComponent> {
     override fun type() = AiComponent
 
+    var target: Entity = NO_TARGET
+
     lateinit var behaviorTree: BehaviorTree<AiContext>
     private val bTreeParser = BehaviorTreeParser<AiContext>()
 
@@ -31,5 +33,7 @@ class AiComponent(
         }
     }
 
-    companion object : ComponentType<AiComponent>()
+    companion object : ComponentType<AiComponent>() {
+        val NO_TARGET = Entity.NONE
+    }
 }

@@ -1,5 +1,6 @@
 package io.bennyoe.ai
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
@@ -7,27 +8,34 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.AiComponent
+import io.bennyoe.components.AiComponent.Companion.NO_TARGET
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.PlayerComponent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
+import ktx.log.logger
 import ktx.math.compareTo
 import ktx.math.component1
 import ktx.math.component2
 
 class AiContext(
     val entity: Entity,
-    world: World,
+    private val world: World,
     private val stage: Stage,
 ) {
     val aiCmp: AiComponent
     val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
+    val imageCmp: ImageComponent
     val moveCmp: MoveComponent
+    val healthComponent: HealthComponent
     var currentTask: Action = IdleTask()
     val location: Vector2
         get() = phyCmp.body.position
@@ -37,7 +45,9 @@ class AiContext(
             aiCmp = entity[AiComponent]
             phyCmp = entity[PhysicComponent]
             animCmp = entity[AnimationComponent]
+            imageCmp = entity[ImageComponent]
             moveCmp = entity[MoveComponent]
+            healthComponent = entity[HealthComponent]
         }
     }
 
@@ -54,13 +64,19 @@ class AiContext(
         animCmp.mode = playMode
     }
 
-    fun moveTo(
-        startPos: Vector2,
-        targetPos: Vector2,
-    ) {
-        if (startPos < targetPos) moveCmp.moveVelocity = 2f
-        if (startPos > targetPos) moveCmp.moveVelocity = -2f
+    fun moveTo(targetPos: Vector2) {
+        logger.debug { "Location: ${location.x} Target: ${targetPos.x}" }
+        if (location < targetPos) {
+            animCmp.flipImage = true
+            moveCmp.moveVelocity = 2f
+        }
+        if (location > targetPos) {
+            animCmp.flipImage = false
+            moveCmp.moveVelocity = -2f
+        }
     }
+
+    fun isAlive(): Boolean = !healthComponent.isDead
 
     fun inRange(
         range: Float,
@@ -78,7 +94,7 @@ class AiContext(
                 sourceOffY + sourceY - sourceSizeY * 0.5f,
                 sourceSizeX,
                 sourceSizeY,
-            ).addToDebugView(DebugRenderService)
+            ).addToDebugView(DebugRenderService, Color.BLACK, "range")
         return TMP_RECT.contains(targetPos)
     }
 
@@ -86,7 +102,28 @@ class AiContext(
         moveCmp.moveVelocity = 0f
     }
 
+    // TODO implement
+    fun canAttack(): Boolean = true
+
+    fun hasEnemyNearby(): Boolean {
+        with(world) {
+            aiCmp.target = aiCmp.nearbyEntities
+                .firstOrNull {
+                    it has PlayerComponent
+                } ?: NO_TARGET
+        }
+        return aiCmp.target != NO_TARGET
+    }
+
+    fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
+
+    // TODO implement
+    fun startAttack() {
+        logger.debug { "Starting Attack" }
+    }
+
     companion object {
+        val logger = logger<AiContext>()
         val TMP_RECT = Rectangle()
     }
 }

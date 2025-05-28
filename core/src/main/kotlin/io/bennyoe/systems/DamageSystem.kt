@@ -6,6 +6,10 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AnimationModel
+import io.bennyoe.components.AnimationType
+import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.PhysicComponent
@@ -21,10 +25,12 @@ class DamageSystem(
         val healthCmp = entity[HealthComponent]
         val physicCmp = entity[PhysicComponent]
         val attackCmp = entity[AttackComponent]
+        val animationCmp = entity[AnimationComponent]
 
         if (healthCmp.takenDamage > 0f) {
             logger.debug { "takenDamage: ${healthCmp.takenDamage}" }
             healthCmp.current -= healthCmp.takenDamage
+            animationCmp.nextAnimation(AnimationModel.ENEMY_MUSHROOM, AnimationType.HIT, AnimationVariant.FIRST)
 
             // spawn the damage floating label
             val damageTextCmp = DamageTextComponent(uiStage = uiStage)

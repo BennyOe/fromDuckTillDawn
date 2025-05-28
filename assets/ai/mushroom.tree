@@ -1,7 +1,21 @@
+# Actions
 import idle:"io.bennyoe.ai.IdleTask"
 import wander:"io.bennyoe.ai.WanderTask"
+import attack:"io.bennyoe.ai.AttackTask"
+
+# Conditions
+import isEnemyNearby?:"io.bennyoe.ai.IsEnemyNearby"
+import canAttack?:"io.bennyoe.ai.CanAttack"
+import isAlive?:"io.bennyoe.ai.IsAlive"
+
+
+subtree name:"attack"
+  sequence
+    (isEnemyNearby?) (canAttack?) (isAlive?) attack
+    wait seconds:"uniform,1.5,2.0"
 
 root
   selector
-    (random success: 0.25) idle duration:"uniform,1.0,1.5"
-    wander
+    $attack
+    (isAlive?) (random success: 0.5) idle duration:"uniform,1.0,1.5"
+    (isAlive?) wander

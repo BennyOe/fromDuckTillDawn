@@ -126,16 +126,31 @@ class PhysicsSystem(
     }
 
     override fun endContact(contact: Contact) {
-        val dataA: BodyData? = contact.fixtureA.bodyData
-        val dataB: BodyData? = contact.fixtureB.bodyData
+        val fixtureA = contact.fixtureA
+        val fixtureB = contact.fixtureB
+        val fixtureDataA = fixtureA.fixtureData
+        val fixtureDataB = fixtureB.fixtureData
+        val bodyDataA = fixtureA.bodyData
+        val bodyDataB = fixtureB.bodyData
 
         if (hasGroundContact(contact)) {
-            if (dataA?.type == EntityCategory.PLAYER) {
-                dataA.entity.getOrNull(PhysicComponent)?.let { it.activeGroundContacts-- }
+            if (bodyDataA?.type == EntityCategory.PLAYER) {
+                bodyDataA.entity.getOrNull(PhysicComponent)?.let { it.activeGroundContacts-- }
             }
-            if (dataB?.type == EntityCategory.PLAYER) {
-                dataB.entity.getOrNull(PhysicComponent)?.let { it.activeGroundContacts-- }
+            if (bodyDataB?.type == EntityCategory.PLAYER) {
+                bodyDataB.entity.getOrNull(PhysicComponent)?.let { it.activeGroundContacts-- }
             }
+        }
+        if (fixtureDataA?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataB?.type == EntityCategory.PLAYER) {
+            // Entity mit Sensor bekommt den Enemy in nearbyEntities
+            val aiCmp = bodyDataA?.entity?.getOrNull(AiComponent)
+            aiCmp?.nearbyEntities -= bodyDataB.entity
+            logger.debug { "Nearby Entities: ${aiCmp?.nearbyEntities}" }
+        }
+        if (fixtureDataB?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataA?.type == EntityCategory.PLAYER) {
+            val aiCmp = bodyDataB?.entity?.getOrNull(AiComponent)
+            aiCmp?.nearbyEntities -= bodyDataA.entity
+            logger.debug { "Nearby Entities: ${aiCmp?.nearbyEntities}" }
         }
     }
 

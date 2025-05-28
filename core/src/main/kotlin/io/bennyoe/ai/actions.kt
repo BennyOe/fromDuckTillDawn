@@ -5,8 +5,15 @@ import com.badlogic.gdx.ai.btree.LeafTask
 import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.Polyline
+import com.badlogic.gdx.math.Vector2
 import io.bennyoe.components.AnimationType
+import io.bennyoe.service.DebugRenderService
+import io.bennyoe.service.addToDebugView
+import io.bennyoe.systems.debug.DebugType
 import ktx.log.logger
 import ktx.math.vec2
 
@@ -33,13 +40,25 @@ abstract class Action : LeafTask<AiContext>() {
 
     override fun toString(): String = javaClass.simpleName.dropLast(4).uppercase()
 
+    override fun copyTo(task: Task<AiContext>) = task
+
     protected abstract fun enter()
 
     protected abstract fun onExecute(): Status
 
     protected open fun exit() {}
 
-    override fun copyTo(task: Task<AiContext>) = task
+    protected open fun drawWalkingLine(
+        startPos: Vector2,
+        targetPos: Vector2,
+    ) {
+        Polyline(floatArrayOf(startPos.x, startPos.y, targetPos.x, targetPos.y)).addToDebugView(
+            DebugRenderService,
+            Color.RED,
+            "walk",
+            debugType = DebugType.ENEMY,
+        )
+    }
 }
 
 class IdleTask(
@@ -51,13 +70,11 @@ class IdleTask(
 
     override fun enter() {
         entity.currentTask = this
-        logger.debug { "Entering Idle state" }
         entity.setAnimation(AnimationType.IDLE)
         currentDuration = duration?.nextFloat() ?: 1f
     }
 
     override fun onExecute(): Status {
-        logger.debug { "In Idle state" }
         // GdxAi.getTimepiece() has to be updated in the render() of the screen
         currentDuration -= GdxAI.getTimepiece().deltaTime
         if (currentDuration <= 0f) {
@@ -67,7 +84,6 @@ class IdleTask(
     }
 
     override fun exit() {
-        logger.debug { "Exiting Idle state" }
     }
 
     // the copyTo must be overridden when @TaskAttribute is specified
@@ -88,21 +104,20 @@ class WanderTask : Action() {
 
     override fun enter() {
         entity.currentTask = this
-        IdleTask.Companion.logger.debug { "Entering Wander state" }
         entity.setAnimation(AnimationType.WALK)
         if (startPos.isZero) {
             startPos.set(entity.location)
         }
         targetPos.set(startPos)
-        targetPos.x += MathUtils.random(-3f, 3f)
-        entity.moveTo(startPos, targetPos)
+        targetPos.x += MathUtils.random(-5f, 5f)
+        entity.moveTo(targetPos)
     }
 
     override fun onExecute(): Status {
-//        IdleTask.Companion.logger.debug { "In Wander state" }
+        drawWalkingLine(startPos, targetPos)
         if (entity.inRange(0.5f, targetPos)) {
-            logger.debug { "wander succeeded" }
             entity.stopMovement()
+            logger.debug { "succeeded" }
             return Status.SUCCEEDED
         }
         return Status.RUNNING
@@ -111,5 +126,22 @@ class WanderTask : Action() {
     companion object {
         val logger =
             logger<WanderTask>()
+    }
+}
+
+class AttackTask : Action() {
+    override fun enter() {
+        entity.currentTask = this
+        entity.setAnimation(AnimationType.ATTACK, Animation.PlayMode.NORMAL, resetStateTime = true)
+        entity.startAttack()
+    }
+
+    override fun onExecute(): Status {
+        if (entity.isAnimationFinished()) {
+            entity.setAnimation(AnimationType.IDLE, Animation.PlayMode.LOOP)
+            entity.stopMovement()
+            return Status.SUCCEEDED
+        }
+        return Status.RUNNING
     }
 }

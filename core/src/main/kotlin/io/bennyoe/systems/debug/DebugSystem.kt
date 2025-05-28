@@ -27,6 +27,7 @@ import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.components.debug.StateBubbleComponent
 import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
+import io.bennyoe.config.GameConstants.SHOW_ENEMY_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.DebugShape
@@ -62,6 +63,7 @@ class DebugSystem(
             DebugType.ATTACK to SHOW_ATTACK_DEBUG,
             DebugType.PLAYER to SHOW_PLAYER_DEBUG,
             DebugType.CAMERA to SHOW_CAMERA_DEBUG,
+            DebugType.ENEMY to SHOW_ENEMY_DEBUG,
             DebugType.NONE to true,
         )
     private val fpsCounter =
@@ -110,17 +112,14 @@ class DebugSystem(
         playerEntity: Entity,
         enemyEntity: Entity,
     ) {
-        if (enemyEntity has StateBubbleComponent) {
-            enemyEntity.configure { it -= StateBubbleComponent }
-        }
-        if (enemyEntity has UiComponent) {
-            enemyEntity.configure { it -= UiComponent }
-        }
-        if (playerEntity has StateBubbleComponent) {
-            playerEntity.configure { it -= StateBubbleComponent }
-        }
-        if (playerEntity has UiComponent) {
-            playerEntity.configure { it -= UiComponent }
+        when {
+            enemyEntity has StateBubbleComponent -> enemyEntity.configure { it -= StateBubbleComponent }
+
+            enemyEntity has UiComponent -> enemyEntity.configure { it -= UiComponent }
+
+            playerEntity has StateBubbleComponent -> playerEntity.configure { it -= StateBubbleComponent }
+
+            playerEntity has UiComponent -> playerEntity.configure { it -= UiComponent }
         }
     }
 
@@ -128,17 +127,14 @@ class DebugSystem(
         enemyEntity: Entity,
         playerEntity: Entity,
     ) {
-        if (enemyEntity hasNo StateBubbleComponent) {
-            world.entity { enemyEntity += StateBubbleComponent(uiStage) }
-        }
-        if (enemyEntity hasNo UiComponent) {
-            world.entity { enemyEntity += UiComponent }
-        }
-        if (playerEntity hasNo StateBubbleComponent) {
-            world.entity { playerEntity += StateBubbleComponent(uiStage) }
-        }
-        if (playerEntity hasNo UiComponent) {
-            world.entity { playerEntity += UiComponent }
+        when {
+            enemyEntity hasNo StateBubbleComponent -> world.entity { enemyEntity += StateBubbleComponent(uiStage) }
+
+            enemyEntity hasNo UiComponent -> world.entity { enemyEntity += UiComponent }
+
+            playerEntity hasNo StateBubbleComponent -> world.entity { playerEntity += StateBubbleComponent(uiStage) }
+
+            playerEntity hasNo UiComponent -> world.entity { playerEntity += UiComponent }
         }
     }
 

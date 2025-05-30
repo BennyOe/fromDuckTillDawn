@@ -36,7 +36,6 @@ class RenderSystem(
         with(stage) {
             viewport.apply()
             renderMap()
-            camera.update()
             act(deltaTime)
             draw()
         }

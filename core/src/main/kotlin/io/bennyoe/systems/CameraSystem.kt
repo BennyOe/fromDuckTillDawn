@@ -11,6 +11,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.event.MapChangedEvent
@@ -45,6 +46,11 @@ class CameraSystem(
 
         deadzone.set(camera.position.x - 1f, camera.position.y - 1f, 2f, 4f)
         deadzone.addToDebugView(debugRenderService, Color.CYAN, "camera deadzone", debugType = DebugType.CAMERA)
+    }
+
+    override fun onTick() {
+        super.onTick()
+        camera.update()
     }
 
     override fun handle(event: Event): Boolean {

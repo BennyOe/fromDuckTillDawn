@@ -15,6 +15,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.event.MapChangedEvent
 import ktx.graphics.use
@@ -24,7 +25,7 @@ import ktx.tiled.layer
 
 class RenderSystem(
     private val stage: Stage = inject("stage"),
-) : IteratingSystem(family { all(ImageComponent) }, enabled = false),
+) : IteratingSystem(family { all(ImageComponent) }, enabled = !SHOW_ONLY_DEBUG),
     EventListener {
     private val mapRenderer = OrthogonalTiledMapRenderer(null, UNIT_SCALE, stage.batch)
     private val mapTileLayer: MutableList<TiledMapTileLayer> = mutableListOf()

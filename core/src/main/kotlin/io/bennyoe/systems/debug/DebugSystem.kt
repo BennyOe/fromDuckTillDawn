@@ -81,6 +81,7 @@ class DebugSystem(
     }
 
     override fun onTick() {
+        stage.viewport.apply()
         val debugEntity = world.family { all(DebugComponent) }.firstOrNull() ?: return
         val debugCmp = debugEntity.let { entity -> entity[DebugComponent] }
 

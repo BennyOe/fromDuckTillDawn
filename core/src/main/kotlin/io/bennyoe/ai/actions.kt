@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
+import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.components.AnimationType
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
@@ -17,8 +18,8 @@ import io.bennyoe.systems.debug.DebugType
 import ktx.log.logger
 import ktx.math.vec2
 
-abstract class Action : LeafTask<AiContext>() {
-    val entity: AiContext
+abstract class Action : LeafTask<MushroomContext>() {
+    val context: MushroomContext
         get() = `object`
 
     private var entered = false
@@ -40,7 +41,7 @@ abstract class Action : LeafTask<AiContext>() {
 
     override fun toString(): String = javaClass.simpleName.dropLast(4).uppercase()
 
-    override fun copyTo(task: Task<AiContext>) = task
+    override fun copyTo(task: Task<MushroomContext>) = task
 
     protected abstract fun enter()
 
@@ -69,8 +70,8 @@ class IdleTask(
     private var currentDuration = 0f
 
     override fun enter() {
-        entity.currentTask = this
-        entity.setAnimation(AnimationType.IDLE)
+        context.lastTaskName = this.javaClass.simpleName
+        context.setAnimation(AnimationType.IDLE)
         currentDuration = duration?.nextFloat() ?: 1f
     }
 
@@ -87,7 +88,7 @@ class IdleTask(
     }
 
     // the copyTo must be overridden when @TaskAttribute is specified
-    override fun copyTo(task: Task<AiContext>): Task<AiContext> {
+    override fun copyTo(task: Task<MushroomContext>): Task<MushroomContext> {
         (task as IdleTask).duration = duration
         return task
     }
@@ -103,20 +104,20 @@ class WanderTask : Action() {
     private val targetPos = vec2()
 
     override fun enter() {
-        entity.currentTask = this
-        entity.setAnimation(AnimationType.WALK)
+        context.lastTaskName = this.javaClass.simpleName
+        context.setAnimation(AnimationType.WALK)
         if (startPos.isZero) {
-            startPos.set(entity.location)
+            startPos.set(context.location)
         }
         targetPos.set(startPos)
         targetPos.x += MathUtils.random(-5f, 5f)
-        entity.moveTo(targetPos)
+        context.moveTo(targetPos)
     }
 
     override fun onExecute(): Status {
         drawWalkingLine(startPos, targetPos)
-        if (entity.inRange(0.5f, targetPos)) {
-            entity.stopMovement()
+        if (context.inRange(0.5f, targetPos)) {
+            context.stopMovement()
             logger.debug { "succeeded" }
             return Status.SUCCEEDED
         }
@@ -131,15 +132,15 @@ class WanderTask : Action() {
 
 class AttackTask : Action() {
     override fun enter() {
-        entity.currentTask = this
-        entity.setAnimation(AnimationType.ATTACK, Animation.PlayMode.NORMAL, resetStateTime = true)
-        entity.startAttack()
+        context.lastTaskName = this.javaClass.simpleName
+        context.setAnimation(AnimationType.ATTACK, Animation.PlayMode.NORMAL, resetStateTime = true)
+        context.startAttack()
     }
 
     override fun onExecute(): Status {
-        if (entity.isAnimationFinished()) {
-            entity.setAnimation(AnimationType.IDLE, Animation.PlayMode.LOOP)
-            entity.stopMovement()
+        if (context.isAnimationFinished()) {
+            context.setAnimation(AnimationType.IDLE, Animation.PlayMode.LOOP)
+            context.stopMovement()
             return Status.SUCCEEDED
         }
         return Status.RUNNING

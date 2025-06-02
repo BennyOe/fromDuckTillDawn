@@ -1,4 +1,4 @@
-package io.bennyoe.ai
+package io.bennyoe.ai.blackboards
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Animation
@@ -7,17 +7,18 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.AiComponent
-import io.bennyoe.components.AiComponent.Companion.NO_TARGET
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import ktx.log.logger
@@ -25,29 +26,30 @@ import ktx.math.compareTo
 import ktx.math.component1
 import ktx.math.component2
 
-class AiContext(
-    val entity: Entity,
-    private val world: World,
-    private val stage: Stage,
-) {
-    val aiCmp: AiComponent
+class MushroomContext(
+    entity: Entity,
+    world: World,
+    stage: Stage,
+) : AbstractBlackboard(entity, world, stage) {
+    val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
     val imageCmp: ImageComponent
     val moveCmp: MoveComponent
     val healthComponent: HealthComponent
-    var currentTask: Action = IdleTask()
+    val attackCmp: AttackComponent
     val location: Vector2
         get() = phyCmp.body.position
 
     init {
         with(world) {
-            aiCmp = entity[AiComponent]
+            nearbyEnemiesCmp = entity[NearbyEnemiesComponent]
             phyCmp = entity[PhysicComponent]
             animCmp = entity[AnimationComponent]
             imageCmp = entity[ImageComponent]
             moveCmp = entity[MoveComponent]
             healthComponent = entity[HealthComponent]
+            attackCmp = entity[AttackComponent]
         }
     }
 
@@ -107,23 +109,23 @@ class AiContext(
 
     fun hasEnemyNearby(): Boolean {
         with(world) {
-            aiCmp.target = aiCmp.nearbyEntities
+            nearbyEnemiesCmp.target = nearbyEnemiesCmp.nearbyEntities
                 .firstOrNull {
-                    it has PlayerComponent
-                } ?: NO_TARGET
+                    it has PlayerComponent.Companion
+                } ?: BehaviorTreeComponent.Companion.NO_TARGET
         }
-        return aiCmp.target != NO_TARGET
+        return nearbyEnemiesCmp.target != BehaviorTreeComponent.Companion.NO_TARGET
     }
 
     fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
 
     // TODO implement
     fun startAttack() {
-        logger.debug { "Starting Attack" }
+        attackCmp.applyAttack = true
     }
 
     companion object {
-        val logger = logger<AiContext>()
+        val logger = logger<MushroomContext>()
         val TMP_RECT = Rectangle()
     }
 }

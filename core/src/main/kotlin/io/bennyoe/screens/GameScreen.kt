@@ -17,7 +17,7 @@ import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.service.DebugRenderService
-import io.bennyoe.systems.AiSystem
+import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.CameraSystem
@@ -77,7 +77,7 @@ class GameScreen(
                 add(JumpSystem())
                 add(PhysicsSystem())
                 add(StateSystem())
-                add(AiSystem())
+                add(BehaviorTreeSystem())
                 add(MoveSystem())
                 add(CameraSystem())
                 add(RenderSystem())

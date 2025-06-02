@@ -18,7 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.components.AiComponent
+import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
@@ -86,7 +86,7 @@ class DebugSystem(
         val debugCmp = debugEntity.let { entity -> entity[DebugComponent] }
 
         val playerEntity = world.family { all(StateComponent) }.firstOrNull() ?: return
-        val enemyEntity = world.family { all(AiComponent) }.firstOrNull() ?: return
+        val enemyEntity = world.family { all(BehaviorTreeComponent) }.firstOrNull() ?: return
 
         // TODO just experimental use of rays ... REFACTOR in own system
 //        spawnRays(playerEntity)

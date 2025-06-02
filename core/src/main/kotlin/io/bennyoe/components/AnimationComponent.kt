@@ -11,6 +11,7 @@ class AnimationComponent(
     var flipImage: Boolean = false,
     var mode: PlayMode = PlayMode.LOOP,
     var isReversed: Boolean = false,
+    var animationModel: AnimationModel = AnimationModel.PLAYER_DAWN
 ) : Component<AnimationComponent> {
     override fun type() = AnimationComponent
 

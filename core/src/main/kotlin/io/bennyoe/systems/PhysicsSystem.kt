@@ -11,7 +11,6 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.components.AiComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
@@ -19,6 +18,7 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.utility.BodyData
@@ -113,14 +113,14 @@ class PhysicsSystem(
 
             if (fixtureDataA?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataB?.type == EntityCategory.PLAYER) {
                 // Entity mit Sensor bekommt den Enemy in nearbyEntities
-                val aiCmp = bodyDataA?.entity?.getOrNull(AiComponent)
-                aiCmp?.nearbyEntities += bodyDataB.entity
-                logger.debug { "Nearby Entities: ${aiCmp?.nearbyEntities}" }
+                val nearbyEnemiesCmp = bodyDataA?.entity?.getOrNull(NearbyEnemiesComponent)
+                nearbyEnemiesCmp?.nearbyEntities += bodyDataB.entity
+                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
             }
             if (fixtureDataB?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataA?.type == EntityCategory.PLAYER) {
-                val aiCmp = bodyDataB?.entity?.getOrNull(AiComponent)
-                aiCmp?.nearbyEntities += bodyDataA.entity
-                logger.debug { "Nearby Entities: ${aiCmp?.nearbyEntities}" }
+                val nearbyEnemiesCmp = bodyDataB?.entity?.getOrNull(NearbyEnemiesComponent)
+                nearbyEnemiesCmp?.nearbyEntities += bodyDataA.entity
+                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
             }
         }
     }
@@ -143,14 +143,14 @@ class PhysicsSystem(
         }
         if (fixtureDataA?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataB?.type == EntityCategory.PLAYER) {
             // Entity mit Sensor bekommt den Enemy in nearbyEntities
-            val aiCmp = bodyDataA?.entity?.getOrNull(AiComponent)
-            aiCmp?.nearbyEntities -= bodyDataB.entity
-            logger.debug { "Nearby Entities: ${aiCmp?.nearbyEntities}" }
+            val nearbyEnemiesCmp = bodyDataA?.entity?.getOrNull(NearbyEnemiesComponent)
+            nearbyEnemiesCmp?.nearbyEntities -= bodyDataB.entity
+            logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
         }
         if (fixtureDataB?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataA?.type == EntityCategory.PLAYER) {
-            val aiCmp = bodyDataB?.entity?.getOrNull(AiComponent)
-            aiCmp?.nearbyEntities -= bodyDataA.entity
-            logger.debug { "Nearby Entities: ${aiCmp?.nearbyEntities}" }
+            val nearbyEnemiesCmp = bodyDataB?.entity?.getOrNull(NearbyEnemiesComponent)
+            nearbyEnemiesCmp?.nearbyEntities -= bodyDataA.entity
+            logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
         }
     }
 

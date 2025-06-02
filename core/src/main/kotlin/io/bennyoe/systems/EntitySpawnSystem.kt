@@ -14,7 +14,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.PlayerInputProcessor
-import io.bennyoe.components.AiComponent
+import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -29,6 +29,8 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
@@ -168,7 +170,18 @@ class EntitySpawnSystem(
                         isSensor = true
                         userData = FixtureData(FixtureType.NEARBY_ENEMY_SENSOR)
                     }
-                    it += AiComponent(world, stage, treePath = cfg.aiTreePath)
+
+                    it += NearbyEnemiesComponent()
+
+                    it +=
+                        BehaviorTreeComponent(
+                            world = world,
+                            stage = stage,
+                            treePath = cfg.aiTreePath,
+                            // The blackboard must be created via a function reference (or lambda)
+                            // because at this point we finally have access to the correct Entity, World, and Stage.
+                            createBlackboard = ::MushroomContext,
+                        )
                 }
 
                 else -> return

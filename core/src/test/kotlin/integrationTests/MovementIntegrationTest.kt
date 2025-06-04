@@ -17,7 +17,7 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
-import io.bennyoe.state.PlayerFSM
+import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.StateSystem
 import io.mockk.mockk

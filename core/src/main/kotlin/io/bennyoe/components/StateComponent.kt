@@ -1,27 +1,28 @@
 package io.bennyoe.components
 
 import com.badlogic.gdx.ai.fsm.DefaultStateMachine
-import com.badlogic.gdx.ai.fsm.State
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.state.GlobalState
-import io.bennyoe.state.PlayerFSM
-import io.bennyoe.state.StateContext
+import io.bennyoe.state.AbstractFSM
+import io.bennyoe.state.AbstractStateContext
+import io.bennyoe.state.player.PlayerCheckAliveState
 
 data class StateComponent(
     val world: World,
+    val owner: AbstractStateContext,
+    val initialState: AbstractFSM,
     var stateTime: Float = 0f,
-    val stateMachine: DefaultStateMachine<StateContext, State<StateContext>> = DefaultStateMachine(),
 ) : Component<StateComponent> {
+    lateinit var stateMachine: DefaultStateMachine<AbstractStateContext, AbstractFSM>
+
     override fun World.onAdd(entity: Entity) {
-        stateMachine.owner = StateContext(entity, world)
-        stateMachine.globalState = GlobalState.CHECK_ALIVE
-        stateMachine.setInitialState(PlayerFSM.IDLE)
+        stateMachine = DefaultStateMachine(owner, initialState)
+        stateMachine.globalState = PlayerCheckAliveState
     }
 
-    fun changeState(newState: State<StateContext>) {
+    fun changeState(newState: AbstractFSM) {
         if (newState != stateMachine.currentState) {
             stateMachine.changeState(newState)
         }

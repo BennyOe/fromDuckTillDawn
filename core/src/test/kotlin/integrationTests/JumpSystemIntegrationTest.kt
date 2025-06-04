@@ -17,7 +17,7 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
-import io.bennyoe.state.PlayerFSM
+import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.systems.JumpSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach

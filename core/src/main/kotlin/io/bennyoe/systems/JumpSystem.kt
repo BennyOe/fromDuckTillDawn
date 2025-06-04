@@ -15,7 +15,7 @@ import io.bennyoe.components.StateComponent
 import io.bennyoe.config.GameConstants.FALL_GRAVITY_SCALE
 import io.bennyoe.config.GameConstants.JUMP_CUT_FACTOR
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
-import io.bennyoe.state.PlayerFSM
+import io.bennyoe.state.player.PlayerFSM
 import kotlin.math.sqrt
 
 class JumpSystem(
@@ -52,7 +52,7 @@ class JumpSystem(
         if (entity has HasGroundContact) {
             if (jumpCmp.jumpBuffer > 0f) {
                 logger.debug { "Jump from BUFFER " }
-                aiCmp.changeState(PlayerFSM.JUMP)
+//                aiCmp.changeState(PlayerFSM.JUMP)
             }
             jumpCmp.disableJumpBuffer()
             jumpCmp.resetDoubleJumpGraceTimer()

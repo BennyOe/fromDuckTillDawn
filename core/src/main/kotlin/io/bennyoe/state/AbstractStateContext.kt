@@ -1,49 +1,24 @@
 package io.bennyoe.state
 
-import com.badlogic.gdx.ai.fsm.State
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
-import io.bennyoe.components.AttackComponent
-import io.bennyoe.components.HealthComponent
-import io.bennyoe.components.InputComponent
-import io.bennyoe.components.JumpComponent
-import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 
-data class StateContext(
+abstract class AbstractStateContext(
     val entity: Entity,
     val world: World,
     var deltaTime: Float = 0f,
 ) {
-    val animationComponent: AnimationComponent
-    val inputComponent: InputComponent
-    val stateComponent: StateComponent
-    val physicComponent: PhysicComponent
-    val moveComponent: MoveComponent
-    val jumpComponent: JumpComponent
-    val healthComponent: HealthComponent
-    val attackComponent: AttackComponent
-
-    init {
-        with(world) {
-            animationComponent = entity[AnimationComponent]
-            inputComponent = entity[InputComponent]
-            stateComponent = entity[StateComponent]
-            physicComponent = entity[PhysicComponent]
-            moveComponent = entity[MoveComponent]
-            jumpComponent = entity[JumpComponent]
-            healthComponent = entity[HealthComponent]
-            attackComponent = entity[AttackComponent]
-        }
-    }
+    val animationComponent: AnimationComponent by lazy { with(world) { entity[AnimationComponent] } }
+    val stateComponent: StateComponent by lazy { with(world) { entity[StateComponent] } }
+    val physicComponent: PhysicComponent by lazy { with(world) { entity[PhysicComponent] } }
 
     // helper methods for ECS
     inline fun <reified T : Component<T>> get(type: ComponentType<T>): T = with(world) { entity[type] }
@@ -65,9 +40,9 @@ data class StateContext(
         animationComponent.mode = playMode
     }
 
-    fun changeState(state: PlayerFSM) {
+    fun <S : AbstractFSM> changeState(state: S) {
         stateComponent.changeState(state)
     }
 
-    fun previousState(): State<StateContext> = stateComponent.stateMachine.previousState
+    fun previousState(): AbstractFSM = stateComponent.stateMachine.previousState
 }

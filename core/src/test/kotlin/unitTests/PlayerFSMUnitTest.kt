@@ -22,8 +22,8 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.state.FsmMessageTypes
-import io.bennyoe.state.PlayerFSM
-import io.bennyoe.state.StateContext
+import io.bennyoe.state.player.PlayerFSM
+import io.bennyoe.state.AbstractStateContext
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.StateSystem
 import io.mockk.every
@@ -37,7 +37,7 @@ import kotlin.test.assertNotEquals
 class PlayerFSMUnitTest {
     private lateinit var world: World
     private lateinit var entity: Entity
-    private lateinit var stateContext: StateContext
+    private lateinit var stateContext: AbstractStateContext
     private lateinit var bodyMock: Body
 
     @BeforeEach
@@ -80,7 +80,7 @@ class PlayerFSMUnitTest {
                 it += JumpComponent()
                 it += StateComponent(world)
             }
-        stateContext = StateContext(entity, world)
+        stateContext = AbstractStateContext(entity, world)
     }
 
     @Test

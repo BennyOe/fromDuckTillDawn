@@ -36,6 +36,8 @@ import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.state.player.PlayerFSM
+import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
 import io.bennyoe.utility.FixtureType
@@ -153,11 +155,17 @@ class EntitySpawnSystem(
                     val player = PlayerComponent()
                     it += player
 
-                    val state = StateComponent(world)
+                    val state =
+                        StateComponent(
+                            world,
+                            PlayerStateContext(it, world),
+                            PlayerFSM.IDLE,
+                        )
+                    it += state
+
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
-                    it += state
 
                     PlayerInputProcessor(world = world)
                 }

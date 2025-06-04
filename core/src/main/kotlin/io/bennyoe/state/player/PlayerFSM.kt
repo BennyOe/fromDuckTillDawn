@@ -1,21 +1,22 @@
-package io.bennyoe.state
+package io.bennyoe.state.player
 
-import com.badlogic.gdx.ai.fsm.State
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.BashComponent
-import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.WalkDirection
+import io.bennyoe.state.AbstractFSM
+import io.bennyoe.state.AbstractStateContext
+import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.state.LANDING_VELOCITY_EPS
+import ktx.log.logger
 import kotlin.math.abs
 
-// Constant defining the minimum vertical velocity threshold to detect landing
-private const val LANDING_VELOCITY_EPS = 0.1f
 private const val DOUBLE_JUMP_FALL_DELAY_DURATION = .1f
 
 @Suppress("ClassName")
-sealed class PlayerFSM : State<StateContext> {
+sealed class PlayerFSM : AbstractFSM() {
     // a delta time to prevent switching from DOUBLE_JUMP to FALL instantly because of the async time-steps (fixed time in physicSystem and frames in
     // FSM) and therefore having for a short time a negative y-velocity
     protected var doubleJumpFallDelay = 0f
@@ -23,42 +24,35 @@ sealed class PlayerFSM : State<StateContext> {
     // this is needed to prevent flickering of the death animation
     protected var deathAlreadyEnteredBefore = false
 
-    protected fun shouldIdle(ctx: StateContext) = ctx.moveComponent.walk == WalkDirection.NONE
+    protected fun shouldIdle(ctx: PlayerStateContext) = ctx.moveComponent.walk == WalkDirection.NONE
 
-    protected fun shouldWalk(ctx: StateContext) = ctx.moveComponent.walk != WalkDirection.NONE
+    protected fun shouldWalk(ctx: PlayerStateContext) = ctx.moveComponent.walk != WalkDirection.NONE
 
-    protected fun shouldJump(ctx: StateContext) = ctx.inputComponent.jumpJustPressed
+    protected fun shouldJump(ctx: PlayerStateContext) = ctx.inputComponent.jumpJustPressed
 
-    protected fun hasGroundContact(ctx: StateContext) = with(ctx.world) { ctx.entity has HasGroundContact }
+    protected fun shouldCrouch(ctx: PlayerStateContext) = ctx.inputComponent.crouch
 
-    protected fun shouldFall(ctx: StateContext): Boolean {
-        val vy = ctx.physicComponent.body.linearVelocity.y
-        // Only treat as "falling" if we are clearly moving downward AND not touching the ground
-        return vy < -LANDING_VELOCITY_EPS && !hasGroundContact(ctx)
-    }
+    protected fun shouldAttack(ctx: PlayerStateContext) = ctx.inputComponent.attackJustPressed
 
-    protected fun shouldCrouch(ctx: StateContext) = ctx.inputComponent.crouch
+    protected fun shouldAttack2(ctx: PlayerStateContext) = ctx.inputComponent.attack2JustPressed
 
-    protected fun shouldAttack(ctx: StateContext) = ctx.inputComponent.attackJustPressed
+    protected fun shouldAttack3(ctx: PlayerStateContext) = ctx.inputComponent.attack3JustPressed
 
-    protected fun shouldAttack2(ctx: StateContext) = ctx.inputComponent.attack2JustPressed
+    protected fun shouldBash(ctx: PlayerStateContext) = ctx.inputComponent.bashJustPressed
 
-    protected fun shouldAttack3(ctx: StateContext) = ctx.inputComponent.attack3JustPressed
-
-    protected fun shouldBash(ctx: StateContext) = ctx.inputComponent.bashJustPressed
-
-    protected fun getsHit(ctx: StateContext) = ctx.healthComponent.takenDamage > 0f
+    protected fun getsHit(ctx: PlayerStateContext) = ctx.healthComponent.takenDamage > 0f
 
     data object IDLE : PlayerFSM() {
         // TODO after discussing the jump mechanics I maybe need to adjust that JUMP is only possible when the prevState is also IDLE. Because now
         //  it is possible to JUMP & BASH against a wall and the JUMP and DOUBLE_JUMP again
 
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
             logger.debug { "Entering IDLE" }
             ctx.setAnimation(AnimationType.IDLE)
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             when {
                 getsHit(ctx) -> ctx.changeState(HIT)
                 shouldCrouch(ctx) && shouldWalk(ctx) -> ctx.changeState(CROUCH_WALK)
@@ -68,12 +62,12 @@ sealed class PlayerFSM : State<StateContext> {
                 shouldWalk(ctx) -> ctx.changeState(WALK)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldBash(ctx) -> ctx.changeState(BASH)
-                shouldFall(ctx) -> ctx.changeState(FALL)
+                isFalling(ctx) -> ctx.changeState(FALL)
             }
         }
 
         override fun onMessage(
-            ctx: StateContext,
+            ctx: AbstractStateContext,
             telegram: Telegram,
         ): Boolean {
             if (telegram.message == FsmMessageTypes.HEAL.ordinal && telegram.extraInfo == true) {
@@ -88,12 +82,13 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object WALK : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
             logger.debug { "Entering WALK" }
             ctx.setAnimation(AnimationType.WALK)
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             when {
                 getsHit(ctx) -> ctx.changeState(HIT)
                 shouldBash(ctx) -> ctx.changeState(BASH)
@@ -102,32 +97,35 @@ sealed class PlayerFSM : State<StateContext> {
                 // because state changes for a fraction while JUMP to WALK before FALL when pressing walk-key, also need to check for groundContact
                 shouldJump(ctx) && hasGroundContact(ctx) -> ctx.changeState(JUMP)
                 shouldCrouch(ctx) -> ctx.changeState(CROUCH_WALK)
-                shouldFall(ctx) -> ctx.changeState(FALL)
+                isFalling(ctx) -> ctx.changeState(FALL)
             }
         }
     }
 
     data object JUMP : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             logger.debug { "Entering JUMP" }
             ctx.jumpComponent.wantsToJump = true
             ctx.inputComponent.jumpJustPressed = false
             ctx.setAnimation(AnimationType.JUMP)
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             when {
                 getsHit(ctx) -> ctx.changeState(HIT)
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
-                shouldFall(ctx) -> ctx.changeState(FALL)
+                isFalling(ctx) -> ctx.changeState(FALL)
                 shouldJump(ctx) -> ctx.changeState(DOUBLE_JUMP)
             }
         }
     }
 
     data object DOUBLE_JUMP : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             logger.debug { "Entering DOUBLE_JUMP" }
             ctx.jumpComponent.wantsToJump = true
             ctx.inputComponent.jumpJustPressed = false
@@ -135,7 +133,8 @@ sealed class PlayerFSM : State<StateContext> {
             doubleJumpFallDelay = DOUBLE_JUMP_FALL_DELAY_DURATION
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             if (doubleJumpFallDelay > 0f) {
                 doubleJumpFallDelay -= ctx.deltaTime
                 return
@@ -144,19 +143,20 @@ sealed class PlayerFSM : State<StateContext> {
                 getsHit(ctx) -> ctx.changeState(HIT)
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
-                shouldFall(ctx) -> ctx.changeState(FALL)
+                isFalling(ctx) -> ctx.changeState(FALL)
                 hasGroundContact(ctx) -> ctx.changeState(IDLE)
             }
         }
     }
 
     data object FALL : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
             logger.debug { "Entering FALL" }
             ctx.setAnimation(AnimationType.JUMP)
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             val velY = ctx.physicComponent.body.linearVelocity.y
             when {
                 getsHit(ctx) -> ctx.changeState(HIT)
@@ -165,7 +165,7 @@ sealed class PlayerFSM : State<StateContext> {
                     ctx.inputComponent.jumpJustPressed = false
                 }
 
-                shouldBash(ctx) -> ctx.changeState(BASH)
+                shouldBash(ctx) -> ctx.changeState<PlayerFSM>(BASH)
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
                 // otherwise remain in FALL
@@ -175,12 +175,13 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object CROUCH_IDLE : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
             logger.debug { "Entering CROUCH_IDLE" }
             ctx.setAnimation(AnimationType.CROUCH_IDLE)
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             when {
                 getsHit(ctx) -> ctx.changeState(HIT)
                 shouldWalk(ctx) && shouldCrouch(ctx) -> ctx.changeState(CROUCH_WALK)
@@ -191,12 +192,13 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object CROUCH_WALK : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
             logger.debug { "Entering CROUCH_WALK" }
             ctx.setAnimation(AnimationType.CROUCH_WALK)
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             when {
                 getsHit(ctx) -> ctx.changeState(HIT)
                 !shouldCrouch(ctx) && shouldIdle(ctx) -> ctx.changeState(IDLE)
@@ -207,7 +209,8 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object ATTACK_1 : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             logger.debug { "Entering ATTACK_1" }
 
             if (getsHit(ctx)) {
@@ -219,13 +222,14 @@ sealed class PlayerFSM : State<StateContext> {
             ctx.attackComponent.applyAttack = true
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             if (shouldAttack(ctx)) ctx.inputComponent.attack2JustPressed = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     getsHit(ctx) -> ctx.changeState(HIT)
                     shouldAttack2(ctx) -> ctx.changeState(ATTACK_2)
-                    shouldFall(ctx) -> ctx.changeState(FALL)
+                    isFalling(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
             }
@@ -233,20 +237,22 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object ATTACK_2 : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             logger.debug { "Entering ATTACK_2" }
             ctx.inputComponent.attack2JustPressed = false
             ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.SECOND)
             ctx.attackComponent.applyAttack = true
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             if (shouldAttack(ctx)) ctx.inputComponent.attack3JustPressed = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     getsHit(ctx) -> ctx.changeState(HIT)
                     shouldAttack3(ctx) -> ctx.changeState(ATTACK_3)
-                    shouldFall(ctx) -> ctx.changeState(FALL)
+                    isFalling(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
             }
@@ -254,18 +260,20 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object ATTACK_3 : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             logger.debug { "Entering ATTACK_3" }
             ctx.inputComponent.attack3JustPressed = false
             ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.THIRD)
             ctx.attackComponent.applyAttack = true
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     getsHit(ctx) -> ctx.changeState(HIT)
-                    shouldFall(ctx) -> ctx.changeState(FALL)
+                    isFalling(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
             }
@@ -273,17 +281,18 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object BASH : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
             logger.debug { "Entering BASH" }
             ctx.add(BashComponent())
             ctx.setAnimation(AnimationType.BASH)
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     getsHit(ctx) -> ctx.changeState(HIT)
-                    shouldFall(ctx) -> ctx.changeState(FALL)
+                    isFalling(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
             }
@@ -291,13 +300,14 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object HIT : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             logger.debug { "Entering HIT" }
             ctx.setAnimation(AnimationType.HIT)
             ctx.healthComponent.takenDamage = 0f
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
             if (ctx.animationComponent.isAnimationFinished()) {
                 ctx.stateComponent.stateMachine.changeState(ctx.stateComponent.stateMachine.previousState)
             }
@@ -305,7 +315,8 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object DEATH : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             logger.debug { "Entering DEATH" }
             logger.debug { " $deathAlreadyEnteredBefore" }
             ctx.healthComponent.takenDamage = 0f
@@ -323,7 +334,7 @@ sealed class PlayerFSM : State<StateContext> {
         }
 
         override fun onMessage(
-            ctx: StateContext,
+            ctx: AbstractStateContext,
             telegram: Telegram,
         ): Boolean {
             if (telegram.message == FsmMessageTypes.KILL.ordinal && telegram.extraInfo == true) {
@@ -335,7 +346,8 @@ sealed class PlayerFSM : State<StateContext> {
     }
 
     data object RESURRECT : PlayerFSM() {
-        override fun enter(ctx: StateContext) {
+        override fun enter(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             logger.debug { "Entering RESURRECT" }
             ctx.setAnimation(
                 AnimationType.DYING,
@@ -347,27 +359,28 @@ sealed class PlayerFSM : State<StateContext> {
             ctx.healthComponent.resetHealth()
         }
 
-        override fun update(ctx: StateContext) {
+        override fun update(ctx: AbstractStateContext) {
+            if (ctx !is PlayerStateContext) return
             if (ctx.animationComponent.isAnimationFinished()) {
                 ctx.moveComponent.lockMovement = false
-                ctx.stateComponent.stateMachine.globalState = GlobalState.CHECK_ALIVE
+                ctx.stateComponent.stateMachine.globalState = PlayerCheckAliveState
                 ctx.changeState(IDLE)
             }
         }
     }
 
-    override fun enter(ctx: StateContext) = Unit
+    override fun enter(ctx: AbstractStateContext) = Unit
 
-    override fun update(ctx: StateContext) = Unit
+    override fun update(ctx: AbstractStateContext) = Unit
 
-    override fun exit(ctx: StateContext) = Unit
+    override fun exit(ctx: AbstractStateContext) = Unit
 
     override fun onMessage(
-        ctx: StateContext,
+        ctx: AbstractStateContext,
         telegram: Telegram,
     ) = false
 
     companion object {
-        val logger = ktx.log.logger<PlayerFSM>()
+        val logger = logger<PlayerFSM>()
     }
 }

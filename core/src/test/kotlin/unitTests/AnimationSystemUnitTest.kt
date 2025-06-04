@@ -93,19 +93,6 @@ class AnimationSystemUnitTest {
     }
 
     @Test
-    fun `flip flag is propagated from AnimationComponent to ImageComponent`() {
-        aniCmp.flipImage = true
-
-        world.update(0f)
-
-        assertEquals(
-            true,
-            imgCmp.flipImage,
-            "ImageComponent.flipImage should mirror AnimationComponent.flipImage",
-        )
-    }
-
-    @Test
     fun `image drawable is updated each tick`() {
         every { imageMock.drawable = any() } just Runs
 

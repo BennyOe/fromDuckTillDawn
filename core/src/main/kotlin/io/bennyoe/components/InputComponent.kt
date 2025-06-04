@@ -11,15 +11,11 @@ data class InputComponent(
     var jumpJustPressed: Boolean = false,
     var bashJustPressed: Boolean = false,
     var crouch: Boolean = false,
-    var direction: WalkDirection = WalkDirection.NONE,
+    var walkLeftPressed: Boolean = false,
+    var walkRightPressed: Boolean = false,
 ) : Component<InputComponent> {
     override fun type() = InputComponent
 
     companion object : ComponentType<InputComponent>()
 }
 
-enum class WalkDirection {
-    NONE,
-    LEFT,
-    RIGHT,
-}

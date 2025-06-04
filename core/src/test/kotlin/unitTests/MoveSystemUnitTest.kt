@@ -30,7 +30,7 @@ class MoveSystemUnitTest {
             world.entity {
                 it += PhysicComponent()
                 it += MoveComponent(maxSpeed = 10f)
-                it += InputComponent(direction = WalkDirection.RIGHT)
+                it += InputComponent(walk = WalkDirection.RIGHT)
                 it += AnimationComponent()
             }
     }
@@ -45,7 +45,7 @@ class MoveSystemUnitTest {
 
     @Test
     fun `entity velocity is 0 when standing still`() {
-        with(world) { entity[InputComponent].direction = WalkDirection.NONE }
+        with(world) { entity[InputComponent].walk = WalkDirection.NONE }
         world.update(1f)
 
         val move = with(world) { entity[MoveComponent] }
@@ -54,7 +54,7 @@ class MoveSystemUnitTest {
 
     @Test
     fun `entity moves left when input is LEFT`() {
-        with(world) { entity[InputComponent].direction = WalkDirection.LEFT }
+        with(world) { entity[InputComponent].walk = WalkDirection.LEFT }
         world.update(1f)
 
         val move = with(world) { entity[MoveComponent] }
@@ -98,7 +98,7 @@ class MoveSystemUnitTest {
         world.update(0.016f) // first frame moving right
 
         // switch direction to left and update again
-        with(world) { entity[InputComponent].direction = WalkDirection.LEFT }
+        with(world) { entity[InputComponent].walk = WalkDirection.LEFT }
         world.update(0.016f)
 
         val vel = with(world) { entity[MoveComponent].moveVelocity }

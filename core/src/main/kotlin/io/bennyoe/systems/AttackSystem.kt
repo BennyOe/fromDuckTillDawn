@@ -27,13 +27,22 @@ class AttackSystem(
     private val debugRenderService: DebugRenderService = inject("debugRenderService"),
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(AttackComponent) }) {
+    private var attackDelayCounter = 0f
+
     override fun onTickEntity(entity: Entity) {
         val attackCmp = entity[AttackComponent]
         val physicCmp = entity[PhysicComponent]
         val imageCmp = entity[ImageComponent]
 
         if (!attackCmp.applyAttack) return
+
+        if (attackDelayCounter < attackCmp.attackDelay) {
+            attackDelayCounter += deltaTime
+            return
+        }
+
         attackCmp.applyAttack = false
+        attackDelayCounter = 0f
 
         val leftAttack = imageCmp.flipImage
         val (x, y) = physicCmp.body.position

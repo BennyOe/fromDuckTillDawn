@@ -8,7 +8,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
@@ -17,6 +16,7 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.service.DebugRenderService
@@ -60,7 +60,7 @@ class MushroomContext(
         resetStateTime: Boolean = false,
         isReversed: Boolean = false,
     ) {
-        animCmp.nextAnimation(AnimationModel.ENEMY_MUSHROOM, type, variant)
+        animCmp.nextAnimation(type, variant)
         if (resetStateTime) animCmp.stateTime = 0f
         animCmp.isReversed = isReversed
         animCmp.mode = playMode
@@ -69,12 +69,10 @@ class MushroomContext(
     fun moveTo(targetPos: Vector2) {
         logger.debug { "Location: ${location.x} Target: ${targetPos.x}" }
         if (location < targetPos) {
-            animCmp.flipImage = true
-            moveCmp.moveVelocity = 2f
+            moveCmp.walk = WalkDirection.RIGHT
         }
         if (location > targetPos) {
-            animCmp.flipImage = false
-            moveCmp.moveVelocity = -2f
+            moveCmp.walk = WalkDirection.LEFT
         }
     }
 
@@ -101,7 +99,7 @@ class MushroomContext(
     }
 
     fun stopMovement() {
-        moveCmp.moveVelocity = 0f
+        moveCmp.walk = WalkDirection.NONE
     }
 
     // TODO implement

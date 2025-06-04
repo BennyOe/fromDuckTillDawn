@@ -24,7 +24,6 @@ class AnimationSystem(
         val aniCmp = entity[AnimationComponent]
 
         with(entity[ImageComponent]) {
-            flipImage = aniCmp.flipImage
             image.drawable =
                 if (aniCmp.nextAnimationType == AnimationType.NONE) {
                     // then we are in an animation

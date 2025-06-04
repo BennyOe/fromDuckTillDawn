@@ -23,9 +23,9 @@ sealed class PlayerFSM : State<StateContext> {
     // this is needed to prevent flickering of the death animation
     protected var deathAlreadyEnteredBefore = false
 
-    protected fun shouldIdle(ctx: StateContext) = ctx.inputComponent.direction == WalkDirection.NONE
+    protected fun shouldIdle(ctx: StateContext) = ctx.moveComponent.walk == WalkDirection.NONE
 
-    protected fun shouldWalk(ctx: StateContext) = ctx.inputComponent.direction != WalkDirection.NONE
+    protected fun shouldWalk(ctx: StateContext) = ctx.moveComponent.walk != WalkDirection.NONE
 
     protected fun shouldJump(ctx: StateContext) = ctx.inputComponent.jumpJustPressed
 
@@ -47,6 +47,8 @@ sealed class PlayerFSM : State<StateContext> {
 
     protected fun shouldBash(ctx: StateContext) = ctx.inputComponent.bashJustPressed
 
+    protected fun getsHit(ctx: StateContext) = ctx.healthComponent.takenDamage > 0f
+
     data object IDLE : PlayerFSM() {
         // TODO after discussing the jump mechanics I maybe need to adjust that JUMP is only possible when the prevState is also IDLE. Because now
         //  it is possible to JUMP & BASH against a wall and the JUMP and DOUBLE_JUMP again
@@ -58,6 +60,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                getsHit(ctx) -> ctx.changeState(HIT)
                 shouldCrouch(ctx) && shouldWalk(ctx) -> ctx.changeState(CROUCH_WALK)
                 // because state changes for a fraction while JUMP to IDLE before FALL, also need to check for groundContact
                 shouldJump(ctx) && hasGroundContact(ctx) -> ctx.changeState(JUMP)
@@ -92,6 +95,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                getsHit(ctx) -> ctx.changeState(HIT)
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldIdle(ctx) -> ctx.changeState(IDLE)
@@ -113,6 +117,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                getsHit(ctx) -> ctx.changeState(HIT)
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldFall(ctx) -> ctx.changeState(FALL)
@@ -136,6 +141,7 @@ sealed class PlayerFSM : State<StateContext> {
                 return
             }
             when {
+                getsHit(ctx) -> ctx.changeState(HIT)
                 shouldBash(ctx) -> ctx.changeState(BASH)
                 shouldAttack(ctx) -> ctx.changeState(ATTACK_1)
                 shouldFall(ctx) -> ctx.changeState(FALL)
@@ -153,6 +159,7 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             val velY = ctx.physicComponent.body.linearVelocity.y
             when {
+                getsHit(ctx) -> ctx.changeState(HIT)
                 shouldJump(ctx) && ctx.jumpComponent.doubleJumpGraceTimer > 0f && ctx.previousState() == JUMP -> {
                     ctx.changeState(DOUBLE_JUMP)
                     ctx.inputComponent.jumpJustPressed = false
@@ -175,6 +182,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                getsHit(ctx) -> ctx.changeState(HIT)
                 shouldWalk(ctx) && shouldCrouch(ctx) -> ctx.changeState(CROUCH_WALK)
                 shouldIdle(ctx) && !shouldCrouch(ctx) -> ctx.changeState(IDLE)
                 shouldWalk(ctx) && !shouldCrouch(ctx) -> ctx.changeState(WALK)
@@ -190,6 +198,7 @@ sealed class PlayerFSM : State<StateContext> {
 
         override fun update(ctx: StateContext) {
             when {
+                getsHit(ctx) -> ctx.changeState(HIT)
                 !shouldCrouch(ctx) && shouldIdle(ctx) -> ctx.changeState(IDLE)
                 !shouldCrouch(ctx) && shouldWalk(ctx) -> ctx.changeState(WALK)
                 shouldCrouch(ctx) && shouldIdle(ctx) -> ctx.changeState(CROUCH_IDLE)
@@ -200,6 +209,11 @@ sealed class PlayerFSM : State<StateContext> {
     data object ATTACK_1 : PlayerFSM() {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering ATTACK_1" }
+
+            if (getsHit(ctx)) {
+                ctx.changeState(HIT)
+                return
+            }
             ctx.inputComponent.attackJustPressed = false
             ctx.setAnimation(AnimationType.ATTACK)
             ctx.attackComponent.applyAttack = true
@@ -209,6 +223,7 @@ sealed class PlayerFSM : State<StateContext> {
             if (shouldAttack(ctx)) ctx.inputComponent.attack2JustPressed = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
+                    getsHit(ctx) -> ctx.changeState(HIT)
                     shouldAttack2(ctx) -> ctx.changeState(ATTACK_2)
                     shouldFall(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
@@ -229,6 +244,7 @@ sealed class PlayerFSM : State<StateContext> {
             if (shouldAttack(ctx)) ctx.inputComponent.attack3JustPressed = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
+                    getsHit(ctx) -> ctx.changeState(HIT)
                     shouldAttack3(ctx) -> ctx.changeState(ATTACK_3)
                     shouldFall(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
@@ -248,6 +264,7 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
+                    getsHit(ctx) -> ctx.changeState(HIT)
                     shouldFall(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
@@ -265,9 +282,24 @@ sealed class PlayerFSM : State<StateContext> {
         override fun update(ctx: StateContext) {
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
+                    getsHit(ctx) -> ctx.changeState(HIT)
                     shouldFall(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
+            }
+        }
+    }
+
+    data object HIT : PlayerFSM() {
+        override fun enter(ctx: StateContext) {
+            logger.debug { "Entering HIT" }
+            ctx.setAnimation(AnimationType.HIT)
+            ctx.healthComponent.takenDamage = 0f
+        }
+
+        override fun update(ctx: StateContext) {
+            if (ctx.animationComponent.isAnimationFinished()) {
+                ctx.stateComponent.stateMachine.changeState(ctx.stateComponent.stateMachine.previousState)
             }
         }
     }
@@ -276,6 +308,7 @@ sealed class PlayerFSM : State<StateContext> {
         override fun enter(ctx: StateContext) {
             logger.debug { "Entering DEATH" }
             logger.debug { " $deathAlreadyEnteredBefore" }
+            ctx.healthComponent.takenDamage = 0f
             ctx.setAnimation(
                 AnimationType.DYING,
                 Animation.PlayMode.NORMAL,

@@ -56,11 +56,11 @@ class PhysicsSystem(
         val moveCmp = entity.getOrNull(MoveComponent)
         val jumpCmp = entity.getOrNull(JumpComponent)
         val bashCmp = entity.getOrNull(BashComponent)
-        val animationCmp = entity[AnimationComponent]
+        val imageCmp = entity[ImageComponent]
 
         setJumpImpulse(jumpCmp, physicCmp)
         setWalkImpulse(moveCmp, physicCmp)
-        setBashImpulse(bashCmp, animationCmp, physicCmp, entity)
+        setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
         setGroundContact(entity)
 
         physicCmp.prevPos.set(physicCmp.body.position)
@@ -170,12 +170,12 @@ class PhysicsSystem(
 
     private fun setBashImpulse(
         bashCmp: BashComponent?,
-        animationCmp: AnimationComponent,
+        imageCmp: ImageComponent,
         physicCmp: PhysicComponent,
         entity: Entity,
     ) {
         bashCmp?.let {
-            val inverse = if (animationCmp.flipImage) -1 else 1
+            val inverse = if (imageCmp.flipImage) -1 else 1
             physicCmp.impulse.x = inverse * physicCmp.body.mass * bashCmp.bashPower
             if (bashCmp.bashCooldown <= 0) {
                 entity.configure { it -= BashComponent }

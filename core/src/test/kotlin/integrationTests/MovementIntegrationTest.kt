@@ -69,7 +69,7 @@ class MovementIntegrationTest {
         val ai = with(world) { entity[StateComponent] }
         val move = with(world) { entity[MoveComponent] }
 
-        input.direction = WalkDirection.RIGHT
+        input.walk = WalkDirection.RIGHT
         repeat(10) { world.update(0.016f) } // ~10 Frames at 60 FPS
 
         assertEquals(PlayerFSM.WALK, ai.stateMachine.currentState)
@@ -82,11 +82,11 @@ class MovementIntegrationTest {
         val ai = with(world) { entity[StateComponent] }
         val move = with(world) { entity[MoveComponent] }
 
-        input.direction = WalkDirection.RIGHT
+        input.walk = WalkDirection.RIGHT
         world.update(0.016f)
         assertEquals(PlayerFSM.WALK, ai.stateMachine.currentState)
 
-        input.direction = WalkDirection.NONE
+        input.walk = WalkDirection.NONE
         world.update(0.016f)
 
         assertEquals(PlayerFSM.IDLE, ai.stateMachine.currentState)
@@ -100,7 +100,7 @@ class MovementIntegrationTest {
         val move = with(world) { entity[MoveComponent] }
         ai.changeState(PlayerFSM.DEATH)
 
-        input.direction = WalkDirection.RIGHT
+        input.walk = WalkDirection.RIGHT
         repeat(10) { world.update(0.016f) } // ~10 Frames at 60 FPS
 
         assertEquals(PlayerFSM.DEATH, ai.stateMachine.currentState)

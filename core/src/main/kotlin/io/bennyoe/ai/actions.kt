@@ -105,13 +105,13 @@ class WanderTask : Action() {
 
     override fun enter() {
         context.lastTaskName = this.javaClass.simpleName
-        context.setAnimation(AnimationType.WALK)
         if (startPos.isZero) {
             startPos.set(context.location)
         }
         targetPos.set(startPos)
         targetPos.x += MathUtils.random(-5f, 5f)
         context.moveTo(targetPos)
+        context.setAnimation(AnimationType.WALK)
     }
 
     override fun onExecute(): Status {

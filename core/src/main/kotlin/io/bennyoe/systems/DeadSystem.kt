@@ -25,7 +25,7 @@ class DeadSystem : IteratingSystem(family { all(HealthComponent) }) {
                 dying = true
                 animationCmp.mode = Animation.PlayMode.NORMAL
                 animationCmp.stateTime = 0f
-                animationCmp.nextAnimation(AnimationModel.ENEMY_MUSHROOM, AnimationType.DYING, AnimationVariant.FIRST)
+                animationCmp.nextAnimation(AnimationType.DYING, AnimationVariant.FIRST)
             }
 //            if (animationCmp.isAnimationFinished()) {
 //                logger.debug { "Entity ${entity.id} dead, removing." }

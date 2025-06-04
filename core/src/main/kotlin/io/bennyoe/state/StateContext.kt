@@ -59,7 +59,7 @@ data class StateContext(
         resetStateTime: Boolean = false,
         isReversed: Boolean = false,
     ) {
-        animationComponent.nextAnimation(AnimationModel.PLAYER_DAWN, type, variant)
+        animationComponent.nextAnimation(type, variant)
         if (resetStateTime) animationComponent.stateTime = 0f
         animationComponent.isReversed = isReversed
         animationComponent.mode = playMode

@@ -70,7 +70,7 @@ class AnimationSystemIntegrationTest {
                 it += animationComponent
                 it += JumpComponent()
                 it += HasGroundContact
-                it += InputComponent(direction = WalkDirection.NONE)
+                it += InputComponent(walk = WalkDirection.NONE)
                 it += StateComponent(world)
             }
     }
@@ -80,10 +80,10 @@ class AnimationSystemIntegrationTest {
         val animationCmp = with(world) { entity[AnimationComponent] }
         val inputCmp = with(world) { entity[InputComponent] }
 
-        inputCmp.direction = WalkDirection.RIGHT
+        inputCmp.walk = WalkDirection.RIGHT
         world.update(0.016f)
 
-        inputCmp.direction = WalkDirection.NONE
+        inputCmp.walk = WalkDirection.NONE
         world.update(0.016f)
 
         Assertions.assertEquals(
@@ -101,7 +101,7 @@ class AnimationSystemIntegrationTest {
         val animationCmp = with(world) { entity[AnimationComponent] }
         val inputCmp = with(world) { entity[InputComponent] }
 
-        inputCmp.direction = WalkDirection.RIGHT
+        inputCmp.walk = WalkDirection.RIGHT
 
         world.update(0.016f)
 

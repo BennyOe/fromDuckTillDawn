@@ -94,15 +94,15 @@ class PlayerFSMUnitTest {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        inputComponent.direction = WalkDirection.LEFT
+        inputComponent.walk = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
 
-        inputComponent.direction = WalkDirection.NONE
+        inputComponent.walk = WalkDirection.NONE
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
 
-        inputComponent.direction = WalkDirection.RIGHT
+        inputComponent.walk = WalkDirection.RIGHT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
     }
@@ -220,7 +220,7 @@ class PlayerFSMUnitTest {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        inputComponent.direction = WalkDirection.LEFT
+        inputComponent.walk = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         inputComponent.crouch = true
         stateComponent.stateMachine.update()
@@ -406,11 +406,11 @@ class PlayerFSMUnitTest {
         val inputComponent = with(world) { entity[InputComponent] }
 
         inputComponent.crouch = true
-        inputComponent.direction = WalkDirection.LEFT
+        inputComponent.walk = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_WALK, stateComponent.stateMachine.currentState)
 
-        inputComponent.direction = WalkDirection.NONE
+        inputComponent.walk = WalkDirection.NONE
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, stateComponent.stateMachine.currentState)
     }
@@ -420,7 +420,7 @@ class PlayerFSMUnitTest {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        inputComponent.direction = WalkDirection.RIGHT
+        inputComponent.walk = WalkDirection.RIGHT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
 
@@ -501,7 +501,7 @@ class PlayerFSMUnitTest {
         givenState(PlayerFSM.DOUBLE_JUMP)
 
         inputComponent.crouch = true
-        inputComponent.direction = WalkDirection.RIGHT
+        inputComponent.walk = WalkDirection.RIGHT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, stateComponent.stateMachine.currentState)
     }
@@ -559,7 +559,7 @@ class PlayerFSMUnitTest {
         assertEquals(PlayerFSM.CROUCH_IDLE, stateComponent.stateMachine.currentState)
 
         inputComponent.crouch = false
-        inputComponent.direction = WalkDirection.RIGHT
+        inputComponent.walk = WalkDirection.RIGHT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
     }
@@ -570,12 +570,12 @@ class PlayerFSMUnitTest {
         val inputComponent = with(world) { entity[InputComponent] }
 
         inputComponent.crouch = true
-        inputComponent.direction = WalkDirection.LEFT
+        inputComponent.walk = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_WALK, stateComponent.stateMachine.currentState)
 
         inputComponent.crouch = false
-        inputComponent.direction = WalkDirection.NONE
+        inputComponent.walk = WalkDirection.NONE
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
     }

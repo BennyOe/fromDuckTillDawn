@@ -8,10 +8,9 @@ import com.github.quillraven.fleks.ComponentType
 
 class AnimationComponent(
     var stateTime: Float = 0f,
-    var flipImage: Boolean = false,
     var mode: PlayMode = PlayMode.LOOP,
     var isReversed: Boolean = false,
-    var animationModel: AnimationModel = AnimationModel.PLAYER_DAWN
+    var animationModel: AnimationModel = AnimationModel.PLAYER_DAWN,
 ) : Component<AnimationComponent> {
     override fun type() = AnimationComponent
 
@@ -24,11 +23,10 @@ class AnimationComponent(
         private set
 
     fun nextAnimation(
-        model: AnimationModel,
         type: AnimationType,
-        variant: AnimationVariant,
+        variant: AnimationVariant = AnimationVariant.FIRST,
     ) {
-        nextAnimationModel = model
+        nextAnimationModel = animationModel
         nextAnimationType = type
         nextAnimationVariant = variant
     }
@@ -77,7 +75,10 @@ enum class AnimationType(
     ),
     CROUCH_IDLE(atlasKey = "crouching_idle"),
     CROUCH_WALK(atlasKey = "crouching_walking"),
-    HIT(atlasKey = "hit"),
+    HIT(
+        atlasKey = "hit",
+        PlayMode.NORMAL,
+    ),
     DYING(
         atlasKey = "dying",
         PlayMode.NORMAL,

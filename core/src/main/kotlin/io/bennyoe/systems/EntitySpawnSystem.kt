@@ -99,7 +99,8 @@ class EntitySpawnSystem(
             it += image
 
             val animation = AnimationComponent()
-            animation.nextAnimation(cfg.animationModel, cfg.animationType, cfg.animationVariant)
+            animation.animationModel = cfg.animationModel
+            animation.nextAnimation(cfg.animationType, cfg.animationVariant)
             it += animation
 
             val physics =
@@ -120,12 +121,14 @@ class EntitySpawnSystem(
             it += HealthComponent()
 
             val move = MoveComponent()
+            move.maxSpeed *= cfg.scaleSpeed
             it += move
 
             if (cfg.canAttack) {
                 val attackCmp = AttackComponent()
                 attackCmp.extraRange *= cfg.attackExtraRange
                 attackCmp.maxDamage *= cfg.scaleAttackDamage
+                attackCmp.attackDelay = cfg.attackDelay
                 it += attackCmp
             }
 

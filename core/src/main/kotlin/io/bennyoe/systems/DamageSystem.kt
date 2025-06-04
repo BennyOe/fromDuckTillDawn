@@ -7,12 +7,12 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.debug.DamageTextComponent
 import ktx.log.logger
 import ktx.math.vec2
@@ -30,7 +30,10 @@ class DamageSystem(
         if (healthCmp.takenDamage > 0f) {
             logger.debug { "takenDamage: ${healthCmp.takenDamage}" }
             healthCmp.current -= healthCmp.takenDamage
-            animationCmp.nextAnimation(AnimationModel.ENEMY_MUSHROOM, AnimationType.HIT, AnimationVariant.FIRST)
+            if (entity hasNo PlayerComponent) {
+                animationCmp.nextAnimation(AnimationType.HIT, AnimationVariant.FIRST)
+                healthCmp.takenDamage = 0f
+            }
 
             // spawn the damage floating label
             val damageTextCmp = DamageTextComponent(uiStage = uiStage)
@@ -41,7 +44,6 @@ class DamageSystem(
                 )
             damageTextCmp.label = Label("${attackCmp.damage.toInt()} / ${healthCmp.current.toInt()}", Scene2DSkin.defaultSkin)
             entity.configure { it += damageTextCmp }
-            healthCmp.takenDamage = 0f
         }
     }
 

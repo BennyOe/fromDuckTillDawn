@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.InputComponent
-import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.state.FsmMessageTypes
 import ktx.app.KtxInputAdapter
@@ -69,25 +68,9 @@ class PlayerInputProcessor(
                 Action.CROUCH -> inputComponent.crouch = pressed
                 Action.ATTACK -> inputComponent.attackJustPressed = pressed
                 Action.BASH -> inputComponent.bashJustPressed = pressed
-                Action.MOVE_LEFT ->
-                    inputComponent.direction =
-                        if (!pressed && inputComponent.direction == WalkDirection.LEFT) {
-                            WalkDirection.NONE
-                        } else if (pressed) {
-                            WalkDirection.LEFT
-                        } else {
-                            inputComponent.direction
-                        }
 
-                Action.MOVE_RIGHT ->
-                    inputComponent.direction =
-                        if (!pressed && inputComponent.direction == WalkDirection.RIGHT) {
-                            WalkDirection.NONE
-                        } else if (pressed) {
-                            WalkDirection.RIGHT
-                        } else {
-                            inputComponent.direction
-                        }
+                Action.MOVE_LEFT -> inputComponent.walkLeftPressed = pressed
+                Action.MOVE_RIGHT -> inputComponent.walkRightPressed = pressed
 
                 Action.MESSAGE ->
                     messageDispatcher.dispatchMessage(

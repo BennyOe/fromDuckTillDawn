@@ -8,8 +8,15 @@ data class MoveComponent(
     var maxSpeed: Float = WALK_MAX_SPEED,
     var moveVelocity: Float = 0f,
     var lockMovement: Boolean = false,
+    var walk: WalkDirection = WalkDirection.NONE,
 ) : Component<MoveComponent> {
     override fun type() = MoveComponent
 
     companion object : ComponentType<MoveComponent>() {}
+}
+
+enum class WalkDirection {
+    NONE,
+    LEFT,
+    RIGHT,
 }

@@ -15,6 +15,7 @@ data class SpawnCfg(
     val bodyType: BodyDef.BodyType = BodyDef.BodyType.StaticBody,
     val entityCategory: EntityCategory = EntityCategory.GROUND,
     val canAttack: Boolean = false,
+    val attackDelay: Float = 0.2f,
     val scaleAttackDamage: Float = 1f,
     val attackExtraRange: Float = 1f,
     val scalePhysic: Vector2 = vec2(1f, 1f),
@@ -37,6 +38,7 @@ data class SpawnCfg(
                             animationVariant = AnimationVariant.FIRST,
                             bodyType = BodyDef.BodyType.DynamicBody,
                             canAttack = true,
+                            attackDelay = 0.1f,
                             scaleImage = vec2(4f, 2f),
                             scalePhysic = vec2(0.2f, 0.5f),
                         )
@@ -49,10 +51,12 @@ data class SpawnCfg(
                             animationVariant = AnimationVariant.FIRST,
                             bodyType = BodyDef.BodyType.DynamicBody,
                             canAttack = true,
+                            attackDelay = 0.5f,
                             scaleImage = vec2(3f, 3f),
                             scalePhysic = vec2(0.2f, 0.4f),
                             offsetPhysic = vec2(0f, -0.8f),
                             aiTreePath = "ai/mushroom.tree",
+                            scaleSpeed = 0.5f,
                         )
 
                     else -> gdxError("There is no spawn configuration for entity-type $type")

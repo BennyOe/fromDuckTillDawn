@@ -2,6 +2,7 @@ package integrationTests
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.physics.box2d.BodyDef
@@ -23,7 +24,13 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.service.DebugRenderService
+import io.bennyoe.state.player.PlayerCheckAliveState
+import io.bennyoe.state.player.PlayerFSM
+import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.AttackSystem
+import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.FixtureData
+import io.bennyoe.utility.FixtureType
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -81,6 +88,7 @@ class AttackSystemIntegrationTest {
         val enemyPhysicCmp =
             PhysicComponent().apply {
                 body = enemyBody
+                size.set(1f, 1f)
                 categoryBits = EntityCategory.ENEMY.bit
             }
 
@@ -92,7 +100,7 @@ class AttackSystemIntegrationTest {
                 it += HealthComponent()
                 it += JumpComponent()
             }
-        enemyBody.userData = enemy
+        enemyBody.userData = BodyData(EntityCategory.ENEMY, enemy)
 
         // Add real fixture with HITBOX_SENSOR userData
         val shape = PolygonShape().apply { setAsBox(0.5f, 0.5f) }
@@ -103,7 +111,7 @@ class AttackSystemIntegrationTest {
                 filter.categoryBits = EntityCategory.ENEMY.bit
             }
         val fixture = enemyBody.createFixture(fixtureDef)
-        fixture.userData = "HITBOX_SENSOR"
+        fixture.userData = FixtureData(FixtureType.HITBOX_SENSOR)
         shape.dispose()
 
         entity =
@@ -116,41 +124,50 @@ class AttackSystemIntegrationTest {
                 it += imgCmp
                 it += InputComponent()
                 it += JumpComponent()
-                it += StateComponent(world)
+                it +=
+                    StateComponent(
+                        world,
+                        PlayerStateContext(it, world),
+                        PlayerFSM.IDLE,
+                        PlayerCheckAliveState,
+                        ::DefaultStateMachine,
+                    )
             }
     }
 
     @Test
     fun `if attack is executed damage to enemy is done`() {
-        with(world) { entity[AttackComponent.Companion].applyAttack = true }
+        with(world) { entity[AttackComponent].applyAttack = true }
+        val attackComponent = with(world) { entity[AttackComponent] }
+        attackComponent.attackDelay = 0f
 
         world.update(0.061f)
 
-        val damage = with(world) { entity[AttackComponent.Companion].damage }
-        val actual = with(world) { enemy[HealthComponent.Companion].takenDamage }
+        val damage = with(world) { entity[AttackComponent].damage }
+        val actual = with(world) { enemy[HealthComponent].takenDamage }
         assertEquals(damage, actual, 1f)
     }
 
     @Test
     fun `if attack is executed NO damage to player is done`() {
-        with(world) { entity[AttackComponent.Companion].applyAttack = true }
+        with(world) { entity[AttackComponent].applyAttack = true }
 
         // Simulate the effect of a successful hit by manually applying damage
-        val playerAttackCmp = with(world) { entity[AttackComponent.Companion] }
-        val enemyHealthCmp = with(world) { enemy[HealthComponent.Companion] }
+        val playerAttackCmp = with(world) { entity[AttackComponent] }
+        val enemyHealthCmp = with(world) { enemy[HealthComponent] }
         enemyHealthCmp.takeDamage(playerAttackCmp.damage)
 
         world.update(0.061f)
 
-        val playerHealthCmp = with(world) { entity[HealthComponent.Companion] }
+        val playerHealthCmp = with(world) { entity[HealthComponent] }
         assertEquals(0f, playerHealthCmp.takenDamage)
     }
 
     @Test
     fun `attack does not apply if applyAttack is false`() {
-        with(world) { entity[AttackComponent.Companion].applyAttack = false }
+        with(world) { entity[AttackComponent].applyAttack = false }
 
-        val enemyHealthCmp = with(world) { enemy[HealthComponent.Companion] }
+        val enemyHealthCmp = with(world) { enemy[HealthComponent] }
         world.update(0.061f)
 
         assertEquals(0f, enemyHealthCmp.takenDamage)
@@ -159,8 +176,8 @@ class AttackSystemIntegrationTest {
     @Test
     fun `attack does not hit entity with same categoryBits`() {
         with(world) {
-            entity[AttackComponent.Companion].applyAttack = true
-            val enemyPhysic = enemy[PhysicComponent.Companion]
+            entity[AttackComponent].applyAttack = true
+            val enemyPhysic = enemy[PhysicComponent]
 
             val fixture = enemyPhysic.body.fixtureList.firstOrNull()
             fixture?.filterData =
@@ -171,19 +188,19 @@ class AttackSystemIntegrationTest {
 
         world.update(0.061f)
 
-        val enemyHealthCmp = with(world) { enemy[HealthComponent.Companion] }
+        val enemyHealthCmp = with(world) { enemy[HealthComponent] }
         assertEquals(0f, enemyHealthCmp.takenDamage)
     }
 
     @Test
     fun `attack does not apply if fixture is not HITBOX_SENSOR`() {
-        val enemyPhyCmp = with(world) { enemy[PhysicComponent.Companion] }
+        val enemyPhyCmp = with(world) { enemy[PhysicComponent] }
         val firstFixture = enemyPhyCmp.body.fixtureList.firstOrNull()
-        firstFixture?.userData = "NO_HITBOX"
+        firstFixture?.userData = BodyData(EntityCategory.ENEMY, enemy)
 
-        with(world) { entity[AttackComponent.Companion].applyAttack = true }
+        with(world) { entity[AttackComponent].applyAttack = true }
 
-        val enemyHealthCmp = with(world) { enemy[HealthComponent.Companion] }
+        val enemyHealthCmp = with(world) { enemy[HealthComponent] }
         world.update(0.061f)
         assertEquals(0f, enemyHealthCmp.takenDamage)
     }

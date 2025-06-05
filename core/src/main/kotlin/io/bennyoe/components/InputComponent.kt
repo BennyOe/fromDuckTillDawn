@@ -18,4 +18,3 @@ data class InputComponent(
 
     companion object : ComponentType<InputComponent>()
 }
-

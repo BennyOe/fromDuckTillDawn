@@ -17,6 +17,7 @@ class BehaviorTreeComponent<T : AbstractBlackboard>(
     val treePath: String = "",
     val createBlackboard: (Entity, World, Stage) -> T,
 ) : Component<BehaviorTreeComponent<T>> {
+    @Suppress("UNCHECKED_CAST")
     override fun type(): ComponentType<BehaviorTreeComponent<T>> = Companion as ComponentType<BehaviorTreeComponent<T>>
 
     lateinit var behaviorTree: BehaviorTree<T>

@@ -5,7 +5,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.HealthComponent

@@ -10,7 +10,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
@@ -104,7 +103,6 @@ class AnimationSystemUnitTest {
     @Test
     fun `nextAnimation triggers applyNextAnimation and resets flags`() {
         aniCmp.nextAnimation(
-            AnimationModel.PLAYER_DAWN,
             AnimationType.WALK,
             AnimationVariant.FIRST,
         )

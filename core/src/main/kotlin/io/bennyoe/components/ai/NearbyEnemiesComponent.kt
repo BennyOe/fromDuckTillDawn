@@ -9,6 +9,7 @@ class NearbyEnemiesComponent(
     val nearbyEntities: MutableSet<Entity> = mutableSetOf(),
 ) : Component<NearbyEnemiesComponent> {
     var target: Entity = NO_TARGET
+
     override fun type() = NearbyEnemiesComponent
 
     companion object : ComponentType<NearbyEnemiesComponent>()

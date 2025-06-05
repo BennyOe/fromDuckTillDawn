@@ -2,6 +2,7 @@ package integrationTests
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
@@ -17,7 +18,9 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
+import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
+import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.JumpSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
@@ -71,7 +74,14 @@ class JumpSystemIntegrationTest {
                 it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent()
-                it += StateComponent(world)
+                it +=
+                    StateComponent(
+                        world,
+                        PlayerStateContext(it, world),
+                        PlayerFSM.IDLE,
+                        PlayerCheckAliveState,
+                        ::DefaultStateMachine,
+                    )
             }
     }
 
@@ -102,7 +112,14 @@ class JumpSystemIntegrationTest {
                 it += InputComponent()
                 it += HealthComponent()
                 it += JumpComponent(maxHeight = 5f) // Higher jump
-                it += StateComponent(world)
+                it +=
+                    StateComponent(
+                        world,
+                        PlayerStateContext(it, world),
+                        PlayerFSM.IDLE,
+                        PlayerCheckAliveState,
+                        ::DefaultStateMachine,
+                    )
             }
         val jumpComponent2 = with(world) { entity2[JumpComponent] }
         jumpComponent2.wantsToJump = true
@@ -149,7 +166,14 @@ class JumpSystemIntegrationTest {
                 it += MoveComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 3f)
-                it += StateComponent(world)
+                it +=
+                    StateComponent(
+                        world,
+                        PlayerStateContext(it, world),
+                        PlayerFSM.IDLE,
+                        PlayerCheckAliveState,
+                        ::DefaultStateMachine,
+                    )
             }
 
         // Apply jump with reduced gravity
@@ -179,7 +203,14 @@ class JumpSystemIntegrationTest {
                 it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 0f)
-                it += StateComponent(world)
+                it +=
+                    StateComponent(
+                        world,
+                        PlayerStateContext(it, world),
+                        PlayerFSM.IDLE,
+                        PlayerCheckAliveState,
+                        ::DefaultStateMachine,
+                    )
             }
 
         // Update the world
@@ -193,7 +224,9 @@ class JumpSystemIntegrationTest {
     @Test
     fun `double jump should be possible in DOUBLE_JUMP_GRACE_TIME`() {
         val jumpComponent = with(world) { entity[JumpComponent] }
-        val stateComponent = with(world) { entity[StateComponent] }
+
+        @Suppress("UNCHECKED_CAST")
+        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
         val inputComponent = with(world) { entity[InputComponent] }
         val dt = 0.05f
 
@@ -210,7 +243,9 @@ class JumpSystemIntegrationTest {
     @Test
     fun `double jump should NOT be possible outside of DOUBLE_JUMP_GRACE_TIME`() {
         val jumpComponent = with(world) { entity[JumpComponent] }
-        val stateComponent = with(world) { entity[StateComponent] }
+
+        @Suppress("UNCHECKED_CAST")
+        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
         val inputComponent = with(world) { entity[InputComponent] }
         val dt = 0.1f
 
@@ -230,7 +265,8 @@ class JumpSystemIntegrationTest {
 
     @Test
     fun `jump should be possible in jumpBuffer time`() {
-        val stateComponent = with(world) { entity[StateComponent] }
+        @Suppress("UNCHECKED_CAST")
+        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
         val inputComponent = with(world) { entity[InputComponent] }
         val dt = 0.05f
 
@@ -239,6 +275,7 @@ class JumpSystemIntegrationTest {
         world.update(dt)
         stateComponent.stateMachine.update()
         with(world) { entity.configure { it += HasGroundContact } }
+        stateComponent.changeState(PlayerFSM.IDLE)
         world.update(dt)
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)
@@ -246,7 +283,8 @@ class JumpSystemIntegrationTest {
 
     @Test
     fun `jump should NOT be possible outside of jumpBuffer time`() {
-        val stateComponent = with(world) { entity[StateComponent] }
+        @Suppress("UNCHECKED_CAST")
+        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
         val inputComponent = with(world) { entity[InputComponent] }
         val dt = 0.5f
 

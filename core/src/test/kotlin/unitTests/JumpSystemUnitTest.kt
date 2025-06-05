@@ -1,5 +1,6 @@
 package unitTests
 
+import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
@@ -14,6 +15,9 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
+import io.bennyoe.state.player.PlayerCheckAliveState
+import io.bennyoe.state.player.PlayerFSM
+import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.JumpSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
@@ -53,7 +57,14 @@ class JumpSystemUnitTest {
                 it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent()
-                it += StateComponent(world)
+                it +=
+                    StateComponent(
+                        world,
+                        PlayerStateContext(it, world),
+                        PlayerFSM.IDLE,
+                        PlayerCheckAliveState,
+                        ::DefaultStateMachine,
+                    )
             }
     }
 

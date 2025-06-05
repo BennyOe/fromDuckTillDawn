@@ -11,6 +11,7 @@ class JumpComponent(
     var jumpVelocity: Float = 0f,
     var maxHeight: Float = JUMP_MAX_HEIGHT,
     var doubleJumpGraceTimer: Float = DOUBLE_JUMP_GRACE_TIME,
+    var jumpFromBuffer: Boolean = false,
     var jumpBuffer: Float = -1f,
 ) : Component<JumpComponent> {
     override fun type() = JumpComponent

@@ -33,6 +33,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToCrouch && ctx.wantsToWalk -> ctx.changeState(CROUCH_WALK)
                 // because state changes for a fraction while JUMP to IDLE before FALL, also need to check for groundContact
                 ctx.wantsToJump && hasGroundContact(ctx) -> ctx.changeState(JUMP)
+                ctx.jumpComponent.jumpFromBuffer -> ctx.changeState(JUMP)
                 ctx.wantsToCrouch -> ctx.changeState(CROUCH_IDLE)
                 ctx.wantsToWalk -> ctx.changeState(WALK)
                 ctx.wantsToAttack -> ctx.changeState(ATTACK_1)
@@ -86,6 +87,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             logger.debug { "Entering JUMP" }
             ctx.jumpComponent.wantsToJump = true
             ctx.inputComponent.jumpJustPressed = false
+            ctx.jumpComponent.jumpFromBuffer = false
             ctx.setAnimation(AnimationType.JUMP)
         }
 

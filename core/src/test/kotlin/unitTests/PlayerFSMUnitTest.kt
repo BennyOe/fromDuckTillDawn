@@ -2,11 +2,14 @@ package unitTests
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
@@ -15,6 +18,7 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
@@ -22,8 +26,9 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
-import io.bennyoe.state.AbstractStateContext
+import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.StateSystem
 import io.mockk.every
@@ -37,7 +42,7 @@ import kotlin.test.assertNotEquals
 class PlayerFSMUnitTest {
     private lateinit var world: World
     private lateinit var entity: Entity
-    private lateinit var stateContext: AbstractStateContext
+    private lateinit var stateContext: PlayerStateContext
     private lateinit var bodyMock: Body
 
     @BeforeEach
@@ -50,6 +55,13 @@ class PlayerFSMUnitTest {
         val atlasMock = mockk<TextureAtlas>(relaxed = true)
         val animationMock = mockk<Animation<TextureRegionDrawable>>(relaxed = true)
         val regionMock = mockk<TextureAtlas.AtlasRegion>(relaxed = true)
+        val stageMock = mockk<Stage>(relaxed = true)
+
+        val imageMock: Image = mockk(relaxed = true)
+        val imgCmp =
+            ImageComponent(stageMock).also {
+                it.image = imageMock
+            }
 
         every { atlasMock.findRegions(any()) } returns gdxArrayOf(regionMock)
         every { animationMock.isAnimationFinished(any()) } returns false
@@ -75,12 +87,20 @@ class PlayerFSMUnitTest {
                 it += physicCmp
                 it += HealthComponent()
                 it += MoveComponent(maxSpeed = 10f)
+                it += imgCmp
                 it += InputComponent()
                 it += animationComponent
                 it += JumpComponent()
-                it += StateComponent(world)
+                it +=
+                    StateComponent(
+                        world,
+                        PlayerStateContext(it, world),
+                        PlayerFSM.IDLE,
+                        PlayerCheckAliveState,
+                        ::DefaultStateMachine,
+                    )
             }
-        stateContext = AbstractStateContext(entity, world)
+        stateContext = PlayerStateContext(entity, world)
     }
 
     @Test
@@ -92,17 +112,17 @@ class PlayerFSMUnitTest {
     @Test
     fun `when WalkDirection is not NONE then state should be WALK`() {
         val stateComponent = with(world) { entity[StateComponent] }
-        val inputComponent = with(world) { entity[InputComponent] }
+        val moveComponent = with(world) { entity[MoveComponent] }
 
-        inputComponent.walk = WalkDirection.LEFT
+        moveComponent.walk = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
 
-        inputComponent.walk = WalkDirection.NONE
+        moveComponent.walk = WalkDirection.NONE
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
 
-        inputComponent.walk = WalkDirection.RIGHT
+        moveComponent.walk = WalkDirection.RIGHT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
     }
@@ -219,8 +239,9 @@ class PlayerFSMUnitTest {
     fun `when crouch is pressed when walking then state should be CROUCH_WALK`() {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+        val moveComponent = with(world) { entity[MoveComponent] }
 
-        inputComponent.walk = WalkDirection.LEFT
+        moveComponent.walk = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         inputComponent.crouch = true
         stateComponent.stateMachine.update()
@@ -404,13 +425,14 @@ class PlayerFSMUnitTest {
     fun `should transition from CROUCH_WALK to CROUCH_IDLE when direction is NONE`() {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+        val moveComponent = with(world) { entity[MoveComponent] }
 
         inputComponent.crouch = true
-        inputComponent.walk = WalkDirection.LEFT
+        moveComponent.walk = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_WALK, stateComponent.stateMachine.currentState)
 
-        inputComponent.walk = WalkDirection.NONE
+        moveComponent.walk = WalkDirection.NONE
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, stateComponent.stateMachine.currentState)
     }
@@ -418,9 +440,9 @@ class PlayerFSMUnitTest {
     @Test
     fun `should transition from WALK to FALL when falling`() {
         val stateComponent = with(world) { entity[StateComponent] }
-        val inputComponent = with(world) { entity[InputComponent] }
+        val moveComponent = with(world) { entity[MoveComponent] }
 
-        inputComponent.walk = WalkDirection.RIGHT
+        moveComponent.walk = WalkDirection.RIGHT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
 
@@ -501,7 +523,7 @@ class PlayerFSMUnitTest {
         givenState(PlayerFSM.DOUBLE_JUMP)
 
         inputComponent.crouch = true
-        inputComponent.walk = WalkDirection.RIGHT
+        inputComponent.walkRightPressed = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, stateComponent.stateMachine.currentState)
     }
@@ -553,13 +575,14 @@ class PlayerFSMUnitTest {
     fun `should transition from CROUCH_IDLE to WALK when crouch released and direction is not NONE`() {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+        val moveComponent = with(world) { entity[MoveComponent] }
 
         inputComponent.crouch = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, stateComponent.stateMachine.currentState)
 
         inputComponent.crouch = false
-        inputComponent.walk = WalkDirection.RIGHT
+        moveComponent.walk = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
     }
@@ -568,14 +591,15 @@ class PlayerFSMUnitTest {
     fun `should transition from CROUCH_WALK to IDLE when crouch released and direction is NONE`() {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
+        val moveComponent = with(world) { entity[MoveComponent] }
 
         inputComponent.crouch = true
-        inputComponent.walk = WalkDirection.LEFT
+        moveComponent.walk = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_WALK, stateComponent.stateMachine.currentState)
 
         inputComponent.crouch = false
-        inputComponent.walk = WalkDirection.NONE
+        moveComponent.walk = WalkDirection.NONE
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
     }
@@ -632,7 +656,12 @@ class PlayerFSMUnitTest {
     }
 
     private fun givenState(state: PlayerFSM) {
-        val stateComponent = with(world) { entity[StateComponent] }
+        @Suppress("UNCHECKED_CAST")
+        val stateComponent: StateComponent<PlayerStateContext, PlayerFSM> =
+            with(world) {
+                entity[StateComponent] as
+                    StateComponent<PlayerStateContext, PlayerFSM>
+            }
         stateComponent.changeState(state)
     }
 

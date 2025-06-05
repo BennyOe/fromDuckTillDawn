@@ -17,9 +17,9 @@ import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.service.DebugRenderService
-import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
+import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DamageSystem

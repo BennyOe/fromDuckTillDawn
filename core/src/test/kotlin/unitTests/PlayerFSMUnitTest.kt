@@ -20,6 +20,7 @@ import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
@@ -86,6 +87,7 @@ class PlayerFSMUnitTest {
                 physicCmp.body = bodyMock
                 it += physicCmp
                 it += HealthComponent()
+                it += IntentionComponent()
                 it += MoveComponent(maxSpeed = 10f)
                 it += imgCmp
                 it += InputComponent()
@@ -112,17 +114,17 @@ class PlayerFSMUnitTest {
     @Test
     fun `when WalkDirection is not NONE then state should be WALK`() {
         val stateComponent = with(world) { entity[StateComponent] }
-        val moveComponent = with(world) { entity[MoveComponent] }
+        val intentionCmp = with(world) { entity[IntentionComponent] }
 
-        moveComponent.walk = WalkDirection.LEFT
+        intentionCmp.walkDirection = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
 
-        moveComponent.walk = WalkDirection.NONE
+        intentionCmp.walkDirection = WalkDirection.NONE
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
 
-        moveComponent.walk = WalkDirection.RIGHT
+        intentionCmp.walkDirection = WalkDirection.RIGHT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
     }
@@ -230,7 +232,7 @@ class PlayerFSMUnitTest {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        inputComponent.crouch = true
+        inputComponent.crouchJustPressed = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, stateComponent.stateMachine.currentState)
     }
@@ -239,11 +241,11 @@ class PlayerFSMUnitTest {
     fun `when crouch is pressed when walking then state should be CROUCH_WALK`() {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
-        val moveComponent = with(world) { entity[MoveComponent] }
+        val intentionCmp = with(world) { entity[IntentionComponent] }
 
-        moveComponent.walk = WalkDirection.LEFT
+        intentionCmp.walkDirection = WalkDirection.LEFT
         stateComponent.stateMachine.update()
-        inputComponent.crouch = true
+        inputComponent.crouchJustPressed = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_WALK, stateComponent.stateMachine.currentState)
     }
@@ -274,7 +276,7 @@ class PlayerFSMUnitTest {
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)
 
-        inputComponent.crouch = true
+        inputComponent.crouchJustPressed = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)
     }
@@ -284,7 +286,7 @@ class PlayerFSMUnitTest {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        inputComponent.crouch = true
+        inputComponent.crouchJustPressed = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, stateComponent.stateMachine.currentState)
 
@@ -412,11 +414,11 @@ class PlayerFSMUnitTest {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
 
-        inputComponent.crouch = true
+        inputComponent.crouchJustPressed = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, stateComponent.stateMachine.currentState)
 
-        inputComponent.crouch = false
+        inputComponent.crouchJustPressed = false
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
     }
@@ -425,14 +427,14 @@ class PlayerFSMUnitTest {
     fun `should transition from CROUCH_WALK to CROUCH_IDLE when direction is NONE`() {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
-        val moveComponent = with(world) { entity[MoveComponent] }
+        val intentionCmp = with(world) { entity[IntentionComponent] }
 
-        inputComponent.crouch = true
-        moveComponent.walk = WalkDirection.LEFT
+        inputComponent.crouchJustPressed = true
+        intentionCmp.walkDirection = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_WALK, stateComponent.stateMachine.currentState)
 
-        moveComponent.walk = WalkDirection.NONE
+        intentionCmp.walkDirection = WalkDirection.NONE
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, stateComponent.stateMachine.currentState)
     }
@@ -440,9 +442,9 @@ class PlayerFSMUnitTest {
     @Test
     fun `should transition from WALK to FALL when falling`() {
         val stateComponent = with(world) { entity[StateComponent] }
-        val moveComponent = with(world) { entity[MoveComponent] }
+        val intentionCmp = with(world) { entity[IntentionComponent] }
 
-        moveComponent.walk = WalkDirection.RIGHT
+        intentionCmp.walkDirection = WalkDirection.RIGHT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
 
@@ -522,8 +524,8 @@ class PlayerFSMUnitTest {
         val inputComponent = with(world) { entity[InputComponent] }
         givenState(PlayerFSM.DOUBLE_JUMP)
 
-        inputComponent.crouch = true
-        inputComponent.walkRightPressed = true
+        inputComponent.crouchJustPressed = true
+        inputComponent.walkRightJustPressed = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, stateComponent.stateMachine.currentState)
     }
@@ -575,14 +577,14 @@ class PlayerFSMUnitTest {
     fun `should transition from CROUCH_IDLE to WALK when crouch released and direction is not NONE`() {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
-        val moveComponent = with(world) { entity[MoveComponent] }
+        val intentionCmp = with(world) { entity[IntentionComponent] }
 
-        inputComponent.crouch = true
+        inputComponent.crouchJustPressed = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_IDLE, stateComponent.stateMachine.currentState)
 
-        inputComponent.crouch = false
-        moveComponent.walk = WalkDirection.LEFT
+        inputComponent.crouchJustPressed = false
+        intentionCmp.walkDirection = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
     }
@@ -591,15 +593,15 @@ class PlayerFSMUnitTest {
     fun `should transition from CROUCH_WALK to IDLE when crouch released and direction is NONE`() {
         val stateComponent = with(world) { entity[StateComponent] }
         val inputComponent = with(world) { entity[InputComponent] }
-        val moveComponent = with(world) { entity[MoveComponent] }
+        val intentionCmp = with(world) { entity[IntentionComponent] }
 
-        inputComponent.crouch = true
-        moveComponent.walk = WalkDirection.LEFT
+        inputComponent.crouchJustPressed = true
+        intentionCmp.walkDirection = WalkDirection.LEFT
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.CROUCH_WALK, stateComponent.stateMachine.currentState)
 
-        inputComponent.crouch = false
-        moveComponent.walk = WalkDirection.NONE
+        inputComponent.crouchJustPressed = false
+        intentionCmp.walkDirection = WalkDirection.NONE
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
     }

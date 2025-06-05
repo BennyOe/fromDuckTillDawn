@@ -9,6 +9,7 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
@@ -28,13 +29,14 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     val moveComponent: MoveComponent by lazy { with(world) { entity[MoveComponent] } }
     val jumpComponent: JumpComponent by lazy { with(world) { entity[JumpComponent] } }
     val healthComponent: HealthComponent by lazy { with(world) { entity[HealthComponent] } }
+    val intentionComponent: IntentionComponent by lazy { with(world) { entity[IntentionComponent] } }
 
     abstract val wantsToJump: Boolean
     abstract val wantsToAttack: Boolean
 
     val getsHit get() = healthComponent.takenDamage > 0f
-    val wantsToWalk get() = moveComponent.walk != WalkDirection.NONE
-    val wantsToIdle get() = moveComponent.walk == WalkDirection.NONE
+    val wantsToWalk get() = intentionComponent.walkDirection != WalkDirection.NONE
+    val wantsToIdle get() = intentionComponent.walkDirection == WalkDirection.NONE
 
     // helper methods for ECS
     inline fun <reified T : Component<T>> get(type: ComponentType<T>): T = with(world) { entity[type] }

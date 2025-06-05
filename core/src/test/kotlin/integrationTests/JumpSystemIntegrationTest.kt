@@ -13,6 +13,7 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
@@ -21,6 +22,7 @@ import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
+import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
@@ -59,6 +61,7 @@ class JumpSystemIntegrationTest {
                     add("phyWorld", phyWorld)
                 }
                 systems {
+                    add(InputSystem())
                     add(JumpSystem())
                 }
             }
@@ -71,6 +74,7 @@ class JumpSystemIntegrationTest {
                 it += physicCmp
                 it += AttackComponent()
                 it += MoveComponent()
+                it += IntentionComponent()
                 it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent()
@@ -109,6 +113,7 @@ class JumpSystemIntegrationTest {
                 it += AttackComponent()
                 it += physicCmp
                 it += MoveComponent()
+                it += IntentionComponent()
                 it += InputComponent()
                 it += HealthComponent()
                 it += JumpComponent(maxHeight = 5f) // Higher jump
@@ -164,6 +169,7 @@ class JumpSystemIntegrationTest {
                 physicCmp.body = mockBody
                 it += physicCmp
                 it += MoveComponent()
+                it += IntentionComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 3f)
                 it +=
@@ -200,6 +206,7 @@ class JumpSystemIntegrationTest {
                 it += physicCmp
                 it += AttackComponent()
                 it += MoveComponent()
+                it += IntentionComponent()
                 it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent(maxHeight = 0f)
@@ -274,8 +281,8 @@ class JumpSystemIntegrationTest {
         inputComponent.jumpJustPressed = true
         world.update(dt)
         stateComponent.stateMachine.update()
-        with(world) { entity.configure { it += HasGroundContact } }
         stateComponent.changeState(PlayerFSM.IDLE)
+        with(world) { entity.configure { it += HasGroundContact } }
         world.update(dt)
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)

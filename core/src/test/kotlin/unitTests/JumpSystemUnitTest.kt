@@ -10,6 +10,7 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
@@ -53,6 +54,7 @@ class JumpSystemUnitTest {
                 physicCmp.body = mockBody
                 it += AttackComponent()
                 it += physicCmp
+                it += IntentionComponent()
                 it += MoveComponent()
                 it += HealthComponent()
                 it += InputComponent()

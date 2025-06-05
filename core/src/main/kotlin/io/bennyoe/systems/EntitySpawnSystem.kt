@@ -24,6 +24,7 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
@@ -152,6 +153,8 @@ class EntitySpawnSystem(
                     val input = InputComponent()
                     it += input
 
+                    it += IntentionComponent()
+
                     it += JumpComponent()
 
                     val player = PlayerComponent()
@@ -186,6 +189,8 @@ class EntitySpawnSystem(
                         isSensor = true
                         userData = FixtureData(FixtureType.NEARBY_ENEMY_SENSOR)
                     }
+
+                    it += IntentionComponent()
 
                     it += NearbyEnemiesComponent()
 

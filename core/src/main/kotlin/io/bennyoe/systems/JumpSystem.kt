@@ -8,6 +8,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
@@ -26,6 +27,7 @@ class JumpSystem(
         val stateComponent = entity[StateComponent]
         val physicCmp = entity[PhysicComponent]
         val inputCmp = entity[InputComponent]
+        val intentionCmp = entity[IntentionComponent]
         val moveCmp = entity[MoveComponent]
         jumpCmp.jumpVelocity = getJumpVelocity(jumpCmp.maxHeight)
 
@@ -38,7 +40,7 @@ class JumpSystem(
         // if jumpKey is released and still jumping -> cut the jump velocity
         handleJumpKeyReleasedWhileJumping(inputCmp, vel, jumpCmp)
 
-        calculateJumpBuffer(inputCmp, entity, jumpCmp)
+        calculateJumpBuffer(intentionCmp, entity, jumpCmp)
 
         // get extra fall speed
         physicCmp.body.gravityScale = if (vel.y < 0f) FALL_GRAVITY_SCALE else 1f
@@ -71,12 +73,12 @@ class JumpSystem(
     }
 
     private fun calculateJumpBuffer(
-        inputCmp: InputComponent,
+        intentionCmp: IntentionComponent,
         entity: Entity,
         jumpCmp: JumpComponent,
     ) {
         // calculate jumpBuffer
-        if (inputCmp.jumpJustPressed &&
+        if (intentionCmp.wantsToJump &&
             entity hasNo HasGroundContact
         ) {
             jumpCmp.resetJumpBuffer()

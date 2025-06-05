@@ -65,12 +65,12 @@ class PlayerInputProcessor(
                     inputComponent.jumpIsPressed = pressed
                 }
 
-                Action.CROUCH -> inputComponent.crouch = pressed
+                Action.CROUCH -> inputComponent.crouchJustPressed = pressed
                 Action.ATTACK -> inputComponent.attackJustPressed = pressed
                 Action.BASH -> inputComponent.bashJustPressed = pressed
 
-                Action.MOVE_LEFT -> inputComponent.walkLeftPressed = pressed
-                Action.MOVE_RIGHT -> inputComponent.walkRightPressed = pressed
+                Action.MOVE_LEFT -> inputComponent.walkLeftJustPressed = pressed
+                Action.MOVE_RIGHT -> inputComponent.walkRightJustPressed = pressed
 
                 Action.MESSAGE ->
                     messageDispatcher.dispatchMessage(

@@ -16,6 +16,7 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
@@ -23,6 +24,7 @@ import io.bennyoe.components.StateComponent
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
+import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.StateSystem
 import io.mockk.mockk
@@ -57,6 +59,7 @@ class MovementIntegrationTest {
         world =
             configureWorld {
                 systems {
+                    add(InputSystem())
                     add(MoveSystem())
                     add(StateSystem())
                 }
@@ -68,6 +71,7 @@ class MovementIntegrationTest {
                 it += PhysicComponent().apply { body = bodyMock }
                 it += MoveComponent(maxSpeed = 10f)
                 it += HealthComponent()
+                it += IntentionComponent()
                 it += InputComponent()
                 it += JumpComponent()
                 it += AnimationComponent().apply { animation = animationMock }
@@ -89,7 +93,7 @@ class MovementIntegrationTest {
         val stateComponent = with(world) { entity[StateComponent] }
         val move = with(world) { entity[MoveComponent] }
 
-        input.walkRightPressed = true
+        input.walkRightJustPressed = true
         repeat(10) { world.update(0.016f) } // ~10 Frames at 60 FPS
 
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
@@ -102,11 +106,11 @@ class MovementIntegrationTest {
         val stateComponent = with(world) { entity[StateComponent] }
         val move = with(world) { entity[MoveComponent] }
 
-        input.walkRightPressed = true
+        input.walkRightJustPressed = true
         world.update(0.016f)
         assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
 
-        input.walkRightPressed = false
+        input.walkRightJustPressed = false
         world.update(0.016f)
 
         assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
@@ -126,7 +130,7 @@ class MovementIntegrationTest {
         val move = with(world) { entity[MoveComponent] }
         stateComponent.changeState(PlayerFSM.DEATH)
 
-        input.walkRightPressed = true
+        input.walkRightJustPressed = true
         repeat(10) { world.update(0.016f) } // ~10 Frames at 60 FPS
 
         assertEquals(PlayerFSM.DEATH, stateComponent.stateMachine.currentState)

@@ -13,6 +13,7 @@ import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
@@ -35,6 +36,7 @@ class MushroomContext(
     val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
     val imageCmp: ImageComponent
+    val intentionCmp: IntentionComponent
     val moveCmp: MoveComponent
     val healthComponent: HealthComponent
     val attackCmp: AttackComponent
@@ -50,6 +52,7 @@ class MushroomContext(
             moveCmp = entity[MoveComponent]
             healthComponent = entity[HealthComponent]
             attackCmp = entity[AttackComponent]
+            intentionCmp = entity[IntentionComponent]
         }
     }
 
@@ -69,10 +72,10 @@ class MushroomContext(
     fun moveTo(targetPos: Vector2) {
         logger.debug { "Location: ${location.x} Target: ${targetPos.x}" }
         if (location < targetPos) {
-            moveCmp.walk = WalkDirection.RIGHT
+            intentionCmp.walkDirection = WalkDirection.RIGHT
         }
         if (location > targetPos) {
-            moveCmp.walk = WalkDirection.LEFT
+            intentionCmp.walkDirection = WalkDirection.LEFT
         }
     }
 
@@ -99,7 +102,7 @@ class MushroomContext(
     }
 
     fun stopMovement() {
-        moveCmp.walk = WalkDirection.NONE
+        intentionCmp.walkDirection = WalkDirection.NONE
     }
 
     // TODO implement

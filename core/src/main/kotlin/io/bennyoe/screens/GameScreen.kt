@@ -25,6 +25,7 @@ import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DamageSystem
 import io.bennyoe.systems.DeadSystem
 import io.bennyoe.systems.EntitySpawnSystem
+import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
@@ -71,6 +72,7 @@ class GameScreen(
                 add(AnimationSystem())
                 add(EntitySpawnSystem())
                 add(CollisionSpawnSystem())
+                add(InputSystem())
                 add(AttackSystem())
                 add(DamageSystem())
                 add(DamageTextSystem())

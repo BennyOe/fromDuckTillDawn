@@ -8,8 +8,10 @@ import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.MoveSystem
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
@@ -32,6 +34,7 @@ class MoveSystemUnitTest {
         world =
             configureWorld {
                 systems {
+                    add(InputSystem())
                     add(MoveSystem())
                 }
             }
@@ -39,6 +42,7 @@ class MoveSystemUnitTest {
         entity =
             world.entity {
                 it += PhysicComponent()
+                it += IntentionComponent()
                 it += MoveComponent(maxSpeed = 10f)
                 it += imgCmp
                 it += InputComponent()
@@ -49,7 +53,7 @@ class MoveSystemUnitTest {
     @Test
     fun `entity moves right when input is RIGHT`() {
         val inputCmp = with(world) { entity[InputComponent] }
-        inputCmp.walkRightPressed = true
+        inputCmp.walkRightJustPressed = true
         world.update(1f)
 
         val move = with(world) { entity[MoveComponent] }
@@ -67,7 +71,7 @@ class MoveSystemUnitTest {
 
     @Test
     fun `entity moves left when input is LEFT`() {
-        with(world) { entity[InputComponent].walkLeftPressed = true }
+        with(world) { entity[InputComponent].walkLeftJustPressed = true }
         world.update(1f)
 
         val move = with(world) { entity[MoveComponent] }
@@ -94,7 +98,7 @@ class MoveSystemUnitTest {
     @Test
     fun `entity reaches max speed after multiple small updates`() {
         val inputCmp = with(world) { entity[InputComponent] }
-        inputCmp.walkRightPressed = true
+        inputCmp.walkRightJustPressed = true
         repeat(10) { world.update(0.016f) } // simulate ~10 frames @60 FPS
         val vel = with(world) { entity[MoveComponent].moveVelocity }
         assertEquals(10f, vel)
@@ -103,7 +107,7 @@ class MoveSystemUnitTest {
     @Test
     fun `velocity is clamped to max speed`() {
         val inputCmp = with(world) { entity[InputComponent] }
-        inputCmp.walkRightPressed = true
+        inputCmp.walkRightJustPressed = true
         with(world) { entity[MoveComponent].maxSpeed = 5f }
         world.update(5f) // simulate a big lag spike
         val vel = with(world) { entity[MoveComponent].moveVelocity }
@@ -115,7 +119,7 @@ class MoveSystemUnitTest {
         world.update(0.016f) // first frame moving right
 
         // switch direction to left and update again
-        with(world) { entity[InputComponent].walkLeftPressed = true }
+        with(world) { entity[InputComponent].walkLeftJustPressed = true }
         world.update(0.016f)
 
         val vel = with(world) { entity[MoveComponent].moveVelocity }

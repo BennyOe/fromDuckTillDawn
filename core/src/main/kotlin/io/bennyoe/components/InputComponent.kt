@@ -10,9 +10,9 @@ data class InputComponent(
     var jumpIsPressed: Boolean = false,
     var jumpJustPressed: Boolean = false,
     var bashJustPressed: Boolean = false,
-    var crouch: Boolean = false,
-    var walkLeftPressed: Boolean = false,
-    var walkRightPressed: Boolean = false,
+    var crouchJustPressed: Boolean = false,
+    var walkLeftJustPressed: Boolean = false,
+    var walkRightJustPressed: Boolean = false,
 ) : Component<InputComponent> {
     override fun type() = InputComponent
 

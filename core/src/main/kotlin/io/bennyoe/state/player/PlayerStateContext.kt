@@ -4,7 +4,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.InputComponent
-import io.bennyoe.components.WalkDirection
 import io.bennyoe.state.AbstractStateContext
 
 class PlayerStateContext(

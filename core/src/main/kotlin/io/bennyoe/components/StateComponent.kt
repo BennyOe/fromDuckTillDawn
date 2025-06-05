@@ -11,10 +11,11 @@ data class StateComponent<C : AbstractStateContext<C>, S : AbstractFSM<C>>(
     val world: World,
     val owner: C,
     val initialState: S,
-    val factory: (C, S) -> DefaultStateMachine<C, S>,
+    val globalState: S,
+    val factory: (C, S, S) -> DefaultStateMachine<C, S>,
     var stateTime: Float = 0f,
 ) : Component<StateComponent<C, S>> {
-    val stateMachine: DefaultStateMachine<C, S> = factory(owner, initialState)
+    val stateMachine: DefaultStateMachine<C, S> = factory(owner, initialState, globalState)
 
     fun changeState(newState: S) {
         if (newState != stateMachine.currentState) {

@@ -1,5 +1,6 @@
 package io.bennyoe.systems
 
+import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.github.quillraven.fleks.Entity
@@ -14,6 +15,7 @@ import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.debug.DamageTextComponent
+import io.bennyoe.state.FsmMessageTypes
 import ktx.log.logger
 import ktx.math.vec2
 import ktx.scene2d.Scene2DSkin
@@ -21,6 +23,8 @@ import ktx.scene2d.Scene2DSkin
 class DamageSystem(
     private val uiStage: Stage = inject("uiStage"),
 ) : IteratingSystem(family { all(HealthComponent) }) {
+    private val messageDispatcher = MessageManager.getInstance()
+
     override fun onTickEntity(entity: Entity) {
         val healthCmp = entity[HealthComponent]
         val physicCmp = entity[PhysicComponent]
@@ -35,6 +39,7 @@ class DamageSystem(
                 healthCmp.takenDamage = 0f
             }
 
+            messageDispatcher.dispatchMessage(FsmMessageTypes.HIT.ordinal)
             // spawn the damage floating label
             val damageTextCmp = DamageTextComponent(uiStage = uiStage)
             damageTextCmp.txtLocation =

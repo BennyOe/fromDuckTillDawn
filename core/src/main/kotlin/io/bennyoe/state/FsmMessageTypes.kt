@@ -4,4 +4,5 @@ enum class FsmMessageTypes {
     ATTACK,
     HEAL,
     KILL,
+    HIT,
 }

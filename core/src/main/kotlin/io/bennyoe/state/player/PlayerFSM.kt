@@ -45,6 +45,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx: PlayerStateContext,
             telegram: Telegram,
         ): Boolean {
+            super.onMessage(ctx, telegram)
             if (telegram.message == FsmMessageTypes.HEAL.ordinal && telegram.extraInfo == true) {
                 logger.debug { "MESSAGE WITH HEAL RECEIVED INSTANTLY" }
                 return true
@@ -73,6 +74,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 isFalling(ctx) -> ctx.changeState(FALL)
             }
         }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
     }
 
     data object JUMP : PlayerFSM() {
@@ -91,6 +97,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToJump -> ctx.changeState(DOUBLE_JUMP)
             }
         }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
     }
 
     data object DOUBLE_JUMP : PlayerFSM() {
@@ -114,6 +125,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 hasGroundContact(ctx) -> ctx.changeState(IDLE)
             }
         }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
     }
 
     data object FALL : PlayerFSM() {
@@ -137,6 +153,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 else -> ctx.inputComponent.jumpJustPressed = false
             }
         }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
     }
 
     data object CROUCH_IDLE : PlayerFSM() {
@@ -152,6 +173,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToWalk && !ctx.wantsToCrouch -> ctx.changeState(WALK)
             }
         }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
     }
 
     data object CROUCH_WALK : PlayerFSM() {
@@ -167,6 +193,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToCrouch && ctx.wantsToIdle -> ctx.changeState(CROUCH_IDLE)
             }
         }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
     }
 
     data object ATTACK_1 : PlayerFSM() {
@@ -187,6 +218,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 }
             }
         }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
     }
 
     data object ATTACK_2 : PlayerFSM() {
@@ -207,6 +243,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 }
             }
         }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
     }
 
     data object ATTACK_3 : PlayerFSM() {
@@ -225,6 +266,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 }
             }
         }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
     }
 
     data object BASH : PlayerFSM() {
@@ -240,6 +286,25 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                     isFalling(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
+            }
+        }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    data object HIT : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            logger.debug { "Entering HIT" }
+            ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
+            ctx.healthComponent.takenDamage = 0f
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            if (ctx.animationComponent.isAnimationFinished()) {
+                ctx.changeState(IDLE)
             }
         }
     }
@@ -304,7 +369,13 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     override fun onMessage(
         ctx: PlayerStateContext,
         telegram: Telegram,
-    ) = false
+    ): Boolean {
+        if (telegram.message == FsmMessageTypes.HIT.ordinal) {
+            ctx.changeState(HIT)
+            return true
+        }
+        return false
+    }
 
     companion object {
         val logger = logger<PlayerFSM>()

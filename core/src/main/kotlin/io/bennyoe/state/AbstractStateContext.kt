@@ -20,6 +20,7 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     val world: World,
     var deltaTime: Float = 0f,
 ) {
+    // this cast has to be made because of the type erasure of fleks
     @Suppress("UNCHECKED_CAST")
     val stateComponent: StateComponent<C, *> by lazy { with(world) { entity[StateComponent] as StateComponent<C, *> } }
     val animationComponent: AnimationComponent by lazy { with(world) { entity[AnimationComponent] } }
@@ -58,6 +59,11 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     @Suppress("UNCHECKED_CAST")
     fun <S : AbstractFSM<C>> changeState(state: S) {
         (stateComponent as StateComponent<C, S>).changeState(state)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <S : AbstractFSM<C>> previousState() {
+        changeState((stateComponent as StateComponent<C, S>).stateMachine.previousState)
     }
 
     @Suppress("UNCHECKED_CAST")

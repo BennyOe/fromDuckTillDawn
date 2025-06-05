@@ -37,6 +37,7 @@ import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.utility.BodyData
@@ -158,9 +159,10 @@ class EntitySpawnSystem(
 
                     val state =
                         StateComponent(
-                            world,
-                            PlayerStateContext(it, world),
-                            PlayerFSM.IDLE,
+                            world = world,
+                            owner = PlayerStateContext(entity = it, world = world),
+                            initialState = PlayerFSM.IDLE,
+                            globalState = PlayerCheckAliveState,
                             factory = ::DefaultStateMachine,
                         )
                     it += state
@@ -168,6 +170,7 @@ class EntitySpawnSystem(
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
+                    messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HIT.ordinal)
 
                     PlayerInputProcessor(world = world)
                 }

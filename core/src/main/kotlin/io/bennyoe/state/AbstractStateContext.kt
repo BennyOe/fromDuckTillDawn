@@ -8,17 +8,32 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.WalkDirection
 
-abstract class AbstractStateContext(
+abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     val entity: Entity,
     val world: World,
     var deltaTime: Float = 0f,
 ) {
+    @Suppress("UNCHECKED_CAST")
+    val stateComponent: StateComponent<C, *> by lazy { with(world) { entity[StateComponent] as StateComponent<C, *> } }
     val animationComponent: AnimationComponent by lazy { with(world) { entity[AnimationComponent] } }
-    val stateComponent: StateComponent by lazy { with(world) { entity[StateComponent] } }
     val physicComponent: PhysicComponent by lazy { with(world) { entity[PhysicComponent] } }
+    val moveComponent: MoveComponent by lazy { with(world) { entity[MoveComponent] } }
+    val jumpComponent: JumpComponent by lazy { with(world) { entity[JumpComponent] } }
+    val healthComponent: HealthComponent by lazy { with(world) { entity[HealthComponent] } }
+
+    abstract val wantsToJump: Boolean
+    abstract val wantsToAttack: Boolean
+
+    val getsHit get() = healthComponent.takenDamage > 0f
+    val wantsToWalk get() = moveComponent.walk != WalkDirection.NONE
+    val wantsToIdle get() = moveComponent.walk == WalkDirection.NONE
 
     // helper methods for ECS
     inline fun <reified T : Component<T>> get(type: ComponentType<T>): T = with(world) { entity[type] }
@@ -40,9 +55,15 @@ abstract class AbstractStateContext(
         animationComponent.mode = playMode
     }
 
-    fun <S : AbstractFSM> changeState(state: S) {
-        stateComponent.changeState(state)
+    @Suppress("UNCHECKED_CAST")
+    fun <S : AbstractFSM<C>> changeState(state: S) {
+        (stateComponent as StateComponent<C, S>).changeState(state)
     }
 
-    fun previousState(): AbstractFSM = stateComponent.stateMachine.previousState
+    @Suppress("UNCHECKED_CAST")
+    fun <S : AbstractFSM<C>> setGlobalState(state: S) {
+        (stateComponent as StateComponent<C, S>).stateMachine.globalState = state
+    }
+
+    fun previousState(): AbstractFSM<C> = stateComponent.stateMachine.previousState
 }

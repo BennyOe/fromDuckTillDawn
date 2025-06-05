@@ -1,5 +1,6 @@
 package io.bennyoe.systems
 
+import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
@@ -160,6 +161,7 @@ class EntitySpawnSystem(
                             world,
                             PlayerStateContext(it, world),
                             PlayerFSM.IDLE,
+                            factory = ::DefaultStateMachine,
                         )
                     it += state
 

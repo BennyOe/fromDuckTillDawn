@@ -3,34 +3,29 @@ package io.bennyoe.components
 import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
-import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.AbstractStateContext
-import io.bennyoe.state.player.PlayerCheckAliveState
 
-data class StateComponent(
+data class StateComponent<C : AbstractStateContext<C>, S : AbstractFSM<C>>(
     val world: World,
-    val owner: AbstractStateContext,
-    val initialState: AbstractFSM,
+    val owner: C,
+    val initialState: S,
+    val factory: (C, S) -> DefaultStateMachine<C, S>,
     var stateTime: Float = 0f,
-) : Component<StateComponent> {
-    lateinit var stateMachine: DefaultStateMachine<AbstractStateContext, AbstractFSM>
+) : Component<StateComponent<C, S>> {
+    val stateMachine: DefaultStateMachine<C, S> = factory(owner, initialState)
 
-    override fun World.onAdd(entity: Entity) {
-        stateMachine = DefaultStateMachine(owner, initialState)
-        stateMachine.globalState = PlayerCheckAliveState
-    }
-
-    fun changeState(newState: AbstractFSM) {
+    fun changeState(newState: S) {
         if (newState != stateMachine.currentState) {
             stateMachine.changeState(newState)
         }
     }
 
-    override fun type() = StateComponent
+    @Suppress("UNCHECKED_CAST")
+    override fun type(): ComponentType<StateComponent<C, S>> = StateComponent as ComponentType<StateComponent<C, S>>
 
-    companion object : ComponentType<StateComponent>() {
-        val logger = ktx.log.logger<StateComponent>()
+    companion object : ComponentType<StateComponent<*, *>>() {
+        val logger = ktx.log.logger<StateComponent<*, *>>()
     }
 }

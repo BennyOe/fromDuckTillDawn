@@ -41,12 +41,16 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class AttackSystemIntegrationTest : AbstractIntegrationTest() {
+class AttackSystemIntegrationTest {
+    private lateinit var world: World
+    private lateinit var playerEntity: Entity
+    private lateinit var enemyEntity: Entity
+    private lateinit var phyWorld: com.badlogic.gdx.physics.box2d.World
 
     @BeforeEach
     fun setup() {
         // --------------- Setup World ----------------
-        setupApp()
+        Gdx.app = mockk<Application>(relaxed = true)
         val stageMock = mockk<Stage>(relaxed = true)
         val debugRenderServiceMock = mockk<DebugRenderService>(relaxed = true)
         val animationCmpMock = mockk<AnimationComponent>(relaxed = true)

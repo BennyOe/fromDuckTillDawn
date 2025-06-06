@@ -16,6 +16,7 @@ import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
@@ -35,9 +36,11 @@ import io.bennyoe.systems.StateSystem
 import io.mockk.every
 import io.mockk.mockk
 import ktx.collections.gdxArrayOf
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 
 class PlayerFSMUnitTest {
@@ -651,6 +654,18 @@ class PlayerFSMUnitTest {
         stateCmp.stateMachine.update()
         world.update(1f)
         assertNotEquals(PlayerFSM.RESURRECT, stateCmp.stateMachine.currentState)
+    }
+
+    @Test
+    fun `death state schedules removal and deactivates body`() {
+        val deadDelay = 0f
+        givenState(PlayerFSM.DEATH)
+
+        assertTrue(with(world) { entity has DeadComponent })
+        assertFalse(bodyMock.isActive)
+
+        val deadCmp = with(world) { entity[DeadComponent] }
+        assertEquals(deadDelay, deadCmp.removeDelay, 1e-4f)
     }
 
     private fun givenState(state: PlayerFSM) {

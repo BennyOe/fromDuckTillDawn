@@ -14,21 +14,25 @@ class ExpireSystem : IteratingSystem(family { all(DeadComponent) }) {
         val aniCmp = entity[AnimationComponent]
         val deadCmp = entity[DeadComponent]
         val physicCmp = entity[PhysicComponent]
-        val behaviorTreeCmp = entity[BehaviorTreeComponent]
 
         physicCmp.body.apply { isActive = false }
 
-        if (deadCmp.removeDelay > 0f) {
+        if (deadCmp.removeDelay - deltaTime > 0f) {
             deadCmp.removeDelay -= deltaTime
             return
         }
+
         if (aniCmp.isAnimationFinished()) {
             when (deadCmp.keepCorpse) {
                 true -> {
                     entity.configure {
                         it -= DeadComponent
                     }
-                    behaviorTreeCmp.behaviorTree.`object`.lastTaskName = null
+                    // Only access BehaviorTreeComponent if the entity has it
+                    if (entity.has(BehaviorTreeComponent)) {
+                        val behaviorTreeCmp = entity[BehaviorTreeComponent]
+                        behaviorTreeCmp.behaviorTree.`object`.lastTaskName = null
+                    }
                     logger.debug { "Dead Component removed" }
                 }
 

@@ -86,7 +86,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering JUMP" }
             ctx.jumpComponent.wantsToJump = true
-            ctx.inputComponent.jumpJustPressed = false
+            ctx.intentionCmp.wantsToJump = false
             ctx.jumpComponent.jumpFromBuffer = false
             ctx.setAnimation(AnimationType.JUMP)
         }
@@ -110,7 +110,8 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering DOUBLE_JUMP" }
             ctx.jumpComponent.wantsToJump = true
-            ctx.inputComponent.jumpJustPressed = false
+            ctx.intentionCmp.wantsToJump = false
+            ctx.jumpComponent.jumpFromBuffer = false
             ctx.setAnimation(AnimationType.JUMP)
             doubleJumpFallDelay = DOUBLE_JUMP_FALL_DELAY_DURATION
         }
@@ -145,14 +146,14 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             when {
                 ctx.wantsToJump && ctx.jumpComponent.doubleJumpGraceTimer > 0f && ctx.previousState() == JUMP -> {
                     ctx.changeState(DOUBLE_JUMP)
-                    ctx.inputComponent.jumpJustPressed = false
+                    ctx.intentionCmp.wantsToJump = false
                 }
 
                 ctx.wantsToBash -> ctx.changeState(BASH)
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
                 // otherwise remain in FALL
-                else -> ctx.inputComponent.jumpJustPressed = false
+                else -> ctx.intentionCmp.wantsToJump = false
             }
         }
 
@@ -205,13 +206,13 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object ATTACK_1 : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering ATTACK_1" }
-            ctx.inputComponent.attackJustPressed = false
+            ctx.intentionCmp.wantsToAttack = false
             ctx.setAnimation(AnimationType.ATTACK)
             ctx.attackComponent.applyAttack = true
         }
 
         override fun update(ctx: PlayerStateContext) {
-            if (ctx.wantsToAttack) ctx.inputComponent.attack2JustPressed = true
+            if (ctx.wantsToAttack) ctx.intentionCmp.wantsToAttack2 = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     ctx.wantsToAttack2 -> ctx.changeState(ATTACK_2)
@@ -230,13 +231,13 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object ATTACK_2 : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering ATTACK_2" }
-            ctx.inputComponent.attack2JustPressed = false
+            ctx.intentionCmp.wantsToAttack2 = false
             ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.SECOND)
             ctx.attackComponent.applyAttack = true
         }
 
         override fun update(ctx: PlayerStateContext) {
-            if (ctx.wantsToAttack) ctx.inputComponent.attack3JustPressed = true
+            if (ctx.wantsToAttack) ctx.intentionCmp.wantsToAttack3 = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     ctx.wantsToAttack3 -> ctx.changeState(ATTACK_3)
@@ -255,7 +256,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object ATTACK_3 : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering ATTACK_3" }
-            ctx.inputComponent.attack3JustPressed = false
+            ctx.intentionCmp.wantsToAttack3 = false
             ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.THIRD)
             ctx.attackComponent.applyAttack = true
         }
@@ -280,6 +281,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             logger.debug { "Entering BASH" }
             ctx.add(BashComponent())
             ctx.setAnimation(AnimationType.BASH)
+            ctx.intentionCmp.wantsToBash = false
         }
 
         override fun update(ctx: PlayerStateContext) {

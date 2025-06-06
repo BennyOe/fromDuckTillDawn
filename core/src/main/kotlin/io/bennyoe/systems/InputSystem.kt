@@ -19,12 +19,26 @@ class InputSystem : IteratingSystem(family { all(InputComponent, IntentionCompon
                 else -> intentionCmp.walkDirection = WalkDirection.NONE
             }
 
-            intentionCmp.wantsToJump = jumpJustPressed
-            intentionCmp.wantsToAttack = attackJustPressed
+            // ----- Events that gets held -----------
             intentionCmp.wantsToAttack2 = attack2JustPressed
             intentionCmp.wantsToAttack3 = attack3JustPressed
             intentionCmp.wantsToCrouch = crouchJustPressed
-            intentionCmp.wantsToBash = bashJustPressed
+
+            // ----- Events that gets triggered only once -----------
+            if (jumpJustPressed) {
+                intentionCmp.wantsToJump = true
+                jumpJustPressed = false
+            }
+
+            if (attackJustPressed) {
+                intentionCmp.wantsToAttack = true
+                attackJustPressed = false
+            }
+
+            if (bashJustPressed) {
+                intentionCmp.wantsToBash = true
+                bashJustPressed = false
+            }
         }
     }
 }

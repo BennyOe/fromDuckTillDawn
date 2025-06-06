@@ -48,7 +48,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
     data object ATTACK : MushroomFSM() {
         override fun enter(ctx: MushroomStateContext) {
             ctx.setAnimation(AnimationType.ATTACK)
-            ctx.attackComponent.applyAttack = true
+            ctx.attackCmp.applyAttack = true
         }
 
         override fun update(ctx: MushroomStateContext) {

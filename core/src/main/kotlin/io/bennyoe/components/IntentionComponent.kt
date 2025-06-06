@@ -16,3 +16,9 @@ class IntentionComponent(
 
     companion object : ComponentType<IntentionComponent>()
 }
+
+// TODO adapt FSM to Intent (reset flags etc.)
+// TODO refactor BT to only set intentions
+// TODO refine mushroom attack
+// TODO refine run towards player
+// TODO implement raycasts for Mushroom

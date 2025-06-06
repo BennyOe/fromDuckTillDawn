@@ -234,7 +234,7 @@ class JumpSystemIntegrationTest {
 
         @Suppress("UNCHECKED_CAST")
         val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
-        val inputComponent = with(world) { entity[InputComponent] }
+        val intentionCmp = with(world) { entity[IntentionComponent] }
         val dt = 0.05f
 
         stateComponent.changeState(PlayerFSM.JUMP)
@@ -242,7 +242,7 @@ class JumpSystemIntegrationTest {
         stateComponent.changeState(PlayerFSM.FALL)
         world.update(dt)
         assertEquals(DOUBLE_JUMP_GRACE_TIME - dt, jumpComponent.doubleJumpGraceTimer)
-        inputComponent.jumpJustPressed = true
+        intentionCmp.wantsToJump = true
         stateComponent.stateMachine.update()
         assertEquals(PlayerFSM.DOUBLE_JUMP, stateComponent.stateMachine.currentState)
     }

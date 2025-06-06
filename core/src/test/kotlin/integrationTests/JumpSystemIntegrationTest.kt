@@ -32,14 +32,6 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import com.badlogic.gdx.physics.box2d.World as Box2DWorld
 
-/**
- * Integration tests for the JumpSystem.
- *
- * These tests verify:
- * 1. Jump velocity is correctly calculated based on maxHeight
- * 2. Jump velocity scales with gravity
- * 3. Jump velocity is zero for non-positive heights
- */
 class JumpSystemIntegrationTest {
     private lateinit var world: World
     private lateinit var entity: Entity
@@ -91,66 +83,44 @@ class JumpSystemIntegrationTest {
 
     @Test
     fun `jump velocity is calculated based on maxHeight`() {
-        val jumpComponent = with(world) { entity[JumpComponent] }
-        jumpComponent.wantsToJump = true
-        // Run the system to calculate jump velocity
+        val jumpCmp = with(world) { entity[JumpComponent] }
+        jumpCmp.wantsToJump = true
+
         world.update(0.016f)
 
-        // Get the jump component and verify its velocity is not zero
-        assertTrue(jumpComponent.jumpVelocity > 0f, "Jump velocity should be positive")
+        assertTrue(jumpCmp.jumpVelocity > 0f, "Jump velocity should be positive")
     }
 
     @Test
     fun `jump height affects jump velocity`() {
-        val jumpComponent = with(world) { entity[JumpComponent] }
-        jumpComponent.wantsToJump = true
-        // Create a second entity with a higher jump height
-        val entity2 =
-            world.entity {
-                it += mockAnimationCmp
-                val physicCmp = PhysicComponent()
-                physicCmp.body = mockBody
-                it += AttackComponent()
-                it += physicCmp
-                it += MoveComponent()
-                it += IntentionComponent()
-                it += InputComponent()
-                it += HealthComponent()
-                it += JumpComponent(maxHeight = 5f) // Higher jump
-                it +=
-                    StateComponent(
-                        world,
-                        PlayerStateContext(it, world),
-                        PlayerFSM.IDLE,
-                        PlayerCheckAliveState,
-                        ::DefaultStateMachine,
-                    )
-            }
-        val jumpComponent2 = with(world) { entity2[JumpComponent] }
-        jumpComponent2.wantsToJump = true
+        val jumpCmp = with(world) { entity[JumpComponent] }
+        jumpCmp.wantsToJump = true
 
-        // Update the world to process both entities
+        // Create a second entity with a higher jump height
+        val entity2 = createNewEntity(5f, world)
+        val jumpCmp2 = with(world) { entity2[JumpComponent] }
+        jumpCmp2.wantsToJump = true
+
         world.update(0.016f)
 
-        // The entity with higher maxHeight should have a higher jump velocity
         assertTrue(
-            jumpComponent2.jumpVelocity > jumpComponent.jumpVelocity,
+            jumpCmp2.jumpVelocity > jumpCmp.jumpVelocity,
             "Entity with higher maxHeight should have higher jump velocity",
         )
     }
 
     @Test
     fun `jump velocity scales with gravity`() {
-        val jumpComponent = with(world) { entity[JumpComponent] }
-        jumpComponent.wantsToJump = true
+        val jumpCmp = with(world) { entity[JumpComponent] }
+        jumpCmp.wantsToJump = true
         // First jump with normal gravity
         world.update(0.016f)
-        val normalGravityVelocity = with(world) { entity[JumpComponent].jumpVelocity }
+        val normalGravityVelocity = jumpCmp.jumpVelocity
 
-        // Create a new world with reduced gravity
+        // Create a new Box2d-world with reduced gravity
         val reducedGravityWorld = Box2DWorld(Vector2(0f, -2.905f), true)
 
-        // Configure a new world with the reduced gravity
+        // Configure a new Entity-world with the reduced gravity
         val reducedGravityEcsWorld =
             configureWorld {
                 injectables {
@@ -162,31 +132,16 @@ class JumpSystemIntegrationTest {
             }
 
         // Create an entity with the same jump height
-        val reducedGravityEntity =
-            reducedGravityEcsWorld.entity {
-                it += mockAnimationCmp
-                val physicCmp = PhysicComponent()
-                physicCmp.body = mockBody
-                it += physicCmp
-                it += MoveComponent()
-                it += IntentionComponent()
-                it += InputComponent()
-                it += JumpComponent(maxHeight = 3f)
-                it +=
-                    StateComponent(
-                        world,
-                        PlayerStateContext(it, world),
-                        PlayerFSM.IDLE,
-                        PlayerCheckAliveState,
-                        ::DefaultStateMachine,
-                    )
-            }
+        val reducedGravityEntity = createNewEntity(3f, reducedGravityEcsWorld)
+        val jumpCmp2 = with(reducedGravityEcsWorld) { reducedGravityEntity[JumpComponent] }
+//        jumpCmp2.wantsToJump = true
 
         // Apply jump with reduced gravity
         reducedGravityEcsWorld.update(0.016f)
-        val reducedGravityVelocity = with(reducedGravityEcsWorld) { reducedGravityEntity[JumpComponent].jumpVelocity }
+        val reducedGravityVelocity = jumpCmp2.jumpVelocity
 
         // With lower gravity magnitude, we need less velocity to reach the same height
+        assertTrue(reducedGravityVelocity != 0f)
         assertTrue(
             reducedGravityVelocity < normalGravityVelocity,
             "Jump velocity should be lower with reduced gravity magnitude",
@@ -195,114 +150,117 @@ class JumpSystemIntegrationTest {
 
     @Test
     fun `jump velocity is zero for non-positive height`() {
-        val jumpComponent = with(world) { entity[JumpComponent] }
-        jumpComponent.wantsToJump = true
-        // Create an entity with zero jump height
-        val zeroHeightEntity =
-            world.entity {
-                it += mockAnimationCmp
-                val physicCmp = PhysicComponent()
-                physicCmp.body = mockBody
-                it += physicCmp
-                it += AttackComponent()
-                it += MoveComponent()
-                it += IntentionComponent()
-                it += HealthComponent()
-                it += InputComponent()
-                it += JumpComponent(maxHeight = 0f)
-                it +=
-                    StateComponent(
-                        world,
-                        PlayerStateContext(it, world),
-                        PlayerFSM.IDLE,
-                        PlayerCheckAliveState,
-                        ::DefaultStateMachine,
-                    )
-            }
+        val zeroHeightEntity = createNewEntity(0f, world)
+        val jumpCmp = with(world) { zeroHeightEntity[JumpComponent] }
+        jumpCmp.wantsToJump = true
 
-        // Update the world
         world.update(0.016f)
 
-        // Verify the jump velocity is zero
-        val jumpVelocity = with(world) { zeroHeightEntity[JumpComponent].jumpVelocity }
+        val jumpVelocity = jumpCmp.jumpVelocity
         assertEquals(0f, jumpVelocity, "Jump velocity should be zero for non-positive height")
     }
 
     @Test
     fun `double jump should be possible in DOUBLE_JUMP_GRACE_TIME`() {
-        val jumpComponent = with(world) { entity[JumpComponent] }
+        val jumpCmp = with(world) { entity[JumpComponent] }
 
         @Suppress("UNCHECKED_CAST")
-        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+        val stateCmp = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
         val intentionCmp = with(world) { entity[IntentionComponent] }
-        val dt = 0.05f
+        val deltaTime = 0.05f
 
-        stateComponent.changeState(PlayerFSM.JUMP)
-        stateComponent.stateMachine.update()
-        stateComponent.changeState(PlayerFSM.FALL)
-        world.update(dt)
-        assertEquals(DOUBLE_JUMP_GRACE_TIME - dt, jumpComponent.doubleJumpGraceTimer)
+        stateCmp.changeState(PlayerFSM.JUMP)
+        stateCmp.stateMachine.update()
+        stateCmp.changeState(PlayerFSM.FALL)
+        world.update(deltaTime)
+        assertEquals(DOUBLE_JUMP_GRACE_TIME - deltaTime, jumpCmp.doubleJumpGraceTimer)
         intentionCmp.wantsToJump = true
-        stateComponent.stateMachine.update()
-        assertEquals(PlayerFSM.DOUBLE_JUMP, stateComponent.stateMachine.currentState)
+        stateCmp.stateMachine.update()
+        assertEquals(PlayerFSM.DOUBLE_JUMP, stateCmp.stateMachine.currentState)
     }
 
     @Test
     fun `double jump should NOT be possible outside of DOUBLE_JUMP_GRACE_TIME`() {
-        val jumpComponent = with(world) { entity[JumpComponent] }
+        val jumpCmp = with(world) { entity[JumpComponent] }
 
         @Suppress("UNCHECKED_CAST")
-        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
-        val inputComponent = with(world) { entity[InputComponent] }
-        val dt = 0.1f
+        val stateCmp = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+        val inputCmp = with(world) { entity[InputComponent] }
+        val intentionCmp = with(world) { entity[IntentionComponent] }
+        val deltaTime = 0.1f
 
-        stateComponent.changeState(PlayerFSM.FALL)
-        world.update(dt)
-        assertEquals(PlayerFSM.FALL, stateComponent.stateMachine.currentState)
-        world.update(dt)
-        assertEquals(PlayerFSM.FALL, stateComponent.stateMachine.currentState)
-        world.update(dt)
-        assertEquals(PlayerFSM.FALL, stateComponent.stateMachine.currentState)
-        assertTrue(jumpComponent.doubleJumpGraceTimer < 0)
-        inputComponent.jumpJustPressed = true
+        stateCmp.changeState(PlayerFSM.FALL)
+        world.update(deltaTime)
+        assertEquals(PlayerFSM.FALL, stateCmp.stateMachine.currentState)
+        world.update(deltaTime)
+        assertEquals(PlayerFSM.FALL, stateCmp.stateMachine.currentState)
+        world.update(deltaTime)
+        assertEquals(PlayerFSM.FALL, stateCmp.stateMachine.currentState)
+        assertTrue(jumpCmp.doubleJumpGraceTimer < 0)
+        inputCmp.jumpJustPressed = true
         with(world) { entity.configure { it += HasGroundContact } }
-        stateComponent.stateMachine.update()
-        assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
+        world.update(deltaTime)
+        stateCmp.stateMachine.update()
+        assertTrue(intentionCmp.wantsToJump)
+        assertEquals(PlayerFSM.IDLE, stateCmp.stateMachine.currentState)
     }
 
     @Test
     fun `jump should be possible in jumpBuffer time`() {
         @Suppress("UNCHECKED_CAST")
-        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
-        val inputComponent = with(world) { entity[InputComponent] }
-        val dt = 0.05f
+        val stateCmp = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+        val inputCmp = with(world) { entity[InputComponent] }
+        val deltaTime = 0.05f
 
-        stateComponent.changeState(PlayerFSM.FALL)
-        inputComponent.jumpJustPressed = true
-        world.update(dt)
-        stateComponent.stateMachine.update()
-        stateComponent.changeState(PlayerFSM.IDLE)
+        stateCmp.changeState(PlayerFSM.FALL)
+        inputCmp.jumpJustPressed = true
+        world.update(deltaTime)
+        stateCmp.stateMachine.update()
+        stateCmp.changeState(PlayerFSM.IDLE)
         with(world) { entity.configure { it += HasGroundContact } }
-        world.update(dt)
-        stateComponent.stateMachine.update()
-        assertEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)
+        world.update(deltaTime)
+        stateCmp.stateMachine.update()
+        assertEquals(PlayerFSM.JUMP, stateCmp.stateMachine.currentState)
     }
 
     @Test
     fun `jump should NOT be possible outside of jumpBuffer time`() {
         @Suppress("UNCHECKED_CAST")
-        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
-        val inputComponent = with(world) { entity[InputComponent] }
-        val dt = 0.5f
+        val stateCmp = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+        val inputCmp = with(world) { entity[InputComponent] }
+        val deltaTime = 0.5f
 
-        stateComponent.changeState(PlayerFSM.FALL)
-        inputComponent.jumpJustPressed = true
-        world.update(dt)
-        stateComponent.stateMachine.update()
+        stateCmp.changeState(PlayerFSM.FALL)
+        inputCmp.jumpJustPressed = true
+        world.update(deltaTime)
+        stateCmp.stateMachine.update()
         with(world) { entity.configure { it += HasGroundContact } }
-        world.update(dt)
-        stateComponent.stateMachine.update()
-        assertNotEquals(PlayerFSM.JUMP, stateComponent.stateMachine.currentState)
-        assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
+        world.update(deltaTime)
+        stateCmp.stateMachine.update()
+        assertNotEquals(PlayerFSM.JUMP, stateCmp.stateMachine.currentState)
+        assertEquals(PlayerFSM.IDLE, stateCmp.stateMachine.currentState)
     }
+
+    private fun createNewEntity(
+        jumpHeight: Float,
+        world: World,
+    ): Entity =
+        world.entity {
+            it += mockAnimationCmp
+            val physicCmp = PhysicComponent()
+            physicCmp.body = mockBody
+            it += physicCmp
+            it += MoveComponent()
+            it += IntentionComponent()
+            it += InputComponent()
+            it += JumpComponent(maxHeight = jumpHeight)
+            it +=
+                StateComponent(
+                    world,
+                    PlayerStateContext(it, world),
+                    PlayerFSM.IDLE,
+                    PlayerCheckAliveState,
+                    ::DefaultStateMachine,
+                )
+        }
 }

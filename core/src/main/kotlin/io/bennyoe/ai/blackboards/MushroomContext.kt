@@ -30,7 +30,7 @@ class MushroomContext(
     val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
     val intentionCmp: IntentionComponent
-    val healthComponent: HealthComponent
+    val healthCmp: HealthComponent
     val location: Vector2
         get() = phyCmp.body.position
 
@@ -39,7 +39,7 @@ class MushroomContext(
             nearbyEnemiesCmp = entity[NearbyEnemiesComponent]
             phyCmp = entity[PhysicComponent]
             animCmp = entity[AnimationComponent]
-            healthComponent = entity[HealthComponent]
+            healthCmp = entity[HealthComponent]
             intentionCmp = entity[IntentionComponent]
         }
     }
@@ -54,7 +54,7 @@ class MushroomContext(
         }
     }
 
-    fun isAlive(): Boolean = !healthComponent.isDead
+    fun isAlive(): Boolean = !healthCmp.isDead
 
     fun inRange(
         range: Float,

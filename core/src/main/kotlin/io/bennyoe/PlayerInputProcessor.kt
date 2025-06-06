@@ -51,26 +51,26 @@ class PlayerInputProcessor(
         pressed: Boolean,
     ) {
         debugEntities.forEach { debugEntity ->
-            val debugComponent = debugEntity[DebugComponent]
+            val debugCmp = debugEntity[DebugComponent]
             when (action) {
-                Action.DEBUG -> debugComponent.toggleDebug(pressed)
+                Action.DEBUG -> debugCmp.toggleDebug(pressed)
                 else -> Unit
             }
         }
         inputEntities.forEach { input ->
-            val inputComponent = input[InputComponent]
+            val inputCmp = input[InputComponent]
             when (action) {
                 Action.JUMP -> {
-                    inputComponent.jumpJustPressed = pressed
-                    inputComponent.jumpIsPressed = pressed
+                    inputCmp.jumpJustPressed = pressed
+                    inputCmp.jumpIsPressed = pressed
                 }
 
-                Action.CROUCH -> inputComponent.crouchJustPressed = pressed
-                Action.ATTACK -> inputComponent.attackJustPressed = pressed
-                Action.BASH -> inputComponent.bashJustPressed = pressed
+                Action.CROUCH -> inputCmp.crouchJustPressed = pressed
+                Action.ATTACK -> inputCmp.attackJustPressed = pressed
+                Action.BASH -> inputCmp.bashJustPressed = pressed
 
-                Action.MOVE_LEFT -> inputComponent.walkLeftJustPressed = pressed
-                Action.MOVE_RIGHT -> inputComponent.walkRightJustPressed = pressed
+                Action.MOVE_LEFT -> inputCmp.walkLeftJustPressed = pressed
+                Action.MOVE_RIGHT -> inputCmp.walkRightJustPressed = pressed
 
                 Action.MESSAGE ->
                     messageDispatcher.dispatchMessage(

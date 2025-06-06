@@ -2,7 +2,6 @@ package io.bennyoe.state.mushroom
 
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.state.AbstractStateContext
@@ -17,5 +16,4 @@ class MushroomStateContext(
 
     override val wantsToJump get() = intentionCmp.wantsToJump
     override val wantsToAttack get() = intentionCmp.wantsToAttack
-
 }

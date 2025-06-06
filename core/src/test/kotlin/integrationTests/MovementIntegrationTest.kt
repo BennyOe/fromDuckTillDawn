@@ -32,19 +32,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-/**
- * Integration-Test: chained **Input → AI → MoveSystem**.
- *
- * 1. Key RIGHT → AI-State = WALK → velocity = maxSpeed
- * 2. Release key → AI-State = IDLE → velocity = 0
- */
 class MovementIntegrationTest {
     private lateinit var world: World
     private lateinit var entity: Entity
 
     @BeforeEach
     fun setup() {
-        // Headless-Backend for LibGDX
         Gdx.app = mockk<Application>(relaxed = true)
         val animationMock = mockk<Animation<TextureRegionDrawable>>(relaxed = true)
         val bodyMock = mockk<Body>(relaxed = true)
@@ -89,51 +82,49 @@ class MovementIntegrationTest {
 
     @Test
     fun `input RIGHT leads to WALK state and maximum velocity`() {
-        val input = with(world) { entity[InputComponent] }
-        val stateComponent = with(world) { entity[StateComponent] }
-        val move = with(world) { entity[MoveComponent] }
+        val inputCmp = with(world) { entity[InputComponent] }
+        val stateCmp = with(world) { entity[StateComponent] }
+        val moveCmp = with(world) { entity[MoveComponent] }
 
-        input.walkRightJustPressed = true
-        repeat(10) { world.update(0.016f) } // ~10 Frames at 60 FPS
+        inputCmp.walkRightJustPressed = true
+        repeat(10) { world.update(0.016f) }
 
-        assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
-        assertEquals(10f, move.moveVelocity)
+        assertEquals(PlayerFSM.WALK, stateCmp.stateMachine.currentState)
+        assertEquals(10f, moveCmp.moveVelocity)
     }
 
     @Test
     fun `releasing direction returns to IDLE state and zero velocity`() {
-        val input = with(world) { entity[InputComponent] }
-        val stateComponent = with(world) { entity[StateComponent] }
-        val move = with(world) { entity[MoveComponent] }
+        val inputCmp = with(world) { entity[InputComponent] }
+        val stateCmp = with(world) { entity[StateComponent] }
+        val moveCmp = with(world) { entity[MoveComponent] }
 
-        input.walkRightJustPressed = true
+        inputCmp.walkRightJustPressed = true
         world.update(0.016f)
-        assertEquals(PlayerFSM.WALK, stateComponent.stateMachine.currentState)
+        assertEquals(PlayerFSM.WALK, stateCmp.stateMachine.currentState)
 
-        input.walkRightJustPressed = false
+        inputCmp.walkRightJustPressed = false
         world.update(0.016f)
 
-        assertEquals(PlayerFSM.IDLE, stateComponent.stateMachine.currentState)
-        assertEquals(0f, move.moveVelocity)
+        assertEquals(PlayerFSM.IDLE, stateCmp.stateMachine.currentState)
+        assertEquals(0f, moveCmp.moveVelocity)
     }
 
     @Test
     fun `input RIGHT does nothing when in DEATH state`() {
-        val input = with(world) { entity[InputComponent] }
+        val inputCmp = with(world) { entity[InputComponent] }
+        val moveCmp = with(world) { entity[MoveComponent] }
 
         @Suppress("UNCHECKED_CAST")
-        val stateComponent: StateComponent<PlayerStateContext, PlayerFSM> =
-            with(world) {
-                entity[StateComponent] as
-                    StateComponent<PlayerStateContext, PlayerFSM>
-            }
-        val move = with(world) { entity[MoveComponent] }
-        stateComponent.changeState(PlayerFSM.DEATH)
+        val stateCmp: StateComponent<PlayerStateContext, PlayerFSM> =
+            with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
 
-        input.walkRightJustPressed = true
-        repeat(10) { world.update(0.016f) } // ~10 Frames at 60 FPS
+        stateCmp.changeState(PlayerFSM.DEATH)
 
-        assertEquals(PlayerFSM.DEATH, stateComponent.stateMachine.currentState)
-        assertEquals(0f, move.moveVelocity)
+        inputCmp.walkRightJustPressed = true
+        repeat(10) { world.update(0.016f) }
+
+        assertEquals(PlayerFSM.DEATH, stateCmp.stateMachine.currentState)
+        assertEquals(0f, moveCmp.moveVelocity)
     }
 }

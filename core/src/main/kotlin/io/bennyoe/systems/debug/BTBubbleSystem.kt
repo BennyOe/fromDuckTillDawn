@@ -26,12 +26,12 @@ class BTBubbleSystem(
 ) : IteratingSystem(family { all(BTBubbleComponent, BehaviorTreeComponent) }, interval = Fixed(PHYSIC_TIME_STEP)) {
     override fun onTickEntity(entity: Entity) {
         val bTBubbleCmp = entity[BTBubbleComponent]
-        val behaviorTreeComponent = entity[BehaviorTreeComponent]
+        val behaviorTreeCmp = entity[BehaviorTreeComponent]
         bTBubbleCmp.bubble.displayState(
-            behaviorTreeComponent
-                ?.behaviorTree
-                ?.`object`
-                ?.lastTaskName
+            behaviorTreeCmp
+                .behaviorTree
+                .`object`
+                .lastTaskName
                 ?: "NO STATE",
         )
     }

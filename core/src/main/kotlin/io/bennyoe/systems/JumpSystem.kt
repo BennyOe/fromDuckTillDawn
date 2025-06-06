@@ -24,7 +24,7 @@ class JumpSystem(
 ) : IteratingSystem(family { all(JumpComponent) }) {
     override fun onTickEntity(entity: Entity) {
         val jumpCmp = entity[JumpComponent]
-        val stateComponent = entity[StateComponent]
+        val stateCmp = entity[StateComponent]
         val physicCmp = entity[PhysicComponent]
         val inputCmp = entity[InputComponent]
         val intentionCmp = entity[IntentionComponent]
@@ -45,7 +45,7 @@ class JumpSystem(
         // get extra fall speed
         physicCmp.body.gravityScale = if (vel.y < 0f) FALL_GRAVITY_SCALE else 1f
 
-        when (stateComponent.stateMachine.currentState) {
+        when (stateCmp.stateMachine.currentState) {
             PlayerFSM.FALL -> jumpCmp.doubleJumpGraceTimer -= deltaTime
             PlayerFSM.DOUBLE_JUMP -> jumpCmp.disableDoubleJumpGraceTimer()
             else -> Unit

@@ -25,11 +25,11 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
-import io.bennyoe.components.WalkDirection
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.AnimationSystem
+import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.StateSystem
 import io.mockk.mockk
@@ -63,7 +63,7 @@ class AnimationSystemIntegrationTest {
                 gdxArrayOf(drawable),
                 Animation.PlayMode.LOOP,
             )
-        val animationComponent =
+        val animationCmp =
             AnimationComponent().apply {
                 this.animation = animation
             }
@@ -82,6 +82,7 @@ class AnimationSystemIntegrationTest {
                 systems {
                     add(MoveSystem())
                     add(StateSystem())
+                    add(InputSystem())
                     add(AnimationSystem())
                 }
             }
@@ -94,7 +95,7 @@ class AnimationSystemIntegrationTest {
                 it += HealthComponent()
                 it += IntentionComponent()
                 it += imgCmp
-                it += animationComponent
+                it += animationCmp
                 it += JumpComponent()
                 it += HasGroundContact
                 it += InputComponent()
@@ -112,30 +113,24 @@ class AnimationSystemIntegrationTest {
     @Test
     fun `no walk direction sets animation type to IDLE`() {
         val animationCmp = with(world) { entity[AnimationComponent] }
-        val intentionCmp = with(world) { entity[IntentionComponent] }
+        val inputCmp = with(world) { entity[InputComponent] }
 
         @Suppress("UNCHECKED_CAST")
-        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
-        val stateContext = stateComponent.owner
+        val stateCmp = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
 
-        // Set up the state for IDLE
-        intentionCmp.walkDirection = WalkDirection.NONE
+        inputCmp.walkLeftJustPressed = true
+        world.update(1f)
+        stateCmp.stateMachine.update()
 
-        // Explicitly set the animation type to IDLE, as the enter method of the IDLE state would do
-        stateContext.setAnimation(AnimationType.IDLE)
+        inputCmp.walkLeftJustPressed = false
+        world.update(1f)
+        stateCmp.stateMachine.update()
 
-        // First update the state machine to set the animation type
-        stateComponent.stateMachine.update()
-
-        // Check the animation type before the world update clears it
         Assertions.assertEquals(
             AnimationType.IDLE,
             animationCmp.nextAnimationType,
             "Entity standing still should play idle animation",
         )
-
-        // Then update the world to apply the animation
-        world.update(0.016f)
     }
 
     /**
@@ -145,27 +140,19 @@ class AnimationSystemIntegrationTest {
     fun `horizontal movement enqueues walk animation`() {
         val animationCmp = with(world) { entity[AnimationComponent] }
         val inputCmp = with(world) { entity[InputComponent] }
-        val intentionCmp = with(world) { entity[IntentionComponent] }
 
         @Suppress("UNCHECKED_CAST")
-        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+        val stateCmp = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
 
-        // Set up the input and movement
         inputCmp.walkRightJustPressed = true
-        intentionCmp.walkDirection = WalkDirection.RIGHT
+        world.update(1f)
+        stateCmp.stateMachine.update()
 
-        // First update the state machine to set the animation type
-        stateComponent.stateMachine.update()
-
-        // Check the animation type before the world update clears it
         Assertions.assertEquals(
             AnimationType.WALK,
             animationCmp.nextAnimationType,
             "Entity with horizontal movement should enqueue WALK animation",
         )
-
-        // Then update the world to apply the animation
-        world.update(0.016f)
     }
 
     /**
@@ -174,29 +161,21 @@ class AnimationSystemIntegrationTest {
     @Test
     fun `jump flag enqueues jump animation`() {
         val animationCmp = with(world) { entity[AnimationComponent] }
-        val intentionCmp = with(world) { entity[IntentionComponent] }
+        val inputCmp = with(world) { entity[InputComponent] }
 
         @Suppress("UNCHECKED_CAST")
-        val stateComponent = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
-        val jumpComponent = with(world) { entity[JumpComponent] }
+        val stateCmp = with(world) { entity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
 
-        // Set up the input for jumping
-        intentionCmp.wantsToJump = true
-
-        // Add HasGroundContact to ensure the jump state transition works
+        inputCmp.jumpJustPressed = true
         with(world) { entity.configure { it += HasGroundContact } }
 
-        // First update the state machine to set the animation type
-        stateComponent.stateMachine.update()
+        world.update(0.016f)
+        stateCmp.stateMachine.update()
 
-        // Check the animation type before the world update clears it
         Assertions.assertEquals(
             AnimationType.JUMP,
             animationCmp.nextAnimationType,
             "Entity that starts jumping should enqueue JUMP animation",
         )
-
-        // Then update the world to apply the animation
-        world.update(0.016f)
     }
 }

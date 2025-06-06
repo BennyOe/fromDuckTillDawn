@@ -17,11 +17,11 @@ class StateSystem : IteratingSystem(family { all(StateComponent) }) {
     }
 
     override fun onTickEntity(entity: Entity) {
-        val stateComponent = entity[StateComponent]
+        val stateCmp = entity[StateComponent]
 
-        stateComponent.stateTime += deltaTime
-        stateComponent.stateMachine.owner.deltaTime = deltaTime
-        stateComponent.stateMachine.update()
+        stateCmp.stateTime += deltaTime
+        stateCmp.stateMachine.owner.deltaTime = deltaTime
+        stateCmp.stateMachine.update()
     }
 
     companion object {

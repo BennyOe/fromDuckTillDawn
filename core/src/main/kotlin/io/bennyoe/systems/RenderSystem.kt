@@ -44,9 +44,9 @@ class RenderSystem(
     }
 
     override fun onTickEntity(entity: Entity) {
-        val imageComponent = entity[ImageComponent]
-        val originalOrFlippedImage = if (imageComponent.flipImage) -imageComponent.scaleX else imageComponent.scaleX
-        imageComponent.image.setSize(originalOrFlippedImage, imageComponent.scaleY)
+        val imageCmp = entity[ImageComponent]
+        val originalOrFlippedImage = if (imageCmp.flipImage) -imageCmp.scaleX else imageCmp.scaleX
+        imageCmp.image.setSize(originalOrFlippedImage, imageCmp.scaleY)
     }
 
     override fun handle(event: Event): Boolean {

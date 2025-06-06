@@ -10,7 +10,6 @@ import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
 import io.bennyoe.ai.blackboards.MushroomContext
-import io.bennyoe.components.WalkDirection
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType

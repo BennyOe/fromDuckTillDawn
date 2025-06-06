@@ -6,12 +6,11 @@ import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
 import io.bennyoe.ai.blackboards.MushroomContext
-import io.bennyoe.components.AnimationType
+import io.bennyoe.components.WalkDirection
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
@@ -19,7 +18,7 @@ import ktx.log.logger
 import ktx.math.vec2
 
 abstract class Action : LeafTask<MushroomContext>() {
-    val context: MushroomContext
+    val ctx: MushroomContext
         get() = `object`
 
     private var entered = false
@@ -70,8 +69,9 @@ class IdleTask(
     private var currentDuration = 0f
 
     override fun enter() {
-        context.lastTaskName = this.javaClass.simpleName
-        context.setAnimation(AnimationType.IDLE)
+        ctx.stopAttack()
+        ctx.lastTaskName = this.javaClass.simpleName
+        ctx.stopMovement()
         currentDuration = duration?.nextFloat() ?: 1f
     }
 
@@ -99,25 +99,25 @@ class IdleTask(
     }
 }
 
-class WanderTask : Action() {
+class PatrolTask : Action() {
     private val startPos = vec2()
     private val targetPos = vec2()
 
     override fun enter() {
-        context.lastTaskName = this.javaClass.simpleName
+        ctx.stopAttack()
+        ctx.lastTaskName = this.javaClass.simpleName
         if (startPos.isZero) {
-            startPos.set(context.location)
+            startPos.set(ctx.location)
         }
         targetPos.set(startPos)
         targetPos.x += MathUtils.random(-5f, 5f)
-        context.moveTo(targetPos)
-        context.setAnimation(AnimationType.WALK)
+        ctx.moveTo(targetPos)
     }
 
     override fun onExecute(): Status {
         drawWalkingLine(startPos, targetPos)
-        if (context.inRange(0.5f, targetPos)) {
-            context.stopMovement()
+        if (ctx.inRange(0.5f, targetPos)) {
+            ctx.stopMovement()
             logger.debug { "succeeded" }
             return Status.SUCCEEDED
         }
@@ -126,21 +126,19 @@ class WanderTask : Action() {
 
     companion object {
         val logger =
-            logger<WanderTask>()
+            logger<PatrolTask>()
     }
 }
 
 class AttackTask : Action() {
     override fun enter() {
-        context.lastTaskName = this.javaClass.simpleName
-        context.setAnimation(AnimationType.ATTACK, Animation.PlayMode.NORMAL, resetStateTime = true)
-        context.startAttack()
+        ctx.lastTaskName = this.javaClass.simpleName
+        ctx.startAttack()
     }
 
     override fun onExecute(): Status {
-        if (context.isAnimationFinished()) {
-            context.setAnimation(AnimationType.IDLE, Animation.PlayMode.LOOP)
-            context.stopMovement()
+        if (ctx.isAnimationFinished()) {
+            ctx.stopMovement()
             return Status.SUCCEEDED
         }
         return Status.RUNNING

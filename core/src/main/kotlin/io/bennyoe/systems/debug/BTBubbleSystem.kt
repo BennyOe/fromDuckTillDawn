@@ -11,25 +11,28 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.StateComponent
-import io.bennyoe.components.debug.StateBubbleComponent
+import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.debug.BTBubbleComponent
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2
 
-private const val STATE_BUBBLE_OFFSET_Y = 1.1f
+private const val STATE_BUBBLE_OFFSET_Y = 1.6f
 
-class StateBubbleSystem(
+class BTBubbleSystem(
     private val stage: Stage = inject("stage"),
     private val uiStage: Stage = inject("uiStage"),
-) : IteratingSystem(family { all(StateBubbleComponent, StateComponent) }, interval = Fixed(PHYSIC_TIME_STEP)) {
+) : IteratingSystem(family { all(BTBubbleComponent, BehaviorTreeComponent) }, interval = Fixed(PHYSIC_TIME_STEP)) {
     override fun onTickEntity(entity: Entity) {
-        val stateBubbleCmp = entity[StateBubbleComponent]
-        val stateCmp = entity[StateComponent]
-
-        stateBubbleCmp.bubble.displayState(
-            stateCmp.stateMachine.currentState.toString(),
+        val bTBubbleCmp = entity[BTBubbleComponent]
+        val behaviorTreeComponent = entity[BehaviorTreeComponent]
+        bTBubbleCmp.bubble.displayState(
+            behaviorTreeComponent
+                ?.behaviorTree
+                ?.`object`
+                ?.lastTaskName
+                ?: "NO STATE",
         )
     }
 
@@ -37,7 +40,7 @@ class StateBubbleSystem(
         entity: Entity,
         alpha: Float,
     ) {
-        val stateBubbleCmp = entity[StateBubbleComponent]
+        val bTBubbleCmp = entity[BTBubbleComponent]
         val physicCmp = entity[PhysicComponent]
 
         // interpolate WorldUnit positions
@@ -59,8 +62,8 @@ class StateBubbleSystem(
         uiStage.viewport.unproject(uiCoords)
 
         // place bubbles
-        stateBubbleCmp.bubble.setPosition(
-            uiCoords.x - stateBubbleCmp.bubble.displayState.width * 0.5f,
+        bTBubbleCmp.bubble.setPosition(
+            uiCoords.x - bTBubbleCmp.bubble.displayState.width * 0.5f,
             uiCoords.y,
         )
     }

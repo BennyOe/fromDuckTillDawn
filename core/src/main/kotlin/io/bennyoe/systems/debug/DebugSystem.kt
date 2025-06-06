@@ -23,6 +23,7 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.UiComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.debug.BTBubbleComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.components.debug.StateBubbleComponent
 import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
@@ -86,7 +87,7 @@ class DebugSystem(
         val debugCmp = debugEntity.let { entity -> entity[DebugComponent] }
 
         val playerEntity = world.family { all(StateComponent) }.firstOrNull() ?: return
-        val enemyEntity = world.family { all(BehaviorTreeComponent) }.firstOrNull() ?: return
+        val enemyEntities = world.family { all(BehaviorTreeComponent) }
 
         // TODO just experimental use of rays ... REFACTOR in own system
 //        spawnRays(playerEntity)
@@ -94,33 +95,43 @@ class DebugSystem(
         fpsCounter.isVisible = debugCmp.enabled
         drawCallsCounter.isVisible = debugCmp.enabled
         if (debugCmp.enabled) {
-            addStateBubbles(enemyEntity, playerEntity)
             fpsCounter.act(deltaTime)
             drawCallsCounter.act(deltaTime)
             physicsRenderer.render(phyWorld, stage.camera.combined)
+
+            enemyEntities.forEach { enemyEntity ->
+                addStateBubbles(enemyEntity, playerEntity)
+                addBTBubbles(enemyEntity)
+            }
+
             val currentShapes = debugRenderingService.shapes.toSet()
             drawDebugLines()
             purgeStaleLabels(currentShapes)
         } else {
+            enemyEntities.forEach { enemyEntity ->
+                removeStateBubbles(playerEntity, enemyEntity)
+                removeBTBubbles(enemyEntity)
+            }
+
             uiStage.actors.removeAll { it is LabelWidget }
-            removeStateBubbles(playerEntity, enemyEntity)
             labels.values.forEach { it.remove() }
             labels.clear()
         }
     }
 
-    private fun removeStateBubbles(
-        playerEntity: Entity,
-        enemyEntity: Entity,
-    ) {
+    private fun addBTBubbles(enemyEntity: Entity) {
         when {
-            enemyEntity has StateBubbleComponent -> enemyEntity.configure { it -= StateBubbleComponent }
+            enemyEntity hasNo BTBubbleComponent -> world.entity { enemyEntity += BTBubbleComponent(uiStage) }
+
+            enemyEntity hasNo UiComponent -> world.entity { enemyEntity += UiComponent }
+        }
+    }
+
+    private fun removeBTBubbles(enemyEntity: Entity) {
+        when {
+            enemyEntity has BTBubbleComponent -> enemyEntity.configure { it -= BTBubbleComponent }
 
             enemyEntity has UiComponent -> enemyEntity.configure { it -= UiComponent }
-
-            playerEntity has StateBubbleComponent -> playerEntity.configure { it -= StateBubbleComponent }
-
-            playerEntity has UiComponent -> playerEntity.configure { it -= UiComponent }
         }
     }
 
@@ -136,6 +147,21 @@ class DebugSystem(
             playerEntity hasNo StateBubbleComponent -> world.entity { playerEntity += StateBubbleComponent(uiStage) }
 
             playerEntity hasNo UiComponent -> world.entity { playerEntity += UiComponent }
+        }
+    }
+
+    private fun removeStateBubbles(
+        playerEntity: Entity,
+        enemyEntity: Entity,
+    ) {
+        when {
+            enemyEntity has StateBubbleComponent -> enemyEntity.configure { it -= StateBubbleComponent }
+
+            enemyEntity has UiComponent -> enemyEntity.configure { it -= UiComponent }
+
+            playerEntity has StateBubbleComponent -> playerEntity.configure { it -= StateBubbleComponent }
+
+            playerEntity has UiComponent -> playerEntity.configure { it -= UiComponent }
         }
     }
 

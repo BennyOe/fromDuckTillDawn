@@ -8,9 +8,6 @@ import io.bennyoe.components.HasGroundContact
 const val LANDING_VELOCITY_EPS = 0.1f
 
 abstract class AbstractFSM<C : AbstractStateContext<C>> : State<C> {
-    // this is needed to prevent flickering of the death animation
-    protected var deathAlreadyEnteredBefore = false
-
     protected fun hasGroundContact(ctx: AbstractStateContext<C>) = with(ctx.world) { ctx.entity has HasGroundContact }
 
     protected fun isFalling(ctx: AbstractStateContext<C>): Boolean {

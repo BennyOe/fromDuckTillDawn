@@ -38,6 +38,9 @@ import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.state.mushroom.MushroomCheckAliveState
+import io.bennyoe.state.mushroom.MushroomFSM
+import io.bennyoe.state.mushroom.MushroomStateContext
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
@@ -173,7 +176,7 @@ class EntitySpawnSystem(
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
-                    messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HIT.ordinal)
+                    messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.PLAYER_IS_HIT.ordinal)
 
                     PlayerInputProcessor(world = world)
                 }
@@ -193,6 +196,17 @@ class EntitySpawnSystem(
                     it += IntentionComponent()
 
                     it += NearbyEnemiesComponent()
+
+                    val state =
+                        StateComponent(
+                            world = world,
+                            owner = MushroomStateContext(entity = it, world = world),
+                            initialState = MushroomFSM.IDLE,
+                            globalState = MushroomCheckAliveState,
+                            factory = ::DefaultStateMachine,
+                        )
+                    it += state
+                    messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
 
                     it +=
                         BehaviorTreeComponent(

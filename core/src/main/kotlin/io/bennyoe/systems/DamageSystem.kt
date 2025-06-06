@@ -39,7 +39,11 @@ class DamageSystem(
                 healthCmp.takenDamage = 0f
             }
 
-            messageDispatcher.dispatchMessage(FsmMessageTypes.HIT.ordinal)
+            if (entity has PlayerComponent) {
+                messageDispatcher.dispatchMessage(FsmMessageTypes.PLAYER_IS_HIT.ordinal)
+            } else {
+                messageDispatcher.dispatchMessage(FsmMessageTypes.ENEMY_IS_HIT.ordinal)
+            }
             // spawn the damage floating label
             val damageTextCmp = DamageTextComponent(uiStage = uiStage)
             damageTextCmp.txtLocation =

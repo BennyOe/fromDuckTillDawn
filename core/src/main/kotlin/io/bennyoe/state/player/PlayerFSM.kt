@@ -316,18 +316,14 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object DEATH : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering DEATH" }
-            logger.debug { " $deathAlreadyEnteredBefore" }
             ctx.setAnimation(
                 AnimationType.DYING,
                 Animation.PlayMode.NORMAL,
                 AnimationVariant.FIRST,
                 // isReversed has to be set after the first time to prevent flickering because animation is played back reversed in RESURRECT state
-                isReversed = deathAlreadyEnteredBefore,
+                isReversed = ctx.deathAlreadyEnteredBefore,
             )
-            ctx.moveComponent.lockMovement = true
-            ctx.stateComponent.stateMachine.globalState = null
-            ctx.moveComponent.moveVelocity = 0f
-            deathAlreadyEnteredBefore = true
+            ctx.entityIsDead(true, 0f)
         }
 
         override fun onMessage(
@@ -352,14 +348,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 resetStateTime = true,
                 isReversed = true,
             )
-            ctx.healthComponent.resetHealth()
         }
 
         override fun update(ctx: PlayerStateContext) {
             if (ctx.animationComponent.isAnimationFinished()) {
-                ctx.moveComponent.lockMovement = false
-                ctx.setGlobalState(PlayerCheckAliveState)
-                ctx.changeState(IDLE)
+                ctx.resurrectEntity()
             }
         }
     }
@@ -374,7 +367,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         ctx: PlayerStateContext,
         telegram: Telegram,
     ): Boolean {
-        if (telegram.message == FsmMessageTypes.HIT.ordinal) {
+        if (telegram.message == FsmMessageTypes.PLAYER_IS_HIT.ordinal) {
             ctx.changeState(HIT)
             return true
         }

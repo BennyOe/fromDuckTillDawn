@@ -54,7 +54,7 @@ data class SpawnCfg(
                             attackDelay = 0.5f,
                             scaleImage = vec2(3f, 3f),
                             scalePhysic = vec2(0.2f, 0.4f),
-                            offsetPhysic = vec2(0f, -0.8f),
+                            offsetPhysic = vec2(0f, -0.7f),
                             aiTreePath = "ai/mushroom.tree",
                             scaleSpeed = 0.5f,
                         )

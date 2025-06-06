@@ -83,11 +83,9 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
                 Animation.PlayMode.NORMAL,
                 AnimationVariant.FIRST,
                 // isReversed has to be set after the first time to prevent flickering because animation is played back reversed in RESURRECT state
-                isReversed = deathAlreadyEnteredBefore,
+                isReversed = ctx.deathAlreadyEnteredBefore,
             )
-            ctx.moveComponent.lockMovement = true
-            ctx.stateComponent.stateMachine.globalState = null
-            ctx.moveComponent.moveVelocity = 0f
+            ctx.entityIsDead(true, 2f)
         }
     }
 
@@ -101,7 +99,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
         ctx: MushroomStateContext,
         telegram: Telegram,
     ): Boolean {
-        if (telegram.message == FsmMessageTypes.HIT.ordinal) {
+        if (telegram.message == FsmMessageTypes.ENEMY_IS_HIT.ordinal) {
             ctx.changeState(HIT)
             return true
         }

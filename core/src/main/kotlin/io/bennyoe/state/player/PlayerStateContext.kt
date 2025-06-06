@@ -5,12 +5,21 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.state.AbstractStateContext
+import io.bennyoe.state.player.PlayerFSM.IDLE
 
 class PlayerStateContext(
     entity: Entity,
     world: World,
     deltaTime: Float = 0f,
 ) : AbstractStateContext<PlayerStateContext>(entity, world, deltaTime) {
+    fun resurrectEntity() {
+        healthComponent.resetHealth()
+        moveComponent.lockMovement = false
+        setGlobalState(PlayerCheckAliveState)
+        changeState(IDLE)
+        physicComponent.body.apply { isActive = true }
+    }
+
     val intentionCmp: IntentionComponent by lazy { with(world) { entity[IntentionComponent] } }
     val attackComponent: AttackComponent by lazy { with(world) { entity[AttackComponent] } }
 

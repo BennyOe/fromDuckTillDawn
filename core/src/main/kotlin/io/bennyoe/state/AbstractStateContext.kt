@@ -8,6 +8,7 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
+import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
@@ -21,6 +22,9 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     val world: World,
     var deltaTime: Float = 0f,
 ) {
+    // this is needed to prevent flickering of the death animation
+    var deathAlreadyEnteredBefore = false
+
     // this cast has to be made because of the type erasure of fleks
     @Suppress("UNCHECKED_CAST")
     val stateComponent: StateComponent<C, *> by lazy { with(world) { entity[StateComponent] as StateComponent<C, *> } }
@@ -34,7 +38,6 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     abstract val wantsToJump: Boolean
     abstract val wantsToAttack: Boolean
 
-    val getsHit get() = healthComponent.takenDamage > 0f
     val wantsToWalk get() = intentionComponent.walkDirection != WalkDirection.NONE
     val wantsToIdle get() = intentionComponent.walkDirection == WalkDirection.NONE
 
@@ -44,6 +47,21 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     inline fun <reified T : Component<T>> remove(type: ComponentType<T>) = with(world) { entity.configure { it -= type } }
 
     inline fun <reified T : Component<T>> add(component: T) = with(world) { entity.configure { it += component } }
+
+    open fun entityIsDead(
+        keepCorpse: Boolean,
+        removeDelay: Float,
+    ) {
+        moveComponent.lockMovement = true
+        stateComponent.stateMachine.globalState = null
+        moveComponent.moveVelocity = 0f
+        deathAlreadyEnteredBefore = true
+        with(world) {
+            entity.configure {
+                it += DeadComponent(keepCorpse, removeDelay)
+            }
+        }
+    }
 
     fun setAnimation(
         type: AnimationType,

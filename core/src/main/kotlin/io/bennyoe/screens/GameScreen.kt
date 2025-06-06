@@ -23,8 +23,8 @@ import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DamageSystem
-import io.bennyoe.systems.DeadSystem
 import io.bennyoe.systems.EntitySpawnSystem
+import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
@@ -32,6 +32,7 @@ import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
+import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem
@@ -84,9 +85,10 @@ class GameScreen(
                 add(CameraSystem())
                 add(RenderSystem())
                 add(DebugSystem())
+                add(ExpireSystem())
                 add(StateBubbleSystem())
+                add(BTBubbleSystem())
                 add(UiRenderSystem())
-                add(DeadSystem())
             }
         }
 

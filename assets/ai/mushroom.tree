@@ -1,6 +1,6 @@
 # Actions
 import idle:"io.bennyoe.ai.IdleTask"
-import wander:"io.bennyoe.ai.WanderTask"
+import patrol:"io.bennyoe.ai.PatrolTask"
 import attack:"io.bennyoe.ai.AttackTask"
 
 # Conditions
@@ -18,4 +18,4 @@ root
   selector
     $attack
     (isAlive?) (random success: 0.5) idle duration:"uniform,1.0,1.5"
-    (isAlive?) wander
+    (isAlive?) patrol

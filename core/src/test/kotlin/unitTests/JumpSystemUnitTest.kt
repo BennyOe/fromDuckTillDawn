@@ -70,43 +70,27 @@ class JumpSystemUnitTest {
             }
     }
 
-    /**
-     * Helper that re‑implements the formula from JumpSystem for comparison.
-     */
-    private fun expectedJumpVelocity(height: Float): Float {
-        if (height <= 0f) return 0f
-        val gravityPerStepY = phyWorld.gravity.y * PHYSIC_TIME_STEP * PHYSIC_TIME_STEP
-        val a = 0.5f / gravityPerStepY
-        val b = 0.5f
-        val disc = b * b - 4 * a * height
-        val quad1 = (-b - sqrt(disc)) / (2 * a)
-        val quad2 = (-b + sqrt(disc)) / (2 * a)
-        val solutionStep = if (quad1 < 0) quad2 else quad1
-        return solutionStep / PHYSIC_TIME_STEP
-    }
-
     @Test
     fun `jump velocity is zero for non positive height`() {
-        with(world) { entity[JumpComponent].maxHeight = 0f }
+        val jumpCmp = with(world) { entity[JumpComponent] }
+        jumpCmp.maxHeight = 0f
 
         world.update(0f)
 
-        val jump = with(world) { entity[JumpComponent] }
-        assertEquals(0f, jump.jumpVelocity, "Velocity should be 0 when height ≤ 0")
+        assertEquals(0f, jumpCmp.jumpVelocity, "Velocity should be 0 when height ≤ 0")
     }
 
     @Test
     fun `computed velocity matches analytical formula`() {
+        val jumpCmp = with(world) { entity[JumpComponent] }
+
         val desiredHeight = 3f
-
         world.update(0f)
-
-        val jump = with(world) { entity[JumpComponent] }
-        val expected = expectedJumpVelocity(desiredHeight)
+        val expected = expectedJumpVelocity()
 
         assertEquals(
             expected,
-            jump.jumpVelocity,
+            jumpCmp.jumpVelocity,
             1e-3f,
             "Jump velocity should follow the analytical physics formula",
         )
@@ -114,17 +98,31 @@ class JumpSystemUnitTest {
 
     @Test
     fun `velocity scales with gravity magnitude`() {
+        val jumpCmp = with(world) { entity[JumpComponent] }
+
         // first run with normal gravity
         world.update(0f)
-        val normalVel = with(world) { entity[JumpComponent].jumpVelocity }
+        val normalVel = jumpCmp.jumpVelocity
 
         // make gravity weaker (half)
         phyWorld.gravity = Vector2(0f, -4.905f)
         world.update(0f)
-        val weakerVel = with(world) { entity[JumpComponent].jumpVelocity }
+        val weakerVel = jumpCmp.jumpVelocity
 
         assert(weakerVel < normalVel) {
             "With weaker gravity the jump velocity should decrease"
         }
+    }
+
+    // Helper that re‑implements the formula from JumpSystem for comparison.
+    private fun expectedJumpVelocity(): Float {
+        val gravityPerStepY = phyWorld.gravity.y * PHYSIC_TIME_STEP * PHYSIC_TIME_STEP
+        val a = 0.5f / gravityPerStepY
+        val b = 0.5f
+        val disc = b * b - 4 * a * 3f
+        val quad1 = (-b - sqrt(disc)) / (2 * a)
+        val quad2 = (-b + sqrt(disc)) / (2 * a)
+        val solutionStep = if (quad1 < 0) quad2 else quad1
+        return solutionStep / PHYSIC_TIME_STEP
     }
 }

@@ -40,7 +40,7 @@ class AnimationSystemUnitTest {
         imageMock = mockk(relaxed = true)
 
         val stageMock = mockk<Stage>(relaxed = true)
-        every { stageMock.actors.contains(any(), any()) } returns false // bypass stage.addActor check
+        every { stageMock.actors.contains(any(), any()) } returns false
 
         val atlasMock = mockk<TextureAtlas>(relaxed = true)
         val regionMock = mockk<TextureAtlas.AtlasRegion>(relaxed = true)
@@ -57,7 +57,6 @@ class AnimationSystemUnitTest {
 
         aniCmp =
             AnimationComponent().apply {
-                // provide dummy animation so the system can step frames
                 val frameArray = GdxArray<TextureRegionDrawable>()
                 frameArray.add(mockk(relaxed = true))
                 animation = Animation(0.1f, frameArray)

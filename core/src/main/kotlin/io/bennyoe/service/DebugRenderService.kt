@@ -15,6 +15,8 @@ import ktx.collections.gdxArrayOf
 
 interface DebugRenderService {
     fun addShape(shape: DebugShape)
+
+    companion object {}
 }
 
 class DefaultDebugRenderService : DebugRenderService {

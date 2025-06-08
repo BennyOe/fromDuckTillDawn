@@ -2,7 +2,6 @@ package integrationTests
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -92,7 +91,6 @@ class ExpireSystemIntegrationTest {
                         PlayerStateContext(it, world),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
-                        ::DefaultStateMachine,
                     )
             }
     }

@@ -2,7 +2,6 @@ package integrationTests
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -105,7 +104,6 @@ class AnimationSystemIntegrationTest {
                         PlayerStateContext(it, world),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
-                        ::DefaultStateMachine,
                     )
             }
     }

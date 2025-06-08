@@ -12,7 +12,7 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.service.DefaultDebugRenderService
+import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.utility.BodyData
@@ -24,7 +24,7 @@ import ktx.math.component1
 import ktx.math.component2
 
 class AttackSystem(
-    private val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
+    private val debugRenderService: DebugRenderService = inject("debugRenderService"),
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(AttackComponent) }) {
     private var attackDelayCounter = 0f

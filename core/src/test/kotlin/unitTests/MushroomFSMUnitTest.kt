@@ -2,7 +2,6 @@ package unitTests
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.physics.box2d.Body
@@ -99,7 +98,6 @@ class MushroomFSMUnitTest {
                         MushroomStateContext(it, world),
                         MushroomFSM.IDLE,
                         MushroomCheckAliveState,
-                        ::DefaultStateMachine,
                     )
             }
         stateContext = MushroomStateContext(entity, world)

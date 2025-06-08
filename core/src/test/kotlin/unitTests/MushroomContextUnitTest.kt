@@ -18,6 +18,7 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
+import io.bennyoe.service.NoOpDebugRenderService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
@@ -70,7 +71,7 @@ class MushroomContextUnitTest {
                 it += phyCmp
             }
 
-        ctx = MushroomContext(mush, world, stage)
+        ctx = MushroomContext(mush, world, stage, NoOpDebugRenderService())
     }
 
     @Test

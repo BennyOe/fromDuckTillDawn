@@ -34,5 +34,5 @@ object GameConstants {
     const val DEBUG_ALPHA = 0.5f
 
     // Show only debug without rendering images
-    const val SHOW_ONLY_DEBUG = true
+    const val SHOW_ONLY_DEBUG = false
 }

@@ -1,6 +1,5 @@
 package unitTests
 
-import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
@@ -65,7 +64,6 @@ class JumpSystemUnitTest {
                         PlayerStateContext(it, world),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
-                        ::DefaultStateMachine,
                     )
             }
     }

@@ -2,7 +2,6 @@ package unitTests
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
@@ -102,7 +101,6 @@ class PlayerFSMUnitTest {
                         PlayerStateContext(it, world),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
-                        ::DefaultStateMachine,
                     )
             }
         stateContext = PlayerStateContext(entity, world)

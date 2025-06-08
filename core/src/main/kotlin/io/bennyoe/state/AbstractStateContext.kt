@@ -34,6 +34,7 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     val jumpComponent: JumpComponent by lazy { with(world) { entity[JumpComponent] } }
     val healthComponent: HealthComponent by lazy { with(world) { entity[HealthComponent] } }
     val intentionComponent: IntentionComponent by lazy { with(world) { entity[IntentionComponent] } }
+    val deadComponent: DeadComponent by lazy { with(world) { entity[DeadComponent] } }
 
     abstract val wantsToJump: Boolean
     abstract val wantsToAttack: Boolean
@@ -52,15 +53,11 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
         keepCorpse: Boolean,
         removeDelay: Float,
     ) {
+        deadComponent.isDead = true
         moveComponent.lockMovement = true
         stateComponent.stateMachine.globalState = null
         moveComponent.moveVelocity = 0f
         deathAlreadyEnteredBefore = true
-        with(world) {
-            entity.configure {
-                it += DeadComponent(keepCorpse, removeDelay)
-            }
-        }
     }
 
     fun setAnimation(

@@ -91,6 +91,12 @@ class MushroomFSMUnitTest {
                 it += imgCmp
                 it += InputComponent()
                 it += animationCmp
+                it +=
+                    DeadComponent(
+                        false,
+                        0.3f,
+                        0.3f,
+                    )
                 it += JumpComponent()
                 it +=
                     StateComponent(
@@ -165,12 +171,15 @@ class MushroomFSMUnitTest {
     @Test
     fun `death state schedules removal and deactivates body`() {
         val deadDelay = 2f
+        val deadCmp = with(world) { entity[DeadComponent] }
+        deadCmp.removeDelayCounter = deadDelay
+        deadCmp.removeDelay = deadDelay
+
         givenState(MushroomFSM.DEATH)
 
-        assertTrue(with(world) { entity has DeadComponent })
+        assertTrue(deadCmp.isDead)
         assertFalse(bodyMock.isActive)
 
-        val deadCmp = with(world) { entity[DeadComponent] }
         assertEquals(deadDelay, deadCmp.removeDelay, 1e-4f)
     }
 

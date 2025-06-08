@@ -20,6 +20,7 @@ import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
@@ -128,6 +129,7 @@ class EntitySpawnSystem(
             it += physics
 
             it += HealthComponent()
+            it += DeadComponent(cfg.keepCorpse, cfg.removeDelay, cfg.removeDelay)
 
             val move = MoveComponent()
             move.maxSpeed *= cfg.scaleSpeed

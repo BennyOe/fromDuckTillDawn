@@ -13,6 +13,8 @@ class PlayerStateContext(
     deltaTime: Float = 0f,
 ) : AbstractStateContext<PlayerStateContext>(entity, world, deltaTime) {
     fun resurrectEntity() {
+        deadComponent.isDead = false
+        deadComponent.resetRemoveDealyCounter()
         healthComponent.resetHealth()
         moveComponent.lockMovement = false
         setGlobalState(PlayerCheckAliveState)

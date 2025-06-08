@@ -15,12 +15,13 @@ class ExpireSystem : IteratingSystem(family { all(DeadComponent) }) {
         val deadCmp = entity[DeadComponent]
         val physicCmp = entity[PhysicComponent]
 
-        physicCmp.body.apply { isActive = false }
+        if (!deadCmp.isDead) return
 
-        if (deadCmp.removeDelay - deltaTime > 0f) {
-            deadCmp.removeDelay -= deltaTime
+        if (deadCmp.removeDelayCounter - deltaTime > 0f) {
+            deadCmp.removeDelayCounter -= deltaTime
             return
         }
+        physicCmp.body.apply { isActive = false }
 
         if (aniCmp.isAnimationFinished()) {
             when (deadCmp.keepCorpse) {

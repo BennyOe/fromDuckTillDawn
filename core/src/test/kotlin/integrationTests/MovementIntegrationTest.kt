@@ -12,6 +12,7 @@ import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
@@ -65,6 +66,12 @@ class MovementIntegrationTest {
                 it += HealthComponent()
                 it += IntentionComponent()
                 it += InputComponent()
+                it +=
+                    DeadComponent(
+                        false,
+                        0.3f,
+                        0.3f,
+                    )
                 it += JumpComponent()
                 it += AnimationComponent().apply { animation = animationMock }
                 it += imgCmp

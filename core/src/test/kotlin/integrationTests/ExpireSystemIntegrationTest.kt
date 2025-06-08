@@ -33,6 +33,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import com.badlogic.gdx.physics.box2d.World as Box2DWorld
@@ -81,7 +82,13 @@ class ExpireSystemIntegrationTest {
                 it += HealthComponent()
                 it += IntentionComponent()
                 it += InputComponent()
-                it += DeadComponent(false, 0.3f)
+                it +=
+                    DeadComponent(
+                        false,
+                        0.3f,
+                        0.3f,
+                        true,
+                    )
                 it += JumpComponent()
                 it += AnimationComponent().apply { animation = animationMock }
                 it += imgCmp
@@ -106,6 +113,18 @@ class ExpireSystemIntegrationTest {
         world.update(0.05f)
         assertFalse(world.contains(entity))
         verify { box2dWorldMock.destroyBody(bodyMock) }
+    }
+
+    @Test
+    fun `resurrect resets the removeDelay`() {
+        val delay = 0.3f
+        val deadCmp = with(world) { entity[DeadComponent] }
+
+        world.update(delay - 0.01f)
+
+        deadCmp.resetRemoveDealyCounter()
+
+        assertEquals(delay, deadCmp.removeDelay)
     }
 
     // TODO add tests where entity is not removed

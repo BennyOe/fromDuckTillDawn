@@ -25,7 +25,7 @@ class MushroomContext(
     entity: Entity,
     world: World,
     stage: Stage,
-    private val debugRenderService: DebugRenderService,
+    val debugRenderService: DebugRenderService,
 ) : AbstractBlackboard(entity, world, stage) {
     val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent

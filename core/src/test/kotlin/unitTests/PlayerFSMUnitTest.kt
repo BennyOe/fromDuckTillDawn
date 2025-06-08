@@ -96,6 +96,12 @@ class PlayerFSMUnitTest {
                 it += animationCmp
                 it += JumpComponent()
                 it +=
+                    DeadComponent(
+                        false,
+                        0f,
+                        0f,
+                    )
+                it +=
                     StateComponent(
                         world,
                         PlayerStateContext(it, world),
@@ -657,13 +663,13 @@ class PlayerFSMUnitTest {
     @Test
     fun `death state schedules removal and deactivates body`() {
         val deadDelay = 0f
+        val deadCmp = with(world) { entity[DeadComponent] }
         givenState(PlayerFSM.DEATH)
 
-        assertTrue(with(world) { entity has DeadComponent })
+        assertTrue(deadCmp.isDead)
         assertFalse(bodyMock.isActive)
 
-        val deadCmp = with(world) { entity[DeadComponent] }
-        assertEquals(deadDelay, deadCmp.removeDelay, 1e-4f)
+        assertEquals(deadDelay, deadCmp.removeDelayCounter, 1e-4f)
     }
 
     private fun givenState(state: PlayerFSM) {

@@ -13,10 +13,11 @@ import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.debug.DebugComponent
+import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
-import io.bennyoe.service.DebugRenderService
+import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.BehaviorTreeSystem
@@ -65,7 +66,7 @@ class GameScreen(
                 add("stage", stage)
                 add("uiStage", uiStage)
                 add("shapeRenderer", ShapeRenderer())
-                add("debugRenderService", DebugRenderService)
+                add("debugRenderService", DefaultDebugRenderService())
                 add("spriteBatch", spriteBatch)
                 add("profiler", profiler)
             }
@@ -84,7 +85,7 @@ class GameScreen(
                 add(MoveSystem())
                 add(CameraSystem())
                 add(RenderSystem())
-                add(DebugSystem())
+                if (ENABLE_DEBUG) add(DebugSystem())
                 add(ExpireSystem())
                 add(StateBubbleSystem())
                 add(BTBubbleSystem())
@@ -96,7 +97,7 @@ class GameScreen(
         profiler.enable()
         // add a gameState Entity to the screen
         entityWorld.entity {
-            it += DebugComponent()
+            if (ENABLE_DEBUG) it += DebugComponent()
             it += GameStateComponent()
         }
 

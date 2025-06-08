@@ -26,12 +26,13 @@ import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.debug.BTBubbleComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.components.debug.StateBubbleComponent
+import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_ENEMY_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
-import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.DebugShape
+import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.widgets.DrawCallsCounterWidget
 import io.bennyoe.widgets.FpsCounterWidget
@@ -49,13 +50,13 @@ class DebugSystem(
         inject("stage"),
     private val uiStage: Stage =
         inject("uiStage"),
-    private val debugRenderingService: DebugRenderService =
+    private val debugRenderingService: DefaultDebugRenderService =
         inject("debugRenderService"),
     val shapeRenderer: ShapeRenderer =
         inject("shapeRenderer"),
     profiler: GLProfiler =
         inject("profiler"),
-) : IntervalSystem(enabled = true) {
+) : IntervalSystem(enabled = ENABLE_DEBUG) {
     private val physicsRenderer by lazy { Box2DDebugRenderer() }
     private val fpsLabelStyle = LabelStyle(BitmapFont().apply { data.setScale(1.5f) }, Color(0f, 1f, 0f, 1f))
     private val labels = hashMapOf<DebugShape, LabelWidget>()
@@ -67,6 +68,7 @@ class DebugSystem(
             DebugType.ENEMY to SHOW_ENEMY_DEBUG,
             DebugType.NONE to true,
         )
+
     private val fpsCounter =
         FpsCounterWidget(fpsLabelStyle).apply {
             setPosition(10f, 20f)
@@ -94,6 +96,7 @@ class DebugSystem(
 
         fpsCounter.isVisible = debugCmp.enabled
         drawCallsCounter.isVisible = debugCmp.enabled
+
         if (debugCmp.enabled) {
             fpsCounter.act(deltaTime)
             drawCallsCounter.act(deltaTime)

@@ -14,7 +14,7 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.event.MapChangedEvent
-import io.bennyoe.service.DebugRenderService
+import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
 import ktx.log.logger
@@ -25,7 +25,7 @@ import kotlin.math.min
 
 class CameraSystem(
     stage: Stage = inject("stage"),
-    val debugRenderService: DebugRenderService = inject("debugRenderService"),
+    val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
 ) : IteratingSystem(family { all(ImageComponent, PlayerComponent) }),
     EventListener {
     private val camera = stage.camera

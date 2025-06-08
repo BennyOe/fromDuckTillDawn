@@ -1,6 +1,5 @@
 package io.bennyoe.systems
 
-import com.badlogic.gdx.ai.fsm.DefaultStateMachine
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
@@ -37,6 +36,7 @@ import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
+import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
@@ -59,6 +59,7 @@ import ktx.tiled.y
 class EntitySpawnSystem(
     private val stage: Stage = inject("stage"),
     private val phyWorld: World = inject("phyWorld"),
+    private val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
     private val atlas: TextureAtlas = inject(),
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener {
@@ -169,7 +170,6 @@ class EntitySpawnSystem(
                             owner = PlayerStateContext(entity = it, world = world),
                             initialState = PlayerFSM.IDLE,
                             globalState = PlayerCheckAliveState,
-                            factory = ::DefaultStateMachine,
                         )
                     it += state
 
@@ -203,7 +203,6 @@ class EntitySpawnSystem(
                             owner = MushroomStateContext(entity = it, world = world),
                             initialState = MushroomFSM.IDLE,
                             globalState = MushroomCheckAliveState,
-                            factory = ::DefaultStateMachine,
                         )
                     it += state
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
@@ -215,7 +214,9 @@ class EntitySpawnSystem(
                             treePath = cfg.aiTreePath,
                             // The blackboard must be created via a function reference (or lambda)
                             // because at this point we finally have access to the correct Entity, World, and Stage.
-                            createBlackboard = ::MushroomContext,
+                            createBlackboard = { entity, world, stage ->
+                                MushroomContext(entity, world, stage, debugRenderService)
+                            },
                         )
                 }
 

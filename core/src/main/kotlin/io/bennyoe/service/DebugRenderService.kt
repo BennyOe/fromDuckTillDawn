@@ -13,8 +13,20 @@ import io.bennyoe.systems.debug.DebugType
 import ktx.collections.GdxArray
 import ktx.collections.gdxArrayOf
 
-object DebugRenderService {
+interface DebugRenderService {
+    fun addShape(shape: DebugShape)
+}
+
+class DefaultDebugRenderService : DebugRenderService {
     val shapes: GdxArray<DebugShape> = gdxArrayOf()
+
+    override fun addShape(shape: DebugShape) {
+        shapes.add(shape)
+    }
+}
+
+class NoOpDebugRenderService : DebugRenderService {
+    override fun addShape(shape: DebugShape) = Unit
 }
 
 data class DebugShape(
@@ -41,7 +53,7 @@ fun Rectangle.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Circle.addToDebugView(
@@ -53,7 +65,7 @@ fun Circle.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Ellipse.addToDebugView(
@@ -65,7 +77,7 @@ fun Ellipse.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Polyline.addToDebugView(
@@ -77,7 +89,7 @@ fun Polyline.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Polygon.addToDebugView(
@@ -89,5 +101,5 @@ fun Polygon.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.shapes.add(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }

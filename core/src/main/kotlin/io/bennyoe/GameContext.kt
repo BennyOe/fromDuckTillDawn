@@ -10,8 +10,11 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.WORLD_HEIGHT
 import io.bennyoe.config.GameConstants.WORLD_WIDTH
+import io.bennyoe.service.DefaultDebugRenderService
+import io.bennyoe.service.NoOpDebugRenderService
 import ktx.assets.async.AssetStorage
 import ktx.async.KtxAsync
 import ktx.inject.Context
@@ -23,6 +26,7 @@ class GameContext : Context() {
         val spriteBatch: SpriteBatch by lazy { SpriteBatch() }
         val stages = Stages(spriteBatch)
         val shapeRenderer = ShapeRenderer()
+        val debugRenderService = if (ENABLE_DEBUG) DefaultDebugRenderService() else NoOpDebugRenderService()
         val assets: AssetStorage by lazy {
             KtxAsync.initiate() // has to be called before using coroutines
             AssetStorage() // the KTX extension for the asset manager
@@ -37,6 +41,7 @@ class GameContext : Context() {
         register { bindSingleton(stages) }
         register { bindSingleton(shapeRenderer) }
         register { bindSingleton(spriteBatch) }
+        register { bindSingleton(debugRenderService) }
     }
 
     override fun dispose() {

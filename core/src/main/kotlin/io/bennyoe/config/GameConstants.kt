@@ -26,6 +26,7 @@ object GameConstants {
     const val CAMERA_SMOOTHING_FACTOR = 0.04f
 
     // Debug constants
+    const val ENABLE_DEBUG = true
     const val SHOW_ATTACK_DEBUG = true
     const val SHOW_PLAYER_DEBUG = true
     const val SHOW_CAMERA_DEBUG = false
@@ -33,5 +34,5 @@ object GameConstants {
     const val DEBUG_ALPHA = 0.5f
 
     // Show only debug without rendering images
-    const val SHOW_ONLY_DEBUG = false
+    const val SHOW_ONLY_DEBUG = true
 }

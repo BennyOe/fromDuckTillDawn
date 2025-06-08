@@ -11,12 +11,14 @@ import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
 import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.service.DebugRenderService
+import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
 import ktx.log.logger
 import ktx.math.vec2
 
 abstract class Action : LeafTask<MushroomContext>() {
+    private val debugRenderService: DebugRenderService by lazy { DefaultDebugRenderService() }
     val ctx: MushroomContext
         get() = `object`
 
@@ -52,7 +54,7 @@ abstract class Action : LeafTask<MushroomContext>() {
         targetPos: Vector2,
     ) {
         Polyline(floatArrayOf(startPos.x, startPos.y, targetPos.x, targetPos.y)).addToDebugView(
-            DebugRenderService,
+            debugRenderService,
             Color.RED,
             "walk",
             debugType = DebugType.ENEMY,

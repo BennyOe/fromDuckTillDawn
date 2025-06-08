@@ -14,7 +14,7 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.service.DebugRenderService
+import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.service.addToDebugView
 import ktx.log.logger
 import ktx.math.compareTo
@@ -25,6 +25,7 @@ class MushroomContext(
     entity: Entity,
     world: World,
     stage: Stage,
+    private val debugRenderService: DefaultDebugRenderService,
 ) : AbstractBlackboard(entity, world, stage) {
     val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent
@@ -72,7 +73,7 @@ class MushroomContext(
                 sourceOffY + sourceY - sourceSizeY * 0.5f,
                 sourceSizeX,
                 sourceSizeY,
-            ).addToDebugView(DebugRenderService, Color.BLACK, "range")
+            ).addToDebugView(debugRenderService, Color.BLACK, "range")
         return TMP_RECT.contains(targetPos)
     }
 

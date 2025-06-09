@@ -7,7 +7,6 @@ data class DeadComponent(
     var keepCorpse: Boolean = false,
     var removeDelay: Float = 0f,
     var removeDelayCounter: Float = 0f,
-    var isDead: Boolean = false,
 ) : Component<DeadComponent> {
     override fun type() = DeadComponent
 

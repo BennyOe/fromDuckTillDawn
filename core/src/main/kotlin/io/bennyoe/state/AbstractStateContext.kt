@@ -53,7 +53,6 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
         keepCorpse: Boolean,
         removeDelay: Float,
     ) {
-        deadComponent.isDead = true
         moveComponent.lockMovement = true
         stateComponent.stateMachine.globalState = null
         moveComponent.moveVelocity = 0f

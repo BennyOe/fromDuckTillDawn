@@ -81,6 +81,9 @@ class AttackSystem(
                 return@query true
             }
 
+            // not hitting dead enemies
+            if (bodyData.entity[HealthComponent].isDead) return@query true
+
             logger.debug { "Fixture found" }
             bodyData.entity.configure {
                 val healthCmp = it.getOrNull(HealthComponent)

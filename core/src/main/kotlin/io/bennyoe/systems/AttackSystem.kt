@@ -26,7 +26,8 @@ import ktx.math.component2
 class AttackSystem(
     private val debugRenderService: DebugRenderService = inject("debugRenderService"),
     private val phyWorld: World = inject("phyWorld"),
-) : IteratingSystem(family { all(AttackComponent) }) {
+) : IteratingSystem(family { all(AttackComponent) }),
+    PausableSystem {
     private var attackDelayCounter = 0f
 
     override fun onTickEntity(entity: Entity) {

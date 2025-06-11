@@ -76,6 +76,7 @@ class GameScreen(
                 add(CollisionSpawnSystem())
                 add(InputSystem())
                 add(AttackSystem())
+                add(GameStateSystem())
                 add(DamageSystem())
                 add(DamageTextSystem())
                 add(JumpSystem())

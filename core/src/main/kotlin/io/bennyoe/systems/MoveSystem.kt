@@ -11,7 +11,9 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
 import ktx.log.logger
 
-class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, AnimationComponent) }, enabled = true) {
+class MoveSystem :
+    IteratingSystem(family { all(PhysicComponent, MoveComponent, AnimationComponent) }, enabled = true),
+    PausableSystem {
     override fun onTickEntity(entity: Entity) {
         val moveCmp = entity[MoveComponent]
         val intentionCmp = entity[IntentionComponent]

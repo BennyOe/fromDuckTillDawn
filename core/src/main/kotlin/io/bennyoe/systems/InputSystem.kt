@@ -6,6 +6,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.WalkDirection
+import ktx.log.logger
 
 class InputSystem : IteratingSystem(family { all(InputComponent, IntentionComponent) }) {
     override fun onTickEntity(entity: Entity) {
@@ -40,5 +41,9 @@ class InputSystem : IteratingSystem(family { all(InputComponent, IntentionCompon
                 bashJustPressed = false
             }
         }
+    }
+
+    companion object {
+        val logger = logger<InputSystem>()
     }
 }

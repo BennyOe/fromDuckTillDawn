@@ -22,7 +22,8 @@ import ktx.scene2d.Scene2DSkin
 
 class DamageSystem(
     private val uiStage: Stage = inject("uiStage"),
-) : IteratingSystem(family { all(HealthComponent) }) {
+) : IteratingSystem(family { all(HealthComponent) }),
+    PausableSystem {
     private val messageDispatcher = MessageManager.getInstance()
 
     override fun onTickEntity(entity: Entity) {

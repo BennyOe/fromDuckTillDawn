@@ -10,7 +10,9 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import ktx.log.logger
 
-class ExpireSystem : IteratingSystem(family { all(DeadComponent) }) {
+class ExpireSystem :
+    IteratingSystem(family { all(DeadComponent) }),
+    PausableSystem {
     override fun onTickEntity(entity: Entity) {
         val aniCmp = entity[AnimationComponent]
         val deadCmp = entity[DeadComponent]

@@ -63,7 +63,8 @@ class EntitySpawnSystem(
     private val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
     private val atlas: TextureAtlas = inject(),
 ) : IteratingSystem(family { all(SpawnComponent) }),
-    EventListener {
+    EventListener,
+    PausableSystem {
     private val sizesCache = mutableMapOf<AnimationType, Vector2>()
     private val messageDispatcher = MessageManager.getInstance()
 

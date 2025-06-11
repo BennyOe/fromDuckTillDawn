@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.github.quillraven.fleks.World
+import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.state.FsmMessageTypes
@@ -15,6 +16,7 @@ class PlayerInputProcessor(
 ) : KtxInputAdapter {
     private val inputEntities = world.family { all(InputComponent) }
     private val debugEntities = world.family { all(DebugComponent) }
+    private val gameStateEntities = world.family { all(GameStateComponent) }
     private val messageDispatcher = MessageManager.getInstance()
 
     // Mapping der Steuerungstasten zu Aktionen
@@ -30,6 +32,7 @@ class PlayerInputProcessor(
             Keys.C to Action.MESSAGE2,
             Keys.BACKSPACE to Action.DEBUG,
             Keys.K to Action.KILL,
+            Keys.P to Action.PAUSE,
         )
 
     init {
@@ -54,6 +57,13 @@ class PlayerInputProcessor(
             val debugCmp = debugEntity[DebugComponent]
             when (action) {
                 Action.DEBUG -> debugCmp.toggleDebug(pressed)
+                else -> Unit
+            }
+        }
+        gameStateEntities.forEach { gameStateEntity ->
+            val gameStateCmp = gameStateEntity[GameStateComponent]
+            when (action) {
+                Action.PAUSE -> gameStateCmp.toggleDebug(pressed)
                 else -> Unit
             }
         }
@@ -113,5 +123,6 @@ class PlayerInputProcessor(
         MESSAGE2,
         DEBUG,
         KILL,
+        PAUSE,
     }
 }

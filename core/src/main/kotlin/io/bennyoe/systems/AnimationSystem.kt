@@ -17,7 +17,8 @@ import ktx.log.logger
 
 class AnimationSystem(
     private val textureAtlas: TextureAtlas = inject(),
-) : IteratingSystem(family { all(AnimationComponent, ImageComponent) }) {
+) : IteratingSystem(family { all(AnimationComponent, ImageComponent) }),
+    PausableSystem {
     private val cachedAnimations = mutableMapOf<String, Animation<TextureRegionDrawable>>()
 
     override fun onTickEntity(entity: Entity) {

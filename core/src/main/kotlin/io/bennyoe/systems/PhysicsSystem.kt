@@ -31,7 +31,8 @@ import ktx.math.component2
 class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(PHYSIC_TIME_STEP)),
-    ContactListener {
+    ContactListener,
+    PausableSystem {
     init {
         phyWorld.setContactListener(this)
     }

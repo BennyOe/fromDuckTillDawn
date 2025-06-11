@@ -28,7 +28,8 @@ import kotlin.math.max
 class CollisionSpawnSystem(
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(PhysicComponent) }),
-    EventListener {
+    EventListener,
+    PausableSystem {
     override fun onTickEntity(entity: Entity) = Unit
 
     override fun handle(event: Event): Boolean {

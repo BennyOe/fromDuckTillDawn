@@ -21,7 +21,8 @@ import kotlin.math.sqrt
 
 class JumpSystem(
     val physicWorld: World = inject("phyWorld"),
-) : IteratingSystem(family { all(JumpComponent) }) {
+) : IteratingSystem(family { all(JumpComponent) }),
+    PausableSystem {
     override fun onTickEntity(entity: Entity) {
         val jumpCmp = entity[JumpComponent]
         val stateCmp = entity[StateComponent]

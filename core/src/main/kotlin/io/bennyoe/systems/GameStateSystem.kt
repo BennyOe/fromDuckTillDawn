@@ -15,11 +15,7 @@ class GameStateSystem : IntervalSystem() {
         if (gameStateCmp.isPaused == alReadyChanged) return
         alReadyChanged = gameStateCmp.isPaused
 
-        if (gameStateCmp.isPaused) {
-            world.systems.filter { it is PausableSystem }.forEach { it.enabled = false }
-        } else {
-            world.systems.filter { it is PausableSystem }.forEach { it.enabled = true }
-        }
+        world.systems.filter { it is PausableSystem }.forEach { it.enabled = !gameStateCmp.isPaused }
     }
 
     companion object {

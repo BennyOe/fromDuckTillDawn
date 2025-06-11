@@ -79,7 +79,7 @@ class ExpireSystemIntegrationTest {
                 it += AttackComponent()
                 it += PhysicComponent().apply { body = bodyMock }
                 it += MoveComponent(maxSpeed = 10f)
-                it += HealthComponent()
+                it += HealthComponent(current = -1f)
                 it += IntentionComponent()
                 it += InputComponent()
                 it +=
@@ -87,7 +87,6 @@ class ExpireSystemIntegrationTest {
                         false,
                         0.3f,
                         0.3f,
-                        true,
                     )
                 it += JumpComponent()
                 it += AnimationComponent().apply { animation = animationMock }
@@ -116,6 +115,22 @@ class ExpireSystemIntegrationTest {
     }
 
     @Test
+    fun `expire system keeps entity and destroys body after delay`() {
+        val delay = 0.3f
+        val deadCmp = with(world) { entity[DeadComponent] }
+        val physicCmp = with(world) { entity[PhysicComponent] }
+        deadCmp.keepCorpse = true
+
+        world.update(delay - 0.01f)
+        assertTrue(world.contains(entity))
+        verify { box2dWorldMock wasNot Called }
+
+        world.update(0.05f)
+        assertTrue(world.contains(entity))
+        assertFalse(physicCmp.body.isActive)
+    }
+
+    @Test
     fun `resurrect resets the removeDelay`() {
         val delay = 0.3f
         val deadCmp = with(world) { entity[DeadComponent] }
@@ -126,6 +141,4 @@ class ExpireSystemIntegrationTest {
 
         assertEquals(delay, deadCmp.removeDelay)
     }
-
-    // TODO add tests where entity is not removed
 }

@@ -6,14 +6,13 @@ import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
 import io.bennyoe.ai.blackboards.MushroomContext
+import io.bennyoe.components.WalkDirection
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
 import ktx.log.logger
-import ktx.math.vec2
 
 abstract class Action : LeafTask<MushroomContext>() {
     val ctx: MushroomContext
@@ -98,27 +97,14 @@ class IdleTask(
 }
 
 class PatrolTask : Action() {
-    private val startPos = vec2()
-    private val targetPos = vec2()
-
     override fun enter() {
         ctx.stopAttack()
         ctx.lastTaskName = this.javaClass.simpleName
-        if (startPos.isZero) {
-            startPos.set(ctx.location)
-        }
-        targetPos.set(startPos)
-        targetPos.x += MathUtils.random(-5f, 5f)
-        ctx.moveTo(targetPos)
+        ctx.intentionCmp.walkDirection = WalkDirection.RIGHT
     }
 
     override fun onExecute(): Status {
-        drawWalkingLine(startPos, targetPos)
-        if (ctx.inRange(0.5f, targetPos)) {
-            ctx.stopMovement()
-            logger.debug { "succeeded" }
-            return Status.SUCCEEDED
-        }
+        ctx.moveTo()
         return Status.RUNNING
     }
 

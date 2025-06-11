@@ -11,11 +11,16 @@ import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
+import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
+import io.bennyoe.state.mushroom.MushroomFSM
+import io.bennyoe.state.mushroom.MushroomStateContext
+import io.bennyoe.state.player.PlayerFSM
 import ktx.log.logger
 import ktx.math.compareTo
 import ktx.math.component1
@@ -31,7 +36,9 @@ class MushroomContext(
     val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
     val intentionCmp: IntentionComponent
+    val rayHitCmp: RayHitComponent
     val healthCmp: HealthComponent
+    val stateCmp: StateComponent<*, *>
     val location: Vector2
         get() = phyCmp.body.position
 
@@ -42,16 +49,43 @@ class MushroomContext(
             animCmp = entity[AnimationComponent]
             healthCmp = entity[HealthComponent]
             intentionCmp = entity[IntentionComponent]
+            rayHitCmp = entity[RayHitComponent]
+            stateCmp = entity[StateComponent]
         }
     }
 
-    fun moveTo(targetPos: Vector2) {
-        logger.debug { "Location: ${location.x} Target: ${targetPos.x}" }
-        if (location < targetPos) {
-            intentionCmp.walkDirection = WalkDirection.RIGHT
+    // TODO implement all the methods for walking, which contains
+    // check raycast for hitting wall
+    // check raycast for gap in ground
+    // reverse the walking direction
+    fun reverseWalkingDirection(direction: WalkDirection): WalkDirection {
+        if (rayHitCmp.wallHit || (!rayHitCmp.jumpHit && !rayHitCmp.groundHit && stateCmp.stateMachine.currentState != MushroomFSM.FALL)) {
+            return when (direction) {
+                WalkDirection.LEFT -> WalkDirection.RIGHT
+                WalkDirection.RIGHT -> WalkDirection.LEFT
+                else -> WalkDirection.NONE
+            }
         }
-        if (location > targetPos) {
-            intentionCmp.walkDirection = WalkDirection.LEFT
+        return direction
+    }
+
+    // TODO implement all the methods for attack, which contains
+    // check if in detection range
+    // walk to player until in attack range
+    // follow player (also facing direction)
+    // start attack
+    // have a 20% chance of dodging a players attack
+
+    // TODO implement all the methods for jumping, which contains
+    // detect raycast for hitting a wall
+    // check raycast if platform is jumpable
+    // jump
+
+    fun moveTo() {
+        if (!rayHitCmp.groundHit && rayHitCmp.jumpHit && stateCmp.stateMachine.currentState != PlayerFSM.DOUBLE_JUMP) {
+            intentionCmp.wantsToJump = true
+        } else {
+            intentionCmp.walkDirection = reverseWalkingDirection(intentionCmp.walkDirection)
         }
     }
 
@@ -82,6 +116,8 @@ class MushroomContext(
     }
 
     // TODO implement
+    // check if enemy is in attack range
+    // check if facing direction is where the enemy is
     fun canAttack(): Boolean = true
 
     fun hasEnemyNearby(): Boolean {

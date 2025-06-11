@@ -6,7 +6,9 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.state.LANDING_VELOCITY_EPS
 import ktx.log.logger
+import kotlin.math.abs
 
 sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
     data object IDLE : MushroomFSM() {
@@ -18,6 +20,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
             when {
                 ctx.wantsToWalk -> ctx.changeState(WALK)
                 ctx.wantsToAttack -> ctx.changeState(ATTACK)
+                ctx.wantsToJump -> ctx.changeState(JUMP)
             }
         }
 
@@ -36,6 +39,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
             when {
                 ctx.wantsToAttack -> ctx.changeState(ATTACK)
                 ctx.wantsToIdle -> ctx.changeState(IDLE)
+                ctx.wantsToJump -> ctx.changeState(JUMP)
             }
         }
 
@@ -43,6 +47,36 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
             ctx: MushroomStateContext,
             telegram: Telegram,
         ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    data object JUMP : MushroomFSM() {
+        override fun enter(ctx: MushroomStateContext) {
+            ctx.jumpComponent.wantsToJump = true
+            ctx.intentionCmp.wantsToJump = false
+            ctx.setAnimation(AnimationType.JUMP)
+        }
+
+        override fun update(ctx: MushroomStateContext) {
+            when {
+                isFalling(ctx) -> ctx.changeState(FALL)
+            }
+        }
+    }
+
+    data object FALL : MushroomFSM() {
+        override fun enter(ctx: MushroomStateContext) {
+            ctx.setAnimation(AnimationType.JUMP)
+        }
+
+        override fun update(ctx: MushroomStateContext) {
+            val velY = ctx.physicComponent.body.linearVelocity.y
+            when {
+                // Land only when we actually touch the ground *and* vertical speed is ~0
+                abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
+                // otherwise remain in FALL
+                else -> ctx.intentionCmp.wantsToJump = false
+            }
+        }
     }
 
     data object ATTACK : MushroomFSM() {

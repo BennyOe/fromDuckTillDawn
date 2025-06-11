@@ -34,6 +34,8 @@ import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
 import io.bennyoe.systems.debug.BTBubbleSystem
+import io.bennyoe.systems.BasicSensorsSystem
+import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem
@@ -81,6 +83,7 @@ class GameScreen(
                 add(DamageTextSystem())
                 add(JumpSystem())
                 add(PhysicsSystem())
+                add(BasicSensorsSystem())
                 add(StateSystem())
                 add(BehaviorTreeSystem())
                 add(MoveSystem())

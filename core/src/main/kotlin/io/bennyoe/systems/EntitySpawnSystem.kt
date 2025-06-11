@@ -31,8 +31,12 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
+import io.bennyoe.components.ai.RayDef
+import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.RayTag
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
@@ -52,6 +56,7 @@ import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
 import ktx.log.logger
+import ktx.math.vec2
 import ktx.tiled.layer
 import ktx.tiled.type
 import ktx.tiled.x
@@ -144,6 +149,8 @@ class EntitySpawnSystem(
                 it += attackCmp
             }
 
+            it += JumpComponent()
+
             when (cfg.entityCategory) {
                 // Add Player specific components
                 EntityCategory.PLAYER -> {
@@ -161,8 +168,6 @@ class EntitySpawnSystem(
                     it += input
 
                     it += IntentionComponent()
-
-                    it += JumpComponent()
 
                     val player = PlayerComponent()
                     it += player
@@ -209,6 +214,16 @@ class EntitySpawnSystem(
                         )
                     it += state
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
+
+                    it +=
+                        BasicSensorsComponent(
+                            wallSensor = RayDef(vec2(0f, -0.6f), vec2(1.5f, 0f), RayTag.WALL_SENSOR),
+                            groundSensor = RayDef(vec2(1f, 0f), vec2(0f, -1.6f), RayTag.GROUND_SENSOR),
+                            jumpSensor = RayDef(vec2(4f, 0f), vec2(0f, -1.6f), RayTag.JUMP_SENSOR),
+//                                RayDef(vec2(0f, -0.3f), 1f, RayTag.JUMP_SENSOR),
+                        )
+
+                    it += RayHitComponent()
 
                     it +=
                         BehaviorTreeComponent(

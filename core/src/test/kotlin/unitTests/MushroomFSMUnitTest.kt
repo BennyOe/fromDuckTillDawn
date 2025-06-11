@@ -172,12 +172,13 @@ class MushroomFSMUnitTest {
     fun `death state schedules removal and deactivates body`() {
         val deadDelay = 2f
         val deadCmp = with(world) { entity[DeadComponent] }
+        val healthCmp = with(world) { entity[HealthComponent] }
         deadCmp.removeDelayCounter = deadDelay
         deadCmp.removeDelay = deadDelay
 
         givenState(MushroomFSM.DEATH)
 
-        assertTrue(deadCmp.isDead)
+        assertTrue(healthCmp.isDead)
         assertFalse(bodyMock.isActive)
 
         assertEquals(deadDelay, deadCmp.removeDelay, 1e-4f)

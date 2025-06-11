@@ -27,7 +27,7 @@ class JumpSystem(
         val jumpCmp = entity[JumpComponent]
         val stateCmp = entity[StateComponent]
         val physicCmp = entity[PhysicComponent]
-        val inputCmp = entity[InputComponent]
+        val inputCmp = entity.getOrNull(InputComponent)
         val intentionCmp = entity[IntentionComponent]
         val moveCmp = entity[MoveComponent]
         jumpCmp.jumpVelocity = getJumpVelocity(jumpCmp.maxHeight)
@@ -39,7 +39,9 @@ class JumpSystem(
         }
 
         // if jumpKey is released and still jumping -> cut the jump velocity
-        handleJumpKeyReleasedWhileJumping(inputCmp, vel, jumpCmp)
+        if (inputCmp != null) {
+            handleJumpKeyReleasedWhileJumping(inputCmp, vel, jumpCmp)
+        }
 
         calculateJumpBuffer(intentionCmp, entity, jumpCmp)
 

@@ -664,9 +664,10 @@ class PlayerFSMUnitTest {
     fun `death state schedules removal and deactivates body`() {
         val deadDelay = 0f
         val deadCmp = with(world) { entity[DeadComponent] }
+        val healthCmp = with(world) { entity[HealthComponent] }
         givenState(PlayerFSM.DEATH)
 
-        assertTrue(deadCmp.isDead)
+        assertTrue(healthCmp.isDead)
         assertFalse(bodyMock.isActive)
 
         assertEquals(deadDelay, deadCmp.removeDelayCounter, 1e-4f)

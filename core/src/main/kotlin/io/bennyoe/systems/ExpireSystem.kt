@@ -33,9 +33,10 @@ class ExpireSystem :
                     // Only access BehaviorTreeComponent if the entity has it
                     if (entity.has(BehaviorTreeComponent)) {
                         val behaviorTreeCmp = entity[BehaviorTreeComponent]
-                        behaviorTreeCmp.behaviorTree.`object`.lastTaskName = null
+                        if (behaviorTreeCmp.behaviorTree.`object`.lastTaskName != null) {
+                            behaviorTreeCmp.behaviorTree.`object`.lastTaskName = null
+                        }
                     }
-                    logger.debug { "Dead Component removed" }
                 }
 
                 false -> {

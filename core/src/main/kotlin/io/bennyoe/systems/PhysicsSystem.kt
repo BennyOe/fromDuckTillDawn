@@ -244,14 +244,14 @@ class PhysicsSystem(
         val bodyDataA = fixtureA.bodyData
         val bodyDataB = fixtureB.bodyData
 
-        // NearbyEnemy = wenn ein NEARBY_ENEMY_SENSOR ein Fixture berührt, das zu einem Enemy gehört
+        // NearbyEnemy = if sensor hits a fixture which belongs to an enemy
         val isAEnemySensor = fixtureDataA?.type == FixtureType.NEARBY_ENEMY_SENSOR
         val isBEnemySensor = fixtureDataB?.type == FixtureType.NEARBY_ENEMY_SENSOR
 
         val isAEnemy = bodyDataA?.type == EntityCategory.PLAYER
         val isBEnemy = bodyDataB?.type == EntityCategory.PLAYER
 
-        // True, wenn Sensor einen Gegner berührt
+        // True, if sensor hits enemy
         return (isAEnemySensor && isBEnemy) || (isBEnemySensor && isAEnemy)
     }
 

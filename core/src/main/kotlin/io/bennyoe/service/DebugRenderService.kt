@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Shape2D
 import io.bennyoe.config.GameConstants.DEBUG_ALPHA
+import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.systems.debug.DebugType
 import ktx.collections.GdxArray
 import ktx.collections.gdxArrayOf
@@ -55,7 +56,7 @@ fun Rectangle.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    if (ENABLE_DEBUG) service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Circle.addToDebugView(
@@ -67,7 +68,7 @@ fun Circle.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    if (ENABLE_DEBUG) service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Ellipse.addToDebugView(
@@ -79,7 +80,7 @@ fun Ellipse.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    if (ENABLE_DEBUG)  service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Polyline.addToDebugView(
@@ -91,7 +92,7 @@ fun Polyline.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    if (ENABLE_DEBUG) service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Polygon.addToDebugView(
@@ -103,5 +104,5 @@ fun Polygon.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    if (ENABLE_DEBUG) service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }

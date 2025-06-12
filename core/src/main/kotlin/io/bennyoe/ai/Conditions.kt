@@ -23,6 +23,10 @@ class CanAttack : Condition() {
     override fun condition(): Boolean = entity.canAttack()
 }
 
+class CanNotAttack : Condition() {
+    override fun condition(): Boolean = !entity.canAttack()
+}
+
 class IsEnemyNearby : Condition() {
     override fun condition(): Boolean = entity.hasEnemyNearby()
 }

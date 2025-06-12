@@ -34,7 +34,7 @@ import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
-import io.bennyoe.utility.FixtureType
+import io.bennyoe.utility.SensorType
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -148,7 +148,7 @@ class AttackSystemIntegrationTest {
                 filter.categoryBits = EntityCategory.ENEMY.bit
             }
         val fixture = enemyBody.createFixture(fixtureDef)
-        fixture.userData = FixtureData(FixtureType.HITBOX_SENSOR)
+        fixture.userData = FixtureData(SensorType.HITBOX_SENSOR)
         shape.dispose()
     }
 

@@ -14,7 +14,7 @@ import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
-import io.bennyoe.utility.FixtureType
+import io.bennyoe.utility.SensorType
 import ktx.app.gdxError
 import ktx.box2d.body
 import ktx.box2d.box
@@ -109,7 +109,7 @@ class PhysicComponent : Component<PhysicComponent> {
             body.box(width, height, Vector2(offsetX, offsetY)) {
                 this.isSensor = isSensor
                 // is currentlu only use for creating player and enemy entities. If this changes the fixture userData must be generated dynamically
-                this.userData = FixtureData(FixtureType.HITBOX_SENSOR)
+                this.userData = FixtureData(SensorType.HITBOX_SENSOR)
                 this.filter.categoryBits = categoryBit
                 density = 1f
                 friction = myFriction

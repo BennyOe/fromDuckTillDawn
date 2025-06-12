@@ -4,23 +4,21 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.physics.box2d.World
 import com.github.quillraven.fleks.Entity
-import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
+import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.utility.BodyData
 import ktx.log.logger
 import ktx.math.plus
-import ktx.math.vec2
 
 class BasicSensorsSystem(
     private val phyWorld: World = inject("phyWorld"),
@@ -34,17 +32,111 @@ class BasicSensorsSystem(
         val rayHitCmp = entity[RayHitComponent]
         val phyCmp = entity[PhysicComponent]
         val imageCmp = entity[ImageComponent]
+        val bodyPos = phyCmp.body.position
+        val flipImg = imageCmp.flipImage
+
+        // update sensor positions
+        basicSensorsCmp.wallSensor.updateAbsolute(bodyPos, flipImg)
+        basicSensorsCmp.groundSensor.updateAbsolute(bodyPos, flipImg)
+        basicSensorsCmp.jumpSensor.updateAbsolute(bodyPos, flipImg)
+        basicSensorsCmp.wallHeightSensor.updateAbsolute(bodyPos, flipImg)
+
+        rayHitCmp.upperLedgeHits.clear()
+        rayHitCmp.lowerLedgeHits.clear()
+        // update upper ledge sensor positions
+        basicSensorsCmp.upperLedgeSensorArray.forEach { sensor ->
+            sensor.updateAbsolute(bodyPos, flipImg)
+            phyWorld.rayCast(
+                { fixture, point, normal, fraction ->
+                    val bodyData = fixture.body.userData as BodyData
+                    if (bodyData.type == EntityCategory.GROUND) {
+                        rayHitCmp.upperLedgeHits.add(LedgeHitData(true, sensor.from.x))
+                    } else {
+                        rayHitCmp.upperLedgeHits.add(LedgeHitData(false, sensor.from.x))
+                    }
+                    0f
+                },
+                sensor.from,
+                sensor.to,
+            )
+            Polyline(
+                floatArrayOf(
+                    sensor.from.x,
+                    sensor.from.y,
+                    sensor.to.x,
+                    sensor.to.y,
+                ),
+            ).addToDebugView(
+                debugRenderingService,
+                Color.BLUE,
+                debugType = DebugType.ENEMY,
+            )
+        }
+
+        // update lower ledge sensor positions
+        basicSensorsCmp.lowerLedgeSensorArray.forEach { sensor ->
+            sensor.updateAbsolute(bodyPos, flipImg)
+            phyWorld.rayCast(
+                { fixture, point, normal, fraction ->
+                    val bodyData = fixture.body.userData as BodyData
+                    if (bodyData.type == EntityCategory.GROUND) {
+                        rayHitCmp.lowerLedgeHits.add(LedgeHitData(true, sensor.from.x))
+                    } else {
+                        rayHitCmp.lowerLedgeHits.add(LedgeHitData(false, sensor.from.x))
+                    }
+                    0f
+                },
+                sensor.from,
+                sensor.to,
+            )
+            Polyline(
+                floatArrayOf(
+                    sensor.from.x,
+                    sensor.from.y,
+                    sensor.to.x,
+                    sensor.to.y,
+                ),
+            ).addToDebugView(
+                debugRenderingService,
+                Color.GREEN,
+                debugType = DebugType.ENEMY,
+            )
+        }
 
         basicSensorsCmp.wallSensor.let {
-            val rayStart = phyCmp.body.position + it.locationOffset
-            val rayEnd =
-                if (imageCmp.flipImage) {
-                    vec2(rayStart.x - it.length.x, rayStart.y + it.length.y)
-                } else {
-                    vec2(rayStart.x + it.length.x, rayStart.y + it.length.y)
-                }
-
             rayHitCmp.wallHit = false
+            rayHitCmp.canAttack = false
+            phyWorld.rayCast(
+                { fixture, point, normal, fraction ->
+                    val bodyData = fixture.body.userData as BodyData
+                    if (bodyData.type != EntityCategory.PLAYER) {
+                        rayHitCmp.wallHit = true
+                    }
+                    if (bodyData.type == EntityCategory.PLAYER) {
+                        rayHitCmp.canAttack = true
+                    }
+                    0f
+                },
+                basicSensorsCmp.wallSensor.from,
+                basicSensorsCmp.wallSensor.to,
+            )
+            Polyline(
+                floatArrayOf(
+                    basicSensorsCmp.wallSensor.from.x,
+                    basicSensorsCmp.wallSensor.from.y,
+                    basicSensorsCmp.wallSensor.to.x,
+                    basicSensorsCmp.wallSensor.to.y,
+                ),
+            ).addToDebugView(
+                debugRenderingService,
+                Color.BLUE,
+                debugType = DebugType.ENEMY,
+                label = "wall sensor",
+            )
+        }
+
+        basicSensorsCmp.wallHeightSensor.let {
+            rayHitCmp.wallHeightHit = false
             phyWorld.rayCast(
                 { fixture, point, normal, fraction ->
                     val bodyData = fixture.body.userData as BodyData
@@ -53,83 +145,71 @@ class BasicSensorsSystem(
                     }
                     0f
                 },
-                rayStart,
-                rayEnd,
+                basicSensorsCmp.wallHeightSensor.from,
+                basicSensorsCmp.wallHeightSensor.to,
             )
-            Polyline(floatArrayOf(rayStart.x, rayStart.y, rayEnd.x, rayEnd.y)).addToDebugView(
+            Polyline(
+                floatArrayOf(
+                    basicSensorsCmp.wallHeightSensor.from.x,
+                    basicSensorsCmp.wallHeightSensor.to.y,
+                    basicSensorsCmp.wallHeightSensor.from.x,
+                    basicSensorsCmp.wallHeightSensor.to.y,
+                ),
+            ).addToDebugView(
                 debugRenderingService,
                 Color.BLUE,
-                debugType = DebugType.PLAYER,
-                label = "wall sensor",
+                debugType = DebugType.ENEMY,
+                label = "wall height sensor",
             )
         }
 
         basicSensorsCmp.groundSensor.let {
-            val locationOffsetX = if (imageCmp.flipImage) -it.locationOffset.x else it.locationOffset.x
-            val rayStart = phyCmp.body.position + vec2(locationOffsetX, it.locationOffset.y)
-            val rayEnd = vec2(rayStart.x + it.length.x, rayStart.y + it.length.y)
             rayHitCmp.groundHit = false
             phyWorld.rayCast(
                 { fixture, point, normal, fraction ->
                     rayHitCmp.groundHit = true
                     0f
                 },
-                rayStart,
-                rayEnd,
+                basicSensorsCmp.groundSensor.from,
+                basicSensorsCmp.groundSensor.to,
             )
-            Polyline(floatArrayOf(rayStart.x, rayStart.y, rayEnd.x, rayEnd.y)).addToDebugView(
+            Polyline(
+                floatArrayOf(
+                    basicSensorsCmp.groundSensor.from.x,
+                    basicSensorsCmp.groundSensor.from.y,
+                    basicSensorsCmp.groundSensor.to.x,
+                    basicSensorsCmp.groundSensor.to.y,
+                ),
+            ).addToDebugView(
                 debugRenderingService,
                 Color.ORANGE,
-                debugType = DebugType.PLAYER,
+                debugType = DebugType.ENEMY,
                 label = "ground sensor",
             )
         }
 
         basicSensorsCmp.jumpSensor.let {
-            val locationOffsetX = if (imageCmp.flipImage) -it.locationOffset.x else it.locationOffset.x
-            val rayStart = phyCmp.body.position + vec2(locationOffsetX, it.locationOffset.y)
-            val rayEnd = vec2(rayStart.x + it.length.x, rayStart.y + it.length.y)
             rayHitCmp.jumpHit = false
             phyWorld.rayCast(
                 { fixture, point, normal, fraction ->
                     rayHitCmp.jumpHit = true
                     0f
                 },
-                rayStart,
-                rayEnd,
+                basicSensorsCmp.jumpSensor.from,
+                basicSensorsCmp.jumpSensor.to,
             )
-            Polyline(floatArrayOf(rayStart.x, rayStart.y, rayEnd.x, rayEnd.y)).addToDebugView(
+            Polyline(
+                floatArrayOf(
+                    basicSensorsCmp.jumpSensor.from.x,
+                    basicSensorsCmp.jumpSensor.from.y,
+                    basicSensorsCmp.jumpSensor.to.x,
+                    basicSensorsCmp.jumpSensor.to.y,
+                ),
+            ).addToDebugView(
                 debugRenderingService,
                 Color.MAGENTA,
-                debugType = DebugType.PLAYER,
+                debugType = DebugType.ENEMY,
                 label = "jump sensor",
-            )
-        }
-    }
-
-    private fun spawnRays(playerEntity: Entity) {
-        val phyCmp = playerEntity[PhysicComponent.Companion]
-        val imageCmp = playerEntity[ImageComponent.Companion]
-        for (range in -20..20 step 4) {
-            val rangeInFloat = range.toFloat() / 10
-            val rayLength = 3
-            val rayStart = phyCmp.body.position
-            val rayEnd =
-                if (imageCmp.flipImage) {
-                    vec2(rayStart.x - rayLength, rayStart.y - rangeInFloat)
-                } else {
-                    vec2(rayStart.x + rayLength, rayStart.y + rangeInFloat)
-                }
-
-            phyWorld.rayCast({ fixture, point, normal, fraction ->
-                logger.debug { "Hit fixture ${fixture.body.userData}" }
-                1f
-            }, rayStart, rayEnd)
-            Polyline(floatArrayOf(rayStart.x, rayStart.y, rayEnd.x, rayEnd.y)).addToDebugView(
-                debugRenderingService,
-                Color.CHARTREUSE,
-                debugType =
-                    DebugType.PLAYER,
             )
         }
     }

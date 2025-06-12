@@ -11,6 +11,7 @@ class IntentionComponent(
     var wantsToAttack3: Boolean = false,
     var wantsToCrouch: Boolean = false,
     var wantsToBash: Boolean = false,
+    var wantsToChase: Boolean = false,
 ) : Component<IntentionComponent> {
     override fun type() = IntentionComponent
 

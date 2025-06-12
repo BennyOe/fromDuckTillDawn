@@ -34,9 +34,7 @@ import io.bennyoe.components.StateComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.RayDef
 import io.bennyoe.components.ai.RayHitComponent
-import io.bennyoe.components.ai.RayTag
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
@@ -51,12 +49,11 @@ import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
-import io.bennyoe.utility.FixtureType
+import io.bennyoe.utility.SensorType
 import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
 import ktx.log.logger
-import ktx.math.vec2
 import ktx.tiled.layer
 import ktx.tiled.type
 import ktx.tiled.x
@@ -139,6 +136,7 @@ class EntitySpawnSystem(
 
             val move = MoveComponent()
             move.maxSpeed *= cfg.scaleSpeed
+            move.chaseSpeed = cfg.chaseSpeed
             it += move
 
             if (cfg.canAttack) {
@@ -161,7 +159,7 @@ class EntitySpawnSystem(
                         Vector2(0f, 0f - physics.size.y * 0.5f),
                     ) {
                         isSensor = true
-                        userData = FixtureData(FixtureType.GROUND_SENSOR)
+                        userData = FixtureData(SensorType.GROUND_SENSOR)
                     }
 
                     val input = InputComponent()
@@ -191,16 +189,6 @@ class EntitySpawnSystem(
 
                 // Add Enemy specific components
                 EntityCategory.ENEMY -> {
-                    val phyCmp = it[PhysicComponent]
-                    // this is the mushroom entity
-                    phyCmp.body.circle(
-                        4f,
-                        Vector2(0f, 0f),
-                    ) {
-                        isSensor = true
-                        userData = FixtureData(FixtureType.NEARBY_ENEMY_SENSOR)
-                    }
-
                     it += IntentionComponent()
 
                     it += NearbyEnemiesComponent()
@@ -215,13 +203,19 @@ class EntitySpawnSystem(
                     it += state
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
 
-                    it +=
-                        BasicSensorsComponent(
-                            wallSensor = RayDef(vec2(0f, -0.6f), vec2(1.5f, 0f), RayTag.WALL_SENSOR),
-                            groundSensor = RayDef(vec2(1f, 0f), vec2(0f, -1.6f), RayTag.GROUND_SENSOR),
-                            jumpSensor = RayDef(vec2(4f, 0f), vec2(0f, -1.6f), RayTag.JUMP_SENSOR),
-//                                RayDef(vec2(0f, -0.3f), 1f, RayTag.JUMP_SENSOR),
-                        )
+                    val phyCmp = it[PhysicComponent]
+
+                    // create normal nearbyEnemiesSensor
+                    val nearbyEnemiesDefaultSensorFixture =
+                        phyCmp.body.circle(
+                            cfg.nearbyEnemiesDefaultSensorRadius,
+                            cfg.nearbyEnemiesSensorOffset,
+                        ) {
+                            isSensor = true
+                            userData = FixtureData(SensorType.NEARBY_ENEMY_SENSOR)
+                        }
+
+                    it += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius)
 
                     it += RayHitComponent()
 

@@ -6,6 +6,7 @@ import io.bennyoe.config.GameConstants.WALK_MAX_SPEED
 
 data class MoveComponent(
     var maxSpeed: Float = WALK_MAX_SPEED,
+    var chaseSpeed: Float = 0f,
     var moveVelocity: Float = 0f,
     var lockMovement: Boolean = false,
 ) : Component<MoveComponent> {

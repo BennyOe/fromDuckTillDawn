@@ -9,12 +9,17 @@ data class BodyData(
 )
 
 data class FixtureData(
-    val type: FixtureType,
+    val type: SensorType,
 )
 
-enum class FixtureType {
+enum class SensorType {
     HITBOX_SENSOR,
-    COLLISION_SENSOR,
     GROUND_SENSOR,
     NEARBY_ENEMY_SENSOR,
+    WALL_SENSOR,
+    WALL_HEIGHT_SENSOR,
+    JUMP_SENSOR,
+    UPPER_LEDGE_SENSOR,
+    LOWER_LEDGE_SENSOR,
+    ATTACK_SENSOR,
 }

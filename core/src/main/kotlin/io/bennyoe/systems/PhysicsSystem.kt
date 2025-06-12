@@ -21,7 +21,7 @@ import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.utility.BodyData
-import io.bennyoe.utility.FixtureType
+import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.bodyData
 import io.bennyoe.utility.fixtureData
 import ktx.log.logger
@@ -111,16 +111,16 @@ class PhysicsSystem(
             val bodyDataA = fixtureA.bodyData
             val bodyDataB = fixtureB.bodyData
 
-            if (fixtureDataA?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataB?.type == EntityCategory.PLAYER) {
+            if (fixtureDataA?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataB?.type == EntityCategory.PLAYER) {
                 // Entity mit Sensor bekommt den Enemy in nearbyEntities
                 val nearbyEnemiesCmp = bodyDataA?.entity?.getOrNull(NearbyEnemiesComponent)
                 nearbyEnemiesCmp?.nearbyEntities += bodyDataB.entity
-                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
+//                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
             }
-            if (fixtureDataB?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataA?.type == EntityCategory.PLAYER) {
+            if (fixtureDataB?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataA?.type == EntityCategory.PLAYER) {
                 val nearbyEnemiesCmp = bodyDataB?.entity?.getOrNull(NearbyEnemiesComponent)
                 nearbyEnemiesCmp?.nearbyEntities += bodyDataA.entity
-                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
+//                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
             }
         }
     }
@@ -141,16 +141,16 @@ class PhysicsSystem(
                 bodyDataB.entity.getOrNull(PhysicComponent)?.let { it.activeGroundContacts-- }
             }
         }
-        if (fixtureDataA?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataB?.type == EntityCategory.PLAYER) {
+        if (fixtureDataA?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataB?.type == EntityCategory.PLAYER) {
             // Entity mit Sensor bekommt den Enemy in nearbyEntities
             val nearbyEnemiesCmp = bodyDataA?.entity?.getOrNull(NearbyEnemiesComponent)
             nearbyEnemiesCmp?.nearbyEntities -= bodyDataB.entity
-            logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
+//            logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
         }
-        if (fixtureDataB?.type == FixtureType.NEARBY_ENEMY_SENSOR && bodyDataA?.type == EntityCategory.PLAYER) {
+        if (fixtureDataB?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataA?.type == EntityCategory.PLAYER) {
             val nearbyEnemiesCmp = bodyDataB?.entity?.getOrNull(NearbyEnemiesComponent)
             nearbyEnemiesCmp?.nearbyEntities -= bodyDataA.entity
-            logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
+//            logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
         }
     }
 
@@ -229,8 +229,8 @@ class PhysicsSystem(
         val bodyDataA = fixtureA.bodyData
         val bodyDataB = fixtureB.bodyData
 
-        val isAOnGround = dataA?.type == FixtureType.GROUND_SENSOR && bodyDataB?.type == EntityCategory.GROUND
-        val isBOnGround = dataB?.type == FixtureType.GROUND_SENSOR && bodyDataA?.type == EntityCategory.GROUND
+        val isAOnGround = dataA?.type == SensorType.GROUND_SENSOR && bodyDataB?.type == EntityCategory.GROUND
+        val isBOnGround = dataB?.type == SensorType.GROUND_SENSOR && bodyDataA?.type == EntityCategory.GROUND
 
         return isAOnGround || isBOnGround
     }
@@ -245,8 +245,8 @@ class PhysicsSystem(
         val bodyDataB = fixtureB.bodyData
 
         // NearbyEnemy = if sensor hits a fixture which belongs to an enemy
-        val isAEnemySensor = fixtureDataA?.type == FixtureType.NEARBY_ENEMY_SENSOR
-        val isBEnemySensor = fixtureDataB?.type == FixtureType.NEARBY_ENEMY_SENSOR
+        val isAEnemySensor = fixtureDataA?.type == SensorType.NEARBY_ENEMY_SENSOR
+        val isBEnemySensor = fixtureDataB?.type == SensorType.NEARBY_ENEMY_SENSOR
 
         val isAEnemy = bodyDataA?.type == EntityCategory.PLAYER
         val isBEnemy = bodyDataB?.type == EntityCategory.PLAYER

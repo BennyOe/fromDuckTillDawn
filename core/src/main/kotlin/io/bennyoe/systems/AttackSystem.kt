@@ -16,7 +16,7 @@ import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.utility.BodyData
-import io.bennyoe.utility.FixtureType
+import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.fixtureData
 import ktx.box2d.query
 import ktx.log.logger
@@ -67,7 +67,7 @@ class AttackSystem(
             AABB_Rect.x + AABB_Rect.width,
             AABB_Rect.y + AABB_Rect.height,
         ) { fixture ->
-            if (fixture.fixtureData?.type != FixtureType.HITBOX_SENSOR) {
+            if (fixture.fixtureData?.type != SensorType.HITBOX_SENSOR) {
                 return@query true
             }
 

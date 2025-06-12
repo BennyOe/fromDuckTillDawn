@@ -25,6 +25,10 @@ data class SpawnCfg(
     val aiTreePath: String = "",
     val keepCorpse: Boolean = false,
     val removeDelay: Float = 0f,
+    val nearbyEnemiesDefaultSensorRadius: Float = 4f,
+    val nearbyEnemiesExtendedSensorRadius: Float = 7f,
+    val nearbyEnemiesSensorOffset: Vector2 = vec2(0f, 0f),
+    val chaseSpeed: Float = 0f,
 ) {
     companion object {
         val cachedSpawnCfgs = mutableMapOf<String, SpawnCfg>()
@@ -63,6 +67,10 @@ data class SpawnCfg(
                             scaleSpeed = 0.5f,
                             keepCorpse = true,
                             removeDelay = .2f,
+                            nearbyEnemiesDefaultSensorRadius = 4f,
+                            nearbyEnemiesExtendedSensorRadius = 7f,
+                            nearbyEnemiesSensorOffset = vec2(0f, 0f),
+                            chaseSpeed = 4f,
                         )
 
                     else -> gdxError("There is no spawn configuration for entity-type $type")

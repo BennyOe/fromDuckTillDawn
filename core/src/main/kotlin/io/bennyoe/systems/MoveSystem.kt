@@ -27,12 +27,20 @@ class MoveSystem :
             WalkDirection.NONE -> moveCmp.moveVelocity = 0f
             WalkDirection.LEFT -> {
                 imageCmp.flipImage = true
-                moveCmp.moveVelocity = -moveCmp.maxSpeed
+                if (intentionCmp.wantsToChase) {
+                    moveCmp.moveVelocity = -moveCmp.chaseSpeed
+                } else {
+                    moveCmp.moveVelocity = -moveCmp.maxSpeed
+                }
             }
 
             WalkDirection.RIGHT -> {
                 imageCmp.flipImage = false
-                moveCmp.moveVelocity = moveCmp.maxSpeed
+                if (intentionCmp.wantsToChase) {
+                    moveCmp.moveVelocity = moveCmp.chaseSpeed
+                } else {
+                    moveCmp.moveVelocity = moveCmp.maxSpeed
+                }
             }
         }
     }

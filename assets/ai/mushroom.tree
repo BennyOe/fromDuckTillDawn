@@ -2,20 +2,27 @@
 import idle:"io.bennyoe.ai.IdleTask"
 import patrol:"io.bennyoe.ai.PatrolTask"
 import attack:"io.bennyoe.ai.AttackTask"
+import chase:"io.bennyoe.ai.ChaseTask"
 
 # Conditions
 import isEnemyNearby?:"io.bennyoe.ai.IsEnemyNearby"
 import canAttack?:"io.bennyoe.ai.CanAttack"
+import canNotAttack?:"io.bennyoe.ai.CanNotAttack"
 import isAlive?:"io.bennyoe.ai.IsAlive"
 
 
 subtree name:"attack"
   sequence
-    (isEnemyNearby?) (canAttack?) (isAlive?) attack
+    (canAttack?) (isAlive?) attack
     wait seconds:"uniform,1.5,2.0"
+
+subtree name:"chase"
+    sequence
+        (isEnemyNearby?) (canNotAttack?) (isAlive?) chase
 
 root
   selector
-    $attack
-    (isAlive?) (random success: 0.5) idle duration:"uniform,1.0,1.5"
+#    $attack
+    $chase
+#   (isAlive?) (random success: 0.5) idle duration:"uniform,1.0,1.5"
     (isAlive?) patrol

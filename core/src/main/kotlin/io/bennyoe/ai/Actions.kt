@@ -66,6 +66,7 @@ class IdleTask(
     private var currentDuration = 0f
 
     override fun enter() {
+        AttackTask.Companion.logger.debug { "Idle Enter" }
         ctx.stopAttack()
         ctx.lastTaskName = this.javaClass.simpleName
         ctx.stopMovement()
@@ -98,13 +99,17 @@ class IdleTask(
 
 class PatrolTask : Action() {
     override fun enter() {
+        logger.debug { "Patrol Enter" }
         ctx.stopAttack()
         ctx.lastTaskName = this.javaClass.simpleName
         ctx.intentionCmp.walkDirection = WalkDirection.RIGHT
     }
 
     override fun onExecute(): Status {
-        ctx.moveTo()
+        ctx.patrol()
+        if (ctx.canAttack() || ctx.hasEnemyNearby()) {
+            return Status.SUCCEEDED
+        }
         return Status.RUNNING
     }
 
@@ -114,17 +119,49 @@ class PatrolTask : Action() {
     }
 }
 
+class ChaseTask : Action() {
+    override fun enter() {
+        logger.debug { "Chase Enter" }
+        ctx.lastTaskName = this.javaClass.simpleName
+    }
+
+    override fun onExecute(): Status {
+        ctx.chasePlayer()
+        if (ctx.canAttack() || !ctx.playerIsInChaseRange()) {
+            return Status.SUCCEEDED
+        }
+        return Status.RUNNING
+    }
+
+    override fun exit() {
+        ctx.nearestPlatformLedge = null
+    }
+
+    companion object {
+        val logger =
+            logger<ChaseTask>()
+    }
+}
+
 class AttackTask : Action() {
     override fun enter() {
+        logger.debug { "Attack Enter" }
         ctx.lastTaskName = this.javaClass.simpleName
-        ctx.startAttack()
+//        ctx.startAttack()
     }
 
     override fun onExecute(): Status {
         if (ctx.isAnimationFinished()) {
-            ctx.stopMovement()
-            return Status.SUCCEEDED
+            if (!ctx.canAttack()) {
+                ctx.stopMovement()
+                return Status.SUCCEEDED
+            }
         }
         return Status.RUNNING
+    }
+
+    companion object {
+        val logger =
+            logger<AttackTask>()
     }
 }

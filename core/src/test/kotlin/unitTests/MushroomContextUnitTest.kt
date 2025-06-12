@@ -76,13 +76,13 @@ class MushroomContextUnitTest {
 
     @Test
     fun `moveTo sets walkDirection RIGHT when target is right of mushroom`() {
-        ctx.moveTo(Vector2(10f, 0f))
+        ctx.patrol(Vector2(10f, 0f))
         assertEquals(WalkDirection.RIGHT, intentionCmp.walkDirection)
     }
 
     @Test
     fun `moveTo sets walkDirection LEFT when target is left of mushroom`() {
-        ctx.moveTo(Vector2(2f, 0f))
+        ctx.patrol(Vector2(2f, 0f))
         assertEquals(WalkDirection.LEFT, intentionCmp.walkDirection)
     }
 

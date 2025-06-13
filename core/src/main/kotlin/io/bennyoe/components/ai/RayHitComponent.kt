@@ -22,5 +22,5 @@ class RayHitComponent : Component<RayHitComponent> {
 
 data class LedgeHitData(
     val hit: Boolean,
-    val xCoordinate: Float
+    val xCoordinate: Float,
 )

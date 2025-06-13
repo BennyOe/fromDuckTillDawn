@@ -21,12 +21,14 @@ import io.bennyoe.event.fire
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
+import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DamageSystem
 import io.bennyoe.systems.EntitySpawnSystem
 import io.bennyoe.systems.ExpireSystem
+import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
@@ -35,8 +37,6 @@ import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
 import io.bennyoe.systems.debug.BTBubbleSystem
-import io.bennyoe.systems.BasicSensorsSystem
-import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem

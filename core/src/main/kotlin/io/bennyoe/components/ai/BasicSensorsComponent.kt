@@ -48,7 +48,8 @@ class BasicSensorsComponent(
             isHorizontal = true,
             name = "attack sensor",
             color = Color.ORANGE,
-            hitFilter = { it.type == EntityCategory.PLAYER }, // filter on this type of hit entity
+            // filter on this type of hit entity
+            hitFilter = { it.type == EntityCategory.PLAYER },
         )
 
     init {

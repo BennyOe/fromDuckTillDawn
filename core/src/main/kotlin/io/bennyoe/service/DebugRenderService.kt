@@ -80,7 +80,7 @@ fun Ellipse.addToDebugView(
     ttl: Float? = null,
     debugType: DebugType = DebugType.NONE,
 ) {
-    if (ENABLE_DEBUG)  service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
+    if (ENABLE_DEBUG) service.addShape(DebugShape(this, color, label, type, alpha, ttl, debugType))
 }
 
 fun Polyline.addToDebugView(

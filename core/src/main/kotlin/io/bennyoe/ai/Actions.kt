@@ -123,6 +123,8 @@ class ChaseTask : Action() {
     override fun enter() {
         logger.debug { "Chase Enter" }
         ctx.lastTaskName = this.javaClass.simpleName
+        ctx.stopAttack()
+        ctx.intentionCmp.walkDirection = WalkDirection.NONE
     }
 
     override fun onExecute(): Status {
@@ -147,13 +149,12 @@ class AttackTask : Action() {
     override fun enter() {
         logger.debug { "Attack Enter" }
         ctx.lastTaskName = this.javaClass.simpleName
-//        ctx.startAttack()
+        ctx.startAttack()
     }
 
     override fun onExecute(): Status {
         if (ctx.isAnimationFinished()) {
             if (!ctx.canAttack()) {
-                ctx.stopMovement()
                 return Status.SUCCEEDED
             }
         }

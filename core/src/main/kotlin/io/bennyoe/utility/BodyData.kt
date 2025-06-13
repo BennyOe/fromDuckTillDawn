@@ -22,4 +22,5 @@ enum class SensorType {
     UPPER_LEDGE_SENSOR,
     LOWER_LEDGE_SENSOR,
     ATTACK_SENSOR,
+    SIGHT_SENSOR,
 }

@@ -22,7 +22,7 @@ subtree name:"chase"
 
 root
   selector
-#    $attack
+    $attack
     $chase
-#   (isAlive?) (random success: 0.5) idle duration:"uniform,1.0,1.5"
+    (isAlive?) (random success: 0.5) idle duration:"uniform,1.0,1.5"
     (isAlive?) patrol

@@ -46,6 +46,8 @@ class PhysicComponent : Component<PhysicComponent> {
             y: Int = 0,
             myFriction: Float = 0f,
             setUserData: BodyData? = null,
+            categoryBit: Short = EntityCategory.GROUND.bit,
+            maskBit: Short = -1,
         ): PhysicComponent {
             when (shape) {
                 is Rectangle -> {
@@ -67,6 +69,8 @@ class PhysicComponent : Component<PhysicComponent> {
                                     vec2(0f, bodyH),
                                 ) {
                                     friction = myFriction
+                                    filter.categoryBits = categoryBit
+                                    filter.maskBits = maskBit
                                 }
                             }
                     }
@@ -84,7 +88,8 @@ class PhysicComponent : Component<PhysicComponent> {
             scalePhysicY: Float = 1f,
             offsetX: Float = 0f,
             offsetY: Float = 0f,
-            categoryBit: Short = 0x0001,
+            categoryBit: Short = EntityCategory.ENEMY.bit,
+            maskBit: Short = -1,
             fixedRotation: Boolean = true,
             allowSleep: Boolean = true,
             isSensor: Boolean = false,
@@ -111,6 +116,7 @@ class PhysicComponent : Component<PhysicComponent> {
                 // is currentlu only use for creating player and enemy entities. If this changes the fixture userData must be generated dynamically
                 this.userData = FixtureData(SensorType.HITBOX_SENSOR)
                 this.filter.categoryBits = categoryBit
+                this.filter.maskBits = maskBit
                 density = 1f
                 friction = myFriction
             }

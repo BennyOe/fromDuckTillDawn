@@ -122,6 +122,7 @@ class EntitySpawnSystem(
                     image.image,
                     cfg.bodyType,
                     categoryBit = cfg.entityCategory.bit,
+                    maskBit = cfg.physicMaskCategory,
                     scalePhysicX = cfg.scalePhysic.x,
                     scalePhysicY = cfg.scalePhysic.y,
                     myFriction = 0f,

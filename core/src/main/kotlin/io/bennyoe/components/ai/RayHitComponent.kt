@@ -11,6 +11,7 @@ class RayHitComponent : Component<RayHitComponent> {
     var groundHit = false
     var jumpHit = false
     var wallHeightHit = false
+    var sightIsBlocked = false
     val upperLedgeHits: GdxArray<LedgeHitData> = gdxArrayOf(ordered = true)
     val lowerLedgeHits: GdxArray<LedgeHitData> = gdxArrayOf(ordered = true)
 

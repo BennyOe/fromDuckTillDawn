@@ -1,5 +1,6 @@
 package io.bennyoe.components.ai
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector2
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
@@ -11,13 +12,15 @@ import ktx.math.vec2
 class BasicSensorsComponent(
     val chaseRange: Float,
 ) : Component<BasicSensorsComponent> {
-    val upperLedgeSensorArray = gdxArrayOf<RayDef>(ordered = true)
-    val lowerLedgeSensorArray = gdxArrayOf<RayDef>(ordered = true)
+    val upperLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
+    val lowerLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
 
-    val wallSensor = RayDef(vec2(0f, -0.6f), vec2(1.5f, 0f), SensorType.WALL_SENSOR, true, false, 0f)
-    val wallHeightSensor = RayDef(vec2(0f, 0.5f), vec2(1.5f, 0f), SensorType.WALL_HEIGHT_SENSOR, true, false, 0f)
-    val groundSensor = RayDef(vec2(0.5f, 0f), vec2(0f, -1.6f), SensorType.GROUND_SENSOR, false, false, 0f)
-    val jumpSensor = RayDef(vec2(2.2f, 0f), vec2(0f, -1.6f), SensorType.JUMP_SENSOR, false, false, 0f)
+    val wallSensor = SensorDef(vec2(0f, -0.6f), vec2(1.5f, 0f), SensorType.WALL_SENSOR, true, "wall sensor", Color.BLUE)
+    val wallHeightSensor = SensorDef(vec2(0f, 0.5f), vec2(1.5f, 0f), SensorType.WALL_HEIGHT_SENSOR, true, "wall height sensor", Color.BLUE)
+    val groundSensor = SensorDef(vec2(0.5f, 0f), vec2(0f, -1.6f), SensorType.GROUND_SENSOR, false, "ground sensor", Color.GREEN)
+    val jumpSensor = SensorDef(vec2(2.2f, 0f), vec2(0f, -1.6f), SensorType.JUMP_SENSOR, false, "jump sensor", Color.GREEN)
+    val sightSensor = SensorDef(vec2(0f, 0f), vec2(0f, 0f), SensorType.SIGHT_SENSOR, false, "sight sensor", Color.PINK)
+    val attackSensor = SensorDef(vec2(0f, -0.6f), vec2(1.5f, 0f), SensorType.WALL_SENSOR, true, "attack sensor", Color.ORANGE)
 
     init {
         createUpperLedgeSensors()
@@ -26,7 +29,7 @@ class BasicSensorsComponent(
     private fun createUpperLedgeSensors() {
         for (i in -10..10) {
             upperLedgeSensorArray.add(
-                RayDef(
+                SensorDef(
                     vec2(
                         i / 2f,
                         0f,
@@ -34,12 +37,11 @@ class BasicSensorsComponent(
                     vec2(0f, 2f),
                     SensorType.UPPER_LEDGE_SENSOR,
                     false,
-                    false,
-                    0f,
+                    "upper ledge sensor",
                 ),
             )
             lowerLedgeSensorArray.add(
-                RayDef(
+                SensorDef(
                     vec2(
                         i / 2f,
                         -2f,
@@ -47,8 +49,7 @@ class BasicSensorsComponent(
                     vec2(0f, 2f),
                     SensorType.LOWER_LEDGE_SENSOR,
                     false,
-                    false,
-                    0f,
+                    "lower ledge sensor",
                 ),
             )
         }
@@ -59,19 +60,20 @@ class BasicSensorsComponent(
     companion object : ComponentType<BasicSensorsComponent>()
 }
 
-data class RayDef(
+data class SensorDef(
     var fromRelative: Vector2,
     val toRelative: Vector2,
     val tag: SensorType,
     val isHorizontal: Boolean,
-    val hit: Boolean,
-    val xCoordinate: Float,
+    val name: String,
+    val color: Color = Color.BLUE,
+    val highlightColor: Color = Color.RED,
 ) {
     var from = Vector2()
     var to = Vector2()
 
     // updates the relative ray position with the body position
-    fun updateAbsolute(
+    fun updateAbsolutePositions(
         bodyPos: Vector2,
         flipImage: Boolean,
     ) {
@@ -88,5 +90,13 @@ data class RayDef(
             from.set(bodyPos + vec2(locationOffsetX, fromRelative.y))
             to.set(from.x + toRelative.x, from.y + toRelative.y)
         }
+    }
+
+    fun updateSightSensor(
+        bodyPos: Vector2,
+        playerBodyPos: Vector2,
+    ) {
+        from.set(bodyPos).add(fromRelative)
+        to.set(playerBodyPos).add(toRelative)
     }
 }

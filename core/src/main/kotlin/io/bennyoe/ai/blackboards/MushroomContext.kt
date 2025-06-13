@@ -23,6 +23,7 @@ import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import ktx.collections.GdxArray
+import ktx.collections.isNotEmpty
 import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2
@@ -104,9 +105,11 @@ class MushroomContext(
         intentionCmp.walkDirection = WalkDirection.NONE
     }
 
-    fun canAttack(): Boolean = rayHitCmp.canAttack
+    fun canAttack(): Boolean {
+        return rayHitCmp.canAttack
+    }
 
-    fun hasEnemyNearby(): Boolean {
+    fun hasPlayerNearby(): Boolean {
         with(world) {
             nearbyEnemiesCmp.target = nearbyEnemiesCmp.nearbyEntities
                 .firstOrNull {
@@ -119,7 +122,6 @@ class MushroomContext(
     fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
 
     fun startAttack() {
-        intentionCmp.wantsToChase = false
         intentionCmp.wantsToAttack = true
     }
 
@@ -129,35 +131,57 @@ class MushroomContext(
 
     fun chasePlayer() {
         val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
-        intentionCmp.wantsToChase = true
 
-        jumpOverWall()
-        jumpOverGap()
-        // check if player y > self.y
+        // update state
+        intentionCmp.wantsToChase = true
         platformRelation = heightRelationToPlayer(phyCmp, playerPhysicCmp)
+
+        // reset if on same platform
         if (platformRelation == PlatformRelation.SAME) {
             nearestPlatformLedge = null
         }
 
-        // enemy is below player
-        if (platformRelation == PlatformRelation.BELOW && rayHitCmp.sightIsBlocked && intentionCmp.walkDirection == WalkDirection.NONE) {
-            // check snapshot of upperLedgeSensors and find world coordinate where the nearest doesn't hit
-            if (nearestPlatformLedge == null) {
-                nearestPlatformLedge = findLedgeToJumpUp(rayHitCmp.upperLedgeHits, rayHitCmp.lowerLedgeHits, playerPos.x)
-            }
+        // wall and gap jumps
+        if (platformRelation != PlatformRelation.ABOVE) {
+            jumpOverWall()
+            jumpOverGap()
         }
 
-        // enemy is above player
-        if (platformRelation == PlatformRelation.ABOVE && rayHitCmp.sightIsBlocked && intentionCmp.walkDirection == WalkDirection.NONE) {
+        // change platform when not in sight and not walking
+        if (intentionCmp.walkDirection == WalkDirection.NONE && rayHitCmp.sightIsBlocked) {
             if (nearestPlatformLedge == null) {
-                nearestPlatformLedge = findLedgeToDropDown(rayHitCmp.lowerLedgeHits, playerPos.x)
+                nearestPlatformLedge =
+                    when (platformRelation) {
+                        PlatformRelation.BELOW -> {
+                            if (rayHitCmp.upperLedgeHits.size == rayHitCmp.lowerLedgeHits.size &&
+                                rayHitCmp.upperLedgeHits.isNotEmpty()
+                            ) {
+                                findLedgeToJumpUp(rayHitCmp.upperLedgeHits, rayHitCmp.lowerLedgeHits, playerPos.x)
+                            } else {
+                                null
+                            }
+                        }
+
+                        PlatformRelation.ABOVE -> {
+                            if (rayHitCmp.lowerLedgeHits.isNotEmpty()) {
+                                findLedgeToDropDown(rayHitCmp.lowerLedgeHits, playerPos.x)
+                            } else {
+                                null
+                            }
+                        }
+
+                        else -> null
+                    }
             }
         }
 
         walkToPosition()
 
-        // jump if player is on platform above
-        if (intentionCmp.walkDirection == WalkDirection.NONE && platformRelation == PlatformRelation.BELOW) {
+        // jump when needed
+        if (intentionCmp.walkDirection == WalkDirection.NONE &&
+            platformRelation == PlatformRelation.BELOW &&
+            nearestPlatformLedge != null
+        ) {
             intentionCmp.wantsToJump = true
         }
     }
@@ -177,8 +201,8 @@ class MushroomContext(
         }
     }
 
-    // get the sensor nearest to the player and search to both sides until a upperLedgeSensor doesn't hit. If the lowerLedgeSensor hits this is
-    // the ledge to jump to the above platform
+    // get the sensor located closest to the player and iterate to both sides until a upperLedgeSensor doesn't hit. If the lowerLedgeSensor hits
+    // this is the jump-point to the upper platform
     fun findLedgeToJumpUp(
         upperLedgeHits: GdxArray<LedgeHitData>,
         lowerLedgeHits: GdxArray<LedgeHitData>,
@@ -216,7 +240,7 @@ class MushroomContext(
         return null
     }
 
-    // get the sensor nearest to the player and search to both sides until a lowerLedgeSensor doesn't hit.
+    /**  same as [findLedgeToJumpUp] for falling down a platform **/
     fun findLedgeToDropDown(
         lowerLedgeHits: GdxArray<LedgeHitData>,
         playerX: Float,

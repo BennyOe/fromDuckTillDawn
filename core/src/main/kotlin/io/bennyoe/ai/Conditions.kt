@@ -27,8 +27,12 @@ class CanNotAttack : Condition() {
     override fun condition(): Boolean = !entity.canAttack()
 }
 
-class IsEnemyNearby : Condition() {
-    override fun condition(): Boolean = entity.hasEnemyNearby()
+class IsPlayerNearby : Condition() {
+    override fun condition(): Boolean = entity.hasPlayerNearby()
+}
+
+class PlayerIsNotInChaseRange : Condition() {
+    override fun condition(): Boolean = !entity.playerIsInChaseRange()
 }
 
 class IsAlive : Condition() {

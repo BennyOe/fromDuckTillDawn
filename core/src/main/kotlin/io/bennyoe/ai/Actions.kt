@@ -107,7 +107,7 @@ class PatrolTask : Action() {
 
     override fun onExecute(): Status {
         ctx.patrol()
-        if (ctx.canAttack() || ctx.hasEnemyNearby()) {
+        if (ctx.canAttack() || ctx.hasPlayerNearby()) {
             return Status.SUCCEEDED
         }
         return Status.RUNNING

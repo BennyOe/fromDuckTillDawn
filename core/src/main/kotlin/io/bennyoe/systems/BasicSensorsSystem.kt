@@ -75,9 +75,15 @@ class BasicSensorsSystem(
 
             phyWorld.rayCast(
                 { fixture, point, normal, fraction ->
+                    // if sensor has filter for specific type it gets filtered here
+                    val bodyData = fixture.body.userData as BodyData
+                    if (sensor.hitFilter != null && !sensor.hitFilter.invoke(bodyData)) {
+                        return@rayCast 1f
+                    }
+
                     hitThisTick = true
                     setHit(true)
-                    0f
+                    1f
                 },
                 sensor.from,
                 sensor.to,

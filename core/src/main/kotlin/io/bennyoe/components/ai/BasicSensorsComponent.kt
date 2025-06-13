@@ -4,6 +4,8 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector2
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
+import io.bennyoe.config.EntityCategory
+import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.SensorType
 import ktx.collections.gdxArrayOf
 import ktx.math.plus
@@ -15,12 +17,21 @@ class BasicSensorsComponent(
     val upperLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
     val lowerLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
 
-    val wallSensor = SensorDef(vec2(0f, -0.6f), vec2(1.5f, 0f), SensorType.WALL_SENSOR, true, "wall sensor", Color.BLUE)
-    val wallHeightSensor = SensorDef(vec2(0f, 0.5f), vec2(1.5f, 0f), SensorType.WALL_HEIGHT_SENSOR, true, "wall height sensor", Color.BLUE)
+    val wallSensor = SensorDef(vec2(0f, -0.6f), vec2(1f, 0f), SensorType.WALL_SENSOR, true, "wall sensor", Color.BLUE)
+    val wallHeightSensor = SensorDef(vec2(0f, 0.5f), vec2(1f, 0f), SensorType.WALL_HEIGHT_SENSOR, true, "wall height sensor", Color.BLUE)
     val groundSensor = SensorDef(vec2(0.5f, 0f), vec2(0f, -1.6f), SensorType.GROUND_SENSOR, false, "ground sensor", Color.GREEN)
     val jumpSensor = SensorDef(vec2(2.2f, 0f), vec2(0f, -1.6f), SensorType.JUMP_SENSOR, false, "jump sensor", Color.GREEN)
     val sightSensor = SensorDef(vec2(0f, 0f), vec2(0f, 0f), SensorType.SIGHT_SENSOR, false, "sight sensor", Color.PINK)
-    val attackSensor = SensorDef(vec2(0f, -0.6f), vec2(1.5f, 0f), SensorType.WALL_SENSOR, true, "attack sensor", Color.ORANGE)
+    val attackSensor =
+        SensorDef(
+            fromRelative = vec2(0f, -0.6f),
+            toRelative = vec2(1f, 0f),
+            tag = SensorType.ATTACK_SENSOR,
+            isHorizontal = true,
+            name = "attack sensor",
+            color = Color.ORANGE,
+            hitFilter = { it.type == EntityCategory.PLAYER }, // filter on this type of hit entity
+        )
 
     init {
         createUpperLedgeSensors()
@@ -68,6 +79,7 @@ data class SensorDef(
     val name: String,
     val color: Color = Color.BLUE,
     val highlightColor: Color = Color.RED,
+    val hitFilter: ((BodyData) -> Boolean)? = null,
 ) {
     var from = Vector2()
     var to = Vector2()

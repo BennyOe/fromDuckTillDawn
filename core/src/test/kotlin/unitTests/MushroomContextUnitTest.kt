@@ -119,7 +119,7 @@ class MushroomContextUnitTest {
         val player = world.entity { it += PlayerComponent() }
         nearbyCmp.nearbyEntities += player
 
-        val result = ctx.hasEnemyNearby()
+        val result = ctx.hasPlayerNearby()
 
         assertTrue(result)
         assertEquals(player, nearbyCmp.target)
@@ -129,7 +129,7 @@ class MushroomContextUnitTest {
     fun `hasEnemyNearby returns false when list empty`() {
         nearbyCmp.nearbyEntities.clear()
 
-        val result = ctx.hasEnemyNearby()
+        val result = ctx.hasPlayerNearby()
 
         assertFalse(result)
         assertEquals(BehaviorTreeComponent.NO_TARGET, nearbyCmp.target)

@@ -208,7 +208,7 @@ class DebugSystem(
 
                         is Polyline -> {
                             it.polyline(dbgShape.shape.vertices)
-                            drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
+                            drawLabel(dbgShape.shape.vertices[dbgShape.shape.vertices.size - 2], dbgShape.shape.vertices.last(), dbgShape)
                         }
 
                         is Polygon -> {

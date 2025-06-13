@@ -17,8 +17,26 @@ class BasicSensorsComponent(
     val upperLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
     val lowerLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
 
-    val wallSensor = SensorDef(vec2(0f, -0.6f), vec2(1f, 0f), SensorType.WALL_SENSOR, true, "wall sensor", Color.BLUE)
-    val wallHeightSensor = SensorDef(vec2(0f, 0.5f), vec2(1f, 0f), SensorType.WALL_HEIGHT_SENSOR, true, "wall height sensor", Color.BLUE)
+    val wallSensor =
+        SensorDef(
+            fromRelative = vec2(0f, -0.6f),
+            toRelative = vec2(1f, 0f),
+            tag = SensorType.WALL_SENSOR,
+            isHorizontal = true,
+            name = "wall sensor",
+            color = Color.BLUE,
+            hitFilter = { it.type == EntityCategory.GROUND },
+        )
+    val wallHeightSensor =
+        SensorDef(
+            fromRelative = vec2(0f, 0.5f),
+            toRelative = vec2(1f, 0f),
+            tag = SensorType.WALL_HEIGHT_SENSOR,
+            isHorizontal = true,
+            name = "wall height sensor",
+            color = Color.BLUE,
+            hitFilter = { it.type == EntityCategory.GROUND },
+        )
     val groundSensor = SensorDef(vec2(0.5f, 0f), vec2(0f, -1.6f), SensorType.GROUND_SENSOR, false, "ground sensor", Color.GREEN)
     val jumpSensor = SensorDef(vec2(2.2f, 0f), vec2(0f, -1.6f), SensorType.JUMP_SENSOR, false, "jump sensor", Color.GREEN)
     val sightSensor = SensorDef(vec2(0f, 0f), vec2(0f, 0f), SensorType.SIGHT_SENSOR, false, "sight sensor", Color.PINK)

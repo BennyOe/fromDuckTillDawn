@@ -1,29 +1,21 @@
-# Actions
-import idle:"io.bennyoe.ai.IdleTask"
-import patrol:"io.bennyoe.ai.PatrolTask"
-import attack:"io.bennyoe.ai.AttackTask"
-import chase:"io.bennyoe.ai.ChaseTask"
+# Imports ------------------------------------------------------
+import idle:"io.bennyoe.ai.actions.Idle"
+import patrol:"io.bennyoe.ai.actions.Patrol"
+import chase:"io.bennyoe.ai.actions.Chase"
+import attack:"io.bennyoe.ai.actions.Attack"
 
-# Conditions
-import IsPlayerNearby?:"io.bennyoe.ai.IsPlayerNearby"
 import canAttack?:"io.bennyoe.ai.CanAttack"
-import canNotAttack?:"io.bennyoe.ai.CanNotAttack"
-import isAlive?:"io.bennyoe.ai.IsAlive"
-import playerIsNotInChaseRange?:"io.bennyoe.ai.PlayerIsNotInChaseRange"
+import shouldChase?:"io.bennyoe.ai.ShouldChase"
 
-subtree name:"chase"
-  sequence
-    (IsPlayerNearby?) (canNotAttack?) (isAlive?) chase
-    (playerIsNotInChaseRange?) patrol
-
-subtree name:"attack"
-  sequence
-    (canAttack?) (isAlive?) attack
-    wait seconds:"uniform,1.5,2.0"
-    $chase
-
+# -------------------------------------------------------------
+# Main-Logic:  Attack  →  Chase  →  Patrol
+# -------------------------------------------------------------
 root
-  selector
-    $attack
-    $chase
-    (isAlive?) patrol
+  dynamicGuardSelector
+    (canAttack?) sequence
+      attack
+      wait seconds:"uniform,1.5,2.0"
+
+    (shouldChase?) chase
+
+    patrol

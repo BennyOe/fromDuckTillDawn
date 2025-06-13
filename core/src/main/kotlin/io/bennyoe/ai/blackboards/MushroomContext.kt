@@ -67,7 +67,6 @@ class MushroomContext(
     }
 
     fun patrol() {
-        intentionCmp.wantsToChase = false
         if (rayHitCmp.wallHit || !rayHitCmp.groundHit) {
             intentionCmp.walkDirection =
                 when (intentionCmp.walkDirection) {
@@ -101,7 +100,6 @@ class MushroomContext(
     }
 
     fun stopMovement() {
-        intentionCmp.wantsToChase = false
         intentionCmp.walkDirection = WalkDirection.NONE
     }
 
@@ -133,7 +131,6 @@ class MushroomContext(
         val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
 
         // update state
-        intentionCmp.wantsToChase = true
         platformRelation = heightRelationToPlayer(phyCmp, playerPhysicCmp)
 
         // reset if on same platform

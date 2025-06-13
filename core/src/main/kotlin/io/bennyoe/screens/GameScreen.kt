@@ -15,6 +15,7 @@ import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.GRAVITY
+import io.bennyoe.config.GameConstants.TIME_SCALE
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.service.DefaultDebugRenderService
@@ -119,8 +120,8 @@ class GameScreen(
 
     override fun render(delta: Float) {
         profiler.reset()
-        GdxAI.getTimepiece().update(delta)
-        entityWorld.update(delta.coerceAtMost(0.25f))
+        GdxAI.getTimepiece().update(delta * TIME_SCALE)
+        entityWorld.update(delta.coerceAtMost(0.25f) * TIME_SCALE)
     }
 
     override fun dispose() {

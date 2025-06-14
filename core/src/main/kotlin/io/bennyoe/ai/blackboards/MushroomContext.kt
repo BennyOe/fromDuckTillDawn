@@ -81,7 +81,8 @@ class MushroomContext(
         with(world) {
             nearbyEnemiesCmp.target = nearbyEnemiesCmp.nearbyEntities
                 .firstOrNull {
-                    it has PlayerComponent.Companion
+                    val bodyData = it[PhysicComponent].body.userData as BodyData
+                    bodyData.type == EntityCategory.PLAYER
                 } ?: BehaviorTreeComponent.Companion.NO_TARGET
         }
         return nearbyEnemiesCmp.target != BehaviorTreeComponent.Companion.NO_TARGET

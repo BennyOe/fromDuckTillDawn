@@ -11,7 +11,7 @@ class HasPlayerNearby : AbstractCondition() {
 }
 
 class PlayerInChaseRange : AbstractCondition() {
-    override fun condition(): Boolean = entity.playerIsInChaseRange()
+    override fun condition(): Boolean = entity.isPlayerInChaseRange()
 }
 
 class IsAlive : AbstractCondition() {
@@ -30,6 +30,6 @@ class IsAlive : AbstractCondition() {
  */
 class ShouldChase : AbstractCondition() {
     override fun condition(): Boolean =
-        (entity.lastTaskName == "Chase" && entity.playerIsInChaseRange()) ||
+        (entity.lastTaskName == "Chase" && entity.isPlayerInChaseRange()) ||
             entity.hasPlayerNearby()
 }

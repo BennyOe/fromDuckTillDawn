@@ -66,46 +66,11 @@ class MushroomContext(
         }
     }
 
-    fun patrol() {
-        if (rayHitCmp.wallHit || !rayHitCmp.groundHit) {
-            intentionCmp.walkDirection =
-                when (intentionCmp.walkDirection) {
-                    WalkDirection.LEFT -> WalkDirection.RIGHT
-                    WalkDirection.RIGHT -> WalkDirection.LEFT
-                    else -> WalkDirection.NONE
-                }
-        }
-    }
-
     fun isAlive(): Boolean = !healthCmp.isDead
 
-    fun inRange(
-        range: Float,
-        targetPos: Vector2,
-    ): Boolean {
-        val (sourceX, sourceY) = phyCmp.body.position
-        val (sourceOffX, sourceOffY) = phyCmp.offset
-        var (sourceSizeX, sourceSizeY) = phyCmp.size
-        sourceSizeX += range
-        sourceSizeY += range
+    fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
 
-        TMP_RECT
-            .set(
-                sourceOffX + sourceX - sourceSizeX * 0.5f,
-                sourceOffY + sourceY - sourceSizeY * 0.5f,
-                sourceSizeX,
-                sourceSizeY,
-            ).addToDebugView(debugRenderService, Color.BLACK, "range")
-        return TMP_RECT.contains(targetPos)
-    }
-
-    fun stopMovement() {
-        intentionCmp.walkDirection = WalkDirection.NONE
-    }
-
-    fun canAttack(): Boolean {
-        return rayHitCmp.canAttack
-    }
+    fun canAttack(): Boolean = rayHitCmp.canAttack
 
     fun hasPlayerNearby(): Boolean {
         with(world) {
@@ -117,7 +82,29 @@ class MushroomContext(
         return nearbyEnemiesCmp.target != BehaviorTreeComponent.Companion.NO_TARGET
     }
 
-    fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
+    fun isPlayerInChaseRange(): Boolean {
+        val selfPos = phyCmp.body.position
+
+        // draw the chase range
+        TMP_CIRC
+            .set(
+                phyCmp.body.position.x,
+                phyCmp.body.position.y,
+                basicSensorsCmp.chaseRange,
+            )
+        TMP_CIRC.addToDebugView(debugRenderService, Color.GREEN, "chaseRange")
+
+        // calculate the distance to the player and return true if it is < chaseRange
+        val player = world.family { all(PlayerComponent, PhysicComponent) }.firstOrNull() ?: return false
+        val playerPos = with(world) { player[PhysicComponent].body.position }
+        val dist2 = selfPos.dst2(playerPos)
+
+        return dist2 <= basicSensorsCmp.chaseRange * basicSensorsCmp.chaseRange
+    }
+
+    fun stopMovement() {
+        intentionCmp.walkDirection = WalkDirection.NONE
+    }
 
     fun startAttack() {
         intentionCmp.wantsToAttack = true
@@ -125,6 +112,17 @@ class MushroomContext(
 
     fun stopAttack() {
         intentionCmp.wantsToAttack = false
+    }
+
+    fun patrol() {
+        if (rayHitCmp.wallHit || !rayHitCmp.groundHit) {
+            intentionCmp.walkDirection =
+                when (intentionCmp.walkDirection) {
+                    WalkDirection.LEFT -> WalkDirection.RIGHT
+                    WalkDirection.RIGHT -> WalkDirection.LEFT
+                    else -> WalkDirection.NONE
+                }
+        }
     }
 
     fun chasePlayer() {
@@ -146,30 +144,7 @@ class MushroomContext(
 
         // change platform when not in sight and not walking
         if (intentionCmp.walkDirection == WalkDirection.NONE && rayHitCmp.sightIsBlocked) {
-            if (nearestPlatformLedge == null) {
-                nearestPlatformLedge =
-                    when (platformRelation) {
-                        PlatformRelation.BELOW -> {
-                            if (rayHitCmp.upperLedgeHits.size == rayHitCmp.lowerLedgeHits.size &&
-                                rayHitCmp.upperLedgeHits.isNotEmpty()
-                            ) {
-                                findLedgeToJumpUp(rayHitCmp.upperLedgeHits, rayHitCmp.lowerLedgeHits, playerPos.x)
-                            } else {
-                                null
-                            }
-                        }
-
-                        PlatformRelation.ABOVE -> {
-                            if (rayHitCmp.lowerLedgeHits.isNotEmpty()) {
-                                findLedgeToDropDown(rayHitCmp.lowerLedgeHits, playerPos.x)
-                            } else {
-                                null
-                            }
-                        }
-
-                        else -> null
-                    }
-            }
+            changePlatform(playerPos)
         }
 
         walkToPosition()
@@ -180,6 +155,33 @@ class MushroomContext(
             nearestPlatformLedge != null
         ) {
             intentionCmp.wantsToJump = true
+        }
+    }
+
+    private fun changePlatform(playerPos: Vector2) {
+        if (nearestPlatformLedge == null) {
+            nearestPlatformLedge =
+                when (platformRelation) {
+                    PlatformRelation.BELOW -> {
+                        if (rayHitCmp.upperLedgeHits.size == rayHitCmp.lowerLedgeHits.size &&
+                            rayHitCmp.upperLedgeHits.isNotEmpty()
+                        ) {
+                            findLedgeToJumpUp(rayHitCmp.upperLedgeHits, rayHitCmp.lowerLedgeHits, playerPos.x)
+                        } else {
+                            null
+                        }
+                    }
+
+                    PlatformRelation.ABOVE -> {
+                        if (rayHitCmp.lowerLedgeHits.isNotEmpty()) {
+                            findLedgeToDropDown(rayHitCmp.lowerLedgeHits, playerPos.x)
+                        } else {
+                            null
+                        }
+                    }
+
+                    else -> null
+                }
         }
     }
 
@@ -198,9 +200,21 @@ class MushroomContext(
         }
     }
 
+    private fun jumpOverGap() {
+        if (!rayHitCmp.groundHit && rayHitCmp.jumpHit) {
+            intentionCmp.wantsToJump = true
+        }
+    }
+
+    private fun jumpOverWall() {
+        if (rayHitCmp.wallHit && !rayHitCmp.wallHeightHit) {
+            intentionCmp.wantsToJump = true
+        }
+    }
+
     // get the sensor located closest to the player and iterate to both sides until a upperLedgeSensor doesn't hit. If the lowerLedgeSensor hits
     // this is the jump-point to the upper platform
-    fun findLedgeToJumpUp(
+    private fun findLedgeToJumpUp(
         upperLedgeHits: GdxArray<LedgeHitData>,
         lowerLedgeHits: GdxArray<LedgeHitData>,
         playerX: Float,
@@ -238,7 +252,7 @@ class MushroomContext(
     }
 
     /**  same as [findLedgeToJumpUp] for falling down a platform **/
-    fun findLedgeToDropDown(
+    private fun findLedgeToDropDown(
         lowerLedgeHits: GdxArray<LedgeHitData>,
         playerX: Float,
     ): Float? {
@@ -271,26 +285,6 @@ class MushroomContext(
         return null
     }
 
-    fun playerIsInChaseRange(): Boolean {
-        val selfPos = phyCmp.body.position
-
-        // draw the chase range
-        TMP_CIRC
-            .set(
-                phyCmp.body.position.x,
-                phyCmp.body.position.y,
-                basicSensorsCmp.chaseRange,
-            )
-        TMP_CIRC.addToDebugView(debugRenderService, Color.GREEN, "chaseRange")
-
-        // calculate the distance to the player and return true if it is < chaseRange
-        val player = world.family { all(PlayerComponent, PhysicComponent) }.firstOrNull() ?: return false
-        val playerPos = with(world) { player[PhysicComponent].body.position }
-        val dist2 = selfPos.dst2(playerPos)
-
-        return dist2 <= basicSensorsCmp.chaseRange * basicSensorsCmp.chaseRange
-    }
-
     // calculate if the player is above, below or on same platform as enemy
     private fun heightRelationToPlayer(
         self: PhysicComponent,
@@ -304,18 +298,6 @@ class MushroomContext(
             dy > Y_THRESHOLD && with(world) { playerEntity has HasGroundContact } -> PlatformRelation.ABOVE
             dy < -Y_THRESHOLD -> PlatformRelation.BELOW
             else -> PlatformRelation.SAME
-        }
-    }
-
-    fun jumpOverGap() {
-        if (!rayHitCmp.groundHit && rayHitCmp.jumpHit) {
-            intentionCmp.wantsToJump = true
-        }
-    }
-
-    fun jumpOverWall() {
-        if (rayHitCmp.wallHit && !rayHitCmp.wallHeightHit) {
-            intentionCmp.wantsToJump = true
         }
     }
 

@@ -2,7 +2,6 @@ package io.bennyoe.ai.blackboards
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Circle
-import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
@@ -11,6 +10,7 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
+import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
@@ -20,8 +20,11 @@ import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.config.EntityCategory
+import io.bennyoe.config.GameConstants.JUMP_MAX_HEIGHT
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
+import io.bennyoe.utility.BodyData
 import ktx.collections.GdxArray
 import ktx.collections.isNotEmpty
 import ktx.log.logger
@@ -45,6 +48,7 @@ class MushroomContext(
     val animCmp: AnimationComponent
     val intentionCmp: IntentionComponent
     val rayHitCmp: RayHitComponent
+    val jumpCmp: JumpComponent
     val healthCmp: HealthComponent
     val stateCmp: StateComponent<*, *>
     val basicSensorsCmp: BasicSensorsComponent
@@ -61,6 +65,7 @@ class MushroomContext(
             healthCmp = entity[HealthComponent]
             intentionCmp = entity[IntentionComponent]
             rayHitCmp = entity[RayHitComponent]
+            jumpCmp = entity[JumpComponent]
             stateCmp = entity[StateComponent]
             basicSensorsCmp = entity[BasicSensorsComponent]
         }
@@ -112,6 +117,11 @@ class MushroomContext(
 
     fun stopAttack() {
         intentionCmp.wantsToAttack = false
+    }
+
+    fun idle() {
+        stopMovement()
+        stopAttack()
     }
 
     fun patrol() {
@@ -292,7 +302,6 @@ class MushroomContext(
     ): PlatformRelation {
         val selfBottomY = self.body.position.y + self.offset.y - self.size.y * 0.5f
         val playerBottomY = player.body.position.y + player.offset.y - player.size.y * 0.5f
-        val noJumping = player.body.linearVelocity.y == 0f && self.body.linearVelocity.y == 0f
         val dy = selfBottomY - playerBottomY
         return when {
             dy > Y_THRESHOLD && with(world) { playerEntity has HasGroundContact } -> PlatformRelation.ABOVE
@@ -303,7 +312,6 @@ class MushroomContext(
 
     companion object {
         val logger = logger<MushroomContext>()
-        val TMP_RECT = Rectangle()
         val TMP_CIRC = Circle()
     }
 }

@@ -17,9 +17,8 @@ class Idle(
 
     override fun enter() {
         Attack.Companion.logger.debug { "Idle Enter" }
-        ctx.stopAttack()
         ctx.lastTaskName = this.javaClass.simpleName
-        ctx.stopMovement()
+        ctx.idle()
         currentDuration = duration?.nextFloat() ?: 1f
     }
 

@@ -4,18 +4,26 @@ import patrol:"io.bennyoe.ai.actions.Patrol"
 import chase:"io.bennyoe.ai.actions.Chase"
 import attack:"io.bennyoe.ai.actions.Attack"
 
+
 import canAttack?:"io.bennyoe.ai.CanAttack"
 import shouldChase?:"io.bennyoe.ai.ShouldChase"
 
 # -------------------------------------------------------------
 # Main-Logic:  Attack  →  Chase  →  Patrol
 # -------------------------------------------------------------
+
+# This tree is lazy and will only evaluate the conditions when a task is finished.
+subtree name:"idlePatrolLoop"
+  selector
+    (random success: 0.4) idle duration:"uniform,1.0,1.5"
+    patrol duration:"uniform,4.0,6.0"
+
+# this tree is reactive to evaluate the conditions every tick,
+# so it can switch between actions dynamically and interrupt them
 root
   dynamicGuardSelector
     (canAttack?) sequence
       attack
       wait seconds:"uniform,1.5,2.0"
-
     (shouldChase?) chase
-
-    patrol
+    $idlePatrolLoop

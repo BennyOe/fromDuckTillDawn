@@ -61,7 +61,7 @@
   </object>
  </objectgroup>
  <objectgroup id="13" name="enemies">
-  <object id="21" name="enemy" type="enemy" x="173.382" y="214.738">
+  <object id="21" name="enemy" type="enemy" x="199.049" y="243.072">
    <point/>
   </object>
  </objectgroup>

@@ -2,7 +2,7 @@ package io.bennyoe.config
 
 object GameConstants {
     // World constants
-    const val TIME_SCALE = 0.5f // Game speed from 0% to 100%
+    const val TIME_SCALE = 0.7f // Game speed from 0% to 100%
     const val UNIT_SCALE = 1 / 16f // Scale from pixel to world units
     const val PHYSIC_TIME_STEP = 1 / 45f // update per second of the physics engine
     const val GAME_WIDTH = 1280f

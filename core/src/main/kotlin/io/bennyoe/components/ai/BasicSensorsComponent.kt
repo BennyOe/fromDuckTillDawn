@@ -21,7 +21,7 @@ class BasicSensorsComponent(
         SensorDef(
             fromRelative = vec2(0f, -0.6f),
             toRelative = vec2(1f, 0f),
-            tag = SensorType.WALL_SENSOR,
+            type = SensorType.WALL_SENSOR,
             isHorizontal = true,
             name = "wall sensor",
             color = Color.BLUE,
@@ -31,7 +31,7 @@ class BasicSensorsComponent(
         SensorDef(
             fromRelative = vec2(0f, 0.5f),
             toRelative = vec2(1f, 0f),
-            tag = SensorType.WALL_HEIGHT_SENSOR,
+            type = SensorType.WALL_HEIGHT_SENSOR,
             isHorizontal = true,
             name = "wall height sensor",
             color = Color.BLUE,
@@ -43,8 +43,8 @@ class BasicSensorsComponent(
     val attackSensor =
         SensorDef(
             fromRelative = vec2(0f, -0.6f),
-            toRelative = vec2(1f, 0f),
-            tag = SensorType.ATTACK_SENSOR,
+            toRelative = vec2(1.5f, 0f),
+            type = SensorType.ATTACK_SENSOR,
             isHorizontal = true,
             name = "attack sensor",
             color = Color.ORANGE,
@@ -93,7 +93,7 @@ class BasicSensorsComponent(
 data class SensorDef(
     var fromRelative: Vector2,
     val toRelative: Vector2,
-    val tag: SensorType,
+    val type: SensorType,
     val isHorizontal: Boolean,
     val name: String,
     val color: Color = Color.BLUE,
@@ -109,7 +109,17 @@ data class SensorDef(
         flipImage: Boolean,
     ) {
         if (isHorizontal) {
-            from.set(bodyPos).add(fromRelative)
+            if (type == SensorType.ATTACK_SENSOR) {
+                from =
+                    if (flipImage) {
+                        vec2(bodyPos.x + fromRelative.x + 0.5f, bodyPos.y + fromRelative.y)
+                    } else {
+                        vec2(bodyPos.x + fromRelative.x - 0.5f, bodyPos.y + fromRelative.y)
+                    }
+            } else {
+                from.set(bodyPos).add(fromRelative)
+            }
+
             to =
                 if (flipImage) {
                     vec2(from.x - toRelative.x, from.y + toRelative.y)

@@ -7,6 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
@@ -28,10 +29,8 @@ import ktx.collections.lastIndex
 import ktx.log.logger
 import kotlin.math.abs
 
-const val Y_THRESHOLD = 0.1f
+const val Y_THRESHOLD = 0.3f
 const val X_THRESHOLD = 0.1f
-
-private const val LEDGE_OFFSET = 1f
 
 class MushroomContext(
     entity: Entity,
@@ -135,7 +134,9 @@ class MushroomContext(
         val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
 
         // update state
-        platformRelation = heightRelationToPlayer(phyCmp, playerPhysicCmp)
+        if (with(world) { playerEntity has HasGroundContact }) {
+            platformRelation = heightRelationToPlayer(phyCmp, playerPhysicCmp)
+        }
 
         // reset if on same platform
         if (platformRelation == PlatformRelation.SAME) {
@@ -152,9 +153,9 @@ class MushroomContext(
         changePlatform(playerPos)
 
         if (platformRelation == PlatformRelation.BELOW) {
-            calculateNearestPlatformEdgeOffsetForUp()
+            calculateNearestPlatformEdgeOffset(rayHitCmp.upperLedgeHits)
         } else if (platformRelation == PlatformRelation.ABOVE) {
-            calculateNearestPlatformEdgeOffsetForDown()
+            calculateNearestPlatformEdgeOffset(rayHitCmp.lowerLedgeHits)
         }
 
         walkToPosition()
@@ -169,36 +170,12 @@ class MushroomContext(
     }
 
     /**
-     * Determines the nearest reachable upper ledge offset for jumping up.
+     * Determines the nearest reachable upper ledge offset for jumping up or dropping down.
      * Starts from the currently selected ledge (`nearestPlatformLedge`) and checks neighboring sensors
      * to the left and right. If a neighboring ledge is not blocked, its x-coordinate is selected
      * as a better jump target.
      */
-    private fun calculateNearestPlatformEdgeOffsetForUp() {
-        val hits = rayHitCmp.upperLedgeHits
-        val index = hits.indexOfFirst { it.xCoordinate == nearestPlatformLedge }
-
-        if (index == -1 || hits[index].hit) {
-            nearestPlatformLedgeWithOffset = null
-            return
-        }
-
-        if (index > 0 && !hits[index - 1].hit) {
-            nearestPlatformLedgeWithOffset = hits[index - 1].xCoordinate
-            nearestPlatformLedge = null
-        } else if (index < hits.lastIndex && !hits[index + 1].hit) {
-            nearestPlatformLedgeWithOffset = hits[index + 1].xCoordinate
-            nearestPlatformLedge = null
-        }
-    }
-
-    /**
-     * Determines the nearest reachable lower ledge offset for dropping down.
-     * Starts from the currently selected ledge (`nearestPlatformLedge`) and checks sensors two steps
-     * to the left and right to ensure there's enough space to fall. If found, sets the new drop target offset.
-     */
-    private fun calculateNearestPlatformEdgeOffsetForDown() {
-        val hits = rayHitCmp.lowerLedgeHits
+    private fun calculateNearestPlatformEdgeOffset(hits: GdxArray<LedgeHitData>) {
         val index = hits.indexOfFirst { it.xCoordinate == nearestPlatformLedge }
 
         if (index == -1 || hits[index].hit) {
@@ -215,31 +192,29 @@ class MushroomContext(
         }
     }
 
-    fun changePlatform(playerPos: Vector2) {
-        if (nearestPlatformLedge == null) {
-            nearestPlatformLedge =
-                when (platformRelation) {
-                    PlatformRelation.BELOW -> {
-                        if (rayHitCmp.upperLedgeHits.size == rayHitCmp.lowerLedgeHits.size &&
-                            rayHitCmp.upperLedgeHits.isNotEmpty()
-                        ) {
-                            findLedgeToJumpUp(rayHitCmp.upperLedgeHits, rayHitCmp.lowerLedgeHits, playerPos.x)
-                        } else {
-                            null
-                        }
+    private fun changePlatform(playerPos: Vector2) {
+        nearestPlatformLedge =
+            when (platformRelation) {
+                PlatformRelation.BELOW -> {
+                    if (rayHitCmp.upperLedgeHits.size == rayHitCmp.lowerLedgeHits.size &&
+                        rayHitCmp.upperLedgeHits.isNotEmpty()
+                    ) {
+                        findLedgeToJumpUp(rayHitCmp.upperLedgeHits, rayHitCmp.lowerLedgeHits, playerPos.x)
+                    } else {
+                        null
                     }
-
-                    PlatformRelation.ABOVE -> {
-                        if (rayHitCmp.lowerLedgeHits.isNotEmpty()) {
-                            findLedgeToDropDown(rayHitCmp.lowerLedgeHits, playerPos.x)
-                        } else {
-                            null
-                        }
-                    }
-
-                    else -> null
                 }
-        }
+
+                PlatformRelation.ABOVE -> {
+                    if (rayHitCmp.lowerLedgeHits.isNotEmpty()) {
+                        findLedgeToDropDown(rayHitCmp.lowerLedgeHits, playerPos.x)
+                    } else {
+                        null
+                    }
+                }
+
+                else -> null
+            }
     }
 
     // get the sensor located closest to the player and iterate to both sides until a upperLedgeSensor doesn't hit. If the lowerLedgeSensor hits

@@ -7,7 +7,7 @@ import ktx.log.logger
 import kotlin.math.abs
 
 const val DURATION_TIMER = .5f
-const val EPS = 0.1f
+const val EPS = 1.0f
 
 class Chase : AbstractAction() {
     private var currentDuration = DURATION_TIMER
@@ -28,7 +28,6 @@ class Chase : AbstractAction() {
                 logger.debug { "CHASE HUNG" }
                 return Status.FAILED
             } else {
-                logger.debug { "CHASE CONTINUE" }
                 xPosition = ctx.phyCmp.body.position.x
                 currentDuration = DURATION_TIMER
             }

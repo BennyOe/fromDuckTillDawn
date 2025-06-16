@@ -52,6 +52,8 @@ class BasicSensorsSystem(
         // update upper ledge sensor positions
         createLedgeSensors(basicSensorsCmp.upperLedgeSensorArray, intentionCmp, bodyPos, flipImg, rayHitCmp.upperLedgeHits)
         createLedgeSensors(basicSensorsCmp.lowerLedgeSensorArray, intentionCmp, bodyPos, flipImg, rayHitCmp.lowerLedgeHits)
+        rayHitCmp.upperLedgeHits.sort()
+        rayHitCmp.lowerLedgeHits.sort()
 
         val sightSensor = basicSensorsCmp.sightSensor
         if (dst(sightSensor.from.x, sightSensor.from.y, sightSensor.to.x, sightSensor.to.y) < CHASE_DETECTION_RADIUS) {

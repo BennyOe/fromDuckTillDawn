@@ -23,4 +23,6 @@ class RayHitComponent : Component<RayHitComponent> {
 data class LedgeHitData(
     val hit: Boolean,
     val xCoordinate: Float,
-)
+) : Comparable<LedgeHitData> {
+    override fun compareTo(other: LedgeHitData): Int = xCoordinate.compareTo(other.xCoordinate)
+}

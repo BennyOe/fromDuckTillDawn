@@ -39,7 +39,16 @@ class BasicSensorsComponent(
         )
     val groundSensor = SensorDef(vec2(0.5f, 0f), vec2(0f, -1.6f), SensorType.GROUND_SENSOR, false, "ground sensor", Color.GREEN)
     val jumpSensor = SensorDef(vec2(2.2f, 0f), vec2(0f, -1.6f), SensorType.JUMP_SENSOR, false, "jump sensor", Color.GREEN)
-    val sightSensor = SensorDef(vec2(0f, 0f), vec2(0f, 0f), SensorType.SIGHT_SENSOR, false, "sight sensor", Color.PINK)
+    val sightSensor =
+        SensorDef(
+            fromRelative = vec2(0f, 0f),
+            toRelative = vec2(0f, 0f),
+            type = SensorType.SIGHT_SENSOR,
+            isHorizontal = false,
+            name = "sight sensor",
+            color = Color.WHITE,
+            hitFilter = { it.type == EntityCategory.GROUND },
+        )
     val attackSensor =
         SensorDef(
             fromRelative = vec2(0f, -0.6f),
@@ -60,14 +69,12 @@ class BasicSensorsComponent(
         for (i in -10..10) {
             upperLedgeSensorArray.add(
                 SensorDef(
-                    vec2(
-                        i / 2f,
-                        0f,
-                    ),
-                    vec2(0f, 2f),
-                    SensorType.UPPER_LEDGE_SENSOR,
-                    false,
-                    "upper ledge sensor",
+                    fromRelative = vec2(i / 2f, 0f),
+                    toRelative = vec2(0f, 2f),
+                    type = SensorType.UPPER_LEDGE_SENSOR,
+                    isHorizontal = false,
+                    name = "upper ledge sensor",
+                    hitFilter = { it.type == EntityCategory.GROUND },
                 ),
             )
             lowerLedgeSensorArray.add(

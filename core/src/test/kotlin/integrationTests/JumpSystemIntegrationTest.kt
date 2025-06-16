@@ -18,6 +18,7 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
+import io.bennyoe.config.GameConstants.JUMP_MAX_HEIGHT
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
@@ -95,7 +96,7 @@ class JumpSystemIntegrationTest {
         jumpCmp.wantsToJump = true
 
         // Create a second entity with a higher jump height
-        val entity2 = createNewEntity(5f, world)
+        val entity2 = createNewEntity(JUMP_MAX_HEIGHT + 5, world)
         val jumpCmp2 = with(world) { entity2[JumpComponent] }
         jumpCmp2.wantsToJump = true
 

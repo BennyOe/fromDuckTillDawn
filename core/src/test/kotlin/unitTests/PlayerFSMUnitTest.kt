@@ -665,6 +665,7 @@ class PlayerFSMUnitTest {
         val deadDelay = 0f
         val deadCmp = with(world) { entity[DeadComponent] }
         val healthCmp = with(world) { entity[HealthComponent] }
+        healthCmp.current = 0f
         givenState(PlayerFSM.DEATH)
 
         assertTrue(healthCmp.isDead)

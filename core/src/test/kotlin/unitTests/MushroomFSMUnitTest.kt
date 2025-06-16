@@ -173,6 +173,7 @@ class MushroomFSMUnitTest {
         val deadDelay = 2f
         val deadCmp = with(world) { entity[DeadComponent] }
         val healthCmp = with(world) { entity[HealthComponent] }
+        healthCmp.current = 0f
         deadCmp.removeDelayCounter = deadDelay
         deadCmp.removeDelay = deadDelay
 

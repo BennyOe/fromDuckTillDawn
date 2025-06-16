@@ -83,6 +83,7 @@ class JumpSystemUnitTest {
         val jumpCmp = with(world) { entity[JumpComponent] }
 
         val desiredHeight = 3f
+        jumpCmp.maxHeight = desiredHeight
         world.update(0f)
         val expected = expectedJumpVelocity()
 

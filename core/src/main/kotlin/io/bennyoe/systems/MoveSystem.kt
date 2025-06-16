@@ -4,32 +4,43 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.InputComponent
+import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
 import ktx.log.logger
 
-class MoveSystem : IteratingSystem(family { all(PhysicComponent, MoveComponent, AnimationComponent, InputComponent) }, enabled = true) {
+class MoveSystem :
+    IteratingSystem(family { all(PhysicComponent, MoveComponent, AnimationComponent) }, enabled = true),
+    PausableSystem {
     override fun onTickEntity(entity: Entity) {
         val moveCmp = entity[MoveComponent]
-        val inputCmp = entity[InputComponent]
-        val animationCmp = entity[AnimationComponent]
+        val intentionCmp = entity[IntentionComponent]
+        val imageCmp = entity[ImageComponent]
 
         if (moveCmp.lockMovement) {
             return
         }
 
-        when (inputCmp.direction) {
+        when (intentionCmp.walkDirection) {
             WalkDirection.NONE -> moveCmp.moveVelocity = 0f
             WalkDirection.LEFT -> {
-                animationCmp.flipImage = true
-                moveCmp.moveVelocity = -moveCmp.maxSpeed
+                imageCmp.flipImage = true
+                if (intentionCmp.wantsToChase) {
+                    moveCmp.moveVelocity = -moveCmp.chaseSpeed
+                } else {
+                    moveCmp.moveVelocity = -moveCmp.maxSpeed
+                }
             }
 
             WalkDirection.RIGHT -> {
-                animationCmp.flipImage = false
-                moveCmp.moveVelocity = moveCmp.maxSpeed
+                imageCmp.flipImage = false
+                if (intentionCmp.wantsToChase) {
+                    moveCmp.moveVelocity = moveCmp.chaseSpeed
+                } else {
+                    moveCmp.moveVelocity = moveCmp.maxSpeed
+                }
             }
         }
     }

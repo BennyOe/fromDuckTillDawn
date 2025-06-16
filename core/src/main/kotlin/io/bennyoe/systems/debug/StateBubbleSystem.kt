@@ -23,11 +23,14 @@ private const val STATE_BUBBLE_OFFSET_Y = 1.1f
 class StateBubbleSystem(
     private val stage: Stage = inject("stage"),
     private val uiStage: Stage = inject("uiStage"),
-) : IteratingSystem(family { all(StateBubbleComponent) }, interval = Fixed(PHYSIC_TIME_STEP)) {
+) : IteratingSystem(family { all(StateBubbleComponent, StateComponent) }, interval = Fixed(PHYSIC_TIME_STEP)) {
     override fun onTickEntity(entity: Entity) {
         val stateBubbleCmp = entity[StateBubbleComponent]
-        val stateComponent = entity[StateComponent]
-        stateBubbleCmp.bubble.displayState(stateComponent.stateMachine.currentState.toString())
+        val stateCmp = entity[StateComponent]
+
+        stateBubbleCmp.bubble.displayState(
+            stateCmp.stateMachine.currentState.toString(),
+        )
     }
 
     override fun onAlphaEntity(

@@ -1,14 +1,19 @@
 package unitTests
 
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.WalkDirection
+import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.MoveSystem
+import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -19,9 +24,17 @@ class MoveSystemUnitTest {
 
     @BeforeEach
     fun setup() {
+        val stageMock = mockk<Stage>(relaxed = true)
+
+        val imageMock: Image = mockk(relaxed = true)
+        val imgCmp =
+            ImageComponent(stageMock).also {
+                it.image = imageMock
+            }
         world =
             configureWorld {
                 systems {
+                    add(InputSystem())
                     add(MoveSystem())
                 }
             }
@@ -29,47 +42,56 @@ class MoveSystemUnitTest {
         entity =
             world.entity {
                 it += PhysicComponent()
+                it += IntentionComponent()
                 it += MoveComponent(maxSpeed = 10f)
-                it += InputComponent(direction = WalkDirection.RIGHT)
+                it += imgCmp
+                it += InputComponent()
                 it += AnimationComponent()
             }
     }
 
     @Test
     fun `entity moves right when input is RIGHT`() {
+        val inputCmp = with(world) { entity[InputComponent] }
+        val moveCmp = with(world) { entity[MoveComponent] }
+
+        inputCmp.walkRightJustPressed = true
         world.update(1f)
 
-        val move = with(world) { entity[MoveComponent] }
-        assertEquals(10f, move.moveVelocity)
+        assertEquals(10f, moveCmp.moveVelocity)
     }
 
     @Test
     fun `entity velocity is 0 when standing still`() {
-        with(world) { entity[InputComponent].direction = WalkDirection.NONE }
+        val moveCmp = with(world) { entity[MoveComponent] }
+
         world.update(1f)
 
-        val move = with(world) { entity[MoveComponent] }
-        assertEquals(0f, move.moveVelocity)
+        assertEquals(0f, moveCmp.moveVelocity)
     }
 
     @Test
     fun `entity moves left when input is LEFT`() {
-        with(world) { entity[InputComponent].direction = WalkDirection.LEFT }
+        val inputCmp = with(world) { entity[InputComponent] }
+        val moveCmp = with(world) { entity[MoveComponent] }
+
+        inputCmp.walkLeftJustPressed = true
         world.update(1f)
 
-        val move = with(world) { entity[MoveComponent] }
-        assertEquals(-10f, move.moveVelocity)
+        assertEquals(-10f, moveCmp.moveVelocity)
     }
 
     @Test
     fun `entity moves at max speed regardless of delta time`() {
+        val moveCmp = with(world) { entity[MoveComponent] }
+
         // small Δt
         world.update(0.016f)
-        val smallDtVelocity = with(world) { entity[MoveComponent].moveVelocity }
+        val smallDtVelocity = moveCmp.moveVelocity
 
         // large Δt
         world.update(0.5f)
-        val largeDtVelocity = with(world) { entity[MoveComponent].moveVelocity }
+        val largeDtVelocity = moveCmp.moveVelocity
 
         assertEquals(
             smallDtVelocity,
@@ -80,28 +102,42 @@ class MoveSystemUnitTest {
 
     @Test
     fun `entity reaches max speed after multiple small updates`() {
-        repeat(10) { world.update(0.016f) } // simulate ~10 frames @60 FPS
-        val vel = with(world) { entity[MoveComponent].moveVelocity }
+        val inputCmp = with(world) { entity[InputComponent] }
+        val moveCmp = with(world) { entity[MoveComponent] }
+
+        inputCmp.walkRightJustPressed = true
+        repeat(10) { world.update(0.016f) }
+        val vel = moveCmp.moveVelocity
         assertEquals(10f, vel)
     }
 
     @Test
     fun `velocity is clamped to max speed`() {
-        with(world) { entity[MoveComponent].maxSpeed = 5f }
+        val inputCmp = with(world) { entity[InputComponent] }
+        val moveCmp = with(world) { entity[MoveComponent] }
+
+        inputCmp.walkRightJustPressed = true
+        moveCmp.maxSpeed = 5f
+
         world.update(5f) // simulate a big lag spike
-        val vel = with(world) { entity[MoveComponent].moveVelocity }
+        val vel = moveCmp.moveVelocity
         assertEquals(5f, vel)
     }
 
     @Test
     fun `entity changes direction correctly within one frame`() {
+        val inputCmp = with(world) { entity[InputComponent] }
+        val moveCmp = with(world) { entity[MoveComponent] }
+
+        inputCmp.walkRightJustPressed = true
         world.update(0.016f) // first frame moving right
 
         // switch direction to left and update again
-        with(world) { entity[InputComponent].direction = WalkDirection.LEFT }
+        inputCmp.walkRightJustPressed = false
+        inputCmp.walkLeftJustPressed = true
         world.update(0.016f)
 
-        val vel = with(world) { entity[MoveComponent].moveVelocity }
+        val vel = moveCmp.moveVelocity
         assertEquals(-10f, vel)
     }
 }

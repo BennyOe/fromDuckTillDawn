@@ -10,7 +10,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
@@ -41,7 +40,7 @@ class AnimationSystemUnitTest {
         imageMock = mockk(relaxed = true)
 
         val stageMock = mockk<Stage>(relaxed = true)
-        every { stageMock.actors.contains(any(), any()) } returns false // bypass stage.addActor check
+        every { stageMock.actors.contains(any(), any()) } returns false
 
         val atlasMock = mockk<TextureAtlas>(relaxed = true)
         val regionMock = mockk<TextureAtlas.AtlasRegion>(relaxed = true)
@@ -58,7 +57,6 @@ class AnimationSystemUnitTest {
 
         aniCmp =
             AnimationComponent().apply {
-                // provide dummy animation so the system can step frames
                 val frameArray = GdxArray<TextureRegionDrawable>()
                 frameArray.add(mockk(relaxed = true))
                 animation = Animation(0.1f, frameArray)
@@ -93,19 +91,6 @@ class AnimationSystemUnitTest {
     }
 
     @Test
-    fun `flip flag is propagated from AnimationComponent to ImageComponent`() {
-        aniCmp.flipImage = true
-
-        world.update(0f)
-
-        assertEquals(
-            true,
-            imgCmp.flipImage,
-            "ImageComponent.flipImage should mirror AnimationComponent.flipImage",
-        )
-    }
-
-    @Test
     fun `image drawable is updated each tick`() {
         every { imageMock.drawable = any() } just Runs
 
@@ -117,7 +102,6 @@ class AnimationSystemUnitTest {
     @Test
     fun `nextAnimation triggers applyNextAnimation and resets flags`() {
         aniCmp.nextAnimation(
-            AnimationModel.PLAYER_DAWN,
             AnimationType.WALK,
             AnimationVariant.FIRST,
         )

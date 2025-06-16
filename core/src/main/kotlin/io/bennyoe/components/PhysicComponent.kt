@@ -12,6 +12,9 @@ import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
+import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.FixtureData
+import io.bennyoe.utility.SensorType
 import ktx.app.gdxError
 import ktx.box2d.body
 import ktx.box2d.box
@@ -25,7 +28,8 @@ class PhysicComponent : Component<PhysicComponent> {
     val size: Vector2 = Vector2()
     var prevPos: Vector2 = Vector2()
     var impulse: Vector2 = Vector2()
-    var categoryBits = EntityCategory.WALL.bit
+    var categoryBits = EntityCategory.GROUND.bit
+    var activeGroundContacts: Int = 0
     lateinit var body: Body
 
     override fun type() = PhysicComponent
@@ -41,7 +45,9 @@ class PhysicComponent : Component<PhysicComponent> {
             x: Int = 0,
             y: Int = 0,
             myFriction: Float = 0f,
-            setUserData: Entity? = null,
+            setUserData: BodyData? = null,
+            categoryBit: Short = EntityCategory.GROUND.bit,
+            maskBit: Short = -1,
         ): PhysicComponent {
             when (shape) {
                 is Rectangle -> {
@@ -63,6 +69,8 @@ class PhysicComponent : Component<PhysicComponent> {
                                     vec2(0f, bodyH),
                                 ) {
                                     friction = myFriction
+                                    filter.categoryBits = categoryBit
+                                    filter.maskBits = maskBit
                                 }
                             }
                     }
@@ -80,11 +88,12 @@ class PhysicComponent : Component<PhysicComponent> {
             scalePhysicY: Float = 1f,
             offsetX: Float = 0f,
             offsetY: Float = 0f,
-            categoryBit: Short = 0x0001,
+            categoryBit: Short = EntityCategory.ENEMY.bit,
+            maskBit: Short = -1,
             fixedRotation: Boolean = true,
             allowSleep: Boolean = true,
             isSensor: Boolean = false,
-            setUserdata: Entity? = null,
+            setUserdata: BodyData? = null,
             myFriction: Float = 1f,
         ): PhysicComponent {
             val x = image.x
@@ -104,8 +113,10 @@ class PhysicComponent : Component<PhysicComponent> {
             // fixture as box
             body.box(width, height, Vector2(offsetX, offsetY)) {
                 this.isSensor = isSensor
-                this.userData = "HITBOX_SENSOR"
+                // is currentlu only use for creating player and enemy entities. If this changes the fixture userData must be generated dynamically
+                this.userData = FixtureData(SensorType.HITBOX_SENSOR)
                 this.filter.categoryBits = categoryBit
+                this.filter.maskBits = maskBit
                 density = 1f
                 friction = myFriction
             }

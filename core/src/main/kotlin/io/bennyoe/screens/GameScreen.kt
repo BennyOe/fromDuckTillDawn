@@ -1,6 +1,7 @@
 package io.bennyoe.screens
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.ai.GdxAI
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
@@ -12,23 +13,30 @@ import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.debug.DebugComponent
+import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.GRAVITY
+import io.bennyoe.config.GameConstants.TIME_SCALE
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
-import io.bennyoe.service.DebugRenderService
+import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
+import io.bennyoe.systems.BasicSensorsSystem
+import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DamageSystem
-import io.bennyoe.systems.DeadSystem
 import io.bennyoe.systems.EntitySpawnSystem
+import io.bennyoe.systems.ExpireSystem
+import io.bennyoe.systems.GameStateSystem
+import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
+import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem
@@ -61,7 +69,7 @@ class GameScreen(
                 add("stage", stage)
                 add("uiStage", uiStage)
                 add("shapeRenderer", ShapeRenderer())
-                add("debugRenderService", DebugRenderService())
+                add("debugRenderService", DefaultDebugRenderService())
                 add("spriteBatch", spriteBatch)
                 add("profiler", profiler)
             }
@@ -69,19 +77,24 @@ class GameScreen(
                 add(AnimationSystem())
                 add(EntitySpawnSystem())
                 add(CollisionSpawnSystem())
+                add(InputSystem())
                 add(AttackSystem())
+                add(GameStateSystem())
                 add(DamageSystem())
                 add(DamageTextSystem())
                 add(JumpSystem())
                 add(PhysicsSystem())
+                add(BasicSensorsSystem())
                 add(StateSystem())
+                add(BehaviorTreeSystem())
                 add(MoveSystem())
                 add(CameraSystem())
                 add(RenderSystem())
-                add(DebugSystem())
+                if (ENABLE_DEBUG) add(DebugSystem())
+                add(ExpireSystem())
                 add(StateBubbleSystem())
+                add(BTBubbleSystem())
                 add(UiRenderSystem())
-                add(DeadSystem())
             }
         }
 
@@ -89,7 +102,7 @@ class GameScreen(
         profiler.enable()
         // add a gameState Entity to the screen
         entityWorld.entity {
-            it += DebugComponent()
+            if (ENABLE_DEBUG) it += DebugComponent()
             it += GameStateComponent()
         }
 
@@ -107,7 +120,8 @@ class GameScreen(
 
     override fun render(delta: Float) {
         profiler.reset()
-        entityWorld.update(delta.coerceAtMost(0.25f))
+        GdxAI.getTimepiece().update(delta * TIME_SCALE)
+        entityWorld.update(delta.coerceAtMost(0.25f) * TIME_SCALE)
     }
 
     override fun dispose() {

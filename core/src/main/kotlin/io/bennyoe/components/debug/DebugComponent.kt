@@ -4,10 +4,11 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
+import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
 import ktx.log.logger
 
 class DebugComponent(
-    var enabled: Boolean = false,
+    var enabled: Boolean = SHOW_ONLY_DEBUG,
 ) : Component<DebugComponent> {
     private var alreadyChanged: Boolean = false
 

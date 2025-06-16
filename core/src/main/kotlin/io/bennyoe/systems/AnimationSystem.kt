@@ -17,14 +17,14 @@ import ktx.log.logger
 
 class AnimationSystem(
     private val textureAtlas: TextureAtlas = inject(),
-) : IteratingSystem(family { all(AnimationComponent, ImageComponent) }) {
+) : IteratingSystem(family { all(AnimationComponent, ImageComponent) }),
+    PausableSystem {
     private val cachedAnimations = mutableMapOf<String, Animation<TextureRegionDrawable>>()
 
     override fun onTickEntity(entity: Entity) {
         val aniCmp = entity[AnimationComponent]
 
         with(entity[ImageComponent]) {
-            flipImage = aniCmp.flipImage
             image.drawable =
                 if (aniCmp.nextAnimationType == AnimationType.NONE) {
                     // then we are in an animation

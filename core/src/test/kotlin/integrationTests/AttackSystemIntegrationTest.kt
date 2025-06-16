@@ -17,13 +17,24 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.service.DebugRenderService
+import io.bennyoe.state.mushroom.MushroomCheckAliveState
+import io.bennyoe.state.mushroom.MushroomFSM
+import io.bennyoe.state.mushroom.MushroomStateContext
+import io.bennyoe.state.player.PlayerCheckAliveState
+import io.bennyoe.state.player.PlayerFSM
+import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.AttackSystem
+import io.bennyoe.systems.InputSystem
+import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.FixtureData
+import io.bennyoe.utility.SensorType
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -31,38 +42,69 @@ import kotlin.test.assertEquals
 
 class AttackSystemIntegrationTest {
     private lateinit var world: World
-    private lateinit var entity: Entity
-    private lateinit var enemy: Entity
+    private lateinit var playerEntity: Entity
+    private lateinit var enemyEntity: Entity
     private lateinit var phyWorld: com.badlogic.gdx.physics.box2d.World
-    private lateinit var debugRenderService: DebugRenderService
-    private lateinit var imgCmp: ImageComponent
-    private lateinit var imageMock: Image
 
     @BeforeEach
     fun setup() {
+        // --------------- Setup World ----------------
         Gdx.app = mockk<Application>(relaxed = true)
-        val mockAnimationCmp = mockk<AnimationComponent>(relaxed = true)
         val stageMock = mockk<Stage>(relaxed = true)
+        val debugRenderServiceMock = mockk<DebugRenderService>(relaxed = true)
+        val animationCmpMock = mockk<AnimationComponent>(relaxed = true)
+
         phyWorld =
             com.badlogic.gdx.physics.box2d
                 .World(Vector2(0f, -9.81f), true)
-        debugRenderService = mockk<DebugRenderService>(relaxed = true)
-        imageMock = mockk(relaxed = true)
-        imgCmp =
-            ImageComponent(stageMock).also {
-                it.image = imageMock
-            }
-
         world =
             configureWorld {
                 injectables {
                     add("phyWorld", phyWorld)
-                    add("debugRenderService", debugRenderService)
+                    add("debugRenderService", debugRenderServiceMock)
                 }
-                systems { add(AttackSystem()) }
+                systems {
+                    add(AttackSystem())
+                    add(InputSystem())
+                }
             }
 
+        // --------------- Setup Player ----------------
         val playerBody = mockk<Body>(relaxed = true)
+        val imageMock = mockk<Image>(relaxed = true)
+
+        val playerImageCmp =
+            ImageComponent(stageMock).also {
+                it.image = imageMock
+            }
+
+        val playerPhysicCmp =
+            PhysicComponent().apply {
+                body = playerBody
+                size.set(1f, 1f)
+                categoryBits = EntityCategory.PLAYER.bit
+            }
+        playerEntity =
+            world.entity {
+                it += animationCmpMock
+                it += playerPhysicCmp
+                it += AttackComponent()
+                it += MoveComponent()
+                it += IntentionComponent()
+                it += HealthComponent()
+                it += playerImageCmp
+                it += InputComponent()
+                it += JumpComponent()
+                it +=
+                    StateComponent(
+                        world,
+                        PlayerStateContext(it, world),
+                        PlayerFSM.IDLE,
+                        PlayerCheckAliveState,
+                    )
+            }
+
+        // --------------- Setup Enemy ----------------
         val enemyBody =
             phyWorld.createBody(
                 BodyDef().apply {
@@ -71,30 +113,33 @@ class AttackSystemIntegrationTest {
                 },
             )
 
-        val playerPhysicCmp =
-            PhysicComponent().apply {
-                body = playerBody
-                size.set(1f, 1f)
-                categoryBits = EntityCategory.PLAYER.bit
-            }
-
         val enemyPhysicCmp =
             PhysicComponent().apply {
                 body = enemyBody
+                size.set(1f, 1f)
                 categoryBits = EntityCategory.ENEMY.bit
             }
 
-        enemy =
+        enemyEntity =
             world.entity {
-                it += mockAnimationCmp
+                it += animationCmpMock
                 it += enemyPhysicCmp
                 it += MoveComponent()
+                it += IntentionComponent()
                 it += HealthComponent()
                 it += JumpComponent()
+                it +=
+                    StateComponent(
+                        world,
+                        MushroomStateContext(it, world),
+                        MushroomFSM.IDLE,
+                        MushroomCheckAliveState,
+                    )
             }
-        enemyBody.userData = enemy
 
-        // Add real fixture with HITBOX_SENSOR userData
+        enemyBody.userData = BodyData(EntityCategory.ENEMY, enemyEntity)
+
+        // --------------- Setup Fixture ----------------
         val shape = PolygonShape().apply { setAsBox(0.5f, 0.5f) }
         val fixtureDef =
             FixtureDef().apply {
@@ -103,88 +148,142 @@ class AttackSystemIntegrationTest {
                 filter.categoryBits = EntityCategory.ENEMY.bit
             }
         val fixture = enemyBody.createFixture(fixtureDef)
-        fixture.userData = "HITBOX_SENSOR"
+        fixture.userData = FixtureData(SensorType.HITBOX_SENSOR)
         shape.dispose()
-
-        entity =
-            world.entity {
-                it += mockAnimationCmp
-                it += playerPhysicCmp
-                it += AttackComponent()
-                it += MoveComponent()
-                it += HealthComponent()
-                it += imgCmp
-                it += InputComponent()
-                it += JumpComponent()
-                it += StateComponent(world)
-            }
     }
 
     @Test
     fun `if attack is executed damage to enemy is done`() {
-        with(world) { entity[AttackComponent.Companion].applyAttack = true }
+        val attackCmp = with(world) { playerEntity[AttackComponent] }
+        val inputCmp = with(world) { playerEntity[InputComponent] }
+
+        val healthCmp = with(world) { enemyEntity[HealthComponent] }
+
+        @Suppress("UNCHECKED_CAST")
+        val playerStateCmp = with(world) { playerEntity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+
+        @Suppress("UNCHECKED_CAST")
+        val enemyStateCmp = with(world) { enemyEntity[StateComponent] as StateComponent<MushroomStateContext, MushroomFSM> }
+
+        inputCmp.attackJustPressed = true
+        attackCmp.attackDelay = 0f
 
         world.update(0.061f)
+        playerStateCmp.stateMachine.update()
+        assertEquals(PlayerFSM.ATTACK_1, playerStateCmp.stateMachine.currentState)
 
-        val damage = with(world) { entity[AttackComponent.Companion].damage }
-        val actual = with(world) { enemy[HealthComponent.Companion].takenDamage }
-        assertEquals(damage, actual, 1f)
+        world.update(0.061f)
+        enemyStateCmp.stateMachine.update()
+
+        val damage = attackCmp.damage
+        assertEquals(damage, healthCmp.takenDamage, 1f)
     }
 
     @Test
     fun `if attack is executed NO damage to player is done`() {
-        with(world) { entity[AttackComponent.Companion].applyAttack = true }
+        val attackCmp = with(world) { playerEntity[AttackComponent] }
+        val inputCmp = with(world) { playerEntity[InputComponent] }
 
-        // Simulate the effect of a successful hit by manually applying damage
-        val playerAttackCmp = with(world) { entity[AttackComponent.Companion] }
-        val enemyHealthCmp = with(world) { enemy[HealthComponent.Companion] }
-        enemyHealthCmp.takeDamage(playerAttackCmp.damage)
+        val enemyHealthCmp = with(world) { enemyEntity[HealthComponent] }
+        val playerHealthCmp = with(world) { playerEntity[HealthComponent] }
+
+        @Suppress("UNCHECKED_CAST")
+        val playerStateCmp = with(world) { playerEntity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+
+        @Suppress("UNCHECKED_CAST")
+        val enemyStateCmp = with(world) { enemyEntity[StateComponent] as StateComponent<MushroomStateContext, MushroomFSM> }
+
+        inputCmp.attackJustPressed = true
+        attackCmp.attackDelay = 0f
 
         world.update(0.061f)
+        playerStateCmp.stateMachine.update()
+        assertEquals(PlayerFSM.ATTACK_1, playerStateCmp.stateMachine.currentState)
 
-        val playerHealthCmp = with(world) { entity[HealthComponent.Companion] }
+        world.update(0.061f)
+        enemyStateCmp.stateMachine.update()
+
+        val damage = attackCmp.damage
+        assertEquals(damage, enemyHealthCmp.takenDamage, 1f)
         assertEquals(0f, playerHealthCmp.takenDamage)
     }
 
     @Test
-    fun `attack does not apply if applyAttack is false`() {
-        with(world) { entity[AttackComponent.Companion].applyAttack = false }
+    fun `attack does not apply if no attack is triggered`() {
+        val attackCmp = with(world) { playerEntity[AttackComponent] }
+        val inputCmp = with(world) { playerEntity[InputComponent] }
 
-        val enemyHealthCmp = with(world) { enemy[HealthComponent.Companion] }
+        @Suppress("UNCHECKED_CAST")
+        val playerStateCmp = with(world) { playerEntity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+
+        inputCmp.attackJustPressed = false
+        attackCmp.attackDelay = 0f
+
         world.update(0.061f)
-
-        assertEquals(0f, enemyHealthCmp.takenDamage)
+        playerStateCmp.stateMachine.update()
+        assertEquals(PlayerFSM.IDLE, playerStateCmp.stateMachine.currentState)
     }
 
     @Test
     fun `attack does not hit entity with same categoryBits`() {
-        with(world) {
-            entity[AttackComponent.Companion].applyAttack = true
-            val enemyPhysic = enemy[PhysicComponent.Companion]
+        val attackCmp = with(world) { playerEntity[AttackComponent] }
+        val inputCmp = with(world) { playerEntity[InputComponent] }
 
-            val fixture = enemyPhysic.body.fixtureList.firstOrNull()
-            fixture?.filterData =
-                fixture.filterData?.apply {
-                    categoryBits = EntityCategory.PLAYER.bit
-                }
-        }
+        val enemyPhysicCmp = with(world) { enemyEntity[PhysicComponent] }
+        val healthCmp = with(world) { enemyEntity[HealthComponent] }
+
+        @Suppress("UNCHECKED_CAST")
+        val playerStateCmp = with(world) { playerEntity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+
+        @Suppress("UNCHECKED_CAST")
+        val enemyStateCmp = with(world) { enemyEntity[StateComponent] as StateComponent<MushroomStateContext, MushroomFSM> }
+
+        val fixture = enemyPhysicCmp.body.fixtureList.firstOrNull()
+        fixture?.filterData =
+            fixture.filterData?.apply {
+                categoryBits = EntityCategory.PLAYER.bit
+            }
+
+        inputCmp.attackJustPressed = true
+        attackCmp.attackDelay = 0f
 
         world.update(0.061f)
+        playerStateCmp.stateMachine.update()
+        assertEquals(PlayerFSM.ATTACK_1, playerStateCmp.stateMachine.currentState)
 
-        val enemyHealthCmp = with(world) { enemy[HealthComponent.Companion] }
-        assertEquals(0f, enemyHealthCmp.takenDamage)
+        world.update(0.061f)
+        enemyStateCmp.stateMachine.update()
+
+        assertEquals(0f, healthCmp.takenDamage)
     }
 
     @Test
     fun `attack does not apply if fixture is not HITBOX_SENSOR`() {
-        val enemyPhyCmp = with(world) { enemy[PhysicComponent.Companion] }
-        val firstFixture = enemyPhyCmp.body.fixtureList.firstOrNull()
-        firstFixture?.userData = "NO_HITBOX"
+        val attackCmp = with(world) { playerEntity[AttackComponent] }
+        val inputCmp = with(world) { playerEntity[InputComponent] }
 
-        with(world) { entity[AttackComponent.Companion].applyAttack = true }
+        val enemyPhysicCmp = with(world) { enemyEntity[PhysicComponent] }
+        val healthCmp = with(world) { enemyEntity[HealthComponent] }
 
-        val enemyHealthCmp = with(world) { enemy[HealthComponent.Companion] }
+        @Suppress("UNCHECKED_CAST")
+        val playerStateCmp = with(world) { playerEntity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
+
+        @Suppress("UNCHECKED_CAST")
+        val enemyStateCmp = with(world) { enemyEntity[StateComponent] as StateComponent<MushroomStateContext, MushroomFSM> }
+
+        val firstFixture = enemyPhysicCmp.body.fixtureList.firstOrNull()
+        firstFixture?.userData = BodyData(EntityCategory.ENEMY, enemyEntity)
+
+        inputCmp.attackJustPressed = true
+        attackCmp.attackDelay = 0f
+
         world.update(0.061f)
-        assertEquals(0f, enemyHealthCmp.takenDamage)
+        playerStateCmp.stateMachine.update()
+        assertEquals(PlayerFSM.ATTACK_1, playerStateCmp.stateMachine.currentState)
+
+        world.update(0.061f)
+        enemyStateCmp.stateMachine.update()
+
+        assertEquals(0f, healthCmp.takenDamage)
     }
 }

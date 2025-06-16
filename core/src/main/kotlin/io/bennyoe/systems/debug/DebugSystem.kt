@@ -15,17 +15,22 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle
+import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.UiComponent
+import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.debug.BTBubbleComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.components.debug.StateBubbleComponent
+import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
+import io.bennyoe.config.GameConstants.SHOW_ENEMY_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
-import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.DebugShape
+import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.widgets.DrawCallsCounterWidget
 import io.bennyoe.widgets.FpsCounterWidget
 import io.bennyoe.widgets.LabelWidget
@@ -41,13 +46,13 @@ class DebugSystem(
         inject("stage"),
     private val uiStage: Stage =
         inject("uiStage"),
-    private val debugRenderingService: DebugRenderService =
+    private val debugRenderingService: DefaultDebugRenderService =
         inject("debugRenderService"),
     val shapeRenderer: ShapeRenderer =
         inject("shapeRenderer"),
     profiler: GLProfiler =
         inject("profiler"),
-) : IntervalSystem(enabled = true) {
+) : IntervalSystem(enabled = ENABLE_DEBUG) {
     private val physicsRenderer by lazy { Box2DDebugRenderer() }
     private val fpsLabelStyle = LabelStyle(BitmapFont().apply { data.setScale(1.5f) }, Color(0f, 1f, 0f, 1f))
     private val labels = hashMapOf<DebugShape, LabelWidget>()
@@ -56,7 +61,10 @@ class DebugSystem(
             DebugType.ATTACK to SHOW_ATTACK_DEBUG,
             DebugType.PLAYER to SHOW_PLAYER_DEBUG,
             DebugType.CAMERA to SHOW_CAMERA_DEBUG,
+            DebugType.ENEMY to SHOW_ENEMY_DEBUG,
+            DebugType.NONE to true,
         )
+
     private val fpsCounter =
         FpsCounterWidget(fpsLabelStyle).apply {
             setPosition(10f, 20f)
@@ -72,36 +80,87 @@ class DebugSystem(
     }
 
     override fun onTick() {
-        val debugEntity = world.family { all(DebugComponent.Companion) }.firstOrNull() ?: return
-        val debugCmp = debugEntity.let { entity -> entity[DebugComponent.Companion] }
+        stage.viewport.apply()
+        val debugEntity = world.family { all(DebugComponent) }.firstOrNull() ?: return
+        val debugCmp = debugEntity.let { entity -> entity[DebugComponent] }
 
-        val playerEntity = world.family { all(PlayerComponent.Companion) }.firstOrNull() ?: return
+        val playerEntity = world.family { all(StateComponent) }.firstOrNull() ?: return
+        val enemyEntities = world.family { all(BehaviorTreeComponent) }
 
         fpsCounter.isVisible = debugCmp.enabled
         drawCallsCounter.isVisible = debugCmp.enabled
+
         if (debugCmp.enabled) {
-            if (playerEntity hasNo StateBubbleComponent) {
-                world.entity { playerEntity += StateBubbleComponent(uiStage) }
-            }
-            if (playerEntity hasNo UiComponent) {
-                world.entity { playerEntity += UiComponent }
-            }
             fpsCounter.act(deltaTime)
             drawCallsCounter.act(deltaTime)
             physicsRenderer.render(phyWorld, stage.camera.combined)
+
+            enemyEntities.forEach { enemyEntity ->
+                addStateBubbles(enemyEntity, playerEntity)
+                addBTBubbles(enemyEntity)
+            }
+
             val currentShapes = debugRenderingService.shapes.toSet()
             drawDebugLines()
             purgeStaleLabels(currentShapes)
         } else {
+            enemyEntities.forEach { enemyEntity ->
+                removeStateBubbles(playerEntity, enemyEntity)
+                removeBTBubbles(enemyEntity)
+            }
+
             uiStage.actors.removeAll { it is LabelWidget }
-            if (playerEntity has StateBubbleComponent) {
-                playerEntity.configure { it -= StateBubbleComponent }
-            }
-            if (playerEntity has UiComponent) {
-                playerEntity.configure { it -= UiComponent }
-            }
             labels.values.forEach { it.remove() }
             labels.clear()
+        }
+
+        // clear the shapes to avoid increasing draw calls per frame
+        clearDebugShapes()
+    }
+
+    private fun addBTBubbles(enemyEntity: Entity) {
+        when {
+            enemyEntity hasNo BTBubbleComponent -> world.entity { enemyEntity += BTBubbleComponent(uiStage) }
+
+            enemyEntity hasNo UiComponent -> world.entity { enemyEntity += UiComponent }
+        }
+    }
+
+    private fun removeBTBubbles(enemyEntity: Entity) {
+        when {
+            enemyEntity has BTBubbleComponent -> enemyEntity.configure { it -= BTBubbleComponent }
+
+            enemyEntity has UiComponent -> enemyEntity.configure { it -= UiComponent }
+        }
+    }
+
+    private fun addStateBubbles(
+        enemyEntity: Entity,
+        playerEntity: Entity,
+    ) {
+        when {
+            enemyEntity hasNo StateBubbleComponent -> world.entity { enemyEntity += StateBubbleComponent(uiStage) }
+
+            enemyEntity hasNo UiComponent -> world.entity { enemyEntity += UiComponent }
+
+            playerEntity hasNo StateBubbleComponent -> world.entity { playerEntity += StateBubbleComponent(uiStage) }
+
+            playerEntity hasNo UiComponent -> world.entity { playerEntity += UiComponent }
+        }
+    }
+
+    private fun removeStateBubbles(
+        playerEntity: Entity,
+        enemyEntity: Entity,
+    ) {
+        when {
+            enemyEntity has StateBubbleComponent -> enemyEntity.configure { it -= StateBubbleComponent }
+
+            enemyEntity has UiComponent -> enemyEntity.configure { it -= UiComponent }
+
+            playerEntity has StateBubbleComponent -> playerEntity.configure { it -= StateBubbleComponent }
+
+            playerEntity has UiComponent -> playerEntity.configure { it -= UiComponent }
         }
     }
 
@@ -149,7 +208,7 @@ class DebugSystem(
 
                         is Polyline -> {
                             it.polyline(dbgShape.shape.vertices)
-                            drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
+                            drawLabel(dbgShape.shape.vertices[dbgShape.shape.vertices.size - 2], dbgShape.shape.vertices.last(), dbgShape)
                         }
 
                         is Polygon -> {
@@ -166,9 +225,6 @@ class DebugSystem(
             it.projectionMatrix = uiStage.camera.combined
             // draw pixel stuff here
         }
-
-        // clear the shapes to avoid increasing draw calls per frame
-        clearDebugShapes()
     }
 
     private fun clearDebugShapes() {

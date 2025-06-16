@@ -5,4 +5,5 @@ enum class DebugType {
     ATTACK,
     CAMERA,
     PLAYER,
+    ENEMY,
 }

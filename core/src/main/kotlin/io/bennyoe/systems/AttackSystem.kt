@@ -15,6 +15,9 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
+import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.SensorType
+import io.bennyoe.utility.fixtureData
 import ktx.box2d.query
 import ktx.log.logger
 import ktx.math.component1
@@ -23,14 +26,24 @@ import ktx.math.component2
 class AttackSystem(
     private val debugRenderService: DebugRenderService = inject("debugRenderService"),
     private val phyWorld: World = inject("phyWorld"),
-) : IteratingSystem(family { all(AttackComponent) }) {
+) : IteratingSystem(family { all(AttackComponent) }),
+    PausableSystem {
+    private var attackDelayCounter = 0f
+
     override fun onTickEntity(entity: Entity) {
         val attackCmp = entity[AttackComponent]
         val physicCmp = entity[PhysicComponent]
         val imageCmp = entity[ImageComponent]
 
         if (!attackCmp.applyAttack) return
+
+        if (attackDelayCounter < attackCmp.attackDelay) {
+            attackDelayCounter += deltaTime
+            return
+        }
+
         attackCmp.applyAttack = false
+        attackDelayCounter = 0f
 
         val leftAttack = imageCmp.flipImage
         val (x, y) = physicCmp.body.position
@@ -54,13 +67,13 @@ class AttackSystem(
             AABB_Rect.x + AABB_Rect.width,
             AABB_Rect.y + AABB_Rect.height,
         ) { fixture ->
-            if (fixture.userData != "HITBOX_SENSOR") {
+            if (fixture.fixtureData?.type != SensorType.HITBOX_SENSOR) {
                 return@query true
             }
 
             // not hitting me
-            val fixtureEntity = fixture.body.userData as Entity
-            if (fixtureEntity == entity) {
+            val bodyData = fixture.body.userData as BodyData
+            if (bodyData.entity == entity) {
                 return@query true
             }
 
@@ -69,8 +82,11 @@ class AttackSystem(
                 return@query true
             }
 
+            // not hitting dead enemies
+            if (bodyData.entity[HealthComponent].isDead) return@query true
+
             logger.debug { "Fixture found" }
-            fixtureEntity.configure {
+            bodyData.entity.configure {
                 val healthCmp = it.getOrNull(HealthComponent)
                 healthCmp?.takeDamage(attackCmp.damage)
             }

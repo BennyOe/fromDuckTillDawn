@@ -6,7 +6,8 @@ import com.github.quillraven.fleks.ComponentType
 data class AttackComponent(
     val damage: Float = 5f,
     var maxDamage: Float = 5f,
-    var extraRange: Float = 3f,
+    var extraRange: Float = 1f,
+    var attackDelay: Float = 0.2f,
     var applyAttack: Boolean = false,
 ) : Component<AttackComponent> {
     override fun type() = AttackComponent

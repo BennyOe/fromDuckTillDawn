@@ -8,6 +8,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
@@ -15,17 +16,19 @@ import io.bennyoe.components.StateComponent
 import io.bennyoe.config.GameConstants.FALL_GRAVITY_SCALE
 import io.bennyoe.config.GameConstants.JUMP_CUT_FACTOR
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
-import io.bennyoe.state.PlayerFSM
+import io.bennyoe.state.player.PlayerFSM
 import kotlin.math.sqrt
 
 class JumpSystem(
     val physicWorld: World = inject("phyWorld"),
-) : IteratingSystem(family { all(JumpComponent) }) {
+) : IteratingSystem(family { all(JumpComponent) }),
+    PausableSystem {
     override fun onTickEntity(entity: Entity) {
         val jumpCmp = entity[JumpComponent]
-        val aiCmp = entity[StateComponent]
+        val stateCmp = entity[StateComponent]
         val physicCmp = entity[PhysicComponent]
-        val inputCmp = entity[InputComponent]
+        val inputCmp = entity.getOrNull(InputComponent)
+        val intentionCmp = entity[IntentionComponent]
         val moveCmp = entity[MoveComponent]
         jumpCmp.jumpVelocity = getJumpVelocity(jumpCmp.maxHeight)
 
@@ -36,14 +39,16 @@ class JumpSystem(
         }
 
         // if jumpKey is released and still jumping -> cut the jump velocity
-        handleJumpKeyReleasedWhileJumping(inputCmp, vel, jumpCmp)
+        if (inputCmp != null) {
+            handleJumpKeyReleasedWhileJumping(inputCmp, vel, jumpCmp)
+        }
 
-        calculateJumpBuffer(inputCmp, entity, jumpCmp)
+        calculateJumpBuffer(intentionCmp, entity, jumpCmp)
 
         // get extra fall speed
         physicCmp.body.gravityScale = if (vel.y < 0f) FALL_GRAVITY_SCALE else 1f
 
-        when (aiCmp.stateMachine.currentState) {
+        when (stateCmp.stateMachine.currentState) {
             PlayerFSM.FALL -> jumpCmp.doubleJumpGraceTimer -= deltaTime
             PlayerFSM.DOUBLE_JUMP -> jumpCmp.disableDoubleJumpGraceTimer()
             else -> Unit
@@ -52,7 +57,7 @@ class JumpSystem(
         if (entity has HasGroundContact) {
             if (jumpCmp.jumpBuffer > 0f) {
                 logger.debug { "Jump from BUFFER " }
-                aiCmp.changeState(PlayerFSM.JUMP)
+                jumpCmp.jumpFromBuffer = true
             }
             jumpCmp.disableJumpBuffer()
             jumpCmp.resetDoubleJumpGraceTimer()
@@ -71,12 +76,12 @@ class JumpSystem(
     }
 
     private fun calculateJumpBuffer(
-        inputCmp: InputComponent,
+        intentionCmp: IntentionComponent,
         entity: Entity,
         jumpCmp: JumpComponent,
     ) {
         // calculate jumpBuffer
-        if (inputCmp.jumpJustPressed &&
+        if (intentionCmp.wantsToJump &&
             entity hasNo HasGroundContact
         ) {
             jumpCmp.resetJumpBuffer()

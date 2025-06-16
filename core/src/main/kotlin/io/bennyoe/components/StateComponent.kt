@@ -1,35 +1,31 @@
 package io.bennyoe.components
 
 import com.badlogic.gdx.ai.fsm.DefaultStateMachine
-import com.badlogic.gdx.ai.fsm.State
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
-import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.state.GlobalState
-import io.bennyoe.state.PlayerFSM
-import io.bennyoe.state.StateContext
+import io.bennyoe.state.AbstractFSM
+import io.bennyoe.state.AbstractStateContext
 
-data class StateComponent(
+data class StateComponent<C : AbstractStateContext<C>, S : AbstractFSM<C>>(
     val world: World,
+    val owner: C,
+    val initialState: S,
+    val globalState: S,
     var stateTime: Float = 0f,
-    val stateMachine: DefaultStateMachine<StateContext, State<StateContext>> = DefaultStateMachine(),
-) : Component<StateComponent> {
-    override fun World.onAdd(entity: Entity) {
-        stateMachine.owner = StateContext(entity, world)
-        stateMachine.globalState = GlobalState.CHECK_ALIVE
-        stateMachine.setInitialState(PlayerFSM.IDLE)
-    }
+) : Component<StateComponent<C, S>> {
+    val stateMachine: DefaultStateMachine<C, S> = DefaultStateMachine(owner, initialState, globalState)
 
-    fun changeState(newState: State<StateContext>) {
+    fun changeState(newState: S) {
         if (newState != stateMachine.currentState) {
             stateMachine.changeState(newState)
         }
     }
 
-    override fun type() = StateComponent
+    @Suppress("UNCHECKED_CAST")
+    override fun type(): ComponentType<StateComponent<C, S>> = StateComponent as ComponentType<StateComponent<C, S>>
 
-    companion object : ComponentType<StateComponent>() {
-        val logger = ktx.log.logger<StateComponent>()
+    companion object : ComponentType<StateComponent<*, *>>() {
+        val logger = ktx.log.logger<StateComponent<*, *>>()
     }
 }

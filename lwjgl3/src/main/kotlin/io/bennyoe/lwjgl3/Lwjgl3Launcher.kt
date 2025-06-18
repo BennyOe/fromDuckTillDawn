@@ -20,6 +20,7 @@ fun main() {
             setTitle("FromDuckTillDawn")
             setWindowedMode(GAME_WIDTH.toInt(), GAME_HEIGHT.toInt())
             setWindowIcon(*(arrayOf(128, 64, 32, 16).map { "libgdx$it.png" }.toTypedArray()))
+            disableAudio(true)
         },
     )
 }

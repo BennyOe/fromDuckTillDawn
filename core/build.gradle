@@ -44,6 +44,7 @@ dependencies {
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.2"
 
   testImplementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+  implementation "com.github.Hangman:TuningFork:$tuningForkVersion"
   testImplementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
   testImplementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
   testImplementation files(rootProject.file('assets').path)

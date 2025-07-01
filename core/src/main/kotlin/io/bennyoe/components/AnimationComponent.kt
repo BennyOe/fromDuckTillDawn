@@ -55,10 +55,15 @@ enum class AnimationType(
     val atlasKey: String,
     val playMode: PlayMode = PlayMode.LOOP,
     val speed: Float = 1 / 8f,
+    val normalMap: Boolean = false,
+    val specularMap: Boolean = false,
 ) {
     NONE(""),
     IDLE("idle"),
-    WALK("walking"),
+    WALK(
+        "walking",
+        normalMap = true,
+    ),
     JUMP(
         atlasKey = "jump",
         playMode = PlayMode.LOOP,

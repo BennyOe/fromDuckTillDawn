@@ -68,37 +68,29 @@ class Scene2dLightEngine(
      * @param actor The [Actor] to render. May or may not have an associated normal map.
      */
     fun draw(actor: Actor) {
-        // Fall 1: Ein spezieller Actor mit Normal-Map
         if (actor is NormalMappedActor) {
-            // Stelle sicher, dass unser Beleuchtungs-Shader aktiv ist
-            if (batch.shader != this.shader) batch.shader = this.shader
+            batch.shader = this.shader
 
-            // Sage dem Shader, dass er die Normal-Map verwenden soll
-            batch.shader.bind()
-            shader.setUniformi("u_useNormalMap", 1)
+            if (lastNormalMap == null || lastNormalMap != actor.normalMapTexture) {
+                batch.flush()
+            }
 
-            // Binde die Texturen an die korrekten Einheiten
-            actor.normalMapTexture?.bind(1)
-            actor.specularTexture?.bind(2)
+            actor.normalMapTexture?.let {
+                it.bind(1)
+                shader.bind()
+                shader.setUniformi("u_useNormalMap", 1)
+                lastNormalMap = actor.normalMapTexture
+            }
+            actor.specularTexture?.let {
+                shader.bind()
+                shader.setUniformi("u_useSpecularMap", 1)
+                it.bind(2)
+                lastSpecularMap = actor.specularTexture
+            }
             actor.diffuseTexture.bind(0)
-
-            // KORREKTER AUFRUF: Diese `draw`-Methode akzeptiert eine `Texture`.
-            // Sie ignoriert zwar die `scale`- und `rotation`-Eigenschaften des Actors direkt,
-            // aber da deine Spielfiguren keine NormalMappedActors sind, ist das für sie nicht relevant.
             batch.draw(actor.diffuseTexture, actor.x, actor.y, actor.width, actor.height)
-        }
-        // Fall 2: Alle anderen normalen Actors (Player, Mushroom, etc.)
-        else {
-            // Stelle sicher, dass der Standard-Shader aktiv ist
-            if (batch.shader != null) batch.shader = null // TODO not needed
-
-            // Überlasse dem Actor das Zeichnen! Er kennt seine Größe, Skalierung und Drehung.
-            // Diese Methode funktioniert für deine Spielfiguren und behebt das Größen- und Spiegelungsproblem.
-            if (lastNormalMap != null) batch.flush()
-            if (lastSpecularMap != null) batch.flush()
-            batch.shader.bind()
-            shader.setUniformi("u_useNormalMap", 0)
-            shader.setUniformi("u_useSpecularMap", 0)
+        } else {
+            batch.shader = null
             actor.draw(batch, 1.0f)
             lastNormalMap = null
             lastSpecularMap = null

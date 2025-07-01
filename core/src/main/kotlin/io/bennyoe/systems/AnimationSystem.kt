@@ -9,6 +9,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.ImageComponent
 import ktx.app.gdxError
@@ -16,41 +17,55 @@ import ktx.collections.map
 import ktx.log.logger
 
 class AnimationSystem(
-    private val textureAtlas: TextureAtlas = inject(),
+    dawnAtlas: TextureAtlas = inject("dawnAtlas"),
+    dawnNormalAtlas: TextureAtlas = inject("dawnNormalAtlas"),
+    mushroomAtlas: TextureAtlas = inject("mushroomAtlas"),
 ) : IteratingSystem(family { all(AnimationComponent, ImageComponent) }),
     PausableSystem {
     private val cachedAnimations = mutableMapOf<String, Animation<TextureRegionDrawable>>()
 
+    private val atlasMap: Map<AnimationModel, TextureAtlas> =
+        mapOf(
+            AnimationModel.PLAYER_DAWN to dawnAtlas,
+            AnimationModel.ENEMY_MUSHROOM to mushroomAtlas,
+        )
+
+    private val normalAtlasMap: Map<AnimationModel, TextureAtlas> =
+        mapOf(
+            AnimationModel.PLAYER_DAWN to dawnNormalAtlas,
+        )
+
     override fun onTickEntity(entity: Entity) {
         val aniCmp = entity[AnimationComponent]
+        val imageCmp = entity[ImageComponent]
 
-        with(entity[ImageComponent]) {
-            image.drawable =
-                if (aniCmp.nextAnimationType == AnimationType.NONE) {
-                    // then we are in an animation
-                    aniCmp.run {
-                        stateTime += deltaTime
-                        aniCmp.animation.playMode = aniCmp.mode
-                        animation.getKeyFrame(stateTime)
-                    }
-                } else {
-                    // then we set a new animation
-                    applyNextAnimation(aniCmp)
-                }
+        if (aniCmp.nextAnimationType != AnimationType.NONE) {
+            applyNextAnimation(aniCmp)
         }
+
+        aniCmp.stateTime += deltaTime
+        aniCmp.animation.playMode = aniCmp.mode
+        val currentFrame = aniCmp.animation.getKeyFrame(aniCmp.stateTime)
+        imageCmp.image.drawable = currentFrame
     }
 
     private fun applyNextAnimation(aniCmp: AnimationComponent): TextureRegionDrawable {
+        val currentAtlas =
+            atlasMap[aniCmp.animationModel]
+                ?: gdxError("No texture atlas for model '${aniCmp.animationModel}' in EntitySpawnSystem found.")
+
+        val aniKeyPath = aniCmp.nextAnimationType.atlasKey + aniCmp.nextAnimationVariant.atlasKey
+
         aniCmp.animation =
             setTexturesToAnimation(
-                aniCmp.nextAnimationModel.atlasKey + aniCmp.nextAnimationType.atlasKey + aniCmp.nextAnimationVariant.atlasKey,
+                currentAtlas,
+                aniKeyPath,
                 aniCmp.nextAnimationType.speed,
                 aniCmp.nextAnimationType.playMode,
             )
         aniCmp.clearAnimation()
         aniCmp.stateTime = 0f
 
-        // this is for the reversed animation. Without it there is a flickering before the animation.
         val firstFrame =
             if (aniCmp.isReversed) {
                 aniCmp.animation.keyFrames.size
@@ -62,14 +77,15 @@ class AnimationSystem(
     }
 
     private fun setTexturesToAnimation(
+        atlas: TextureAtlas,
         aniKeyPath: String,
         speed: Float,
         playMode: PlayMode,
     ): Animation<TextureRegionDrawable> =
-        cachedAnimations.getOrPut(aniKeyPath) {
-            val regions = textureAtlas.findRegions(aniKeyPath)
+        cachedAnimations.getOrPut("${atlas.hashCode()}_$aniKeyPath") {
+            val regions = atlas.findRegions(aniKeyPath)
             if (regions.isEmpty) {
-                gdxError("There are no regions for $aniKeyPath")
+                gdxError("No regions for path '$aniKeyPath' found in atlas.")
             }
             Animation(speed, regions.map { TextureRegionDrawable(it) }).apply {
                 this.playMode = playMode

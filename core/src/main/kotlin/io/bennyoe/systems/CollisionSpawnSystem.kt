@@ -37,7 +37,7 @@ class CollisionSpawnSystem(
             is MapChangedEvent -> {
                 drawTileCollisionBoxes(event)
                 drawCollisionBoxes(event)
-                drawMapBorderCollisions(event)
+//                drawMapBorderCollisions(event)
             }
         }
         return true

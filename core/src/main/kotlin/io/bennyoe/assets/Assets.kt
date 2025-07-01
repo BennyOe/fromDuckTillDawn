@@ -9,7 +9,9 @@ enum class TextureAssets(
     directory: String = "textures",
     val descriptor: AssetDescriptor<TextureAtlas> = AssetDescriptor("$directory/$filename", TextureAtlas::class.java),
 ) {
-    PLAYER_ATLAS("player.atlas"),
+    DAWN_ATLAS("dawn.atlas"),
+    DAWN_N_ATLAS("dawn_n.atlas"),
+    MUSHROOM_ATLAS("mushroom.atlas"),
 }
 
 enum class MapAssets(

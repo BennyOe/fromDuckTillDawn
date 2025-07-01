@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.bennyOe.core.Scene2dLightEngine
+import com.github.bennyOe.scene2d.NormalMappedActor
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
@@ -29,6 +30,7 @@ import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.NormalMappedRenderingComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnComponent
@@ -68,11 +70,18 @@ class EntitySpawnSystem(
     private val phyWorld: World = inject("phyWorld"),
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
     private val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
-    private val atlas: TextureAtlas = inject(),
+    private val dawnAtlas: TextureAtlas = inject("dawnAtlas"),
+    private val dawnNormalAtlas: TextureAtlas = inject("dawnNormalAtlas"),
+    private val mushroomAtlas: TextureAtlas = inject("mushroomAtlas"),
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener,
     PausableSystem {
-    private val sizesCache = mutableMapOf<AnimationType, Vector2>()
+    private val atlasMap: Map<AnimationModel, TextureAtlas> = mapOf(
+        AnimationModel.PLAYER_DAWN to dawnAtlas,
+        AnimationModel.ENEMY_MUSHROOM to mushroomAtlas
+    )
+
+    private val sizesCache = mutableMapOf<String, Vector2>()
     private val messageDispatcher = MessageManager.getInstance()
 
     override fun onTickEntity(entity: Entity) {
@@ -192,6 +201,7 @@ class EntitySpawnSystem(
                     val input = InputComponent()
                     it += input
 
+
                     it += IntentionComponent()
 
                     val player = PlayerComponent()
@@ -268,13 +278,19 @@ class EntitySpawnSystem(
         model: AnimationModel,
         type: AnimationType,
         variant: AnimationVariant,
-    ): Vector2 =
-        sizesCache.getOrPut(type) {
-            val regions = atlas.findRegions(model.atlasKey + type.atlasKey + variant.atlasKey)
-            if (regions.isEmpty) gdxError("There are no regions for the idle animation of model $type")
+    ): Vector2 {
+        val cacheKey = "${type.name}_${variant.name}"
+        return sizesCache.getOrPut(cacheKey) {
+            val atlas = atlasMap[model]
+                ?: gdxError("No texture atlas for model '$model' in EntitySpawnSystem found.")
+
+            val regions = atlas.findRegions(type.atlasKey + variant.atlasKey)
+            if (regions.isEmpty) gdxError("No regions for the animation '$type' for model '$model' found")
+
             val firstFrame = regions.first()
-            return Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
+            Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
         }
+    }
 
     companion object {
         private val logger = logger<EntitySpawnSystem>()

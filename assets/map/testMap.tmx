@@ -61,21 +61,21 @@
   </object>
  </objectgroup>
  <objectgroup id="14" name="lights">
-  <object id="30" name="redLight" type="redLight" x="39.6667" y="214.333">
+  <object id="30" name="redLight" type="redLight" x="36.3334" y="210">
    <properties>
     <property name="color" type="color" value="#ffff0000"/>
    </properties>
    <point/>
   </object>
-  <object id="31" name="redLight" type="redLight" x="164" y="212.333">
+  <object id="31" name="blueLight" type="blueLight" x="161.333" y="211.333">
    <properties>
-    <property name="color" type="color" value="#ff0018ed"/>
+    <property name="color" type="color" value="#ff82aef1"/>
    </properties>
    <point/>
   </object>
  </objectgroup>
  <objectgroup id="13" name="enemies">
-  <object id="21" name="enemy" type="enemy" x="199.049" y="243.072">
+  <object id="21" name="enemy" type="enemy" x="430.382" y="231.405">
    <point/>
   </object>
  </objectgroup>

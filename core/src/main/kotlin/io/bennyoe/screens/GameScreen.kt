@@ -54,7 +54,9 @@ class GameScreen(
     context: Context,
 ) : AbstractScreen(context) {
     private val assets = context.inject<AssetStorage>()
-    private val textureAtlas = assets[TextureAssets.PLAYER_ATLAS.descriptor]
+    private val dawnAtlas = assets[TextureAssets.DAWN_ATLAS.descriptor]
+    private val dawnNormalAtlas = assets[TextureAssets.DAWN_N_ATLAS.descriptor]
+    private val mushroomAtlas = assets[TextureAssets.MUSHROOM_ATLAS.descriptor]
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()
     private val stage = stages.stage
@@ -71,7 +73,9 @@ class GameScreen(
         configureWorld {
             injectables {
                 add("phyWorld", phyWorld)
-                add(textureAtlas)
+                add("dawnAtlas", dawnAtlas)
+                add("dawnNormalAtlas", dawnNormalAtlas)
+                add("mushroomAtlas", mushroomAtlas)
                 add("stage", stage)
                 add("uiStage", uiStage)
                 add("shapeRenderer", ShapeRenderer())
@@ -132,7 +136,9 @@ class GameScreen(
     }
 
     override fun dispose() {
-        textureAtlas.dispose()
+        dawnAtlas.dispose()
+        dawnNormalAtlas.dispose()
+        mushroomAtlas.dispose()
         entityWorld.dispose()
         tiledMap.disposeSafely()
     }

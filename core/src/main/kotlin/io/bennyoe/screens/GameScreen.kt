@@ -1,12 +1,16 @@
 package io.bennyoe.screens
 
+import box2dLight.RayHandler
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.GdxAI
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
+import com.github.bennyOe.core.Scene2dLightEngine
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
@@ -60,6 +64,8 @@ class GameScreen(
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
             autoClearForces = false
         }
+    private val rayHandler = RayHandler(phyWorld)
+    private val lightEngine = Scene2dLightEngine(rayHandler, stage.camera as OrthographicCamera, spriteBatch, stage.viewport, stage)
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val entityWorld =
         configureWorld {
@@ -72,6 +78,7 @@ class GameScreen(
                 add("debugRenderService", DefaultDebugRenderService())
                 add("spriteBatch", spriteBatch)
                 add("profiler", profiler)
+                add("lightEngine", lightEngine)
             }
             systems {
                 add(AnimationSystem())
@@ -128,6 +135,14 @@ class GameScreen(
         textureAtlas.dispose()
         entityWorld.dispose()
         tiledMap.disposeSafely()
+    }
+
+    override fun resize(
+        width: Int,
+        height: Int,
+    ) {
+        super.resize(width, height)
+        lightEngine.resize(width, height)
     }
 
     companion object {

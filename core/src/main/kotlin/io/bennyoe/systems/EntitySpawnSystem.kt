@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.ai.msg.MessageManager
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
@@ -9,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.github.bennyOe.core.Scene2dLightEngine
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
@@ -54,6 +56,8 @@ import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
 import ktx.log.logger
+import ktx.math.times
+import ktx.math.vec2
 import ktx.tiled.layer
 import ktx.tiled.type
 import ktx.tiled.x
@@ -62,6 +66,7 @@ import ktx.tiled.y
 class EntitySpawnSystem(
     private val stage: Stage = inject("stage"),
     private val phyWorld: World = inject("phyWorld"),
+    private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
     private val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
     private val atlas: TextureAtlas = inject(),
 ) : IteratingSystem(family { all(SpawnComponent) }),
@@ -86,10 +91,31 @@ class EntitySpawnSystem(
                     val cfg = SpawnCfg.createSpawnCfg(enemyObj.type!!)
                     createEntity(enemyObj, cfg)
                 }
+
+                val lightsLayer = event.map.layer("lights")
+                lightsLayer.objects.forEach { light ->
+                    val color = light.properties.get("color") as Color
+                    val position = vec2(light.x, light.y)
+                    createLight(color, position)
+                }
                 return true
             }
         }
         return false
+    }
+
+    private fun createLight(
+        color: Color,
+        position: Vector2,
+    ) {
+        lightEngine.addDirectionalLight(Color(1f, 1f, 1f, 1f), 45f, 1f, 1f)
+        val light =
+            lightEngine.addPointLight(
+                position * UNIT_SCALE,
+                color,
+                6f,
+                9f,
+            )
     }
 
     private fun createEntity(

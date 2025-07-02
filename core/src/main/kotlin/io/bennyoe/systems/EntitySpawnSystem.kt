@@ -119,8 +119,8 @@ class EntitySpawnSystem(
         position: Vector2,
     ) {
         lightEngine.setNormalInfluence(.5f)
-        val dir = lightEngine.addDirectionalLight(Color(1f, 0f, .5f, .5f), 45f, 1f, 1f)
-        dir.b2dLight.isXray = true
+//        val dir = lightEngine.addDirectionalLight(Color(1f, 0f, .5f, .5f), 45f, 1f, 1f)
+//        dir.b2dLight.isXray = true
         val light =
             lightEngine.addPointLight(
                 position * UNIT_SCALE,
@@ -128,15 +128,15 @@ class EntitySpawnSystem(
                 6f,
                 9f,
             )
+
         light.b2dLight.apply {
             setContactFilter(
                 Filter().apply {
-                    categoryBits = 0x0008
+                    categoryBits = EntityCategory.LIGHT.bit
                     maskBits = EntityCategory.GROUND.bit
                 },
             )
         }
-        light.b2dLight.isXray = true
     }
 
     private fun createEntity(
@@ -208,6 +208,8 @@ class EntitySpawnSystem(
                     ) {
                         isSensor = true
                         userData = FixtureData(SensorType.GROUND_SENSOR)
+                        filter.categoryBits = EntityCategory.SENSOR.bit
+                        filter.maskBits = EntityCategory.GROUND.bit
                     }
 
                     val input = InputComponent()
@@ -255,6 +257,15 @@ class EntitySpawnSystem(
 
                     val phyCmp = it[PhysicComponent]
 
+                    val light =
+                        lightEngine.addPointLight(
+                            vec2(0f, 0f),
+                            Color.MAGENTA,
+                            6f,
+                            9f,
+                        )
+
+                    light.b2dLight.attachToBody(phyCmp.body)
                     // create normal nearbyEnemiesSensor
                     val nearbyEnemiesDefaultSensorFixture =
                         phyCmp.body.circle(

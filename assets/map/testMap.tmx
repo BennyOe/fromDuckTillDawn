@@ -56,20 +56,16 @@
   <object id="19" gid="649" x="156" y="256" width="32" height="32"/>
  </objectgroup>
  <objectgroup id="4" name="playerStart">
-  <object id="10" name="playerStart" type="playerStart" x="13.2353" y="221.813">
+  <object id="10" name="playerStart" type="playerStart" x="18.902" y="228.48">
    <point/>
   </object>
  </objectgroup>
  <objectgroup id="14" name="lights">
-  <object id="30" name="redLight" type="redLight" x="36.3334" y="210">
+  <object id="30" name="fireLight" type="fireLight" x="172" y="252.333">
    <properties>
     <property name="color" type="color" value="#ffff0000"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="31" name="blueLight" type="blueLight" x="161.333" y="211.333">
-   <properties>
-    <property name="color" type="color" value="#ff82aef1"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="1"/>
+    <property name="type" type="int" propertytype="lightType" value="0"/>
    </properties>
    <point/>
   </object>

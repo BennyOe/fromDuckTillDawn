@@ -1,11 +1,9 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.ai.msg.MessageManager
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.physics.box2d.Filter
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
@@ -30,9 +28,9 @@ import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
-import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
@@ -43,7 +41,6 @@ import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
-import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
@@ -59,8 +56,6 @@ import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
 import ktx.log.logger
-import ktx.math.times
-import ktx.math.vec2
 import ktx.tiled.layer
 import ktx.tiled.type
 import ktx.tiled.x
@@ -69,7 +64,6 @@ import ktx.tiled.y
 class EntitySpawnSystem(
     private val stage: Stage = inject("stage"),
     private val phyWorld: World = inject("phyWorld"),
-    private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
     private val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
     dawnAtlases: TextureAtlases = inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
@@ -101,42 +95,10 @@ class EntitySpawnSystem(
                     val cfg = SpawnCfg.createSpawnCfg(enemyObj.type!!)
                     createEntity(enemyObj, cfg)
                 }
-
-                val lightsLayer = event.map.layer("lights")
-                lightsLayer.objects.forEach { light ->
-                    val color = light.properties.get("color") as Color
-                    val position = vec2(light.x, light.y)
-                    createLight(color, position)
-                }
                 return true
             }
         }
         return false
-    }
-
-    private fun createLight(
-        color: Color,
-        position: Vector2,
-    ) {
-        lightEngine.setNormalInfluence(.5f)
-//        val dir = lightEngine.addDirectionalLight(Color(1f, 0f, .5f, .5f), 45f, 1f, 1f)
-//        dir.b2dLight.isXray = true
-        val light =
-            lightEngine.addPointLight(
-                position * UNIT_SCALE,
-                color,
-                6f,
-                9f,
-            )
-
-        light.b2dLight.apply {
-            setContactFilter(
-                Filter().apply {
-                    categoryBits = EntityCategory.LIGHT.bit
-                    maskBits = EntityCategory.GROUND.bit
-                },
-            )
-        }
     }
 
     private fun createEntity(
@@ -257,15 +219,6 @@ class EntitySpawnSystem(
 
                     val phyCmp = it[PhysicComponent]
 
-                    val light =
-                        lightEngine.addPointLight(
-                            vec2(0f, 0f),
-                            Color.MAGENTA,
-                            6f,
-                            9f,
-                        )
-
-                    light.b2dLight.attachToBody(phyCmp.body)
                     // create normal nearbyEnemiesSensor
                     val nearbyEnemiesDefaultSensorFixture =
                         phyCmp.body.circle(
@@ -274,6 +227,8 @@ class EntitySpawnSystem(
                         ) {
                             isSensor = true
                             userData = FixtureData(SensorType.NEARBY_ENEMY_SENSOR)
+                            filter.categoryBits = EntityCategory.SENSOR.bit
+                            filter.maskBits = EntityCategory.GROUND.bit
                         }
 
                     it += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius)

@@ -35,6 +35,7 @@ import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
+import io.bennyoe.systems.LightSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.RenderSystem
@@ -93,6 +94,7 @@ class GameScreen(
             systems {
                 add(AnimationSystem())
                 add(EntitySpawnSystem())
+                add(LightSystem())
                 add(CollisionSpawnSystem())
                 add(InputSystem())
                 add(AttackSystem())

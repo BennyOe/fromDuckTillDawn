@@ -67,6 +67,7 @@ class LightEngine(
      * @param y The y-position in world coordinates.
      * @param width The width of the quad to draw.
      * @param height The height of the quad to draw.
+     * @param flipX If true, the sprite is drawn mirrored on the X axis.
      */
     fun draw(
         diffuse: Texture,
@@ -76,6 +77,7 @@ class LightEngine(
         y: Float,
         width: Float,
         height: Float,
+        flipX: Boolean = false,
     ) {
         if (lastNormalMap == null || normals != lastNormalMap) {
             batch.flush()
@@ -91,7 +93,11 @@ class LightEngine(
         normals.bind(1)
         specular.bind(2)
         diffuse.bind(0)
-        batch.draw(diffuse, x, y, width, height)
+        if (flipX) {
+            batch.draw(diffuse, x + width, y, -width, height)
+        } else {
+            batch.draw(diffuse, x, y, width, height)
+        }
         lastNormalMap = normals
         lastSpecularMap = specular
     }
@@ -110,6 +116,7 @@ class LightEngine(
      * @param y The y-position in world coordinates.
      * @param width The width of the quad to draw.
      * @param height The height of the quad to draw.
+     * @param flipX If true, the sprite is drawn mirrored on the X axis.
      */
     fun draw(
         diffuse: Texture,
@@ -118,6 +125,7 @@ class LightEngine(
         y: Float,
         width: Float,
         height: Float,
+        flipX: Boolean = false,
     ) {
         if (lastNormalMap == null || normals != lastNormalMap) {
             batch.flush()
@@ -128,16 +136,13 @@ class LightEngine(
 
         normals.bind(1)
         diffuse.bind(0)
-        batch.draw(diffuse, x, y, width, height)
+        if (flipX) {
+            batch.draw(diffuse, x + width, y, -width, height)
+        } else {
+            batch.draw(diffuse, x, y, width, height)
+        }
         lastNormalMap = normals
         lastSpecularMap = null
-    }
-
-    override fun resize(
-        width: Int,
-        height: Int,
-    ) {
-        super.resize(width, height)
     }
 
     /**
@@ -154,6 +159,7 @@ class LightEngine(
      * @param y The y-position in world coordinates.
      * @param width The width of the quad to draw.
      * @param height The height of the quad to draw.
+     * @param flipX If true, the sprite is drawn mirrored on the X axis.
      */
     fun draw(
         diffuse: Texture,
@@ -161,6 +167,7 @@ class LightEngine(
         y: Float,
         width: Float,
         height: Float,
+        flipX: Boolean = false,
     ) {
         if (lastNormalMap != null) {
             batch.flush()
@@ -171,8 +178,19 @@ class LightEngine(
         shader.setUniformi("u_useSpecularMap", 0)
 
         diffuse.bind(0)
-        batch.draw(diffuse, x, y, width, height)
+        if (flipX) {
+            batch.draw(diffuse, x + width, y, -width, height)
+        } else {
+            batch.draw(diffuse, x, y, width, height)
+        }
         lastNormalMap = null
         lastSpecularMap = null
+    }
+
+    override fun resize(
+        width: Int,
+        height: Int,
+    ) {
+        super.resize(width, height)
     }
 }

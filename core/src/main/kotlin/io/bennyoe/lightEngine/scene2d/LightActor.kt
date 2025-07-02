@@ -3,7 +3,9 @@ package io.bennyoe.lightEngine.scene2d
 import com.badlogic.gdx.scenes.scene2d.Actor
 import io.bennyoe.lightEngine.core.GameLight
 
-class LightActor(private val light: GameLight) : Actor() {
+class LightActor(
+    private val light: GameLight,
+) : Actor() {
     init {
         when (light) {
             is GameLight.Point -> setPosition(light.position.x, light.position.y)

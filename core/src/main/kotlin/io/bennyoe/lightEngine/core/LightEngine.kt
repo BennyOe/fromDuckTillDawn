@@ -1,8 +1,6 @@
-package com.github.bennyOe.core
+package io.bennyoe.lightEngine.core
 
 import box2dLight.RayHandler
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
@@ -16,7 +14,6 @@ class LightEngine(
     useDiffuseLight: Boolean = true,
     maxShaderLights: Int = 20,
 ) : AbstractLightEngine(rayHandler, cam, batch, viewport, useDiffuseLight, maxShaderLights) {
-
     /**
      * Performs the complete lighting render pass using normal mapping and Box2D shadows.
      *
@@ -39,18 +36,17 @@ class LightEngine(
     fun renderLights(drawScene: (LightEngine) -> Unit) {
         batch.projectionMatrix = cam.combined
         viewport.apply()
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
-        batch.shader = shader
+        setShaderToEngineShader()
         applyShaderUniforms()
-        batch.begin()
 
+        batch.begin()
         lastNormalMap = null
         lastSpecularMap = null
         drawScene(this)
-
         batch.end()
-        batch.shader = null
+
+        setShaderToDefaultShader()
 
         rayHandler.setCombinedMatrix(cam)
         rayHandler.updateAndRender()
@@ -76,8 +72,10 @@ class LightEngine(
         diffuse: Texture,
         normals: Texture,
         specular: Texture,
-        x: Float, y: Float,
-        width: Float, height: Float,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
     ) {
         if (lastNormalMap == null || normals != lastNormalMap) {
             batch.flush()
@@ -116,8 +114,10 @@ class LightEngine(
     fun draw(
         diffuse: Texture,
         normals: Texture,
-        x: Float, y: Float,
-        width: Float, height: Float,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
     ) {
         if (lastNormalMap == null || normals != lastNormalMap) {
             batch.flush()
@@ -133,7 +133,10 @@ class LightEngine(
         lastSpecularMap = null
     }
 
-    override fun resize(width: Int, height: Int) {
+    override fun resize(
+        width: Int,
+        height: Int,
+    ) {
         super.resize(width, height)
     }
 
@@ -152,7 +155,13 @@ class LightEngine(
      * @param width The width of the quad to draw.
      * @param height The height of the quad to draw.
      */
-    fun draw(diffuse: Texture, x: Float, y: Float, width: Float, height: Float) {
+    fun draw(
+        diffuse: Texture,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+    ) {
         if (lastNormalMap != null) {
             batch.flush()
         }
@@ -166,5 +175,4 @@ class LightEngine(
         lastNormalMap = null
         lastSpecularMap = null
     }
-
 }

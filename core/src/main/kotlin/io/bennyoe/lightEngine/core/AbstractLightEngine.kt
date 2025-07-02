@@ -1,4 +1,4 @@
-package com.github.bennyOe.core
+package io.bennyoe.lightEngine.core
 
 import box2dLight.ConeLight
 import box2dLight.DirectionalLight
@@ -14,7 +14,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.GdxRuntimeException
 import com.badlogic.gdx.utils.viewport.Viewport
-import com.github.bennyOe.core.utils.worldToScreenSpace
+import io.bennyoe.lightEngine.core.utils.worldToScreenSpace
 import ktx.assets.disposeSafely
 import ktx.math.vec3
 import ktx.math.vec4
@@ -61,6 +61,14 @@ abstract class AbstractLightEngine(
         shader.bind()
         shader.setUniformi("u_normals", 1)
         shader.setUniformi("u_specular", 2)
+    }
+
+    fun setShaderToEngineShader() {
+        batch.shader = shader
+    }
+
+    fun setShaderToDefaultShader() {
+        batch.shader = null
     }
 
     /**
@@ -122,7 +130,7 @@ abstract class AbstractLightEngine(
      * like the sun, where all light rays are parallel.
      *
      * The light is composed of a [ShaderLight] for visual effects on sprites and a
-     * [box2dLight.DirectionalLight] for interactions within the Box2D world.
+     * [DirectionalLight] for interactions within the Box2D world.
      *
      * @param color The color of the light. The alpha component is multiplied by the intensity.
      * @param direction The direction of the light in degrees, where 0 degrees points to the right (along the positive X-axis).
@@ -166,7 +174,7 @@ abstract class AbstractLightEngine(
      * point in all directions.
      *
      * The light is composed of a [ShaderLight.Point] for visual effects on sprites and a
-     * [box2dLight.PointLight] for interactions within the Box2D world.
+     * [PointLight] for interactions within the Box2D world.
      *
      * @param position The world position of the light source.
      * @param color The color of the light. The alpha component is multiplied by the intensity.
@@ -215,7 +223,7 @@ abstract class AbstractLightEngine(
      * Adds a new spotlight to the scene, which emits light in a cone shape from a specific point.
      *
      * The light is composed of a [ShaderLight.Spot] for visual effects on sprites and a
-     * [box2dLight.ConeLight] for interactions within the Box2D world.
+     * [ConeLight] for interactions within the Box2D world.
      *
      * @param position The world position of the light source.
      * @param color The color of the light. The alpha component is multiplied by the intensity.

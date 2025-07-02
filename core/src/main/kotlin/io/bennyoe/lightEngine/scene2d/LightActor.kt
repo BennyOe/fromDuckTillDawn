@@ -1,7 +1,7 @@
-package com.github.bennyOe.scene2d
+package io.bennyoe.lightEngine.scene2d
 
 import com.badlogic.gdx.scenes.scene2d.Actor
-import com.github.bennyOe.core.GameLight
+import io.bennyoe.lightEngine.core.GameLight
 
 class LightActor(private val light: GameLight) : Actor() {
     init {

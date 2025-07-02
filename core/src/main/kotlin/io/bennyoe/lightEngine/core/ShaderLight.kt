@@ -1,4 +1,4 @@
-package com.github.bennyOe.core
+package io.bennyoe.lightEngine.core
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector2

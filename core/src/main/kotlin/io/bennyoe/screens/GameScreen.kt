@@ -13,6 +13,7 @@ import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets
+import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
@@ -53,9 +54,16 @@ class GameScreen(
     context: Context,
 ) : AbstractScreen(context) {
     private val assets = context.inject<AssetStorage>()
-    private val dawnAtlas = assets[TextureAssets.DAWN_ATLAS.descriptor]
-    private val dawnNormalAtlas = assets[TextureAssets.DAWN_N_ATLAS.descriptor]
-    private val mushroomAtlas = assets[TextureAssets.MUSHROOM_ATLAS.descriptor]
+    private val dawnAtlases =
+        TextureAtlases(
+            assets[TextureAssets.DAWN_ATLAS.descriptor],
+            assets[TextureAssets.DAWN_N_ATLAS.descriptor],
+            assets[TextureAssets.DAWN_S_ATLAS.descriptor],
+        )
+    private val mushroomAtlases =
+        TextureAtlases(
+            assets[TextureAssets.MUSHROOM_ATLAS.descriptor],
+        )
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()
     private val stage = stages.stage
@@ -72,9 +80,8 @@ class GameScreen(
         configureWorld {
             injectables {
                 add("phyWorld", phyWorld)
-                add("dawnAtlas", dawnAtlas)
-                add("dawnNormalAtlas", dawnNormalAtlas)
-                add("mushroomAtlas", mushroomAtlas)
+                add("dawnAtlases", dawnAtlases)
+                add("mushroomAtlases", mushroomAtlases)
                 add("stage", stage)
                 add("uiStage", uiStage)
                 add("shapeRenderer", ShapeRenderer())
@@ -135,9 +142,12 @@ class GameScreen(
     }
 
     override fun dispose() {
-        dawnAtlas.dispose()
-        dawnNormalAtlas.dispose()
-        mushroomAtlas.dispose()
+        dawnAtlases.diffuseAtlas.dispose()
+        dawnAtlases.normalAtlas?.dispose()
+        dawnAtlases.specularAtlas?.dispose()
+        mushroomAtlases.diffuseAtlas.dispose()
+        mushroomAtlases.normalAtlas?.dispose()
+        mushroomAtlases.specularAtlas?.dispose()
         entityWorld.dispose()
         tiledMap.disposeSafely()
     }

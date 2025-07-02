@@ -11,6 +11,7 @@ enum class TextureAssets(
 ) {
     DAWN_ATLAS("dawn.atlas"),
     DAWN_N_ATLAS("dawn_n.atlas"),
+    DAWN_S_ATLAS("dawn_s.atlas"),
     MUSHROOM_ATLAS("mushroom.atlas"),
 }
 

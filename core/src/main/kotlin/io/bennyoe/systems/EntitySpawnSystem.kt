@@ -1,6 +1,5 @@
 package io.bennyoe.systems
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
@@ -12,13 +11,13 @@ import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
-import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.ai.blackboards.MushroomContext
+import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -31,7 +30,7 @@ import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
-import io.bennyoe.components.NormalMappedRenderingComponent
+import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SpawnComponent
@@ -44,6 +43,7 @@ import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
@@ -71,16 +71,15 @@ class EntitySpawnSystem(
     private val phyWorld: World = inject("phyWorld"),
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
     private val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
-    private val dawnAtlas: TextureAtlas = inject("dawnAtlas"),
-    private val dawnNormalAtlas: TextureAtlas = inject("dawnNormalAtlas"),
-    private val mushroomAtlas: TextureAtlas = inject("mushroomAtlas"),
+    dawnAtlases: TextureAtlases = inject("dawnAtlases"),
+    mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener,
     PausableSystem {
     private val atlasMap: Map<AnimationModel, TextureAtlas> =
         mapOf(
-            AnimationModel.PLAYER_DAWN to dawnAtlas,
-            AnimationModel.ENEMY_MUSHROOM to mushroomAtlas,
+            AnimationModel.PLAYER_DAWN to dawnAtlases.diffuseAtlas,
+            AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.diffuseAtlas,
         )
 
     private val sizesCache = mutableMapOf<String, Vector2>()
@@ -214,7 +213,7 @@ class EntitySpawnSystem(
                     val input = InputComponent()
                     it += input
 
-                    it += NormalMappedRenderingComponent()
+                    it += ShaderRenderingComponent()
 
                     it += IntentionComponent()
 
@@ -288,6 +287,13 @@ class EntitySpawnSystem(
         }
     }
 
+    /**
+     * Calculates and returns the scaled size (`Vector2`) of the first animation frame
+     * for the given `AnimationModel`, `AnimationType`, and `AnimationVariant`.
+     * Uses a cache to avoid redundant calculations, retrieves the appropriate texture atlas,
+     * finds the animation regions, and computes the size based on the original frame dimensions
+     * and a unit scale factor. Throws an error if the atlas or regions are missing.
+     */
     private fun size(
         model: AnimationModel,
         type: AnimationType,

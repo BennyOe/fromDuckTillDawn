@@ -16,7 +16,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
-import io.bennyoe.components.NormalMappedRenderingComponent
+import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.event.MapChangedEvent
@@ -56,13 +56,13 @@ class RenderSystem(
             // Group entities for rendering
             val (normalMappedEntities, defaultEntities) =
                 family.partition {
-                    it.getOrNull(NormalMappedRenderingComponent)?.normal != null
+                    it.getOrNull(ShaderRenderingComponent)?.normal != null
                 }
 
             // First, render all entities with normal maps
             normalMappedEntities.forEach { entity ->
                 val imageCmp = entity[ImageComponent]
-                val normalRenderCmp = entity[NormalMappedRenderingComponent]
+                val normalRenderCmp = entity[ShaderRenderingComponent]
 
                 engine.draw(
                     diffuse = normalRenderCmp.diffuse!!,

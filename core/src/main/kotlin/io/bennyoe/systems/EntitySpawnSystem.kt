@@ -1,17 +1,18 @@
 package io.bennyoe.systems
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.physics.box2d.Filter
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
-import com.github.bennyOe.core.Scene2dLightEngine
-import com.github.bennyOe.scene2d.NormalMappedActor
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
@@ -76,10 +77,11 @@ class EntitySpawnSystem(
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener,
     PausableSystem {
-    private val atlasMap: Map<AnimationModel, TextureAtlas> = mapOf(
-        AnimationModel.PLAYER_DAWN to dawnAtlas,
-        AnimationModel.ENEMY_MUSHROOM to mushroomAtlas
-    )
+    private val atlasMap: Map<AnimationModel, TextureAtlas> =
+        mapOf(
+            AnimationModel.PLAYER_DAWN to dawnAtlas,
+            AnimationModel.ENEMY_MUSHROOM to mushroomAtlas,
+        )
 
     private val sizesCache = mutableMapOf<String, Vector2>()
     private val messageDispatcher = MessageManager.getInstance()
@@ -117,7 +119,9 @@ class EntitySpawnSystem(
         color: Color,
         position: Vector2,
     ) {
-        lightEngine.addDirectionalLight(Color(1f, 1f, 1f, 1f), 45f, 1f, 1f)
+        lightEngine.setNormalInfluence(.5f)
+        val dir = lightEngine.addDirectionalLight(Color(1f, 0f, .5f, .5f), 45f, 1f, 1f)
+        dir.b2dLight.isXray = true
         val light =
             lightEngine.addPointLight(
                 position * UNIT_SCALE,
@@ -125,6 +129,15 @@ class EntitySpawnSystem(
                 6f,
                 9f,
             )
+        light.b2dLight.apply {
+            setContactFilter(
+                Filter().apply {
+                    categoryBits = 0x0008
+                    maskBits = EntityCategory.GROUND.bit
+                },
+            )
+        }
+        light.b2dLight.isXray = true
     }
 
     private fun createEntity(
@@ -201,6 +214,7 @@ class EntitySpawnSystem(
                     val input = InputComponent()
                     it += input
 
+                    it += NormalMappedRenderingComponent()
 
                     it += IntentionComponent()
 
@@ -281,8 +295,9 @@ class EntitySpawnSystem(
     ): Vector2 {
         val cacheKey = "${type.name}_${variant.name}"
         return sizesCache.getOrPut(cacheKey) {
-            val atlas = atlasMap[model]
-                ?: gdxError("No texture atlas for model '$model' in EntitySpawnSystem found.")
+            val atlas =
+                atlasMap[model]
+                    ?: gdxError("No texture atlas for model '$model' in EntitySpawnSystem found.")
 
             val regions = atlas.findRegions(type.atlasKey + variant.atlasKey)
             if (regions.isEmpty) gdxError("No regions for the animation '$type' for model '$model' found")

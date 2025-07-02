@@ -7,19 +7,20 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.objects.TiledMapTileMapObject
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.maps.tiled.tiles.AnimatedTiledMapTile
-import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.github.bennyOe.core.Scene2dLightEngine
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.NormalMappedRenderingComponent
 import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.event.MapChangedEvent
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import ktx.graphics.use
 import ktx.log.logger
 import ktx.tiled.forEachLayer
@@ -37,31 +38,77 @@ class RenderSystem(
     private val orthoCam = stage.camera as OrthographicCamera
 
     override fun onTick() {
-        // 1. execute logic
+        // 1. Execute logic
         orthoCam.update()
         stage.viewport.apply()
         stage.act(deltaTime)
         lightEngine.update()
 
-        // 2. draw the map
+        // 2. Draw map
         mapRenderer.setView(orthoCam)
         mapRenderer.render()
         renderMap()
 
-        // 3. call the lightEngine
+        // 3. Call LightEngine and draw the scene
         lightEngine.renderLights { engine ->
-            for (actor: Actor in stage.actors) {
-                engine.draw(actor)
+            // The batch already has the light shader active here.
+
+            // Group entities for rendering
+            val (normalMappedEntities, defaultEntities) =
+                family.partition {
+                    it.getOrNull(NormalMappedRenderingComponent)?.normal != null
+                }
+
+            // First, render all entities with normal maps
+            normalMappedEntities.forEach { entity ->
+                val imageCmp = entity[ImageComponent]
+                val normalRenderCmp = entity[NormalMappedRenderingComponent]
+
+                engine.draw(
+                    diffuse = normalRenderCmp.diffuse!!,
+                    normals = normalRenderCmp.normal!!,
+                    x = imageCmp.image.x,
+                    y = imageCmp.image.y,
+                    width = imageCmp.image.width,
+                    height = imageCmp.image.height,
+                    flipX = imageCmp.flipImage,
+                )
+            }
+
+            // Now, switch shader once and render all default entities
+            if (defaultEntities.isNotEmpty()) {
+                engine.batch.flush()
+                engine.setShaderToDefaultShader()
+
+                defaultEntities.forEach { entity ->
+                    val imageCmp = entity[ImageComponent]
+                    val drawable = imageCmp.image.drawable as? TextureRegionDrawable ?: return@forEach
+                    val region = drawable.region
+
+                    val x = imageCmp.image.x
+                    val y = imageCmp.image.y
+                    val width = imageCmp.image.width
+                    val height = imageCmp.image.height
+
+                    if (imageCmp.flipImage) {
+                        engine.batch.draw(region, x + width, y, -width, height)
+                    } else {
+                        engine.batch.draw(region, x, y, width, height)
+                    }
+                }
+
+                engine.batch.flush()
+                engine.setShaderToEngineShader()
             }
         }
-        // 4. call super to execute onTickEntity for correct size and transformation
+
+        // 4. Call super method to run onTickEntity for resizing
         super.onTick()
     }
 
     override fun onTickEntity(entity: Entity) {
         val imageCmp = entity[ImageComponent]
-        val originalOrFlippedImage = if (imageCmp.flipImage) -imageCmp.scaleX else imageCmp.scaleX
-        imageCmp.image.setSize(originalOrFlippedImage, imageCmp.scaleY)
+        imageCmp.image.setSize(imageCmp.scaleX, imageCmp.scaleY)
     }
 
     override fun handle(event: Event): Boolean {

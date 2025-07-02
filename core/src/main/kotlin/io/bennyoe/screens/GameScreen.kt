@@ -3,14 +3,12 @@ package io.bennyoe.screens
 import box2dLight.RayHandler
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.GdxAI
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
-import com.github.bennyOe.core.Scene2dLightEngine
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
@@ -22,6 +20,7 @@ import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.config.GameConstants.TIME_SCALE
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem

@@ -3,10 +3,8 @@ package io.bennyoe.systems
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Filter
-import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.config.EntityCategory
@@ -22,8 +20,6 @@ import ktx.tiled.x
 import ktx.tiled.y
 
 class LightSystem(
-    private val stage: Stage = inject("stage"),
-    private val phyWorld: World = inject("phyWorld"),
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
 ) : IntervalSystem(),
     EventListener {
@@ -49,15 +45,16 @@ class LightSystem(
     }
 
     private fun setupLights() {
-        lightEngine.setShaderAmbientLight(Color(0.2f, 0.28f, 0.6f, 1f))
-//        lightEngine.setShaderAmbientLight(Color(1f, 1f, 6f, 1f))
+        lightEngine.setShaderAmbientLight(Color(0.2f, 0.28f, 0.6f, .5f))
         lightEngine.setBox2dLightAmbientLight(Color(0.2f, 0.28f, 0.6f, 1f))
         lightEngine.setDiffuseLight(true)
-        lightEngine.setNormalInfluence(.6f)
+        lightEngine.setNormalInfluence(1f)
+        lightEngine.setSpecularIntensity(.2f)
+        lightEngine.setSpecularRemap(0.0f, 0.2f)
 
         val dir =
             lightEngine.addDirectionalLight(
-                Color(0.15f, 0.18f, 0.25f, 1f),
+                Color(0.15f, 0.18f, 0.25f, .6f),
                 45f,
                 6f,
                 15f,
@@ -80,16 +77,16 @@ class LightSystem(
     ) {
         when (type) {
             LightType.POINT_LIGHT -> {
-                val light =
+                val pointLight =
                     lightEngine.addPointLight(
                         position * UNIT_SCALE,
                         color,
                         6f,
                         7f,
                     )
-                light.effect = effect
+                pointLight.effect = effect
 
-                light.b2dLight.apply {
+                pointLight.b2dLight.apply {
                     setContactFilter(
                         Filter().apply {
                             categoryBits = EntityCategory.LIGHT.bit
@@ -100,6 +97,26 @@ class LightSystem(
             }
 
             LightType.SPOT_LIGHT -> {
+                val pointLight =
+                    lightEngine.addSpotLight(
+                        position * UNIT_SCALE,
+                        color,
+                        -90f,
+                        30f,
+                        9f,
+                        12f,
+                        12f,
+                    )
+                pointLight.effect = effect
+
+                pointLight.b2dLight.apply {
+                    setContactFilter(
+                        Filter().apply {
+                            categoryBits = EntityCategory.LIGHT.bit
+                            maskBits = EntityCategory.GROUND.bit
+                        },
+                    )
+                }
             }
         }
     }

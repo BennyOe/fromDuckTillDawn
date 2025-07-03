@@ -53,20 +53,26 @@ class RenderSystem(
         lightEngine.renderLights { engine ->
             // The batch already has the light shader active here.
 
-            // Group entities for rendering
-            val (normalMappedEntities, defaultEntities) =
+            // FIX: Partition entities more granularly based on shader requirements.
+            val (entitiesWithShaders, defaultEntities) =
                 family.partition {
                     it.getOrNull(ShaderRenderingComponent)?.normal != null
                 }
 
-            // First, render all entities with normal maps
-            normalMappedEntities.forEach { entity ->
+            val (specularEntities, normalOnlyEntities) =
+                entitiesWithShaders.partition {
+                    it.getOrNull(ShaderRenderingComponent)?.specular != null
+                }
+
+            // 1. Render all entities with normal and specular maps
+            specularEntities.forEach { entity ->
                 val imageCmp = entity[ImageComponent]
-                val normalRenderCmp = entity[ShaderRenderingComponent]
+                val shaderCmp = entity[ShaderRenderingComponent]
 
                 engine.draw(
-                    diffuse = normalRenderCmp.diffuse!!,
-                    normals = normalRenderCmp.normal!!,
+                    diffuse = shaderCmp.diffuse!!,
+                    normals = shaderCmp.normal!!,
+                    specular = shaderCmp.specular!!,
                     x = imageCmp.image.x,
                     y = imageCmp.image.y,
                     width = imageCmp.image.width,
@@ -75,7 +81,28 @@ class RenderSystem(
                 )
             }
 
-            // Now, switch shader once and render all default entities
+            // 2. Render all entities with only normal maps
+            normalOnlyEntities.forEach { entity ->
+                val imageCmp = entity[ImageComponent]
+                val shaderCmp = entity[ShaderRenderingComponent]
+
+                logger.debug {
+                    "Entity ${entity.id} (normal-only): diffuse: ${shaderCmp.diffuse!!.name} normal: ${shaderCmp.normal!!.name}"
+                }
+                // Use the draw overload that doesn't take a specular map.
+                // This method will handle setting u_useSpecularMap to 0.
+                engine.draw(
+                    diffuse = shaderCmp.diffuse!!,
+                    normals = shaderCmp.normal!!,
+                    x = imageCmp.image.x,
+                    y = imageCmp.image.y,
+                    width = imageCmp.image.width,
+                    height = imageCmp.image.height,
+                    flipX = imageCmp.flipImage,
+                )
+            }
+
+            // 3. Render all default entities (no special shaders)
             if (defaultEntities.isNotEmpty()) {
                 engine.batch.flush()
                 engine.setShaderToDefaultShader()
@@ -101,8 +128,6 @@ class RenderSystem(
                 engine.setShaderToEngineShader()
             }
         }
-
-        // 4. Call super method to run onTickEntity for resizing
         super.onTick()
     }
 

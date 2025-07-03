@@ -1,6 +1,7 @@
 package io.bennyoe.lightEngine.core
 
 import box2dLight.RayHandler
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -46,6 +47,8 @@ class Scene2dLightEngine(
         applyShaderUniforms()
 
         batch.begin()
+        lastNormalMap = null
+        lastSpecularMap = null
         drawScene(this)
         batch.end()
 
@@ -81,8 +84,13 @@ class Scene2dLightEngine(
         height: Float,
         flipX: Boolean = false,
     ) {
+        if (lastNormalMap == null || normals.texture != lastNormalMap) {
+            batch.flush()
+        }
         shader.setUniformi("u_useNormalMap", 1)
         shader.setUniformi("u_useSpecularMap", 0)
+
+        shader.setUniformi("u_flipX", if (flipX) 1 else 0)
 
         normals.texture.bind(1)
         diffuse.texture.bind(0)
@@ -92,6 +100,60 @@ class Scene2dLightEngine(
         } else {
             batch.draw(diffuse, x, y, width, height)
         }
+        lastNormalMap = normals.texture
+        lastSpecularMap = null
+    }
+
+    /**
+     * Draws a sprite using a diffuse, a normal and a specular map texture, applying normal mapping and specular lighting effects.
+     *
+     * This method binds the normal map to texture unit 1, the specular map to texture unit 2 and the diffuse texture to unit 0, sets the appropriate
+     * shader uniforms, and draws the sprite at the specified position and size. If `flipX` is true, the sprite
+     * is drawn mirrored horizontally.
+     *
+     * Use this method within the [renderLights] lambda to ensure lighting and shader context are active.
+     *
+     * @param diffuse The diffuse [TextureRegion] (base color texture).
+     * @param normals The normal map [TextureRegion] (for lighting effects).
+     * @param specular The specular map [TextureRegion] (for highlight effects).
+     * @param x The x-coordinate to draw the sprite.
+     * @param y The y-coordinate to draw the sprite.
+     * @param width The width of the sprite.
+     * @param height The height of the sprite.
+     * @param flipX If true, the sprite is drawn mirrored on the X axis.
+     */
+    fun draw(
+        diffuse: TextureRegion,
+        normals: TextureRegion,
+        specular: TextureRegion,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        flipX: Boolean = false,
+    ) {
+        if (lastNormalMap == null || normals.texture != lastNormalMap) {
+            batch.flush()
+        }
+        if (lastSpecularMap == null || specular.texture != lastSpecularMap) {
+            batch.flush()
+        }
+        shader.setUniformi("u_useNormalMap", 1)
+        shader.setUniformi("u_useSpecularMap", 1)
+
+        shader.setUniformi("u_flipX", if (flipX) 1 else 0)
+
+        normals.texture.bind(1)
+        specular.texture.bind(2)
+        diffuse.texture.bind(0)
+
+        if (flipX) {
+            batch.draw(diffuse, x + width, y, -width, height)
+        } else {
+            batch.draw(diffuse, x, y, width, height)
+        }
+        lastNormalMap = normals.texture
+        lastSpecularMap = specular.texture
     }
 
     /**
@@ -114,7 +176,6 @@ class Scene2dLightEngine(
         batch.shader = this.shader
         shader.bind()
         shader.setUniformi("u_useNormalMap", 0)
-
         // Draw the image normally
         image.draw(batch, 1f)
 
@@ -169,10 +230,10 @@ class Scene2dLightEngine(
     ) {
         if (stage == null) return
         stage.viewport.update(width, height, true)
-        val screenX = stage.viewport.screenX
-        val screenY = stage.viewport.screenY
-        val screenW = stage.viewport.screenWidth
-        val screenH = stage.viewport.screenHeight
+        val screenX = stage.viewport.screenX * Gdx.graphics.backBufferScale.toInt()
+        val screenY = stage.viewport.screenY * Gdx.graphics.backBufferScale.toInt()
+        val screenW = stage.viewport.screenWidth * Gdx.graphics.backBufferScale.toInt()
+        val screenH = stage.viewport.screenHeight * Gdx.graphics.backBufferScale.toInt()
         rayHandler.useCustomViewport(screenX, screenY, screenW, screenH)
         super.resize(width, height)
     }

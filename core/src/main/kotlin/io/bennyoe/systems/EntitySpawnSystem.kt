@@ -157,6 +157,8 @@ class EntitySpawnSystem(
                 it += attackCmp
             }
 
+            it += ShaderRenderingComponent()
+
             it += JumpComponent()
 
             when (cfg.entityCategory) {
@@ -176,8 +178,6 @@ class EntitySpawnSystem(
 
                     val input = InputComponent()
                     it += input
-
-                    it += ShaderRenderingComponent()
 
                     it += IntentionComponent()
 

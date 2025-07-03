@@ -64,6 +64,8 @@ class GameScreen(
     private val mushroomAtlases =
         TextureAtlases(
             assets[TextureAssets.MUSHROOM_ATLAS.descriptor],
+            assets[TextureAssets.MUSHROOM_N_ATLAS.descriptor],
+            assets[TextureAssets.MUSHROOM_S_ATLAS.descriptor],
         )
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()

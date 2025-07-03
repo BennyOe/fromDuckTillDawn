@@ -34,11 +34,13 @@ class AnimationSystem(
     private val normalAtlasMap: Map<AnimationModel, TextureAtlas> =
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.normalAtlas!!,
+            AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.normalAtlas!!,
         )
 
     private val specularAtlasMap: Map<AnimationModel, TextureAtlas> =
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.specularAtlas!!,
+            AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.specularAtlas!!,
         )
 
     override fun onTickEntity(entity: Entity) {

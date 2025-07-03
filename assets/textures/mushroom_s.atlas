@@ -1,4 +1,4 @@
-mushroom.png
+mushroom_s.png
 size:2048,256
 repeat:none
 attack01
@@ -8,10 +8,10 @@ dying01
 index:0
 bounds:2,2,80,64
 hit01
-index:4
+index:0
 bounds:2,2,80,64
 hit01
-index:0
+index:4
 bounds:2,2,80,64
 attack01
 index:1
@@ -71,6 +71,9 @@ dying01
 index:11
 bounds:1560,2,80,64
 dying01
+index:10
+bounds:1560,2,80,64
+dying01
 index:12
 bounds:1560,2,80,64
 dying01
@@ -78,9 +81,6 @@ index:14
 bounds:1560,2,80,64
 dying01
 index:13
-bounds:1560,2,80,64
-dying01
-index:10
 bounds:1560,2,80,64
 hit01
 index:1

@@ -13,6 +13,8 @@ enum class TextureAssets(
     DAWN_N_ATLAS("dawn_n.atlas"),
     DAWN_S_ATLAS("dawn_s.atlas"),
     MUSHROOM_ATLAS("mushroom.atlas"),
+    MUSHROOM_N_ATLAS("mushroom_n.atlas"),
+    MUSHROOM_S_ATLAS("mushroom_s.atlas"),
 }
 
 enum class MapAssets(

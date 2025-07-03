@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="15" nextobjectid="32">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="15" nextobjectid="39">
  <tileset firstgid="1" source="groundTiles1.tsx"/>
  <tileset firstgid="649" source="fire.tsx"/>
  <imagelayer id="5" name="backgroundSky">
@@ -56,7 +56,7 @@
   <object id="19" gid="649" x="156" y="256" width="32" height="32"/>
  </objectgroup>
  <objectgroup id="4" name="playerStart">
-  <object id="10" name="playerStart" type="playerStart" x="18.902" y="228.48">
+  <object id="10" name="playerStart" type="playerStart" x="74.5686" y="160.48">
    <point/>
   </object>
  </objectgroup>
@@ -69,9 +69,41 @@
    </properties>
    <point/>
   </object>
+  <object id="32" name="greenLight" type="greenLight" x="368.667" y="178.667">
+   <properties>
+    <property name="color" type="color" value="#ff01ff17"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
+    <property name="type" type="int" propertytype="lightType" value="1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="35" name="redLight" type="redLight" x="401" y="179.333">
+   <properties>
+    <property name="color" type="color" value="#ffff0019"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
+    <property name="type" type="int" propertytype="lightType" value="1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="36" name="blueLight" type="blueLight" x="432.667" y="179">
+   <properties>
+    <property name="color" type="color" value="#ffc200ff"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
+    <property name="type" type="int" propertytype="lightType" value="1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="38" name="fireLight" type="fireLight" x="27.6667" y="226.333">
+   <properties>
+    <property name="color" type="color" value="#fff9fff6"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="3"/>
+    <property name="type" type="int" propertytype="lightType" value="0"/>
+   </properties>
+   <point/>
+  </object>
  </objectgroup>
  <objectgroup id="13" name="enemies">
-  <object id="21" name="enemy" type="enemy" x="430.382" y="231.405">
+  <object id="21" name="enemy" type="enemy" x="277.716" y="90.7387">
    <point/>
   </object>
  </objectgroup>

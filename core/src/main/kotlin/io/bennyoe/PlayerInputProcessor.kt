@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.github.quillraven.fleks.World
+import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.debug.DebugComponent
@@ -17,6 +18,7 @@ class PlayerInputProcessor(
     private val inputEntities = world.family { all(InputComponent) }
     private val debugEntities = world.family { all(DebugComponent) }
     private val gameStateEntities = world.family { all(GameStateComponent) }
+    private val cameraEntities = world.family { all(CameraComponent) }
     private val messageDispatcher = MessageManager.getInstance()
 
     // Mapping der Steuerungstasten zu Aktionen
@@ -33,6 +35,9 @@ class PlayerInputProcessor(
             Keys.BACKSPACE to Action.DEBUG,
             Keys.K to Action.KILL,
             Keys.P to Action.PAUSE,
+            Keys.UP to Action.ZOOM_IN,
+            Keys.DOWN to Action.ZOOM_OUT,
+            Keys.L to Action.TOGGLE_LIGHTING,
         )
 
     init {
@@ -64,6 +69,15 @@ class PlayerInputProcessor(
             val gameStateCmp = gameStateEntity[GameStateComponent]
             when (action) {
                 Action.PAUSE -> gameStateCmp.toggleDebug(pressed)
+                Action.TOGGLE_LIGHTING -> gameStateCmp.toggleLighting(pressed)
+                else -> Unit
+            }
+        }
+        cameraEntities.forEach { cameraEntity ->
+            val cameraCmp = cameraEntity[CameraComponent]
+            when (action) {
+                Action.ZOOM_IN -> cameraCmp.zoomFactor -= 0.05f
+                Action.ZOOM_OUT -> cameraCmp.zoomFactor += 0.05f
                 else -> Unit
             }
         }
@@ -124,5 +138,8 @@ class PlayerInputProcessor(
         DEBUG,
         KILL,
         PAUSE,
+        ZOOM_IN,
+        ZOOM_OUT,
+        TOGGLE_LIGHTING,
     }
 }

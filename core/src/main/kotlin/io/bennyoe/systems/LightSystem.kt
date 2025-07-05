@@ -1,7 +1,6 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Filter
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
@@ -31,12 +30,67 @@ class LightSystem(
                 setupLights()
                 val lightsLayer = event.map.layer("lights")
                 lightsLayer.objects.forEach { light ->
-                    val color = light.properties.get("color") as Color
                     val type = LightType.entries[(light.properties.get("type") as Int)]
-                    val effect = LightEffectType.entries[(light.properties.get("effect") as Int)]
                     val position = vec2(light.x, light.y)
+                    val color = light.properties.get("color") as Color
+                    val initialIntensity = light.properties.get("initialIntensity") as Float? ?: 1f
+                    val b2dDistance = light.properties.get("distance") as Float? ?: 1f
+                    val falloffProfile = light.properties.get("falloffProfile") as Float? ?: 0.5f
+                    val shaderIntensityMultiplier = light.properties.get("shaderIntensityMultiplier") as Float? ?: 0.5f
 
-                    createLight(type, position, color, effect)
+                    // spotlight specific
+                    val direction = light.properties.get("direction") as Float? ?: -90f
+                    val coneDegree = light.properties.get("coneDegree") as Float? ?: 50f
+
+                    val effect = (light.properties.get("effect") as? Int)?.let { LightEffectType.entries[it] }
+
+                    when (type) {
+                        LightType.POINT_LIGHT -> {
+                            val pointLight =
+                                lightEngine.addPointLight(
+                                    position * UNIT_SCALE,
+                                    color,
+                                    initialIntensity,
+                                    b2dDistance,
+                                    falloffProfile,
+                                    shaderIntensityMultiplier,
+                                )
+                            pointLight.effect = effect
+
+                            pointLight.b2dLight.apply {
+                                setContactFilter(
+                                    Filter().apply {
+                                        categoryBits = EntityCategory.LIGHT.bit
+                                        maskBits = EntityCategory.GROUND.bit
+                                    },
+                                )
+                            }
+                        }
+
+                        LightType.SPOT_LIGHT -> {
+                            val spotLight =
+                                lightEngine.addSpotLight(
+                                    position * UNIT_SCALE,
+                                    color,
+                                    direction,
+                                    coneDegree,
+                                    initialIntensity,
+                                    b2dDistance,
+                                    falloffProfile,
+                                    shaderIntensityMultiplier,
+                                )
+                            spotLight.effect = effect
+
+                            spotLight.b2dLight.apply {
+                                setContactFilter(
+                                    Filter().apply {
+                                        categoryBits = EntityCategory.LIGHT.bit
+                                        maskBits = EntityCategory.GROUND.bit
+                                    },
+                                )
+                            }
+                        }
+                    }
                 }
                 return true
             }
@@ -45,8 +99,8 @@ class LightSystem(
     }
 
     private fun setupLights() {
-        lightEngine.setShaderAmbientLight(Color(0.2f, 0.28f, 0.6f, .5f))
-        lightEngine.setBox2dLightAmbientLight(Color(0.2f, 0.28f, 0.6f, 1f))
+        lightEngine.updateShaderAmbientColor(Color(0.2f, 0.28f, 0.6f, 1f))
+        lightEngine.setBox2dAmbientLight(Color(0.2f, 0.28f, 0.6f, 1f))
         lightEngine.setDiffuseLight(true)
         lightEngine.setNormalInfluence(1f)
         lightEngine.setSpecularIntensity(.2f)
@@ -66,58 +120,6 @@ class LightSystem(
                     maskBits = EntityCategory.GROUND.bit
                 },
             )
-        }
-    }
-
-    private fun createLight(
-        type: LightType,
-        position: Vector2,
-        color: Color,
-        effect: LightEffectType? = null,
-    ) {
-        when (type) {
-            LightType.POINT_LIGHT -> {
-                val pointLight =
-                    lightEngine.addPointLight(
-                        position * UNIT_SCALE,
-                        color,
-                        6f,
-                        7f,
-                    )
-                pointLight.effect = effect
-
-                pointLight.b2dLight.apply {
-                    setContactFilter(
-                        Filter().apply {
-                            categoryBits = EntityCategory.LIGHT.bit
-                            maskBits = EntityCategory.GROUND.bit
-                        },
-                    )
-                }
-            }
-
-            LightType.SPOT_LIGHT -> {
-                val pointLight =
-                    lightEngine.addSpotLight(
-                        position * UNIT_SCALE,
-                        color,
-                        -90f,
-                        30f,
-                        9f,
-                        12f,
-                        12f,
-                    )
-                pointLight.effect = effect
-
-                pointLight.b2dLight.apply {
-                    setContactFilter(
-                        Filter().apply {
-                            categoryBits = EntityCategory.LIGHT.bit
-                            maskBits = EntityCategory.GROUND.bit
-                        },
-                    )
-                }
-            }
         }
     }
 

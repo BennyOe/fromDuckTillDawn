@@ -15,6 +15,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
@@ -36,8 +37,10 @@ class RenderSystem(
     private var mapObjectsLayer: MapLayer = MapLayer()
     private val mapBg: MutableList<TiledMapImageLayer> = mutableListOf()
     private val orthoCam = stage.camera as OrthographicCamera
+    private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
 
     override fun onTick() {
+        val gameStateCmp = gameStateEntity[GameStateComponent]
         // 1. Execute logic
         orthoCam.update()
         stage.viewport.apply()
@@ -49,7 +52,27 @@ class RenderSystem(
         mapRenderer.render()
         renderMap()
 
-        // 3. Call LightEngine and draw the scene
+        if (!gameStateCmp.isLightingEnabled) {
+            stage.draw()
+        } else {
+            // 3. Call LightEngine and draw the scene
+            drawWithLightingEngine()
+        }
+        super.onTick()
+    }
+
+    override fun onTickEntity(entity: Entity) {
+        val gameStateCmp = gameStateEntity[GameStateComponent]
+        val imageCmp = entity[ImageComponent]
+        if (gameStateCmp.isLightingEnabled) {
+            imageCmp.image.setSize(imageCmp.scaleX, imageCmp.scaleY)
+        } else {
+            val originalOrFlippedImage = if (imageCmp.flipImage) -imageCmp.scaleX else imageCmp.scaleX
+            imageCmp.image.setSize(originalOrFlippedImage, imageCmp.scaleY)
+        }
+    }
+
+    private fun drawWithLightingEngine() {
         lightEngine.renderLights { engine ->
             // The batch already has the light shader active here.
 
@@ -128,12 +151,6 @@ class RenderSystem(
                 engine.setShaderToEngineShader()
             }
         }
-        super.onTick()
-    }
-
-    override fun onTickEntity(entity: Entity) {
-        val imageCmp = entity[ImageComponent]
-        imageCmp.image.setSize(imageCmp.scaleX, imageCmp.scaleY)
     }
 
     override fun handle(event: Event): Boolean {

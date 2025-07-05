@@ -14,6 +14,7 @@ import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets
 import io.bennyoe.assets.TextureAtlases
+import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
@@ -125,6 +126,7 @@ class GameScreen(
         entityWorld.entity {
             if (ENABLE_DEBUG) it += DebugComponent()
             it += GameStateComponent()
+            it += CameraComponent()
         }
 
         // this adds all EventListenerSystems also to Scene2D

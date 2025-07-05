@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="15" nextobjectid="39">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="15" nextobjectid="86">
  <tileset firstgid="1" source="groundTiles1.tsx"/>
  <tileset firstgid="649" source="fire.tsx"/>
  <imagelayer id="5" name="backgroundSky">
@@ -61,42 +61,76 @@
   </object>
  </objectgroup>
  <objectgroup id="14" name="lights">
-  <object id="30" name="fireLight" type="fireLight" x="172" y="252.333">
+  <object id="32" name="greenLight" type="greenLight" x="368" y="176">
    <properties>
-    <property name="color" type="color" value="#ffff0000"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="1"/>
+    <property name="color" type="color" value="#ff01ff17"/>
+    <property name="coneDegree" type="float" value="70"/>
+    <property name="direction" type="float" value="-90"/>
+    <property name="distance" type="float" value="12"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
+    <property name="falloffProfile" type="float" value="12"/>
+    <property name="initialIntensity" type="float" value="9"/>
+    <property name="shaderIntensityMultiplier" type="float" value="1"/>
+    <property name="type" type="int" propertytype="lightType" value="1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="38" name="lightning" type="fireLight" x="9.33333" y="19.6667">
+   <properties>
+    <property name="color" type="color" value="#fff9fff6"/>
+    <property name="distance" type="float" value="12"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="4"/>
     <property name="type" type="int" propertytype="lightType" value="0"/>
    </properties>
    <point/>
   </object>
-  <object id="32" name="greenLight" type="greenLight" x="368.667" y="178.667">
+  <object id="40" name="faultyLightCone" type="fireLight" x="25.6667" y="174">
    <properties>
-    <property name="color" type="color" value="#ff01ff17"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
-    <property name="type" type="int" propertytype="lightType" value="1"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="35" name="redLight" type="redLight" x="401" y="179.333">
-   <properties>
-    <property name="color" type="color" value="#ffff0019"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
-    <property name="type" type="int" propertytype="lightType" value="1"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="36" name="blueLight" type="blueLight" x="432.667" y="179">
-   <properties>
-    <property name="color" type="color" value="#ffc200ff"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
-    <property name="type" type="int" propertytype="lightType" value="1"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="38" name="fireLight" type="fireLight" x="27.6667" y="226.333">
-   <properties>
-    <property name="color" type="color" value="#fff9fff6"/>
+    <property name="color" type="color" value="#ffdbff53"/>
+    <property name="distance" type="float" value="12"/>
     <property name="effect" type="int" propertytype="lightEffect" value="3"/>
+    <property name="initialIntensity" type="float" value="10"/>
+    <property name="shaderIntensityMultiplier" type="float" value="1"/>
+    <property name="type" type="int" propertytype="lightType" value="0"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="41" name="blueLight" type="greenLight" x="432" y="176">
+   <properties>
+    <property name="color" type="color" value="#ff0019f9"/>
+    <property name="coneDegree" type="float" value="70"/>
+    <property name="direction" type="float" value="-90"/>
+    <property name="distance" type="float" value="12"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
+    <property name="falloffProfile" type="float" value="12"/>
+    <property name="initialIntensity" type="float" value="9"/>
+    <property name="shaderIntensityMultiplier" type="float" value="1"/>
+    <property name="type" type="int" propertytype="lightType" value="1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="42" name="redLight" type="greenLight" x="400" y="176">
+   <properties>
+    <property name="color" type="color" value="#fff90024"/>
+    <property name="coneDegree" type="float" value="70"/>
+    <property name="direction" type="float" value="-90"/>
+    <property name="distance" type="float" value="12"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
+    <property name="falloffProfile" type="float" value="12"/>
+    <property name="initialIntensity" type="float" value="9"/>
+    <property name="shaderIntensityMultiplier" type="float" value="1"/>
+    <property name="type" type="int" propertytype="lightType" value="1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="46" name="fireLight" type="fireLight" x="172" y="248">
+   <properties>
+    <property name="color" type="color" value="#ffff0000"/>
+    <property name="distance" type="float" value="7"/>
+    <property name="effect" type="int" propertytype="lightEffect" value="1"/>
+    <property name="falloffProfile" type="float" value="0.5"/>
+    <property name="initialIntensity" type="float" value="6"/>
+    <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
     <property name="type" type="int" propertytype="lightType" value="0"/>
    </properties>
    <point/>

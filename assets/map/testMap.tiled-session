@@ -34,7 +34,7 @@
         "groundTiles1.tsx"
     ],
     "project": "testMap.tiled-project",
-    "property.type": "lightEffect",
+    "property.type": "float",
     "recentFiles": [
         "groundTiles1.tsx",
         "fire.tsx",

@@ -37,7 +37,7 @@ class CollisionSpawnSystem(
             is MapChangedEvent -> {
                 drawTileCollisionBoxes(event)
                 drawCollisionBoxes(event)
-//                drawMapBorderCollisions(event)
+                drawMapBorderCollisions(event)
             }
         }
         return true
@@ -57,6 +57,7 @@ class CollisionSpawnSystem(
                             mapObject.shape,
                             x,
                             y,
+                            setUserData = BodyData(EntityCategory.GROUND, it),
                         )
                     }
                 }
@@ -97,7 +98,7 @@ class CollisionSpawnSystem(
                         ) {
                             friction = 0f
                         }
-                        userData = BodyData(EntityCategory.NONE, it)
+                        userData = BodyData(EntityCategory.GROUND, it)
                     }
             }
         }

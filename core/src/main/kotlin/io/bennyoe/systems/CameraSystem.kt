@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.MathUtils.lerp
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.Event
@@ -10,6 +11,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
@@ -28,7 +30,7 @@ class CameraSystem(
     val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
 ) : IteratingSystem(family { all(ImageComponent, PlayerComponent) }),
     EventListener {
-    private val camera = stage.camera
+    private val camera = stage.camera as OrthographicCamera
     private var maxW = 0f
     private var maxH = 0f
     private var cameraTargetX = 0f
@@ -48,6 +50,8 @@ class CameraSystem(
     }
 
     override fun onTick() {
+        val cameraComponent = world.family { any(CameraComponent) }.firstOrNull()?.getOrNull(CameraComponent)
+        cameraComponent?.let { camera.zoom = it.zoomFactor }
         super.onTick()
         camera.update()
     }

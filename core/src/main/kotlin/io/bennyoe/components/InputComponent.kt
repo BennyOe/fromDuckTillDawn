@@ -14,6 +14,7 @@ data class InputComponent(
     var walkLeftJustPressed: Boolean = false,
     var walkRightJustPressed: Boolean = false,
     var pauseJustPressed: Boolean = false,
+    var flashlightToggleJustPressed: Boolean = false,
 ) : Component<InputComponent> {
     override fun type() = InputComponent
 

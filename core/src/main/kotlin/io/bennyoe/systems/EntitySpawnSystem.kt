@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.ai.msg.MessageManager
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
@@ -27,6 +28,7 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
@@ -41,6 +43,8 @@ import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
+import io.bennyoe.lightEngine.core.LightEffectType
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
@@ -56,6 +60,9 @@ import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
 import ktx.log.logger
+import ktx.math.plus
+import ktx.math.times
+import ktx.math.vec2
 import ktx.tiled.layer
 import ktx.tiled.type
 import ktx.tiled.x
@@ -65,6 +72,7 @@ class EntitySpawnSystem(
     private val stage: Stage = inject("stage"),
     private val phyWorld: World = inject("phyWorld"),
     private val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
+    private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
     dawnAtlases: TextureAtlases = inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
 ) : IteratingSystem(family { all(SpawnComponent) }),
@@ -95,10 +103,82 @@ class EntitySpawnSystem(
                     val cfg = SpawnCfg.createSpawnCfg(enemyObj.type!!)
                     createEntity(enemyObj, cfg)
                 }
+                val lightsLayer = event.map.layer("lights")
+                lightsLayer.objects.forEach { light ->
+                    val type = LightType.entries[(light.properties.get("type") as Int)]
+                    val position = vec2(light.x, light.y)
+                    val color = light.properties.get("color") as Color
+                    val initialIntensity = light.properties.get("initialIntensity") as Float? ?: 1f
+                    val b2dDistance = light.properties.get("distance") as Float? ?: 1f
+                    val falloffProfile = light.properties.get("falloffProfile") as Float? ?: 0.5f
+                    val shaderIntensityMultiplier = light.properties.get("shaderIntensityMultiplier") as Float? ?: 0.5f
+
+                    // spotlight specific
+                    val direction = light.properties.get("direction") as Float? ?: -90f
+                    val coneDegree = light.properties.get("coneDegree") as Float? ?: 50f
+
+                    val effect = (light.properties.get("effect") as? Int)?.let { LightEffectType.entries[it] }
+
+                    createLight(
+                        type,
+                        position,
+                        color,
+                        initialIntensity,
+                        b2dDistance,
+                        falloffProfile,
+                        shaderIntensityMultiplier,
+                        effect,
+                        direction,
+                        coneDegree,
+                    )
+                }
                 return true
             }
         }
         return false
+    }
+
+    private fun createLight(
+        type: LightType,
+        position: Vector2,
+        color: Color,
+        initialIntensity: Float,
+        b2dDistance: Float,
+        falloffProfile: Float,
+        shaderIntensityMultiplier: Float,
+        effect: LightEffectType?,
+        direction: Float,
+        coneDegree: Float,
+    ) {
+        when (type) {
+            LightType.POINT_LIGHT -> {
+                val pointLight =
+                    lightEngine.addPointLight(
+                        position * UNIT_SCALE,
+                        color,
+                        initialIntensity,
+                        b2dDistance,
+                        falloffProfile,
+                        shaderIntensityMultiplier,
+                    )
+                pointLight.effect = effect
+            }
+
+            LightType.SPOT_LIGHT -> {
+                val spotLight =
+                    lightEngine.addSpotLight(
+                        position * UNIT_SCALE,
+                        color,
+                        direction,
+                        coneDegree,
+                        initialIntensity,
+                        b2dDistance,
+                        falloffProfile,
+                        shaderIntensityMultiplier,
+                    )
+                spotLight.effect = effect
+            }
+        }
     }
 
     private fun createEntity(
@@ -175,6 +255,19 @@ class EntitySpawnSystem(
                         filter.categoryBits = EntityCategory.SENSOR.bit
                         filter.maskBits = EntityCategory.GROUND.bit
                     }
+                    val flashlight =
+                        lightEngine.addSpotLight(
+                            position = phyCmp.body.position,
+                            color = Color.WHITE,
+                            direction = 0f,
+                            coneDegree = 30f,
+                            initialIntensity = 1.8f,
+                            b2dDistance = 12f,
+                            falloffProfile = 0.4f,
+                            shaderIntensityMultiplier = 0.9f,
+                        )
+
+                    it += LightComponent(flashlight)
 
                     val input = InputComponent()
                     it += input
@@ -218,6 +311,19 @@ class EntitySpawnSystem(
                     messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
 
                     val phyCmp = it[PhysicComponent]
+
+                    val pulseLight =
+                        lightEngine.addPointLight(
+                            phyCmp.body.position + 1f,
+                            Color.RED,
+                            11f,
+                        )
+                    pulseLight.effectParams.pulseMaxIntensity = 4f
+                    pulseLight.effectParams.pulseMinIntensity = 2f
+                    pulseLight.effect = LightEffectType.PULSE
+                    pulseLight.b2dLight.attachToBody(phyCmp.body)
+
+                    it += LightComponent(pulseLight)
 
                     // create normal nearbyEnemiesSensor
                     val nearbyEnemiesDefaultSensorFixture =

@@ -17,6 +17,7 @@ import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.debug.DebugComponent
+import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.config.GameConstants.TIME_SCALE
@@ -78,7 +79,16 @@ class GameScreen(
             autoClearForces = false
         }
     private val rayHandler = RayHandler(phyWorld)
-    private val lightEngine = Scene2dLightEngine(rayHandler, stage.camera as OrthographicCamera, spriteBatch, stage.viewport, stage)
+    private val lightEngine =
+        Scene2dLightEngine(
+            rayHandler = rayHandler,
+            cam = stage.camera as OrthographicCamera,
+            batch = spriteBatch,
+            viewport = stage.viewport,
+            stage = stage,
+            entityCategory = EntityCategory.LIGHT.bit,
+            entityMask = EntityCategory.GROUND.bit,
+        )
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val entityWorld =
         configureWorld {

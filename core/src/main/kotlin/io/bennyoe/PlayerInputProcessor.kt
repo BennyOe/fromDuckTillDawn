@@ -38,6 +38,7 @@ class PlayerInputProcessor(
             Keys.UP to Action.ZOOM_IN,
             Keys.DOWN to Action.ZOOM_OUT,
             Keys.L to Action.TOGGLE_LIGHTING,
+            Keys.F to Action.TOGGLE_FLASHLIGHT,
         )
 
     init {
@@ -96,6 +97,8 @@ class PlayerInputProcessor(
                 Action.MOVE_LEFT -> inputCmp.walkLeftJustPressed = pressed
                 Action.MOVE_RIGHT -> inputCmp.walkRightJustPressed = pressed
 
+                Action.TOGGLE_FLASHLIGHT -> inputCmp.flashlightToggleJustPressed = pressed
+
                 Action.MESSAGE ->
                     messageDispatcher.dispatchMessage(
                         0f,
@@ -141,5 +144,6 @@ class PlayerInputProcessor(
         ZOOM_IN,
         ZOOM_OUT,
         TOGGLE_LIGHTING,
+        TOGGLE_FLASHLIGHT,
     }
 }

@@ -6,6 +6,7 @@ import io.bennyoe.components.debug.DebugComponent.Companion.logger
 
 class GameStateComponent(
     var isPaused: Boolean = false,
+    var isLightingEnabled: Boolean = true,
 ) : Component<GameStateComponent> {
     private var alreadyChanged: Boolean = false
 
@@ -14,6 +15,17 @@ class GameStateComponent(
             isPaused = !isPaused
             alreadyChanged = true
             logger.debug { "GAME IS ${if (isPaused) "PAUSED" else "RESUMED"}" }
+        }
+        if (!pressed) {
+            alreadyChanged = false
+        }
+    }
+
+    fun toggleLighting(pressed: Boolean) {
+        if (pressed && !alreadyChanged) {
+            isLightingEnabled = !isLightingEnabled
+            alreadyChanged = true
+            logger.debug { "LIGHTING IS ${if (isLightingEnabled) "ENABLED" else "DISABLED"}" }
         }
         if (!pressed) {
             alreadyChanged = false

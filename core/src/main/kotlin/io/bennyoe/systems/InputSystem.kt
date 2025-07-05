@@ -5,6 +5,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
+import io.bennyoe.components.LightComponent
 import io.bennyoe.components.WalkDirection
 import ktx.log.logger
 
@@ -12,6 +13,7 @@ class InputSystem : IteratingSystem(family { all(InputComponent, IntentionCompon
     override fun onTickEntity(entity: Entity) {
         val inputCmp = entity[InputComponent]
         val intentionCmp = entity[IntentionComponent]
+        val lightCmp = entity[LightComponent]
 
         with(inputCmp) {
             when {
@@ -34,6 +36,11 @@ class InputSystem : IteratingSystem(family { all(InputComponent, IntentionCompon
             if (attackJustPressed) {
                 intentionCmp.wantsToAttack = true
                 attackJustPressed = false
+            }
+
+            if (flashlightToggleJustPressed) {
+                lightCmp.gameLight.toggle()
+                flashlightToggleJustPressed = false
             }
 
             if (bashJustPressed) {

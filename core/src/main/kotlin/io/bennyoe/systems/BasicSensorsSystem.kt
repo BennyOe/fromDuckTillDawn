@@ -78,8 +78,8 @@ class BasicSensorsSystem(
             phyWorld.rayCast(
                 { fixture, point, normal, fraction ->
                     // if sensor has filter for specific type it gets filtered here
-                    val bodyData = fixture.body.userData as BodyData
-                    if (sensor.hitFilter != null && !sensor.hitFilter.invoke(bodyData)) {
+                    val bodyData = fixture.body.userData as BodyData?
+                    if (sensor.hitFilter != null && bodyData != null && !sensor.hitFilter.invoke(bodyData)) {
                         return@rayCast 1f
                     }
 
@@ -121,8 +121,8 @@ class BasicSensorsSystem(
 
             phyWorld.rayCast(
                 { fixture, point, normal, fraction ->
-                    val bodyData = fixture.body.userData as BodyData
-                    if (bodyData.type == EntityCategory.GROUND) {
+                    val bodyData = fixture.body.userData as BodyData?
+                    if (bodyData?.type == EntityCategory.GROUND) {
                         rayHitArray.add(LedgeHitData(true, sensor.from.x))
                         hitGroundThisTick = true
                         return@rayCast 1f

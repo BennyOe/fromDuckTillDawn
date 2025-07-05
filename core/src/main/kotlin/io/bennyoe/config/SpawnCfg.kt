@@ -45,7 +45,11 @@ data class SpawnCfg(
                     "playerStart" ->
                         SpawnCfg(
                             entityCategory = EntityCategory.PLAYER,
-                            physicMaskCategory = (EntityCategory.ALL.bit and EntityCategory.ENEMY.bit.inv()),
+                            physicMaskCategory = (
+                                EntityCategory.ALL.bit and
+                                    EntityCategory.ENEMY.bit.inv() and
+                                    EntityCategory.LIGHT.bit.inv()
+                            ),
                             animationModel = AnimationModel.PLAYER_DAWN,
                             animationType = AnimationType.IDLE,
                             animationVariant = AnimationVariant.FIRST,
@@ -61,7 +65,11 @@ data class SpawnCfg(
                     "enemy" ->
                         SpawnCfg(
                             entityCategory = EntityCategory.ENEMY,
-                            physicMaskCategory = (EntityCategory.ALL.bit and EntityCategory.PLAYER.bit.inv()),
+                            physicMaskCategory = (
+                                EntityCategory.ALL.bit and
+                                    EntityCategory.PLAYER.bit.inv() and
+                                    EntityCategory.LIGHT.bit.inv()
+                            ),
                             animationModel = AnimationModel.ENEMY_MUSHROOM,
                             animationType = AnimationType.IDLE,
                             animationVariant = AnimationVariant.FIRST,

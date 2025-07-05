@@ -14,11 +14,13 @@ import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
 import io.bennyoe.config.GameConstants.JUMP_MAX_HEIGHT
+import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
@@ -37,12 +39,14 @@ class JumpSystemIntegrationTest {
     private lateinit var entity: Entity
     private lateinit var phyWorld: Box2DWorld
     private lateinit var mockAnimationCmp: AnimationComponent
+    private lateinit var gameLight: GameLight
     private lateinit var mockBody: Body
 
     @BeforeEach
     fun setup() {
         Gdx.app = mockk<Application>(relaxed = true)
         mockAnimationCmp = mockk<AnimationComponent>(relaxed = true)
+        gameLight = mockk<GameLight>(relaxed = true)
         mockBody = mockk<Body>(relaxed = true)
 
         phyWorld = Box2DWorld(Vector2(0f, -9.81f), true)
@@ -67,6 +71,7 @@ class JumpSystemIntegrationTest {
                 it += AttackComponent()
                 it += MoveComponent()
                 it += IntentionComponent()
+                it += LightComponent(gameLight)
                 it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent()
@@ -250,6 +255,7 @@ class JumpSystemIntegrationTest {
             physicCmp.body = mockBody
             it += physicCmp
             it += MoveComponent()
+            it += LightComponent(gameLight)
             it += IntentionComponent()
             it += InputComponent()
             it += JumpComponent(maxHeight = jumpHeight)

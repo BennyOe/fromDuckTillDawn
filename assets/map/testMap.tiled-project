@@ -10,5 +10,31 @@
     "properties": [
     ],
     "propertyTypes": [
+        {
+            "id": 1,
+            "name": "lightType",
+            "storageType": "int",
+            "type": "enum",
+            "values": [
+                "POINT_LIGHT",
+                "SPOTLIGHT"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "id": 2,
+            "name": "lightEffect",
+            "storageType": "int",
+            "type": "enum",
+            "values": [
+                "NONE",
+                "FIRE",
+                "PULSE",
+                "FAULTY_LAMP",
+                "LIGHTNING",
+                "COLOR_CYCLE"
+            ],
+            "valuesAsFlags": false
+        }
     ]
 }

@@ -19,10 +19,12 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.EntityCategory
+import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
@@ -51,6 +53,7 @@ class AttackSystemIntegrationTest {
         // --------------- Setup World ----------------
         Gdx.app = mockk<Application>(relaxed = true)
         val stageMock = mockk<Stage>(relaxed = true)
+        val gameLight = mockk<GameLight>(relaxed = true)
         val debugRenderServiceMock = mockk<DebugRenderService>(relaxed = true)
         val animationCmpMock = mockk<AnimationComponent>(relaxed = true)
 
@@ -92,6 +95,7 @@ class AttackSystemIntegrationTest {
                 it += MoveComponent()
                 it += IntentionComponent()
                 it += HealthComponent()
+                it += LightComponent(gameLight)
                 it += playerImageCmp
                 it += InputComponent()
                 it += JumpComponent()
@@ -127,6 +131,7 @@ class AttackSystemIntegrationTest {
                 it += MoveComponent()
                 it += IntentionComponent()
                 it += HealthComponent()
+                it += LightComponent(gameLight)
                 it += JumpComponent()
                 it +=
                     StateComponent(

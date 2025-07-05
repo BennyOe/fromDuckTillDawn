@@ -18,9 +18,11 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
@@ -51,6 +53,7 @@ class ExpireSystemIntegrationTest {
         bodyMock = mockk<Body>(relaxed = true)
         val stageMock = mockk<Stage>(relaxed = true)
         box2dWorldMock = mockk(relaxed = true)
+        val gameLight = mockk<GameLight>(relaxed = true)
 
         // Mock animation to return true for isAnimationFinished
         io.mockk.every { animationMock.isAnimationFinished(any()) } returns true
@@ -80,6 +83,7 @@ class ExpireSystemIntegrationTest {
                 it += PhysicComponent().apply { body = bodyMock }
                 it += MoveComponent(maxSpeed = 10f)
                 it += HealthComponent(current = -1f)
+                it += LightComponent(gameLight)
                 it += IntentionComponent()
                 it += InputComponent()
                 it +=

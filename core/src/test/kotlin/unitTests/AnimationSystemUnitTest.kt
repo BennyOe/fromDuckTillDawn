@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
+import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
@@ -50,7 +51,8 @@ class AnimationSystemUnitTest {
         world =
             configureWorld {
                 injectables {
-                    add(atlasMock)
+                    add("dawnAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
+                    add("mushroomAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
                 }
                 systems { add(AnimationSystem()) }
             }

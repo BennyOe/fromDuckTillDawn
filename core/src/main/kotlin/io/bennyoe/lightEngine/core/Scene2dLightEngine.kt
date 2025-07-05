@@ -11,6 +11,25 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.utils.viewport.Viewport
 import io.bennyoe.lightEngine.scene2d.NormalMappedActor
 
+/**
+ * A specialized light engine for Scene2D applications, combining normal mapping shaders with Box2D shadow rendering.
+ *
+ * This engine simplifies integration of dynamic lighting into Scene2D-based games and UI using a consistent rendering pipeline.
+ * It supports diffuse, normal, and specular mapping and is designed to be used with a Scene2D [Stage] and [Actor]s.
+ *
+ * It provides convenience methods to draw Scene2D actors or texture regions using lighting, while managing shader state,
+ * texture unit bindings, and batching automatically.
+ *
+ * @param rayHandler The Box2D RayHandler instance used for shadow rendering.
+ * @param cam The camera used to render the Scene2D stage.
+ * @param batch The SpriteBatch used to draw Scene2D actors and textures.
+ * @param viewport The viewport used to project the stage and shadow rendering.
+ * @param stage The Scene2D stage containing actors. May be null if rendering is handled manually.
+ * @param useDiffuseLight Whether to apply diffuse light shading in the lighting shader.
+ * @param maxShaderLights Maximum number of shader-based lights supported by the engine.
+ * @param entityCategory Optional: Bitmask defining the category of lights created through this engine.
+ * @param entityMask Optional: Bitmask defining the collision mask for lights created through this engine.
+ */
 class Scene2dLightEngine(
     rayHandler: RayHandler,
     cam: OrthographicCamera,
@@ -19,7 +38,9 @@ class Scene2dLightEngine(
     val stage: Stage?,
     useDiffuseLight: Boolean = true,
     maxShaderLights: Int = 32,
-) : AbstractLightEngine(rayHandler, cam, batch, viewport, useDiffuseLight, maxShaderLights) {
+    entityCategory: Short = 0x0001,
+    entityMask: Short = -1,
+) : AbstractLightEngine(rayHandler, cam, batch, viewport, useDiffuseLight, maxShaderLights, entityCategory, entityMask) {
     /**
      * Performs the complete lighting render pass using normal mapping and Box2D shadows.
      *
@@ -197,28 +218,37 @@ class Scene2dLightEngine(
      * @param actor The [Actor] to render. May or may not have an associated normal map.
      */
     fun draw(actor: Actor) {
+        // Determine if the actor is flipped horizontally.
+        val flipX = actor.scaleX < 0
+
+        shader.bind()
+        shader.setUniformi("u_flipX", if (flipX) 1 else 0)
+
         if (actor is NormalMappedActor) {
             if (lastNormalMap == null || lastNormalMap != actor.normalMapTexture) {
                 batch.flush()
             }
 
-            actor.normalMapTexture?.let {
-                it.bind(1)
-                shader.bind()
-                shader.setUniformi("u_useNormalMap", 1)
-                lastNormalMap = actor.normalMapTexture
-            }
-            actor.specularTexture?.let {
-                shader.bind()
-                shader.setUniformi("u_useSpecularMap", 1)
-                it.bind(2)
-                lastSpecularMap = actor.specularTexture
-            }
+            shader.setUniformi("u_useNormalMap", if (actor.normalMapTexture != null) 1 else 0)
+            shader.setUniformi("u_useSpecularMap", if (actor.specularTexture != null) 1 else 0)
+
+            actor.normalMapTexture?.bind(1)
+            lastNormalMap = actor.normalMapTexture
+
+            actor.specularTexture?.bind(2)
+            lastSpecularMap = actor.specularTexture
+
             actor.diffuseTexture.bind(0)
             batch.draw(actor.diffuseTexture, actor.x, actor.y, actor.width, actor.height)
         } else {
-            setShaderToDefaultShader()
+            if (lastNormalMap != null || lastSpecularMap != null) {
+                batch.flush()
+            }
+            shader.setUniformi("u_useNormalMap", 0)
+            shader.setUniformi("u_useSpecularMap", 0)
+
             actor.draw(batch, 1.0f)
+
             lastNormalMap = null
             lastSpecularMap = null
         }

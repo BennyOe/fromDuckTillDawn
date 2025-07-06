@@ -52,6 +52,8 @@ import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
 import ktx.inject.Context
 import ktx.log.logger
+import kotlin.experimental.and
+import kotlin.experimental.inv
 
 class GameScreen(
     context: Context,
@@ -88,6 +90,7 @@ class GameScreen(
             stage = stage,
             entityCategory = EntityCategory.LIGHT.bit,
             entityMask = EntityCategory.GROUND.bit,
+            entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv()),
         )
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val entityWorld =

@@ -97,8 +97,9 @@ class CollisionSpawnSystem(
                             vec2(0f, h.toFloat()),
                         ) {
                             friction = 0f
+                            filter.categoryBits = EntityCategory.WORLD_BOUNDARY.bit
                         }
-                        userData = BodyData(EntityCategory.GROUND, it)
+                        userData = BodyData(EntityCategory.WORLD_BOUNDARY, it)
                     }
             }
         }

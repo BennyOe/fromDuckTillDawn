@@ -10,8 +10,7 @@ import io.bennyoe.config.GameConstants.CHASE_SPEED
 import io.bennyoe.config.GameConstants.NORMAL_DETECTION_RADIUS
 import ktx.app.gdxError
 import ktx.math.vec2
-import kotlin.experimental.and
-import kotlin.experimental.inv
+import kotlin.experimental.or
 
 data class SpawnCfg(
     val animationModel: AnimationModel = AnimationModel.NONE,
@@ -46,9 +45,9 @@ data class SpawnCfg(
                         SpawnCfg(
                             entityCategory = EntityCategory.PLAYER,
                             physicMaskCategory = (
-                                EntityCategory.ALL.bit and
-                                    EntityCategory.ENEMY.bit.inv() and
-                                    EntityCategory.LIGHT.bit.inv()
+                                EntityCategory.GROUND.bit or
+                                    EntityCategory.WORLD_BOUNDARY.bit or
+                                    EntityCategory.SENSOR.bit
                             ),
                             animationModel = AnimationModel.PLAYER_DAWN,
                             animationType = AnimationType.IDLE,
@@ -66,9 +65,8 @@ data class SpawnCfg(
                         SpawnCfg(
                             entityCategory = EntityCategory.ENEMY,
                             physicMaskCategory = (
-                                EntityCategory.ALL.bit and
-                                    EntityCategory.PLAYER.bit.inv() and
-                                    EntityCategory.LIGHT.bit.inv()
+                                EntityCategory.GROUND.bit or
+                                    EntityCategory.WORLD_BOUNDARY.bit
                             ),
                             animationModel = AnimationModel.ENEMY_MUSHROOM,
                             animationType = AnimationType.IDLE,

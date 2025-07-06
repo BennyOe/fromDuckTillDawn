@@ -90,6 +90,7 @@
     <property name="distance" type="float" value="12"/>
     <property name="effect" type="int" propertytype="lightEffect" value="3"/>
     <property name="initialIntensity" type="float" value="10"/>
+    <property name="isManaged" type="bool" value="false"/>
     <property name="shaderIntensityMultiplier" type="float" value="1"/>
     <property name="type" type="int" propertytype="lightType" value="0"/>
    </properties>

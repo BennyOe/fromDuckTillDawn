@@ -89,8 +89,8 @@ class GameScreen(
             viewport = stage.viewport,
             stage = stage,
             entityCategory = EntityCategory.LIGHT.bit,
-            entityMask = EntityCategory.GROUND.bit,
             entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv()),
+            lightActivationRadius = 18f,
         )
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val entityWorld =

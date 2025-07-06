@@ -17,6 +17,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
 import io.bennyoe.config.GameConstants.UNIT_SCALE
@@ -73,7 +74,9 @@ class RenderSystem(
     }
 
     private fun drawWithLightingEngine() {
-        lightEngine.renderLights { engine ->
+        val playerEntity = world.family { any(PlayerComponent) }.first()
+        val playerActor = playerEntity[ImageComponent].image
+        lightEngine.renderLights(playerActor) { engine ->
             // The batch already has the light shader active here.
 
             // FIX: Partition entities more granularly based on shader requirements.

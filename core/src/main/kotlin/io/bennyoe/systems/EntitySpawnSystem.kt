@@ -112,6 +112,7 @@ class EntitySpawnSystem(
                     val b2dDistance = light.properties.get("distance") as Float? ?: 1f
                     val falloffProfile = light.properties.get("falloffProfile") as Float? ?: 0.5f
                     val shaderIntensityMultiplier = light.properties.get("shaderIntensityMultiplier") as Float? ?: 0.5f
+                    val isManaged = light.properties.get("isManaged") as Boolean? ?: true
 
                     // spotlight specific
                     val direction = light.properties.get("direction") as Float? ?: -90f
@@ -130,6 +131,7 @@ class EntitySpawnSystem(
                         effect,
                         direction,
                         coneDegree,
+                        isManaged,
                     )
                 }
                 return true
@@ -149,6 +151,7 @@ class EntitySpawnSystem(
         effect: LightEffectType?,
         direction: Float,
         coneDegree: Float,
+        isManaged: Boolean,
     ) {
         when (type) {
             LightType.POINT_LIGHT -> {
@@ -160,8 +163,10 @@ class EntitySpawnSystem(
                         b2dDistance,
                         falloffProfile,
                         shaderIntensityMultiplier,
+                        isManaged = isManaged,
                     )
                 pointLight.effect = effect
+                pointLight.setOn(true)
             }
 
             LightType.SPOT_LIGHT -> {
@@ -175,6 +180,7 @@ class EntitySpawnSystem(
                         b2dDistance,
                         falloffProfile,
                         shaderIntensityMultiplier,
+                        isManaged = isManaged,
                     )
                 spotLight.effect = effect
             }
@@ -334,7 +340,7 @@ class EntitySpawnSystem(
                             isSensor = true
                             userData = FixtureData(SensorType.NEARBY_ENEMY_SENSOR)
                             filter.categoryBits = EntityCategory.SENSOR.bit
-                            filter.maskBits = EntityCategory.GROUND.bit
+                            filter.maskBits = EntityCategory.PLAYER.bit
                         }
 
                     it += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius)

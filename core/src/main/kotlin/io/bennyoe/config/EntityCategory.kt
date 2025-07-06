@@ -10,5 +10,5 @@ enum class EntityCategory(
     GROUND(0x0004),
     LIGHT(0x0008),
     SENSOR(0x0010),
-    WORLD_BOUNDARY(0x0020)
+    WORLD_BOUNDARY(0x0020),
 }

@@ -7,30 +7,25 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import ktx.log.logger
-import ktx.math.times
-import ktx.math.vec2
 
 class LightSystem(
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
-) : IteratingSystem(family { all(LightComponent, ImageComponent, PlayerComponent, PhysicComponent) }),
+) : IteratingSystem(family { all(LightComponent, PhysicComponent) }),
     EventListener {
     override fun onTickEntity(entity: Entity) {
         val lightCmp = entity[LightComponent]
-        val imageCmp = entity[ImageComponent]
         val physicCmp = entity[PhysicComponent]
 
-        if (lightCmp.gameLight is GameLight.Spot) {
-            val spotLight = lightCmp.gameLight
-            spotLight.direction = if (imageCmp.flipImage) 180f else 0f
-            spotLight.position = vec2(physicCmp.body.position.x, physicCmp.body.position.y)
+        when (val light = lightCmp.gameLight) {
+            is GameLight.Spot -> light.position = physicCmp.body.position
+            is GameLight.Point -> light.position = physicCmp.body.position
+            else -> {}
         }
     }
 

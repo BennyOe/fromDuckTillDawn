@@ -40,6 +40,7 @@ import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.LightSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicsSystem
+import io.bennyoe.systems.PlayerLightSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
@@ -111,6 +112,7 @@ class GameScreen(
                 add(AnimationSystem())
                 add(EntitySpawnSystem())
                 add(LightSystem())
+                add(PlayerLightSystem())
                 add(CollisionSpawnSystem())
                 add(InputSystem())
                 add(AttackSystem())

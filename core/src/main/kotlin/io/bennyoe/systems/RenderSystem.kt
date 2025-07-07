@@ -65,6 +65,8 @@ class RenderSystem(
     override fun onTickEntity(entity: Entity) {
         val gameStateCmp = gameStateEntity[GameStateComponent]
         val imageCmp = entity[ImageComponent]
+
+        // TODO remove after removing `isLightingEnabled`
         if (gameStateCmp.isLightingEnabled) {
             imageCmp.image.setSize(imageCmp.scaleX, imageCmp.scaleY)
         } else {
@@ -77,9 +79,8 @@ class RenderSystem(
         val playerEntity = world.family { any(PlayerComponent) }.first()
         val playerActor = playerEntity[ImageComponent].image
         lightEngine.renderLights(playerActor) { engine ->
-            // The batch already has the light shader active here.
 
-            // FIX: Partition entities more granularly based on shader requirements.
+            // The batch already has the light shader active here.
             val (entitiesWithShaders, defaultEntities) =
                 family.partition {
                     it.getOrNull(ShaderRenderingComponent)?.normal != null
@@ -115,8 +116,6 @@ class RenderSystem(
                 logger.debug {
                     "Entity ${entity.id} (normal-only): diffuse: ${shaderCmp.diffuse!!.name} normal: ${shaderCmp.normal!!.name}"
                 }
-                // Use the draw overload that doesn't take a specular map.
-                // This method will handle setting u_useSpecularMap to 0.
                 engine.draw(
                     diffuse = shaderCmp.diffuse!!,
                     normals = shaderCmp.normal!!,

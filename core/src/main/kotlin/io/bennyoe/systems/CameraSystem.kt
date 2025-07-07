@@ -12,6 +12,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.CameraComponent
+import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
@@ -35,13 +36,15 @@ class CameraSystem(
     private var maxH = 0f
     private var cameraTargetX = 0f
     val deadzone = Rectangle(0f, 0f, 1f, 1f)
+    private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
 
     override fun onTickEntity(entity: Entity) {
         val imageCmps = entity[ImageComponent]
+        val gameStateCmp = gameStateEntity[GameStateComponent]
         // we center on the image because it has an
         // interpolated position for rendering which makes
         // the game smoother
-        val (xPos, yPos) = calculateCameraPosition(imageCmps)
+        val (xPos, yPos) = calculateCameraPosition(imageCmps, gameStateCmp.isLightingEnabled)
 
         camera.position.set(xPos, yPos, camera.position.z)
 
@@ -67,7 +70,10 @@ class CameraSystem(
         return false
     }
 
-    private fun calculateCameraPosition(imageCmp: ImageComponent): Pair<Float, Float> {
+    private fun calculateCameraPosition(
+        imageCmp: ImageComponent,
+        isLightingEnabled: Boolean,
+    ): Pair<Float, Float> {
         val viewW = camera.viewportWidth * 0.5f
         val viewH = camera.viewportHeight * 0.5f
 
@@ -77,13 +83,20 @@ class CameraSystem(
         val camMinH = min(viewH, maxH - viewH)
         val camMaxH = max(viewH, maxH - viewH)
 
-        val desiredX = imageCmp.image.x + imageCmp.image.width
+        // this is needed as long as the lighting engine can switched off. TODO remove else when not having switch
+        val desiredX =
+            if (imageCmp.flipImage && isLightingEnabled) {
+                imageCmp.image.x
+            } else {
+                imageCmp.image.x + imageCmp.image.width
+            }
+
 //        Circle(desiredX, 3.8f, 0.2f).addToDebugView(debugRenderService, Color.RED, "player")
         cameraTargetX = lerp(cameraTargetX, desiredX, CAMERA_SMOOTHING_FACTOR)
 
         val clampedX = cameraTargetX.coerceIn(camMinW, camMaxW)
-        val yPos = (imageCmp.image.y + imageCmp.image.height * 0.5f).coerceIn(camMinH, camMaxH)
 
+        val yPos = (imageCmp.image.y + imageCmp.image.height * 0.5f).coerceIn(camMinH, camMaxH)
         return clampedX to yPos
     }
 

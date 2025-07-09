@@ -9,6 +9,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef
 import com.badlogic.gdx.physics.box2d.PolygonShape
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.github.bennyOe.gdxNormalLight.core.GameLight
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
@@ -24,7 +25,6 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.service.DebugRenderService
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM

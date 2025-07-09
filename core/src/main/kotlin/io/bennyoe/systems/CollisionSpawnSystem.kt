@@ -57,6 +57,7 @@ class CollisionSpawnSystem(
                             mapObject.shape,
                             x,
                             y,
+                            setUserData = BodyData(EntityCategory.GROUND, it),
                         )
                     }
                 }
@@ -96,8 +97,9 @@ class CollisionSpawnSystem(
                             vec2(0f, h.toFloat()),
                         ) {
                             friction = 0f
+                            filter.categoryBits = EntityCategory.WORLD_BOUNDARY.bit
                         }
-                        userData = BodyData(EntityCategory.NONE, it)
+                        userData = BodyData(EntityCategory.WORLD_BOUNDARY, it)
                     }
             }
         }

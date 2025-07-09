@@ -9,9 +9,11 @@ import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
+import com.github.bennyOe.gdxNormalLight.core.GameLight
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
+import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
@@ -21,6 +23,7 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
@@ -45,6 +48,7 @@ class AnimationSystemIntegrationTest {
     fun setup() {
         Gdx.app = mockk<Application>(relaxed = true)
         val atlasMock = mockk<TextureAtlas>(relaxed = true)
+        val gameLight = mockk<GameLight>(relaxed = true)
         // Set up the TextureAtlas mock to return a non-empty regions array
         val atlasRegionMock = mockk<TextureAtlas.AtlasRegion>(relaxed = true)
         val regions =
@@ -76,7 +80,8 @@ class AnimationSystemIntegrationTest {
         world =
             configureWorld {
                 injectables {
-                    add(atlasMock)
+                    add("dawnAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
+                    add("mushroomAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
                 }
                 systems {
                     add(MoveSystem())
@@ -95,6 +100,7 @@ class AnimationSystemIntegrationTest {
                 it += IntentionComponent()
                 it += imgCmp
                 it += animationCmp
+                it += LightComponent(gameLight)
                 it += JumpComponent()
                 it += HasGroundContact
                 it += InputComponent()

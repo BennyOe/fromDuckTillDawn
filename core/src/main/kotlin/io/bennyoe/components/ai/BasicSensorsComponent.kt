@@ -25,7 +25,7 @@ class BasicSensorsComponent(
             isHorizontal = true,
             name = "wall sensor",
             color = Color.BLUE,
-            hitFilter = { it.type == EntityCategory.GROUND },
+            hitFilter = { it.type == EntityCategory.GROUND || it.type == EntityCategory.WORLD_BOUNDARY },
         )
     val wallHeightSensor =
         SensorDef(

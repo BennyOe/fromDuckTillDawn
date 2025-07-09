@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.ai.msg.MessageManager
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
@@ -9,12 +10,15 @@ import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.github.bennyOe.gdxNormalLight.core.LightEffectType
+import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.ai.blackboards.MushroomContext
+import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -26,9 +30,11 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
+import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
@@ -54,6 +60,9 @@ import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
 import ktx.log.logger
+import ktx.math.plus
+import ktx.math.times
+import ktx.math.vec2
 import ktx.tiled.layer
 import ktx.tiled.type
 import ktx.tiled.x
@@ -63,11 +72,19 @@ class EntitySpawnSystem(
     private val stage: Stage = inject("stage"),
     private val phyWorld: World = inject("phyWorld"),
     private val debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
-    private val atlas: TextureAtlas = inject(),
+    private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
+    dawnAtlases: TextureAtlases = inject("dawnAtlases"),
+    mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
 ) : IteratingSystem(family { all(SpawnComponent) }),
     EventListener,
     PausableSystem {
-    private val sizesCache = mutableMapOf<AnimationType, Vector2>()
+    private val atlasMap: Map<AnimationModel, TextureAtlas> =
+        mapOf(
+            AnimationModel.PLAYER_DAWN to dawnAtlases.diffuseAtlas,
+            AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.diffuseAtlas,
+        )
+
+    private val sizesCache = mutableMapOf<String, Vector2>()
     private val messageDispatcher = MessageManager.getInstance()
 
     override fun onTickEntity(entity: Entity) {
@@ -86,10 +103,88 @@ class EntitySpawnSystem(
                     val cfg = SpawnCfg.createSpawnCfg(enemyObj.type!!)
                     createEntity(enemyObj, cfg)
                 }
+                val lightsLayer = event.map.layer("lights")
+                lightsLayer.objects.forEach { light ->
+                    val type = LightType.entries[(light.properties.get("type") as Int)]
+                    val position = vec2(light.x, light.y)
+                    val color = light.properties.get("color") as Color
+                    val initialIntensity = light.properties.get("initialIntensity") as Float? ?: 1f
+                    val b2dDistance = light.properties.get("distance") as Float? ?: 1f
+                    val falloffProfile = light.properties.get("falloffProfile") as Float? ?: 0.5f
+                    val shaderIntensityMultiplier = light.properties.get("shaderIntensityMultiplier") as Float? ?: 0.5f
+                    val isManaged = light.properties.get("isManaged") as Boolean? ?: true
+
+                    // spotlight specific
+                    val direction = light.properties.get("direction") as Float? ?: -90f
+                    val coneDegree = light.properties.get("coneDegree") as Float? ?: 50f
+
+                    val effect = (light.properties.get("effect") as? Int)?.let { LightEffectType.entries[it] }
+
+                    createLight(
+                        type,
+                        position,
+                        color,
+                        initialIntensity,
+                        b2dDistance,
+                        falloffProfile,
+                        shaderIntensityMultiplier,
+                        effect,
+                        direction,
+                        coneDegree,
+                        isManaged,
+                    )
+                }
                 return true
             }
         }
         return false
+    }
+
+    private fun createLight(
+        type: LightType,
+        position: Vector2,
+        color: Color,
+        initialIntensity: Float,
+        b2dDistance: Float,
+        falloffProfile: Float,
+        shaderIntensityMultiplier: Float,
+        effect: LightEffectType?,
+        direction: Float,
+        coneDegree: Float,
+        isManaged: Boolean,
+    ) {
+        when (type) {
+            LightType.POINT_LIGHT -> {
+                val pointLight =
+                    lightEngine.addPointLight(
+                        position * UNIT_SCALE,
+                        color,
+                        initialIntensity,
+                        b2dDistance,
+                        falloffProfile,
+                        shaderIntensityMultiplier,
+                        isManaged = isManaged,
+                    )
+                pointLight.effect = effect
+                pointLight.setOn(true)
+            }
+
+            LightType.SPOT_LIGHT -> {
+                val spotLight =
+                    lightEngine.addSpotLight(
+                        position * UNIT_SCALE,
+                        color,
+                        direction,
+                        coneDegree,
+                        initialIntensity,
+                        b2dDistance,
+                        falloffProfile,
+                        shaderIntensityMultiplier,
+                        isManaged = isManaged,
+                    )
+                spotLight.effect = effect
+            }
+        }
     }
 
     private fun createEntity(
@@ -148,6 +243,8 @@ class EntitySpawnSystem(
                 it += attackCmp
             }
 
+            it += ShaderRenderingComponent()
+
             it += JumpComponent()
 
             when (cfg.entityCategory) {
@@ -161,7 +258,22 @@ class EntitySpawnSystem(
                     ) {
                         isSensor = true
                         userData = FixtureData(SensorType.GROUND_SENSOR)
+                        filter.categoryBits = EntityCategory.SENSOR.bit
+                        filter.maskBits = EntityCategory.GROUND.bit
                     }
+                    val flashlight =
+                        lightEngine.addSpotLight(
+                            position = phyCmp.body.position,
+                            color = Color.WHITE,
+                            direction = 0f,
+                            coneDegree = 30f,
+                            initialIntensity = 1.8f,
+                            b2dDistance = 12f,
+                            falloffProfile = 0.4f,
+                            shaderIntensityMultiplier = 0.9f,
+                        )
+
+                    it += LightComponent(flashlight)
 
                     val input = InputComponent()
                     it += input
@@ -206,6 +318,19 @@ class EntitySpawnSystem(
 
                     val phyCmp = it[PhysicComponent]
 
+                    val pulseLight =
+                        lightEngine.addPointLight(
+                            phyCmp.body.position + 1f,
+                            Color.RED,
+                            11f,
+                        )
+                    pulseLight.effectParams.pulseMaxIntensity = 4f
+                    pulseLight.effectParams.pulseMinIntensity = 2f
+                    pulseLight.effect = LightEffectType.PULSE
+                    pulseLight.b2dLight.attachToBody(phyCmp.body)
+
+                    it += LightComponent(pulseLight)
+
                     // create normal nearbyEnemiesSensor
                     val nearbyEnemiesDefaultSensorFixture =
                         phyCmp.body.circle(
@@ -214,6 +339,8 @@ class EntitySpawnSystem(
                         ) {
                             isSensor = true
                             userData = FixtureData(SensorType.NEARBY_ENEMY_SENSOR)
+                            filter.categoryBits = EntityCategory.SENSOR.bit
+                            filter.maskBits = EntityCategory.PLAYER.bit
                         }
 
                     it += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius)
@@ -238,17 +365,31 @@ class EntitySpawnSystem(
         }
     }
 
+    /**
+     * Calculates and returns the scaled size (`Vector2`) of the first animation frame
+     * for the given `AnimationModel`, `AnimationType`, and `AnimationVariant`.
+     * Uses a cache to avoid redundant calculations, retrieves the appropriate texture atlas,
+     * finds the animation regions, and computes the size based on the original frame dimensions
+     * and a unit scale factor. Throws an error if the atlas or regions are missing.
+     */
     private fun size(
         model: AnimationModel,
         type: AnimationType,
         variant: AnimationVariant,
-    ): Vector2 =
-        sizesCache.getOrPut(type) {
-            val regions = atlas.findRegions(model.atlasKey + type.atlasKey + variant.atlasKey)
-            if (regions.isEmpty) gdxError("There are no regions for the idle animation of model $type")
+    ): Vector2 {
+        val cacheKey = "${type.name}_${variant.name}"
+        return sizesCache.getOrPut(cacheKey) {
+            val atlas =
+                atlasMap[model]
+                    ?: gdxError("No texture atlas for model '$model' in EntitySpawnSystem found.")
+
+            val regions = atlas.findRegions(type.atlasKey + variant.atlasKey)
+            if (regions.isEmpty) gdxError("No regions for the animation '$type' for model '$model' found")
+
             val firstFrame = regions.first()
-            return Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
+            Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
         }
+    }
 
     companion object {
         private val logger = logger<EntitySpawnSystem>()

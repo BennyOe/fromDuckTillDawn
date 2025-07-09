@@ -11,6 +11,7 @@ class AnimationComponent(
     var mode: PlayMode = PlayMode.LOOP,
     var isReversed: Boolean = false,
     var animationModel: AnimationModel = AnimationModel.PLAYER_DAWN,
+    var currentAnimationType: AnimationType = AnimationType.NONE,
 ) : Component<AnimationComponent> {
     override fun type() = AnimationComponent
 
@@ -55,10 +56,14 @@ enum class AnimationType(
     val atlasKey: String,
     val playMode: PlayMode = PlayMode.LOOP,
     val speed: Float = 1 / 8f,
+    val normalMap: Boolean = true,
+    val specularMap: Boolean = true,
 ) {
     NONE(""),
     IDLE("idle"),
-    WALK("walking"),
+    WALK(
+        "walking",
+    ),
     JUMP(
         atlasKey = "jump",
         playMode = PlayMode.LOOP,

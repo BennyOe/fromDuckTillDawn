@@ -1,12 +1,12 @@
 package io.bennyoe.systems
 
+import com.github.bennyOe.gdxNormalLight.core.GameLight
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.PlayerComponent
-import io.bennyoe.lightEngine.core.GameLight
 
 class PlayerLightSystem : IteratingSystem(family { all(LightComponent, ImageComponent, PlayerComponent) }) {
     override fun onTickEntity(entity: Entity) {

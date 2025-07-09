@@ -3,6 +3,8 @@ package io.bennyoe.systems
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
+import com.github.bennyOe.gdxNormalLight.core.GameLight
+import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
@@ -10,8 +12,6 @@ import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.event.MapChangedEvent
-import io.bennyoe.lightEngine.core.GameLight
-import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import ktx.log.logger
 
 class LightSystem(

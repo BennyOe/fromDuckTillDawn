@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
+import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
@@ -22,7 +23,6 @@ import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.event.MapChangedEvent
-import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import ktx.graphics.use
 import ktx.log.logger
 import ktx.tiled.forEachLayer

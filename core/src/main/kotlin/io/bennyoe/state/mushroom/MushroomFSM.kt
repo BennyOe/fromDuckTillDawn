@@ -100,11 +100,14 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
     data object HIT : MushroomFSM() {
         override fun enter(ctx: MushroomStateContext) {
             ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
+            ctx.attackCmp.applyAttack = false
+            ctx.moveComponent.lockMovement = true
             ctx.healthComponent.takenDamage = 0f
         }
 
         override fun update(ctx: MushroomStateContext) {
             if (ctx.animationComponent.isAnimationFinished()) {
+                ctx.moveComponent.lockMovement = false
                 ctx.changeState(IDLE)
             }
         }

@@ -13,6 +13,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
+import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
@@ -57,11 +58,15 @@ class PhysicsSystem(
         val jumpCmp = entity.getOrNull(JumpComponent)
         val bashCmp = entity.getOrNull(BashComponent)
         val imageCmp = entity[ImageComponent]
+        val healthCmp = entity[HealthComponent]
 
         setJumpImpulse(jumpCmp, physicCmp)
         setWalkImpulse(moveCmp, physicCmp)
         setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
         setGroundContact(entity)
+        if (moveCmp != null && moveCmp.throwBack) {
+            setThrowBackImpulse(moveCmp, physicCmp, healthCmp)
+        }
 
         physicCmp.prevPos.set(physicCmp.body.position)
 
@@ -182,6 +187,18 @@ class PhysicsSystem(
             } else {
                 bashCmp.bashCooldown -= deltaTime
             }
+        }
+    }
+
+    private fun setThrowBackImpulse(
+        moveCmp: MoveComponent?,
+        physicCmp: PhysicComponent,
+        healthComponent: HealthComponent,
+    ) {
+        moveCmp?.let {
+            moveCmp.throwBack = false
+            val inverse = if (healthComponent.attackedFromBehind) 1 else -1
+            physicCmp.impulse.x = inverse * physicCmp.body.mass * 100f
         }
     }
 

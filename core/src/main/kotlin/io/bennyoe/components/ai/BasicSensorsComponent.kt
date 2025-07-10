@@ -51,7 +51,7 @@ class BasicSensorsComponent(
         )
     val attackSensor =
         SensorDef(
-            fromRelative = vec2(0f, -0.6f),
+            fromRelative = vec2(-0.2f, -0.6f),
             toRelative = vec2(1.5f, 0f),
             type = SensorType.ATTACK_SENSOR,
             isHorizontal = true,

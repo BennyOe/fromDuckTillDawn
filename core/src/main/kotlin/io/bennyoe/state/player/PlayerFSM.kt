@@ -212,6 +212,8 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         }
 
         override fun update(ctx: PlayerStateContext) {
+            // this looks buggy but will be fixed as soon as the animations are split into top and bottom
+            if (ctx.wantsToJump) ctx.changeState(JUMP)
             if (ctx.wantsToAttack) ctx.intentionCmp.wantsToAttack2 = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
@@ -232,11 +234,14 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering ATTACK_2" }
             ctx.intentionCmp.wantsToAttack2 = false
+            ctx.intentionCmp.wantsToAttack = false
             ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.SECOND)
             ctx.attackComponent.applyAttack = true
         }
 
         override fun update(ctx: PlayerStateContext) {
+            // this looks buggy but will be fixed as soon as the animations are split into top and bottom
+            if (ctx.wantsToJump) ctx.changeState(JUMP)
             if (ctx.wantsToAttack) ctx.intentionCmp.wantsToAttack3 = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
@@ -257,11 +262,14 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering ATTACK_3" }
             ctx.intentionCmp.wantsToAttack3 = false
+            ctx.intentionCmp.wantsToAttack = false
             ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.THIRD)
             ctx.attackComponent.applyAttack = true
         }
 
         override fun update(ctx: PlayerStateContext) {
+            // this looks buggy but will be fixed as soon as the animations are split into top and bottom
+            if (ctx.wantsToJump) ctx.changeState(JUMP)
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     isFalling(ctx) -> ctx.changeState(FALL)
@@ -302,7 +310,9 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object HIT : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering HIT" }
+            ctx.moveComponent.throwBack = true
             ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
+            ctx.attackComponent.applyAttack = false
             ctx.healthComponent.takenDamage = 0f
         }
 

@@ -1,0 +1,5 @@
+particles.png
+size:64,64
+repeat:none
+particle
+bounds:2,2,32,32

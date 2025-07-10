@@ -56,7 +56,7 @@
   <object id="19" gid="649" x="156" y="256" width="32" height="32"/>
  </objectgroup>
  <objectgroup id="4" name="playerStart">
-  <object id="10" name="playerStart" type="playerStart" x="74.5686" y="160.48">
+  <object id="10" name="playerStart" type="playerStart" x="366.235" y="234.48">
    <point/>
   </object>
  </objectgroup>

@@ -1,6 +1,9 @@
 package io.bennyoe.systems
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.ParticleEffect
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapLayer
 import com.badlogic.gdx.maps.tiled.TiledMapImageLayer
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
@@ -31,14 +34,23 @@ import ktx.tiled.layer
 class RenderSystem(
     private val stage: Stage = inject("stage"),
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
+    private val particlesAtlas: TextureAtlas = inject("particlesAtlas"),
 ) : IteratingSystem(family { all(ImageComponent) }, enabled = !SHOW_ONLY_DEBUG),
     EventListener {
     private val mapRenderer = OrthogonalTiledMapRenderer(null, UNIT_SCALE, stage.batch)
     private val mapTileLayer: MutableList<TiledMapTileLayer> = mutableListOf()
     private var mapObjectsLayer: MapLayer = MapLayer()
     private val mapBg: MutableList<TiledMapImageLayer> = mutableListOf()
+    private val effect = ParticleEffect()
     private val orthoCam = stage.camera as OrthographicCamera
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
+
+    init {
+        effect.load(Gdx.files.internal("particles/fire.p"), particlesAtlas)
+//        effect.setPosition(16f, 48f)
+        effect.scaleEffect(1 / 82f, 1 / 20f)
+        effect.start()
+    }
 
     override fun onTick() {
         val gameStateCmp = gameStateEntity[GameStateComponent]
@@ -52,6 +64,9 @@ class RenderSystem(
         mapRenderer.setView(orthoCam)
         mapRenderer.render()
         renderMap()
+        stage.batch.use {
+            effect.draw(stage.batch, deltaTime)
+        }
 
         if (!gameStateCmp.isLightingEnabled) {
             stage.draw()
@@ -197,6 +212,7 @@ class RenderSystem(
                 val y = mapObject.y * UNIT_SCALE
                 val width = textureRegion.regionWidth.toFloat() * UNIT_SCALE
                 val height = textureRegion.regionHeight.toFloat() * UNIT_SCALE
+                effect.setPosition(x + width / 2, y + 0.2f)
 
                 stage.batch.draw(
                     textureRegion,

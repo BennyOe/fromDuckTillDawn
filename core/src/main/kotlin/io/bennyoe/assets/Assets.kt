@@ -15,6 +15,7 @@ enum class TextureAssets(
     MUSHROOM_ATLAS("mushroom.atlas"),
     MUSHROOM_N_ATLAS("mushroom_n.atlas"),
     MUSHROOM_S_ATLAS("mushroom_s.atlas"),
+    PARTICLE_ATLAS("particles.atlas"),
 }
 
 enum class MapAssets(

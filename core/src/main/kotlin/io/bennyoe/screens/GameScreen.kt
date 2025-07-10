@@ -72,6 +72,7 @@ class GameScreen(
             assets[TextureAssets.MUSHROOM_N_ATLAS.descriptor],
             assets[TextureAssets.MUSHROOM_S_ATLAS.descriptor],
         )
+    private val particleAtlas = assets[TextureAssets.PARTICLE_ATLAS.descriptor]
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()
     private val stage = stages.stage
@@ -100,6 +101,7 @@ class GameScreen(
                 add("phyWorld", phyWorld)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
+                add("particlesAtlas", particleAtlas)
                 add("stage", stage)
                 add("uiStage", uiStage)
                 add("shapeRenderer", ShapeRenderer())

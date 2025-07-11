@@ -102,6 +102,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
             ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
             ctx.attackCmp.applyAttack = false
             ctx.moveComponent.lockMovement = true
+            ctx.moveComponent.moveVelocity = 0f
             ctx.healthComponent.takenDamage = 0f
         }
 

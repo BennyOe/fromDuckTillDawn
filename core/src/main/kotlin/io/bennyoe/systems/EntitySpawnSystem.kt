@@ -223,6 +223,7 @@ class EntitySpawnSystem(
                     myFriction = 0f,
                     offsetY = cfg.offsetPhysic.y,
                     setUserdata = BodyData(cfg.entityCategory, it),
+                    sensorType = SensorType.HITBOX_SENSOR,
                 )
             physics.categoryBits = cfg.entityCategory.bit
             it += physics

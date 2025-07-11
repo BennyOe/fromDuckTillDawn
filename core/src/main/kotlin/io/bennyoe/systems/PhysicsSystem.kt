@@ -11,6 +11,7 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
@@ -64,7 +65,7 @@ class PhysicsSystem(
         setWalkImpulse(moveCmp, physicCmp)
         setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
         setGroundContact(entity)
-        if (moveCmp != null && moveCmp.throwBack) {
+        if (moveCmp != null && (moveCmp.throwBack || moveCmp.throwBackCooldown > 0)) {
             setThrowBackImpulse(moveCmp, physicCmp, healthCmp)
         }
 
@@ -106,28 +107,8 @@ class PhysicsSystem(
                 dataB.entity.getOrNull(PhysicComponent)?.let { it.activeGroundContacts++ }
             }
         }
-
-        if (checkForNearbyEnemies(contact)) {
-            // Hole Entity & AIComponent nur, wenn zutreffend
-            val fixtureA = contact.fixtureA
-            val fixtureB = contact.fixtureB
-            val fixtureDataA = fixtureA.fixtureData
-            val fixtureDataB = fixtureB.fixtureData
-            val bodyDataA = fixtureA.bodyData
-            val bodyDataB = fixtureB.bodyData
-
-            if (fixtureDataA?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataB?.type == EntityCategory.PLAYER) {
-                // Entity mit Sensor bekommt den Enemy in nearbyEntities
-                val nearbyEnemiesCmp = bodyDataA?.entity?.getOrNull(NearbyEnemiesComponent)
-                nearbyEnemiesCmp?.nearbyEntities += bodyDataB.entity
-//                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
-            }
-            if (fixtureDataB?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataA?.type == EntityCategory.PLAYER) {
-                val nearbyEnemiesCmp = bodyDataB?.entity?.getOrNull(NearbyEnemiesComponent)
-                nearbyEnemiesCmp?.nearbyEntities += bodyDataA.entity
-//                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
-            }
-        }
+        getNearbyEnemies(contact)
+        handleEnemyPlayerCollision(contact)
     }
 
     override fun endContact(contact: Contact) {
@@ -163,14 +144,81 @@ class PhysicsSystem(
         contact: Contact,
         oldManifold: Manifold,
     ) {
-        // here you can check if the type is dynamic or static and decide which are going to collide (contact.fixture.body.type)
-        contact.isEnabled = true
+        val fixtureA = contact.fixtureA
+        val fixtureB = contact.fixtureB
+        val fixtureDataA = fixtureA.fixtureData
+        val fixtureDataB = fixtureB.fixtureData
+        val bodyDataA = fixtureA.bodyData
+        val bodyDataB = fixtureB.bodyData
+
+        val isPlayerAndEnemy =
+            (bodyDataA?.type == EntityCategory.PLAYER && bodyDataB?.type == EntityCategory.ENEMY) ||
+                (bodyDataA?.type == EntityCategory.ENEMY && bodyDataB?.type == EntityCategory.PLAYER)
+
+        val isHitboxCollision =
+            (fixtureDataA?.type == SensorType.HITBOX_SENSOR && fixtureDataB?.type == SensorType.HITBOX_SENSOR)
+
+        if (isPlayerAndEnemy && isHitboxCollision) {
+            contact.isEnabled = false
+        }
     }
 
     override fun postSolve(
         contact: Contact,
         impulse: ContactImpulse,
     ) {
+    }
+
+    private fun getNearbyEnemies(contact: Contact) {
+        if (checkForNearbyEnemies(contact)) {
+            // Hole Entity & AIComponent nur, wenn zutreffend
+            val fixtureA = contact.fixtureA
+            val fixtureB = contact.fixtureB
+            val fixtureDataA = fixtureA.fixtureData
+            val fixtureDataB = fixtureB.fixtureData
+            val bodyDataA = fixtureA.bodyData
+            val bodyDataB = fixtureB.bodyData
+
+            if (fixtureDataA?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataB?.type == EntityCategory.PLAYER) {
+                // Entity mit Sensor bekommt den Enemy in nearbyEntities
+                val nearbyEnemiesCmp = bodyDataA?.entity?.getOrNull(NearbyEnemiesComponent)
+                nearbyEnemiesCmp?.nearbyEntities += bodyDataB.entity
+                //                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
+            }
+            if (fixtureDataB?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataA?.type == EntityCategory.PLAYER) {
+                val nearbyEnemiesCmp = bodyDataB?.entity?.getOrNull(NearbyEnemiesComponent)
+                nearbyEnemiesCmp?.nearbyEntities += bodyDataA.entity
+                //                logger.debug { "Nearby Entities: ${nearbyEnemiesCmp?.nearbyEntities}" }
+            }
+        }
+    }
+
+    private fun handleEnemyPlayerCollision(contact: Contact) {
+        val fixtureA = contact.fixtureA
+        val fixtureB = contact.fixtureB
+        val fixtureDataA = fixtureA.fixtureData
+        val fixtureDataB = fixtureB.fixtureData
+        val bodyDataA = fixtureA.bodyData
+        val bodyDataB = fixtureB.bodyData
+
+        val isPlayerAndEnemy =
+            (bodyDataA?.type == EntityCategory.PLAYER && bodyDataB?.type == EntityCategory.ENEMY) ||
+                (bodyDataA?.type == EntityCategory.ENEMY && bodyDataB?.type == EntityCategory.PLAYER)
+
+        val isHitboxCollision =
+            (fixtureDataA?.type == SensorType.HITBOX_SENSOR && fixtureDataB?.type == SensorType.HITBOX_SENSOR)
+
+        if (isPlayerAndEnemy && isHitboxCollision) {
+            val playerBody = if (bodyDataA.type == EntityCategory.PLAYER) fixtureA.body else fixtureB.body
+            val enemyBody = if (bodyDataA.type == EntityCategory.ENEMY) fixtureA.body else fixtureB.body
+            val playerBodyData = if (bodyDataA.type == EntityCategory.PLAYER) bodyDataA else bodyDataB
+            val enemyBodyData = if (bodyDataA.type == EntityCategory.ENEMY) bodyDataA else bodyDataB
+
+            val attackCmp = enemyBodyData.entity[AttackComponent]
+            val healthCmp = playerBodyData.entity[HealthComponent]
+            healthCmp.attackedFromBehind = playerBody.position.x > enemyBody.position.x
+            healthCmp.takenDamage = attackCmp.maxDamage
+        }
     }
 
     private fun setBashImpulse(
@@ -196,9 +244,16 @@ class PhysicsSystem(
         healthComponent: HealthComponent,
     ) {
         moveCmp?.let {
-            moveCmp.throwBack = false
-            val inverse = if (healthComponent.attackedFromBehind) 1 else -1
-            physicCmp.impulse.x = inverse * physicCmp.body.mass * 100f
+            if (it.throwBack) {
+                val inverse = if (healthComponent.attackedFromBehind) 1 else -1
+                physicCmp.impulse.x = inverse * physicCmp.body.mass * 10f
+                it.throwBackCooldown = 0.2f
+                it.throwBack = false
+            }
+            if (it.throwBackCooldown > 0) {
+                it.throwBackCooldown -= deltaTime
+                moveCmp.moveVelocity = 0f
+            }
         }
     }
 
@@ -207,6 +262,7 @@ class PhysicsSystem(
         physicCmp: PhysicComponent,
     ) {
         moveCmp?.let {
+            if (it.throwBackCooldown > 0) return
             physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity - physicCmp.body.linearVelocity.x)
         }
     }

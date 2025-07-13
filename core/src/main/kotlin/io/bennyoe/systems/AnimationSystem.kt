@@ -46,29 +46,38 @@ class AnimationSystem(
     override fun onTickEntity(entity: Entity) {
         val aniCmp = entity[AnimationComponent]
         val imageCmp = entity[ImageComponent]
-        val shaderRenderingComponent = entity.getOrNull(ShaderRenderingComponent)
 
-        // 1. If a new animation is requested, set it up.
-        if (aniCmp.nextAnimationType != AnimationType.NONE) {
-            applyNextAnimation(aniCmp)
-        }
+        if (aniCmp.animationModel == AnimationModel.NONE) {
+            // Simplified logic for tile animations
+            aniCmp.stateTime += deltaTime
+            val currentFrameDrawable = aniCmp.animation.getKeyFrame(aniCmp.stateTime)
+            imageCmp.image.drawable = currentFrameDrawable
+        } else {
+            // Logic for model-based animations
+            val shaderRenderingComponent = entity.getOrNull(ShaderRenderingComponent)
 
-        // 2. Let the animation progress and get the current diffuse frame.
-        aniCmp.stateTime += deltaTime
-        aniCmp.animation.playMode = aniCmp.mode
-        val currentFrameDrawable = aniCmp.animation.getKeyFrame(aniCmp.stateTime)
-        imageCmp.image.drawable = currentFrameDrawable
+            // 1. If a new animation is requested, set it up.
+            if (aniCmp.nextAnimationType != AnimationType.NONE) {
+                applyNextAnimation(aniCmp)
+            }
 
-        // 3. Find the matching normal frame for the CURRENT diffuse frame.
-        if (shaderRenderingComponent != null) {
-            val currentDiffuseRegion = currentFrameDrawable.region as TextureAtlas.AtlasRegion
-            shaderRenderingComponent.diffuse = currentDiffuseRegion
+            // 2. Let the animation progress and get the current diffuse frame.
+            aniCmp.stateTime += deltaTime
+            aniCmp.animation.playMode = aniCmp.mode
+            val currentFrameDrawable = aniCmp.animation.getKeyFrame(aniCmp.stateTime)
+            imageCmp.image.drawable = currentFrameDrawable
 
-            // Check if the current animation type should use a normal map.
-            setNormalMap(aniCmp, currentDiffuseRegion, shaderRenderingComponent)
+            // 3. Find the matching normal frame for the CURRENT diffuse frame.
+            if (shaderRenderingComponent != null) {
+                val currentDiffuseRegion = currentFrameDrawable.region as TextureAtlas.AtlasRegion
+                shaderRenderingComponent.diffuse = currentDiffuseRegion
 
-            // Check if the current animation type should use a specular map.
-            setSpecularMap(aniCmp, currentDiffuseRegion, shaderRenderingComponent)
+                // Check if the current animation type should use a normal map.
+                setNormalMap(aniCmp, currentDiffuseRegion, shaderRenderingComponent)
+
+                // Check if the current animation type should use a specular map.
+                setSpecularMap(aniCmp, currentDiffuseRegion, shaderRenderingComponent)
+            }
         }
     }
 

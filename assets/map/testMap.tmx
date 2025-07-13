@@ -52,11 +52,15 @@
   <object id="24" name="ground" x="243.269" y="256.146" width="397.243" height="62.7057"/>
   <object id="25" x="322.187" y="225.109" width="27.7832" height="30.8654"/>
  </objectgroup>
- <objectgroup id="12" name="fireObject">
-  <object id="19" gid="649" x="156" y="256" width="32" height="32"/>
+ <objectgroup id="12" name="mapObjects">
+  <object id="19" name="fire" type="fire" gid="649" x="156" y="256" width="32" height="32">
+   <properties>
+    <property name="zIndex" type="int" value="120"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="4" name="playerStart">
-  <object id="10" name="playerStart" type="playerStart" x="333.902" y="205.813">
+  <object id="10" name="playerStart" type="playerStart" x="210.568" y="237.147">
    <point/>
   </object>
  </objectgroup>

@@ -12,12 +12,14 @@ class ImageComponent(
     val scaleX: Float = 1f,
     val scaleY: Float = 1f,
     var flipImage: Boolean = false,
+    var zIndex: Int = 0,
 ) : Component<ImageComponent> {
     lateinit var image: Image
 
     override fun type(): ComponentType<ImageComponent> = ImageComponent
 
     override fun World.onAdd(entity: Entity) {
+        image.userObject = entity
         // if image is not in stage -> add image to stage
         if (!stage.actors.contains(image, true)) {
             stage.addActor(image)

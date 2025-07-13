@@ -26,6 +26,7 @@ data class SpawnCfg(
     val scalePhysic: Vector2 = vec2(1f, 1f),
     val offsetPhysic: Vector2 = vec2(0f, 0f),
     val scaleImage: Vector2 = vec2(1f, 1f),
+    val zIndex: Int = 1,
     val scaleSpeed: Float = 1f,
     val aiTreePath: String = "",
     val keepCorpse: Boolean = false,
@@ -61,6 +62,7 @@ data class SpawnCfg(
                             scalePhysic = vec2(0.2f, 0.5f),
                             keepCorpse = true,
                             removeDelay = 1f,
+                            zIndex = 20,
                         )
 
                     "enemy" ->
@@ -88,6 +90,7 @@ data class SpawnCfg(
                             nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS,
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),
                             chaseSpeed = CHASE_SPEED,
+                            zIndex = 10,
                         )
 
                     else -> gdxError("There is no spawn configuration for entity-type $type")

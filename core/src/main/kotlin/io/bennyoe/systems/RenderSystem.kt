@@ -66,7 +66,6 @@ class RenderSystem(
         val gameStateCmp = gameStateEntity[GameStateComponent]
 
         entity.getOrNull(ImageComponent)?.let { imageCmp ->
-
             // Differentiate sizing logic based on whether the entity has a PhysicComponent
             val targetWidth: Float
             val targetHeight: Float

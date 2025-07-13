@@ -95,6 +95,7 @@ class PhysicComponent : Component<PhysicComponent> {
             isSensor: Boolean = false,
             setUserdata: BodyData? = null,
             myFriction: Float = 1f,
+            sensorType: SensorType = SensorType.HITBOX_SENSOR,
         ): PhysicComponent {
             val x = image.x
             val y = image.y
@@ -113,8 +114,7 @@ class PhysicComponent : Component<PhysicComponent> {
             // fixture as box
             body.box(width, height, Vector2(offsetX, offsetY)) {
                 this.isSensor = isSensor
-                // is currentlu only use for creating player and enemy entities. If this changes the fixture userData must be generated dynamically
-                this.userData = FixtureData(SensorType.HITBOX_SENSOR)
+                this.userData = FixtureData(sensorType)
                 this.filter.categoryBits = categoryBit
                 this.filter.maskBits = maskBit
                 density = 1f

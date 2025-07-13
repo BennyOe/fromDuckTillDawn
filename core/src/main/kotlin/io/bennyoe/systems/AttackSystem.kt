@@ -89,6 +89,7 @@ class AttackSystem(
             bodyData.entity.configure {
                 val healthCmp = it.getOrNull(HealthComponent)
                 healthCmp?.takeDamage(attackCmp.damage)
+                healthCmp?.attackedFromBehind = x < fixture.body.position.x
             }
             return@query true
         }

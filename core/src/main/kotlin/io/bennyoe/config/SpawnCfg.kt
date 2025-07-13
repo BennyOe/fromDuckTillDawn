@@ -48,7 +48,8 @@ data class SpawnCfg(
                             physicMaskCategory = (
                                 EntityCategory.GROUND.bit or
                                     EntityCategory.WORLD_BOUNDARY.bit or
-                                    EntityCategory.SENSOR.bit
+                                    EntityCategory.SENSOR.bit or
+                                    EntityCategory.ENEMY.bit
                             ),
                             animationModel = AnimationModel.PLAYER_DAWN,
                             animationType = AnimationType.IDLE,
@@ -56,6 +57,7 @@ data class SpawnCfg(
                             bodyType = BodyDef.BodyType.DynamicBody,
                             canAttack = true,
                             attackDelay = 0.1f,
+                            attackExtraRange = 1.4f,
                             scaleImage = vec2(4f, 2f),
                             scalePhysic = vec2(0.2f, 0.5f),
                             keepCorpse = true,
@@ -68,14 +70,15 @@ data class SpawnCfg(
                             entityCategory = EntityCategory.ENEMY,
                             physicMaskCategory = (
                                 EntityCategory.GROUND.bit or
-                                    EntityCategory.WORLD_BOUNDARY.bit
+                                    EntityCategory.WORLD_BOUNDARY.bit or
+                                    EntityCategory.PLAYER.bit
                             ),
                             animationModel = AnimationModel.ENEMY_MUSHROOM,
                             animationType = AnimationType.IDLE,
                             animationVariant = AnimationVariant.FIRST,
                             bodyType = BodyDef.BodyType.DynamicBody,
                             canAttack = true,
-                            attackDelay = 0.5f,
+                            attackDelay = 0.3f,
                             scaleImage = vec2(3f, 3f),
                             scalePhysic = vec2(0.2f, 0.4f),
                             offsetPhysic = vec2(0f, -0.7f),

@@ -8,6 +8,7 @@ class HealthComponent(
     var current: Float = 30f,
     var max: Float = 30f,
     var takenDamage: Float = 0f,
+    var attackedFromBehind: Boolean = false,
 ) : Component<HealthComponent> {
     val isDead get() = current <= 0
 

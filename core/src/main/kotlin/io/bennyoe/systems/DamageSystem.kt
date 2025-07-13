@@ -35,9 +35,9 @@ class DamageSystem(
         if (healthCmp.takenDamage > 0f) {
             logger.debug { "takenDamage: ${healthCmp.takenDamage}" }
             healthCmp.current -= healthCmp.takenDamage
+            healthCmp.takenDamage = 0f
             if (entity hasNo PlayerComponent) {
                 animationCmp.nextAnimation(AnimationType.HIT, AnimationVariant.FIRST)
-                healthCmp.takenDamage = 0f
             }
 
             if (entity has PlayerComponent) {

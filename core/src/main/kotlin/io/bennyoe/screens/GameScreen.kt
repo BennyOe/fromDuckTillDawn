@@ -39,7 +39,6 @@ import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.LightSystem
 import io.bennyoe.systems.MoveSystem
-import io.bennyoe.systems.ParticleSystem
 import io.bennyoe.systems.PhysicTransformSyncSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.PlayerLightSystem
@@ -133,7 +132,6 @@ class GameScreen(
                 add(PhysicTransformSyncSystem())
                 add(CameraSystem())
                 add(RenderMapSystem())
-                add(ParticleSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())
                 add(ExpireSystem())

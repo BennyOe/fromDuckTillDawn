@@ -60,7 +60,7 @@ data class SpawnCfg(
                             scalePhysic = vec2(0.2f, 0.5f),
                             keepCorpse = true,
                             removeDelay = 1f,
-                            zIndex = 10,
+                            zIndex = 20,
                         )
 
                     "enemy" ->
@@ -87,7 +87,7 @@ data class SpawnCfg(
                             nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS,
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),
                             chaseSpeed = CHASE_SPEED,
-                            zIndex = 5,
+                            zIndex = 10,
                         )
 
                     else -> gdxError("There is no spawn configuration for entity-type $type")

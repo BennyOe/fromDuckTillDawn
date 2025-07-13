@@ -19,10 +19,10 @@ class ImageComponent(
     override fun type(): ComponentType<ImageComponent> = ImageComponent
 
     override fun World.onAdd(entity: Entity) {
+        image.userObject = entity
         // if image is not in stage -> add image to stage
         if (!stage.actors.contains(image, true)) {
             stage.addActor(image)
-            image.zIndex = zIndex
         }
     }
 

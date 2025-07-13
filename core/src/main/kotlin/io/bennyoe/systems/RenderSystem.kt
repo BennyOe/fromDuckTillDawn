@@ -30,6 +30,26 @@ class RenderSystem(
         orthoCam.update()
         stage.viewport.apply()
         stage.act(deltaTime)
+
+        // TODO sorting the actors every frame is not performant. For now it is ok but later we should think of actorGroups (background, middle,
+        //  foreground, ui) or implementing a dirty flag, when a zIndex has changed.
+        stage.root.children.sort { a, b ->
+            val aEntity = a.userObject as? Entity
+            val bEntity = b.userObject as? Entity
+            val aImageCmp = aEntity?.getOrNull(ImageComponent)
+            val bImageCmp = bEntity?.getOrNull(ImageComponent)
+
+            if (aEntity != null && bEntity != null) {
+                if (aImageCmp != null && bImageCmp != null) {
+                    aImageCmp.zIndex.compareTo(bImageCmp.zIndex)
+                } else {
+                    0
+                }
+            } else {
+                0
+            }
+        }
+
         lightEngine.update()
 
         if (!gameStateCmp.isLightingEnabled) {
@@ -80,10 +100,10 @@ class RenderSystem(
         lightEngine.renderLights(playerActor) { engine ->
 
             // The batch already has the light shader active here.
-            // Get all entities that have an ImageComponent and sort them by zIndex
             val renderableEntities = mutableListOf<Entity>()
-            world.family { all(ImageComponent) }.forEach { renderableEntities.add(it) }
-            // TODO reconsider performance when changing the shader (and flushing the batch) multiple times because of the z-index sorting
+            world.family { all(ImageComponent) }.forEach {
+                renderableEntities.add(it)
+            }
             val sortedRenderableEntities = renderableEntities.sortedBy { it[ImageComponent].image.zIndex }
 
             // Keep track of the current shader state

@@ -157,10 +157,9 @@ class EntitySpawnSystem(
 
     private fun createMapObject(mapObject: TiledMapTileMapObject) {
         world.entity {
-            val image = ImageComponent(stage)
-            image.image = Image(mapObject.tile.textureRegion)
             val zIndex = mapObject.properties.get("zIndex", Int::class.java) ?: 0
-            image.image.zIndex = 12
+            val image = ImageComponent(stage, zIndex = zIndex)
+            image.image = Image(mapObject.tile.textureRegion)
             val width =
                 mapObject.tile.textureRegion.regionWidth
                     .toFloat() * UNIT_SCALE

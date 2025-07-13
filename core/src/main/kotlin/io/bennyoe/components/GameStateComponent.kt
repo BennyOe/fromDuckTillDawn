@@ -10,7 +10,7 @@ class GameStateComponent(
 ) : Component<GameStateComponent> {
     private var alreadyChanged: Boolean = false
 
-    fun toggleDebug(pressed: Boolean) {
+    fun togglePause(pressed: Boolean) {
         if (pressed && !alreadyChanged) {
             isPaused = !isPaused
             alreadyChanged = true

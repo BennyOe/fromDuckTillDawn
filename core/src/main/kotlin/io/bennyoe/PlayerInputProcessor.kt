@@ -69,7 +69,7 @@ class PlayerInputProcessor(
         gameStateEntities.forEach { gameStateEntity ->
             val gameStateCmp = gameStateEntity[GameStateComponent]
             when (action) {
-                Action.PAUSE -> gameStateCmp.toggleDebug(pressed)
+                Action.PAUSE -> gameStateCmp.togglePause(pressed)
                 Action.TOGGLE_LIGHTING -> gameStateCmp.toggleLighting(pressed)
                 else -> Unit
             }

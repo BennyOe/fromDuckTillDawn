@@ -10,7 +10,7 @@ data class MoveComponent(
     var moveVelocity: Float = 0f,
     var lockMovement: Boolean = false,
     var throwBack: Boolean = false,
-    var throwBackCooldown: Float = 0f
+    var throwBackCooldown: Float = 0f,
 ) : Component<MoveComponent> {
     override fun type() = MoveComponent
 

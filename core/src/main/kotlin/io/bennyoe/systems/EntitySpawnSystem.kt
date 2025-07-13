@@ -1,15 +1,20 @@
 package io.bennyoe.systems
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapObject
+import com.badlogic.gdx.maps.tiled.objects.TiledMapTileMapObject
+import com.badlogic.gdx.maps.tiled.tiles.AnimatedTiledMapTile
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.bennyOe.gdxNormalLight.core.LightEffectType
 import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
 import com.github.quillraven.fleks.Entity
@@ -32,11 +37,13 @@ import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
@@ -59,6 +66,7 @@ import io.bennyoe.utility.SensorType
 import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
+import ktx.collections.map
 import ktx.log.logger
 import ktx.math.plus
 import ktx.math.times
@@ -93,15 +101,22 @@ class EntitySpawnSystem(
     override fun handle(event: Event): Boolean {
         when (event) {
             is MapChangedEvent -> {
+                // Adding Player
                 val playerEntityLayer = event.map.layer("playerStart")
                 playerEntityLayer.objects.forEach { playerObj ->
                     val cfg = SpawnCfg.createSpawnCfg(playerObj.type!!)
                     createEntity(playerObj, cfg)
                 }
+                // Adding enemies
                 val enemyEntityLayer = event.map.layer("enemies")
                 enemyEntityLayer.objects.forEach { enemyObj ->
                     val cfg = SpawnCfg.createSpawnCfg(enemyObj.type!!)
                     createEntity(enemyObj, cfg)
+                }
+                // Adding all map objects (also animated ones)
+                val objectsLayer = event.map.layer("mapObjects")
+                objectsLayer.objects.forEach { mapObject ->
+                    createMapObject(mapObject as TiledMapTileMapObject)
                 }
                 val lightsLayer = event.map.layer("lights")
                 lightsLayer.objects.forEach { light ->
@@ -138,6 +153,53 @@ class EntitySpawnSystem(
             }
         }
         return false
+    }
+
+    private fun createMapObject(mapObject: TiledMapTileMapObject) {
+        world.entity {
+            val zIndex = mapObject.properties.get("zIndex", Int::class.java) ?: 0
+            val image = ImageComponent(stage, zIndex = zIndex)
+            image.image = Image(mapObject.tile.textureRegion)
+            val width =
+                mapObject.tile.textureRegion.regionWidth
+                    .toFloat() * UNIT_SCALE
+            val height =
+                mapObject.tile.textureRegion.regionHeight
+                    .toFloat() * UNIT_SCALE
+            it += image
+
+            if (mapObject.tile is AnimatedTiledMapTile) {
+                val animatedTile = mapObject.tile as AnimatedTiledMapTile
+                val frameInterval = 64f / 1000f
+                val frames = animatedTile.frameTiles.map { tile -> TextureRegionDrawable(tile.textureRegion) }
+                val animation = Animation(frameInterval, *frames.toTypedArray())
+                animation.playMode = Animation.PlayMode.LOOP
+
+                val aniCmp = AnimationComponent()
+                aniCmp.animation = animation
+                it += aniCmp
+            }
+
+            it +=
+                TransformComponent(
+                    vec2(mapObject.x * UNIT_SCALE, mapObject.y * UNIT_SCALE),
+                    width,
+                    height,
+                )
+            // Add ParticleComponent for fire if the map object type is "fire"
+            if (mapObject.type == "fire") {
+                it +=
+                    ParticleComponent(
+                        particleFile = Gdx.files.internal("particles/fire.p"),
+                        scaleFactor = 1f / 82f,
+                        motionScaleFactor = 1f / 50f,
+                        looping = true,
+                        offsetX = width * 0.5f,
+                        offsetY = 0.2f,
+                        stage = stage,
+                    )
+            }
+        }
     }
 
     private fun createLight(
@@ -196,7 +258,7 @@ class EntitySpawnSystem(
             // Add general components
             val image =
                 // scale sets the image size
-                ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y).apply {
+                ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y, zIndex = cfg.zIndex).apply {
                     image =
                         Image().apply {
                             setPosition(mapObj.x * UNIT_SCALE, mapObj.y * UNIT_SCALE)
@@ -227,8 +289,19 @@ class EntitySpawnSystem(
             physics.categoryBits = cfg.entityCategory.bit
             it += physics
 
+            it +=
+                TransformComponent(
+                    vec2(physics.body.position.x, physics.body.position.y),
+                    physics.size.x,
+                    physics.size.y,
+                )
             it += HealthComponent()
-            it += DeadComponent(cfg.keepCorpse, cfg.removeDelay, cfg.removeDelay)
+            it +=
+                DeadComponent(
+                    cfg.keepCorpse,
+                    cfg.removeDelay,
+                    cfg.removeDelay,
+                )
 
             val move = MoveComponent()
             move.maxSpeed *= cfg.scaleSpeed

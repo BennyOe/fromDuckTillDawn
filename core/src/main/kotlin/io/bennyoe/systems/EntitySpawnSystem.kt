@@ -197,7 +197,6 @@ class EntitySpawnSystem(
                         offsetX = width * 0.5f,
                         offsetY = 0.2f,
                         stage = stage,
-                        zIndex = 111,
                     )
             }
         }

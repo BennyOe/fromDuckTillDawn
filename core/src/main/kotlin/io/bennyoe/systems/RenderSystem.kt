@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
@@ -25,7 +26,15 @@ class RenderSystem(
     private val orthoCam = stage.camera as OrthographicCamera
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
 
-    // Helper to get zIndex from either component
+    // Helper to get zIndex from an Actor's entity
+    private fun getZIndex(actor: Actor): Int {
+        val entity = actor.userObject as? Entity ?: return 0
+        val imageZ = entity.getOrNull(ImageComponent)?.zIndex
+        val particleZ = entity.getOrNull(ParticleComponent)?.zIndex
+        return imageZ ?: particleZ ?: 0
+    }
+
+    // Helper to get zIndex directly from an entity
     private val Entity.zIndex: Int
         get() = this.getOrNull(ImageComponent)?.zIndex ?: this.getOrNull(ParticleComponent)?.zIndex ?: 0
 
@@ -36,31 +45,17 @@ class RenderSystem(
         stage.viewport.apply()
         stage.act(deltaTime)
 
-        // TODO sorting the actors every frame is not performant. For now it is ok but later we should think of actorGroups (background, middle,
-        //  foreground, ui) or implementing a dirty flag, when a zIndex has changed.
-        stage.root.children.sort { a, b ->
-            val aEntity = a.userObject as? Entity
-            val bEntity = b.userObject as? Entity
-            val aImageCmp = aEntity?.getOrNull(ImageComponent)
-            val bImageCmp = bEntity?.getOrNull(ImageComponent)
-
-            if (aEntity != null && bEntity != null) {
-                if (aImageCmp != null && bImageCmp != null) {
-                    aImageCmp.zIndex.compareTo(bImageCmp.zIndex)
-                } else {
-                    0
-                }
-            } else {
-                0
-            }
-        }
+        // 2. Sort actors on the stage. This is for the stage.draw() path.
+        // You correctly identified that the old logic here was broken. This is the fix.
+        stage.root.children.sort { a, b -> getZIndex(a).compareTo(getZIndex(b)) }
 
         lightEngine.update()
 
         if (!gameStateCmp.isLightingEnabled) {
+            // 3. Default rendering path - uses the sorted actors on the stage
             stage.draw()
         } else {
-            // 2. Call LightEngine and draw the scene
+            // 4. Advanced rendering path with lighting
             drawWithLightingEngine()
         }
         super.onTick()
@@ -70,7 +65,7 @@ class RenderSystem(
         val transformCmp = entity[TransformComponent]
         val gameStateCmp = gameStateEntity[GameStateComponent]
 
-        // 3. Update position for ImageComponent
+        // Update position for ImageComponent
         entity.getOrNull(ImageComponent)?.let { imageCmp ->
             imageCmp.image.setPosition(transformCmp.position.x, transformCmp.position.y)
 
@@ -99,7 +94,7 @@ class RenderSystem(
             }
         }
 
-        // 4. Update position for ParticleComponent
+        // Update position for ParticleComponent
         entity.getOrNull(ParticleComponent)?.let { particleCmp ->
             particleCmp.actor.setPosition(
                 transformCmp.position.x + particleCmp.offsetX,
@@ -112,13 +107,16 @@ class RenderSystem(
         val playerEntity = world.family { any(PlayerComponent) }.first()
         val playerActor = playerEntity[ImageComponent].image
         lightEngine.renderLights(playerActor) { engine ->
-
             // The batch already has the light shader active here.
+
+            // get all renderable entities
             val renderableEntities = mutableListOf<Entity>()
-            world.family { all(ImageComponent) }.forEach {
+            world.family { any(ImageComponent, ParticleComponent) }.forEach {
                 renderableEntities.add(it)
             }
-            val sortedRenderableEntities = renderableEntities.sortedBy { it[ImageComponent].image.zIndex }
+
+            val sortedRenderableEntities =
+                renderableEntities.sortedBy { it.zIndex }
 
             // Keep track of the current shader state
             var currentShaderIsDefault = false
@@ -129,7 +127,7 @@ class RenderSystem(
                 val particleCmp = entity.getOrNull(ParticleComponent)
 
                 if (shaderCmp?.normal != null && imageCmp != null) {
-                    // This entity requires a custom shader (normal or normal+specular)
+                    // This entity requires a custom shader
                     if (currentShaderIsDefault) {
                         engine.batch.flush()
                         engine.setShaderToEngineShader()
@@ -137,7 +135,6 @@ class RenderSystem(
                     }
 
                     if (shaderCmp.specular != null) {
-                        // Render with normal and specular maps
                         engine.draw(
                             diffuse = shaderCmp.diffuse!!,
                             normals = shaderCmp.normal!!,
@@ -149,7 +146,6 @@ class RenderSystem(
                             flipX = imageCmp.flipImage,
                         )
                     } else {
-                        // Render with only normal maps
                         engine.draw(
                             diffuse = shaderCmp.diffuse!!,
                             normals = shaderCmp.normal!!,
@@ -161,17 +157,16 @@ class RenderSystem(
                         )
                     }
                 } else {
-                    // This entity is a default entity (no special shaders)
+                    // This entity is a default entity (no special shaders) or a particle
                     if (!currentShaderIsDefault) {
                         engine.batch.flush()
                         engine.setShaderToDefaultShader()
                         currentShaderIsDefault = true
                     }
 
-                    // 7. Draw image if it exists
+                    // Draw image if it exists
                     imageCmp?.let {
-                        val drawable = it.image.drawable as? TextureRegionDrawable
-                        drawable?.let { tex ->
+                        (it.image.drawable as? TextureRegionDrawable)?.let { tex ->
                             val region = tex.region
                             val x = it.image.x
                             val y = it.image.y
@@ -186,11 +181,11 @@ class RenderSystem(
                         }
                     }
 
-                    // 8. Draw particles if they exist
+                    // Draw particles if they exist
                     particleCmp?.actor?.draw(engine.batch, 1f)
                 }
             }
-            // Ensure the engine shader is active at the end if it was switched to default
+            // Ensure the engine shader is active at the end
             if (currentShaderIsDefault) {
                 engine.batch.flush()
                 engine.setShaderToEngineShader()

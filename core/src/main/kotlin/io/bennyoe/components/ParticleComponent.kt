@@ -29,11 +29,12 @@ class ParticleComponent(
         val particleEffect = ParticleEffect()
         particleEffect.load(particleFile, particlesAtlas)
         particleEffect.scaleEffect(scaleFactor, motionScaleFactor)
-        particleEffect.start()
 
         if (!looping) {
             particleEffect.emitters.forEach { it.isContinuous = false }
         }
+
+        particleEffect.start()
 
         actor = ParticleActor(particleEffect)
         actor.userObject = entity

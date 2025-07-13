@@ -65,9 +65,7 @@ class RenderSystem(
         val transformCmp = entity[TransformComponent]
         val gameStateCmp = gameStateEntity[GameStateComponent]
 
-        // Update position for ImageComponent
         entity.getOrNull(ImageComponent)?.let { imageCmp ->
-            imageCmp.image.setPosition(transformCmp.position.x, transformCmp.position.y)
 
             // Differentiate sizing logic based on whether the entity has a PhysicComponent
             val targetWidth: Float
@@ -78,6 +76,8 @@ class RenderSystem(
                 targetWidth = imageCmp.scaleX
                 targetHeight = imageCmp.scaleY
             } else {
+                // Update position for ImageComponent
+                imageCmp.image.setPosition(transformCmp.position.x, transformCmp.position.y)
                 // For entities without a PhysicComponent (e.g., map objects like fire),
                 // transformCmp.width/height are the base sizes, and imageCmp.scaleX/Y are multipliers.
                 targetWidth = transformCmp.width * imageCmp.scaleX

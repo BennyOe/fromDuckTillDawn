@@ -1,6 +1,7 @@
 package io.bennyoe.state
 
 import com.badlogic.gdx.graphics.g2d.Animation
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
@@ -20,6 +21,7 @@ import io.bennyoe.components.WalkDirection
 abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     val entity: Entity,
     val world: World,
+    val stage: Stage,
     var deltaTime: Float = 0f,
 ) {
     // this is needed to prevent flickering of the death animation

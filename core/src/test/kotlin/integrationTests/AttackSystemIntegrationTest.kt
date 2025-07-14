@@ -47,6 +47,7 @@ class AttackSystemIntegrationTest {
     private lateinit var playerEntity: Entity
     private lateinit var enemyEntity: Entity
     private lateinit var phyWorld: com.badlogic.gdx.physics.box2d.World
+    private lateinit var stage: Stage
 
     @BeforeEach
     fun setup() {
@@ -57,6 +58,7 @@ class AttackSystemIntegrationTest {
         val debugRenderServiceMock = mockk<DebugRenderService>(relaxed = true)
         val animationCmpMock = mockk<AnimationComponent>(relaxed = true)
 
+        stage = mockk<Stage>(relaxed = true)
         phyWorld =
             com.badlogic.gdx.physics.box2d
                 .World(Vector2(0f, -9.81f), true)
@@ -102,7 +104,7 @@ class AttackSystemIntegrationTest {
                 it +=
                     StateComponent(
                         world,
-                        PlayerStateContext(it, world),
+                        PlayerStateContext(it, world, stage),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
                     )
@@ -136,7 +138,7 @@ class AttackSystemIntegrationTest {
                 it +=
                     StateComponent(
                         world,
-                        MushroomStateContext(it, world),
+                        MushroomStateContext(it, world, stage),
                         MushroomFSM.IDLE,
                         MushroomCheckAliveState,
                     )

@@ -66,7 +66,6 @@ import io.bennyoe.utility.SensorType
 import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
-import ktx.collections.map
 import ktx.log.logger
 import ktx.math.plus
 import ktx.math.times
@@ -360,7 +359,7 @@ class EntitySpawnSystem(
                     val state =
                         StateComponent(
                             world = world,
-                            owner = PlayerStateContext(entity = it, world = world),
+                            owner = PlayerStateContext(it, world, stage),
                             initialState = PlayerFSM.IDLE,
                             globalState = PlayerCheckAliveState,
                         )
@@ -383,7 +382,7 @@ class EntitySpawnSystem(
                     val state =
                         StateComponent(
                             world = world,
-                            owner = MushroomStateContext(entity = it, world = world),
+                            owner = MushroomStateContext(it, world, stage),
                             initialState = MushroomFSM.IDLE,
                             globalState = MushroomCheckAliveState,
                         )
@@ -395,7 +394,7 @@ class EntitySpawnSystem(
                     val pulseLight =
                         lightEngine.addPointLight(
                             phyCmp.body.position + 1f,
-                            Color.RED,
+                            Color.ORANGE,
                             11f,
                         )
                     pulseLight.effectParams.pulseMaxIntensity = 4f

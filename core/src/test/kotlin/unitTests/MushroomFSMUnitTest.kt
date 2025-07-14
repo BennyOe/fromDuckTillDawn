@@ -44,6 +44,7 @@ class MushroomFSMUnitTest {
     private lateinit var entity: Entity
     private lateinit var stateContext: MushroomStateContext
     private lateinit var bodyMock: Body
+    private lateinit var stage: Stage
 
     @BeforeEach
     fun setup() {
@@ -51,6 +52,7 @@ class MushroomFSMUnitTest {
         Gdx.app = mockApp
 
         bodyMock = mockk<Body>(relaxed = true)
+        stage = mockk<Stage>(relaxed = true)
 
         val atlasMock = mockk<TextureAtlas>(relaxed = true)
         val animationMock = mockk<Animation<TextureRegionDrawable>>(relaxed = true)
@@ -101,12 +103,12 @@ class MushroomFSMUnitTest {
                 it +=
                     StateComponent(
                         world,
-                        MushroomStateContext(it, world),
+                        MushroomStateContext(it, world, stage),
                         MushroomFSM.IDLE,
                         MushroomCheckAliveState,
                     )
             }
-        stateContext = MushroomStateContext(entity, world)
+        stateContext = MushroomStateContext(entity, world, stage)
     }
 
     @Test

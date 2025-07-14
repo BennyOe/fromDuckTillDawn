@@ -3,6 +3,7 @@ package io.bennyoe.assets
 import com.badlogic.gdx.assets.AssetDescriptor
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.tiled.TiledMap
+import de.pottgames.tuningfork.SoundBuffer
 
 enum class TextureAssets(
     filename: String,
@@ -24,4 +25,14 @@ enum class MapAssets(
     val descriptor: AssetDescriptor<TiledMap> = AssetDescriptor("$directory/$filename", TiledMap::class.java),
 ) {
     TEST_MAP("testMap.tmx"),
+}
+
+enum class SoundAssets(
+    filename: String,
+    directory: String = "sound",
+    val descriptor: AssetDescriptor<SoundBuffer> = AssetDescriptor("$directory/$filename", SoundBuffer::class.java),
+) {
+    ATTACK_SOUND("sword.mp3"),
+    WALK_SOUND("footsteps.mp3"),
+    HIT_SOUND("hit.mp3"),
 }

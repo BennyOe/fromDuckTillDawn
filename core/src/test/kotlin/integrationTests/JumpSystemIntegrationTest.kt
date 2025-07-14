@@ -4,6 +4,7 @@ import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.bennyOe.gdxNormalLight.core.GameLight
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
@@ -41,6 +42,7 @@ class JumpSystemIntegrationTest {
     private lateinit var mockAnimationCmp: AnimationComponent
     private lateinit var gameLight: GameLight
     private lateinit var mockBody: Body
+    private lateinit var stage: Stage
 
     @BeforeEach
     fun setup() {
@@ -48,6 +50,7 @@ class JumpSystemIntegrationTest {
         mockAnimationCmp = mockk<AnimationComponent>(relaxed = true)
         gameLight = mockk<GameLight>(relaxed = true)
         mockBody = mockk<Body>(relaxed = true)
+        stage = mockk<Stage>(relaxed = true)
 
         phyWorld = Box2DWorld(Vector2(0f, -9.81f), true)
 
@@ -78,7 +81,7 @@ class JumpSystemIntegrationTest {
                 it +=
                     StateComponent(
                         world,
-                        PlayerStateContext(it, world),
+                        PlayerStateContext(it, world, stage),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
                     )
@@ -262,7 +265,7 @@ class JumpSystemIntegrationTest {
             it +=
                 StateComponent(
                     world,
-                    PlayerStateContext(it, world),
+                    PlayerStateContext(it, world, stage),
                     PlayerFSM.IDLE,
                     PlayerCheckAliveState,
                 )

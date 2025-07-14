@@ -45,6 +45,7 @@ class ExpireSystemIntegrationTest {
     private lateinit var entity: Entity
     private lateinit var bodyMock: Body
     private lateinit var box2dWorldMock: Box2DWorld
+    private lateinit var stage: Stage
 
     @BeforeEach
     fun setup() {
@@ -54,6 +55,7 @@ class ExpireSystemIntegrationTest {
         val stageMock = mockk<Stage>(relaxed = true)
         box2dWorldMock = mockk(relaxed = true)
         val gameLight = mockk<GameLight>(relaxed = true)
+        stage = mockk<Stage>(relaxed = true)
 
         // Mock animation to return true for isAnimationFinished
         io.mockk.every { animationMock.isAnimationFinished(any()) } returns true
@@ -98,7 +100,7 @@ class ExpireSystemIntegrationTest {
                 it +=
                     StateComponent(
                         world,
-                        PlayerStateContext(it, world),
+                        PlayerStateContext(it, world, stage),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
                     )

@@ -47,6 +47,7 @@ class PlayerFSMUnitTest {
     private lateinit var entity: Entity
     private lateinit var stateContext: PlayerStateContext
     private lateinit var bodyMock: Body
+    private lateinit var stage: Stage
 
     @BeforeEach
     fun setup() {
@@ -54,6 +55,7 @@ class PlayerFSMUnitTest {
         Gdx.app = mockApp
 
         bodyMock = mockk<Body>(relaxed = true)
+        stage = mockk<Stage>(relaxed = true)
 
         val atlasMock = mockk<TextureAtlas>(relaxed = true)
         val animationMock = mockk<Animation<TextureRegionDrawable>>(relaxed = true)
@@ -104,12 +106,12 @@ class PlayerFSMUnitTest {
                 it +=
                     StateComponent(
                         world,
-                        PlayerStateContext(it, world),
+                        PlayerStateContext(it, world, stage),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
                     )
             }
-        stateContext = PlayerStateContext(entity, world)
+        stateContext = PlayerStateContext(entity, world, stage)
     }
 
     @Test

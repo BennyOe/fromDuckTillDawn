@@ -12,11 +12,6 @@ import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
 import com.github.quillraven.fleks.configureWorld
 import de.pottgames.tuningfork.Audio
-import de.pottgames.tuningfork.EaxReverb
-import de.pottgames.tuningfork.Reverb
-import de.pottgames.tuningfork.SoundBuffer
-import de.pottgames.tuningfork.SoundEffect
-import de.pottgames.tuningfork.SoundLoader
 import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets
@@ -33,6 +28,7 @@ import io.bennyoe.event.fire
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
+import io.bennyoe.systems.AudioSystem
 import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
@@ -68,6 +64,7 @@ class GameScreen(
     context: Context,
 ) : AbstractScreen(context) {
     private val assets = context.inject<AssetStorage>()
+    private val audio = context.inject<Audio>()
     private val dawnAtlases =
         TextureAtlases(
             assets[TextureAssets.DAWN_ATLAS.descriptor],
@@ -86,8 +83,6 @@ class GameScreen(
     private val stage = stages.stage
     private val uiStage = stages.uiStage
     private val spriteBatch = context.inject<SpriteBatch>()
-    private val audio: Audio = Audio.init()
-    private val sound: SoundBuffer = SoundLoader.load(Gdx.files.internal("sound/bubble.mp3"))
     private val phyWorld =
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
             autoClearForces = false
@@ -108,6 +103,8 @@ class GameScreen(
     private val entityWorld =
         configureWorld {
             injectables {
+                add("audio", audio)
+                add("assetManager", assets)
                 add("phyWorld", phyWorld)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
@@ -146,18 +143,11 @@ class GameScreen(
                 add(StateBubbleSystem())
                 add(BTBubbleSystem())
                 add(UiRenderSystem())
+                add(AudioSystem())
             }
         }
 
     override fun show() {
-        val soundSrc = audio.obtainSource(sound)
-        val reverb = Reverb()
-        reverb.density = 0.5f
-        reverb.diffusion = 0.8f
-        reverb.roomRolloffFactor = 2f
-        soundSrc.attachEffect(SoundEffect(EaxReverb.arena()))
-        soundSrc.play()
-
         profiler.enable()
         // add a gameState Entity to the screen
         entityWorld.entity {
@@ -185,8 +175,6 @@ class GameScreen(
     }
 
     override fun dispose() {
-        sound.dispose()
-        audio.dispose()
         dawnAtlases.diffuseAtlas.dispose()
         dawnAtlases.normalAtlas?.dispose()
         dawnAtlases.specularAtlas?.dispose()

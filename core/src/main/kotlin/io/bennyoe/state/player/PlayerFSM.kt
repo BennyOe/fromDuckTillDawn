@@ -5,6 +5,10 @@ import com.badlogic.gdx.graphics.g2d.Animation
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.BashComponent
+import io.bennyoe.event.AttackSoundEvent
+import io.bennyoe.event.WalkSoundEvent
+import io.bennyoe.event.WalkSoundStopEvent
+import io.bennyoe.event.fire
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.LANDING_VELOCITY_EPS
@@ -61,6 +65,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object WALK : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering WALK" }
+            ctx.stage.fire(WalkSoundEvent())
             ctx.setAnimation(AnimationType.WALK)
         }
 
@@ -74,6 +79,11 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToCrouch -> ctx.changeState(CROUCH_WALK)
                 isFalling(ctx) -> ctx.changeState(FALL)
             }
+        }
+
+        override fun exit(ctx: PlayerStateContext) {
+            ctx.stage.fire(WalkSoundStopEvent())
+            super.exit(ctx)
         }
 
         override fun onMessage(
@@ -209,6 +219,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.intentionCmp.wantsToAttack = false
             ctx.setAnimation(AnimationType.ATTACK)
             ctx.attackComponent.applyAttack = true
+            ctx.stage.fire(AttackSoundEvent())
         }
 
         override fun update(ctx: PlayerStateContext) {

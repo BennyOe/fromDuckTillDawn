@@ -26,18 +26,6 @@ class RenderSystem(
     private val orthoCam = stage.camera as OrthographicCamera
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
 
-    // Helper to get zIndex from an Actor's entity
-    private fun getZIndex(actor: Actor): Int {
-        val entity = actor.userObject as? Entity ?: return 0
-        val imageZ = entity.getOrNull(ImageComponent)?.zIndex
-        val particleZ = entity.getOrNull(ParticleComponent)?.zIndex
-        return imageZ ?: particleZ ?: 0
-    }
-
-    // Helper to get zIndex directly from an entity
-    private val Entity.zIndex: Int
-        get() = this.getOrNull(ImageComponent)?.zIndex ?: this.getOrNull(ParticleComponent)?.zIndex ?: 0
-
     override fun onTick() {
         val gameStateCmp = gameStateEntity[GameStateComponent]
         // 1. Execute logic
@@ -191,6 +179,18 @@ class RenderSystem(
             }
         }
     }
+
+    // Helper to get zIndex from an Actor's entity
+    private fun getZIndex(actor: Actor): Int {
+        val entity = actor.userObject as? Entity ?: return 0
+        val imageZ = entity.getOrNull(ImageComponent)?.zIndex
+        val particleZ = entity.getOrNull(ParticleComponent)?.zIndex
+        return imageZ ?: particleZ ?: 0
+    }
+
+    // Helper to get zIndex directly from an entity
+    private val Entity.zIndex: Int
+        get() = this.getOrNull(ImageComponent)?.zIndex ?: this.getOrNull(ParticleComponent)?.zIndex ?: 0
 
     companion object {
         val logger = logger<RenderSystem>()

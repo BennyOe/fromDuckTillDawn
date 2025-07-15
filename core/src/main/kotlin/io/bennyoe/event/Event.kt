@@ -3,6 +3,8 @@ package io.bennyoe.event
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.Stage
+import io.bennyoe.assets.SoundAssets
+import io.bennyoe.utility.FloorType
 
 fun Stage.fire(event: Event) {
     this.root.fire(event)
@@ -17,26 +19,23 @@ data class MapChangedEvent(
     GameEvent
 
 // --- Audio Events ---
-sealed interface AudioEvent : GameEvent {
-    val soundFile: String
-}
+sealed interface AudioEvent : GameEvent
 
-data class AttackSoundEvent(
-    override val soundFile: String = "sound/sword.mp3",
+data class PlaySoundEvent(
+    val sound: SoundAssets,
+    val volume: Float,
 ) : Event(),
     AudioEvent
 
-data class WalkSoundEvent(
-    override val soundFile: String = "sound/footsteps.mp3",
+data class PlayLoopingSoundEvent(
+    val sound: SoundAssets,
+    val loopId: String,
+    val volume: Float,
+    val floorType: FloorType?,
 ) : Event(),
     AudioEvent
 
-data class WalkSoundStopEvent(
-    override val soundFile: String = "sound/footsteps.mp3",
-) : Event(),
-    AudioEvent
-
-data class HitSoundEvent(
-    override val soundFile: String = "sound/hit.mp3",
+data class StopLoopingSoundEvent(
+    val loopId: String,
 ) : Event(),
     AudioEvent

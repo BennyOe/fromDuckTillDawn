@@ -8,15 +8,14 @@ import com.github.quillraven.fleks.World.Companion.inject
 import de.pottgames.tuningfork.Audio
 import de.pottgames.tuningfork.BufferedSoundSource
 import de.pottgames.tuningfork.StreamedSoundSource
-import io.bennyoe.assets.SoundAssets
-import io.bennyoe.event.AttackSoundEvent
-import io.bennyoe.event.HitSoundEvent
 import io.bennyoe.event.MapChangedEvent
-import io.bennyoe.event.WalkSoundEvent
-import io.bennyoe.event.WalkSoundStopEvent
+import io.bennyoe.event.PlayLoopingSoundEvent
+import io.bennyoe.event.PlaySoundEvent
+import io.bennyoe.event.StopLoopingSoundEvent
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
 import ktx.tiled.propertyOrNull
+import kotlin.reflect.KClass
 
 class AudioSystem(
     private val assets: AssetStorage = inject("assetManager"),
@@ -25,13 +24,39 @@ class AudioSystem(
     EventListener {
     private lateinit var bgMusic: StreamedSoundSource
     private val loopingSounds = mutableMapOf<String, BufferedSoundSource>()
+    private val eventHandlers = mutableMapOf<KClass<out Event>, (Event) -> Unit>()
+
+    init {
+        registerHandler(PlaySoundEvent::class) { event ->
+            val soundBuffer = assets[event.sound.descriptor]
+            soundBuffer.play(event.volume)
+        }
+
+        registerHandler(PlayLoopingSoundEvent::class) { event ->
+            if (loopingSounds.containsKey(event.loopId)) return@registerHandler
+
+            val soundBuffer = assets[event.sound.descriptor]
+            val source = audio.obtainSource(soundBuffer)
+            source.setLooping(true)
+            source.volume = event.volume
+            source.play()
+            loopingSounds[event.loopId] = source
+        }
+
+        registerHandler(StopLoopingSoundEvent::class) { event ->
+            loopingSounds[event.loopId]?.stop()
+            loopingSounds.remove(event.loopId)
+        }
+    }
 
     override fun onTick() {
     }
 
     override fun handle(event: Event): Boolean {
+        eventHandlers[event::class]?.invoke(event)
+
         when (event) {
-            is MapChangedEvent -> {
+            is MapChangedEvent ->
                 event.map.propertyOrNull<String>("bgMusic")?.let { path ->
                     logger.debug { "Music $path Played" }
                     bgMusic = StreamedSoundSource(Gdx.files.internal(path))
@@ -39,35 +64,8 @@ class AudioSystem(
                     bgMusic.volume = 0.4f
                     bgMusic.play()
                 }
-                return true
-            }
-
-            is AttackSoundEvent -> {
-                val sound = assets[SoundAssets.ATTACK_SOUND.descriptor]
-                sound.play()
-                return true
-            }
-
-            is WalkSoundEvent -> {
-                if (loopingSounds.containsKey(event.soundFile)) return true // Prevent playing the same loop multiple times
-                val sound = assets[SoundAssets.WALK_SOUND.descriptor]
-                val soundSource = audio.obtainSource(sound)
-                loopingSounds[event.soundFile] = soundSource
-                soundSource.play()
-            }
-
-            is WalkSoundStopEvent -> {
-                val soundSource = loopingSounds.remove(event.soundFile)
-                soundSource?.stop()
-                soundSource?.free()
-            }
-
-            is HitSoundEvent -> {
-                val sound = assets[SoundAssets.HIT_SOUND.descriptor]
-                sound.play()
-            }
         }
-        return false
+        return true
     }
 
     override fun onDispose() {
@@ -75,6 +73,17 @@ class AudioSystem(
         bgMusic.dispose()
         audio.dispose()
         super.onDispose()
+    }
+
+    /** The `registerHandler` function registers an event handler for a specific event type in the `eventHandlers` map. It allows the system to
+     associate custom logic with different event classes, enabling dynamic event handling within the ECS framework.
+     **/
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : Event> registerHandler(
+        eventClass: KClass<T>,
+        handler: (T) -> Unit,
+    ) {
+        eventHandlers[eventClass] = { event -> handler(event as T) }
     }
 
     companion object {

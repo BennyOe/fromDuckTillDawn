@@ -51,13 +51,26 @@
   <object id="6" name="5" x="371.009" y="65.9214" width="26.1274" height="43.0097"/>
   <object id="7" name="6" x="434.92" y="80.7939" width="26.5293" height="28.5391"/>
   <object id="8" name="1" x="49.843" y="192.539" width="92.0487" height="28.5391"/>
-  <object id="9" name="ground" x="0" y="256.852" width="221.462" height="62.7057"/>
-  <object id="24" name="ground" x="243.269" y="256.146" width="397.243" height="62.7057"/>
+  <object id="9" name="ground" x="0" y="256.852" width="221.462" height="62.7057">
+   <properties>
+    <property name="floorType" value="wood"/>
+   </properties>
+  </object>
+  <object id="24" name="ground" x="243.269" y="256.146" width="397.243" height="62.7057">
+   <properties>
+    <property name="floorType" value="stone"/>
+   </properties>
+  </object>
   <object id="25" x="322.187" y="225.109" width="27.7832" height="30.8654"/>
  </objectgroup>
  <objectgroup id="12" name="mapObjects">
   <object id="19" name="fire" type="fire" gid="649" x="156" y="256" width="32" height="32">
    <properties>
+    <property name="sound" value="campfire"/>
+    <property name="soundAttenuationFactor" type="float" value="1"/>
+    <property name="soundAttenuationMaxDistance" type="float" value="5"/>
+    <property name="soundAttenuationMinDistance" type="float" value="1"/>
+    <property name="soundVolume" type="float" value="0.5"/>
     <property name="zIndex" type="int" value="5"/>
    </properties>
   </object>

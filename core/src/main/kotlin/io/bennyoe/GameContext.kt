@@ -12,6 +12,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import de.pottgames.tuningfork.Audio
 import de.pottgames.tuningfork.AudioConfig
+import de.pottgames.tuningfork.DistanceAttenuationModel
 import de.pottgames.tuningfork.SoundBuffer
 import de.pottgames.tuningfork.SoundBufferLoader
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
@@ -33,6 +34,7 @@ class GameContext : Context() {
         val debugRenderService = if (ENABLE_DEBUG) DefaultDebugRenderService() else NoOpDebugRenderService()
         val config =
             AudioConfig().apply {
+                distanceAttenuationModel = DistanceAttenuationModel.LINEAR_DISTANCE_CLAMPED
             }
         val audio: Audio = Audio.init(config)
         val assets: AssetStorage by lazy {

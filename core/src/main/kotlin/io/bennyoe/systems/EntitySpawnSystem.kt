@@ -23,12 +23,14 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.ai.blackboards.MushroomContext
+import io.bennyoe.assets.SoundAssets
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.AudioComponent
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
@@ -166,6 +168,17 @@ class EntitySpawnSystem(
                 mapObject.tile.textureRegion.regionHeight
                     .toFloat() * UNIT_SCALE
             it += image
+
+            if (mapObject.properties.get("sound") != null) {
+                it +=
+                    AudioComponent(
+                        SoundAssets.valueOf(mapObject.properties.get("sound", String::class.java).uppercase()),
+                        mapObject.properties.get("soundVolume", Float::class.java) ?: .5f,
+                        mapObject.properties.get("soundAttenuationMaxDistance", Float::class.java) ?: 10f,
+                        mapObject.properties.get("soundAttenuationMinDistance", Float::class.java) ?: 1f,
+                        mapObject.properties.get("soundAttenuationFactor", Float::class.java) ?: 1f,
+                    )
+            }
 
             if (mapObject.tile is AnimatedTiledMapTile) {
                 val animatedTile = mapObject.tile as AnimatedTiledMapTile

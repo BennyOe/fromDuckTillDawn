@@ -3,7 +3,9 @@ package io.bennyoe.systems
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
-import com.github.quillraven.fleks.IntervalSystem
+import com.github.quillraven.fleks.Entity
+import com.github.quillraven.fleks.IteratingSystem
+import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import de.pottgames.tuningfork.Audio
 import de.pottgames.tuningfork.BufferedSoundSource
@@ -26,7 +28,7 @@ import kotlin.reflect.KClass
 class AudioSystem(
     private val assets: AssetStorage = inject("assetManager"),
     private val audio: Audio = inject("audio"),
-) : IntervalSystem(),
+) : IteratingSystem(family { all(AudioComponent, TransformComponent) }),
     EventListener {
     private lateinit var bgMusic: StreamedSoundSource
     private val loopingSounds = mutableMapOf<SoundTypes, BufferedSoundSource>()
@@ -73,6 +75,31 @@ class AudioSystem(
     }
 
     override fun onTick() {
+        val playerPhysicCmp = playerEntity[PhysicComponent]
+        val playerPos = playerPhysicCmp.body.position
+
+        audio.listener.setPosition(playerPos.x, playerPos.y, 0f)
+        super.onTick()
+    }
+
+    override fun onTickEntity(entity: Entity) {
+        val soundCmp = entity[AudioComponent]
+        val transformCmp = entity[TransformComponent]
+
+        if (soundCmp.bufferedSoundSource == null) {
+            val source = audio.obtainSource(assets[soundCmp.soundAsset.descriptor])
+            source.volume = soundCmp.soundVolume
+            source.attenuationFactor = 1f
+            source.attenuationMaxDistance = soundCmp.soundAttenuationMaxDistance
+            source.attenuationMinDistance = soundCmp.soundAttenuationMinDistance
+            source.attenuationFactor = soundCmp.soundAttenuationFactor
+            source.setLooping(soundCmp.isLooping)
+            source.isRelative = false
+            soundCmp.bufferedSoundSource = source
+            source.play()
+        }
+
+        soundCmp.bufferedSoundSource?.setPosition(transformCmp.position.x + transformCmp.width * 0.5f, transformCmp.position.y, 0f)
     }
 
     override fun handle(event: Event): Boolean {

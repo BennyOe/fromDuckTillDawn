@@ -6,6 +6,7 @@ import io.bennyoe.config.EntityCategory
 data class BodyData(
     val type: EntityCategory,
     val entity: Entity,
+    val floorType: FloorType? = null,
 )
 
 data class FixtureData(
@@ -23,4 +24,9 @@ enum class SensorType {
     LOWER_LEDGE_SENSOR,
     ATTACK_SENSOR,
     SIGHT_SENSOR,
+}
+
+enum class FloorType {
+    WOOD,
+    STONE,
 }

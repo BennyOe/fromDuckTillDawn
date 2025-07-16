@@ -4,6 +4,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.Stage
 import io.bennyoe.assets.SoundAssets
+import io.bennyoe.systems.SoundTypes
 import io.bennyoe.utility.FloorType
 
 fun Stage.fire(event: Event) {
@@ -28,14 +29,13 @@ data class PlaySoundEvent(
     AudioEvent
 
 data class PlayLoopingSoundEvent(
-    val sound: SoundAssets,
-    val loopId: String,
+    val loopId: SoundTypes,
     val volume: Float,
     val floorType: FloorType?,
 ) : Event(),
     AudioEvent
 
 data class StopLoopingSoundEvent(
-    val loopId: String,
+    val loopId: SoundTypes,
 ) : Event(),
     AudioEvent

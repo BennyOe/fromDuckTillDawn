@@ -305,6 +305,16 @@ class PhysicsSystem(
         val isAOnGround = dataA?.type == SensorType.GROUND_SENSOR && bodyDataB?.type == EntityCategory.GROUND
         val isBOnGround = dataB?.type == SensorType.GROUND_SENSOR && bodyDataA?.type == EntityCategory.GROUND
 
+        if (isAOnGround) {
+            val physicCmp = bodyDataA!!.entity[PhysicComponent]
+            physicCmp.floorType = bodyDataB.floorType
+        }
+
+        if (isBOnGround) {
+            val physicCmp = bodyDataB!!.entity[PhysicComponent]
+            physicCmp.floorType = bodyDataA.floorType
+        }
+
         return isAOnGround || isBOnGround
     }
 

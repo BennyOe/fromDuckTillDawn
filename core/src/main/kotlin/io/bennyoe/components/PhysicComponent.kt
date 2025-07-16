@@ -14,6 +14,7 @@ import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
+import io.bennyoe.utility.FloorType
 import io.bennyoe.utility.SensorType
 import ktx.app.gdxError
 import ktx.box2d.body
@@ -30,6 +31,7 @@ class PhysicComponent : Component<PhysicComponent> {
     var impulse: Vector2 = Vector2()
     var categoryBits = EntityCategory.GROUND.bit
     var activeGroundContacts: Int = 0
+    var floorType: FloorType? = null
     lateinit var body: Body
 
     override fun type() = PhysicComponent

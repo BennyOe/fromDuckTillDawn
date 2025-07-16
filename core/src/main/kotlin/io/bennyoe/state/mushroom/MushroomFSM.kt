@@ -2,9 +2,10 @@ package io.bennyoe.state.mushroom
 
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
+import io.bennyoe.assets.SoundAssets
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AnimationVariant
-import io.bennyoe.event.HitSoundEvent
+import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.fire
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
@@ -101,7 +102,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
 
     data object HIT : MushroomFSM() {
         override fun enter(ctx: MushroomStateContext) {
-            ctx.stage.fire(HitSoundEvent())
+            ctx.stage.fire(PlaySoundEvent(SoundAssets.HIT_SOUND, 1f))
             ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
             ctx.attackCmp.applyAttack = false
             ctx.moveComponent.lockMovement = true

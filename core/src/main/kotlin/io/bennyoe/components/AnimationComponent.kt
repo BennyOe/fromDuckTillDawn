@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Animation.PlayMode
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
+import io.bennyoe.service.SoundType
 
 class AnimationComponent(
     var stateTime: Float = 0f,
@@ -12,6 +13,7 @@ class AnimationComponent(
     var isReversed: Boolean = false,
     var animationModel: AnimationModel = AnimationModel.PLAYER_DAWN,
     var currentAnimationType: AnimationType = AnimationType.NONE,
+    var animationSoundTriggers: Map<AnimationType, Map<Int, SoundType>> = emptyMap(),
 ) : Component<AnimationComponent> {
     override fun type() = AnimationComponent
 

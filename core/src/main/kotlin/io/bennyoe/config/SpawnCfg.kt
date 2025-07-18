@@ -2,11 +2,15 @@ package io.bennyoe.config
 
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.BodyDef
+import io.bennyoe.assets.SoundAssets
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.config.GameConstants.CHASE_SPEED
 import io.bennyoe.config.GameConstants.NORMAL_DETECTION_RADIUS
+import io.bennyoe.service.SoundType
+import io.bennyoe.utility.FloorType
+import io.bennyoe.utility.SoundProfile
 import ktx.app.gdxError
 import ktx.math.vec2
 import kotlin.experimental.or
@@ -14,7 +18,6 @@ import kotlin.experimental.or
 data class SpawnCfg(
     val animationModel: AnimationModel = AnimationModel.NONE,
     val animationType: AnimationType = AnimationType.NONE,
-    val animationVariant: AnimationVariant = AnimationVariant.NONE,
     val bodyType: BodyDef.BodyType = BodyDef.BodyType.StaticBody,
     val entityCategory: EntityCategory = EntityCategory.GROUND,
     val physicMaskCategory: Short = 0x0000,
@@ -34,6 +37,8 @@ data class SpawnCfg(
     val nearbyEnemiesExtendedSensorRadius: Float = 7f,
     val nearbyEnemiesSensorOffset: Vector2 = vec2(0f, 0f),
     val chaseSpeed: Float = 0f,
+    val soundTrigger: Map<AnimationType, Map<Int, SoundType>> = emptyMap(),
+    val soundProfile: SoundProfile = SoundProfile(),
 ) {
     companion object {
         val cachedSpawnCfgs = mutableMapOf<String, SpawnCfg>()
@@ -61,6 +66,35 @@ data class SpawnCfg(
                             keepCorpse = true,
                             removeDelay = 1f,
                             zIndex = 20,
+                            soundTrigger =
+                                mapOf(
+                                    AnimationType.WALK to
+                                        mapOf(
+                                            3 to SoundType.DAWN_FOOTSTEPS,
+                                            6 to SoundType.DAWN_FOOTSTEPS,
+                                        ),
+                                    AnimationType.ATTACK_1 to
+                                        mapOf(
+                                            1 to SoundType.DAWN_ATTACK,
+                                        ),
+                                    AnimationType.ATTACK_2 to
+                                        mapOf(
+                                            1 to SoundType.DAWN_ATTACK,
+                                        ),
+                                ),
+                            soundProfile =
+                                SoundProfile(
+                                    simpleSounds =
+                                        mapOf(
+                                            SoundType.DAWN_ATTACK to SoundAssets.DAWN_ATTACK_SOUND,
+                                        ),
+                                    // Define the player's footstep sounds for each surface
+                                    footstepsSounds =
+                                        mapOf(
+                                            FloorType.WOOD to SoundAssets.DAWN_FOOTSTEPS_WOOD,
+                                            FloorType.STONE to SoundAssets.DAWN_FOOTSTEPS_STONE,
+                                        ),
+                                ),
                         )
 
                     "enemy" ->
@@ -88,6 +122,32 @@ data class SpawnCfg(
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),
                             chaseSpeed = CHASE_SPEED,
                             zIndex = 10,
+                            soundTrigger =
+                                mapOf(
+                                    AnimationType.WALK to
+                                        mapOf(
+                                            0 to SoundType.FOOTSTEPS,
+                                            2 to SoundType.FOOTSTEPS,
+                                            4 to SoundType.FOOTSTEPS,
+                                            6 to SoundType.FOOTSTEPS,
+                                        ),
+                                    AnimationType.HIT to
+                                        mapOf(
+                                            1 to SoundType.HIT,
+                                        ),
+                                ),
+                            soundProfile =
+                                SoundProfile(
+                                    simpleSounds =
+                                        mapOf(
+                                            SoundType.HIT to SoundAssets.MUSHROOM_HIT_SOUND,
+                                        ),
+                                    footstepsSounds =
+                                        mapOf(
+                                            FloorType.WOOD to SoundAssets.MUSHROOM_FOOTSTEPS_WOOD,
+                                            FloorType.STONE to SoundAssets.MUSHROOM_FOOTSTEPS_STONE,
+                                        ),
+                                ),
                         )
 
                     else -> gdxError("There is no spawn configuration for entity-type $type")

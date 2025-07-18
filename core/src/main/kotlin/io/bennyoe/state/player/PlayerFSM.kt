@@ -2,18 +2,11 @@ package io.bennyoe.state.player
 
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
-import io.bennyoe.assets.SoundAssets
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.BashComponent
-import io.bennyoe.event.PlayLoopingSoundEvent
-import io.bennyoe.event.PlaySoundEvent
-import io.bennyoe.event.StopLoopingSoundEvent
-import io.bennyoe.event.fire
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.LANDING_VELOCITY_EPS
-import io.bennyoe.systems.SoundTypes
 import ktx.log.logger
 import kotlin.math.abs
 
@@ -67,13 +60,6 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object WALK : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering WALK ${ctx.physicComponent.floorType}" }
-            ctx.stage.fire(
-                PlayLoopingSoundEvent(
-                    SoundTypes.FOOTSTEPS,
-                    1f,
-                    ctx.physicComponent.floorType,
-                ),
-            )
             ctx.setAnimation(AnimationType.WALK)
         }
 
@@ -87,13 +73,6 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToCrouch -> ctx.changeState(CROUCH_WALK)
                 isFalling(ctx) -> ctx.changeState(FALL)
             }
-        }
-
-        override fun exit(ctx: PlayerStateContext) {
-            ctx.stage.fire(
-                StopLoopingSoundEvent(SoundTypes.FOOTSTEPS),
-            )
-            super.exit(ctx)
         }
 
         override fun onMessage(
@@ -229,7 +208,6 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.intentionCmp.wantsToAttack = false
             ctx.setAnimation(AnimationType.ATTACK_1)
             ctx.attackComponent.applyAttack = true
-            ctx.stage.fire(PlaySoundEvent(SoundAssets.ATTACK_SOUND, 1f))
         }
 
         override fun update(ctx: PlayerStateContext) {

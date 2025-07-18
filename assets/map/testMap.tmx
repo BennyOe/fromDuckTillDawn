@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="15" nextobjectid="89">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="16" nextobjectid="89">
  <properties>
-  <property name="bgMusic" value="sound/bgMusic.mp3"/>
+  <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
  </properties>
  <tileset firstgid="1" source="groundTiles1.tsx"/>
  <tileset firstgid="649" source="fire.tsx"/>
@@ -11,6 +11,7 @@
  <imagelayer id="8" name="backgroundMountain" parallaxx="0.3">
   <image source="GandalfHardcore FREE Platformer Assets/GandalfHardcore Background layers/Autumn BG/GandalfHardcore Background layers_layer 4.png" width="1024" height="346"/>
  </imagelayer>
+ <objectgroup id="15" name="audioZones"/>
  <imagelayer id="6" name="backgroundForestFar" parallaxx="0.5">
   <image source="GandalfHardcore FREE Platformer Assets/GandalfHardcore Background layers/Autumn BG/GandalfHardcore Background layers_layer 3.png" width="1024" height="346"/>
  </imagelayer>
@@ -76,7 +77,7 @@
   </object>
  </objectgroup>
  <objectgroup id="4" name="playerStart">
-  <object id="10" name="playerStart" type="playerStart" x="210.568" y="237.147">
+  <object id="10" name="playerStart" type="playerStart" x="426.235" y="239.147">
    <point/>
   </object>
  </objectgroup>

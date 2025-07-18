@@ -48,6 +48,8 @@ class PhysicComponent : Component<PhysicComponent> {
             y: Int = 0,
             myFriction: Float = 0f,
             setUserData: BodyData? = null,
+            isSensor: Boolean = false,
+            sensorType: SensorType = SensorType.NONE,
             categoryBit: Short = EntityCategory.GROUND.bit,
             maskBit: Short = -1,
         ): PhysicComponent {
@@ -64,6 +66,7 @@ class PhysicComponent : Component<PhysicComponent> {
                                 fixedRotation = true
                                 allowSleep = false
                                 userData = setUserData
+                                // the loop creates the fixture
                                 loop(
                                     vec2(0f, 0f),
                                     vec2(bodyW, 0f),
@@ -73,6 +76,12 @@ class PhysicComponent : Component<PhysicComponent> {
                                     friction = myFriction
                                     filter.categoryBits = categoryBit
                                     filter.maskBits = maskBit
+                                    this.isSensor = isSensor
+                                    this.userData = FixtureData(sensorType)
+                                    this.filter.categoryBits = categoryBit
+                                    this.filter.maskBits = maskBit
+                                    density = 1f
+                                    friction = myFriction
                                 }
                             }
                     }
@@ -97,7 +106,7 @@ class PhysicComponent : Component<PhysicComponent> {
             isSensor: Boolean = false,
             setUserdata: BodyData? = null,
             myFriction: Float = 1f,
-            sensorType: SensorType = SensorType.HITBOX_SENSOR,
+            sensorType: SensorType = SensorType.NONE,
         ): PhysicComponent {
             val x = image.x
             val y = image.y

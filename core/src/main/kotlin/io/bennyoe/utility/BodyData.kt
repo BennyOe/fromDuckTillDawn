@@ -14,6 +14,7 @@ data class FixtureData(
 )
 
 enum class SensorType {
+    NONE,
     HITBOX_SENSOR,
     GROUND_SENSOR,
     NEARBY_ENEMY_SENSOR,
@@ -24,6 +25,7 @@ enum class SensorType {
     LOWER_LEDGE_SENSOR,
     ATTACK_SENSOR,
     SIGHT_SENSOR,
+    AUDIO_EFFECT_SENSOR,
 }
 
 enum class FloorType {

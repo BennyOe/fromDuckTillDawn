@@ -32,9 +32,24 @@ enum class SoundAssets(
     directory: String = "sound",
     val descriptor: AssetDescriptor<SoundBuffer> = AssetDescriptor("$directory/$filename", SoundBuffer::class.java),
 ) {
-    ATTACK_SOUND("sword.mp3"),
-    FOOTSTEPS_STONE("footsteps.mp3"),
-    FOOTSTEPS_WOOD("footsteps_wood.mp3"),
-    HIT_SOUND("hit.mp3"),
-    CAMPFIRE("campfire.mp3"),
+    // Dawn
+    DAWN_ATTACK_SOUND("dawn/sword.mp3"),
+    DAWN_ATTACK_2_SOUND("dawn/sword_02.mp3"),
+    DAWN_ATTACK_3_SOUND("dawn/sword_03.mp3"),
+    DAWN_FOOTSTEPS_STONE("dawn/footsteps_stone.mp3"),
+    DAWN_FOOTSTEPS_WOOD("dawn/footsteps_wood.mp3"),
+    DAWN_FOOTSTEPS_GRASS("dawn/footsteps_grass.mp3"),
+    DAWN_HIT_SOUND("dawn/hit.mp3"),
+    DAWN_BASH_SOUND("dawn/bash.mp3"),
+    DAWN_DEATH_SOUND("dawn/death.mp3"),
+    DAWN_JUMP_SOUND("dawn/jump.mp3"),
+
+    // Mushroom
+    MUSHROOM_FOOTSTEPS_GRASS("mushroom/footsteps_grass.mp3"),
+    MUSHROOM_FOOTSTEPS_WOOD("mushroom/footsteps_wood.mp3"),
+    MUSHROOM_FOOTSTEPS_STONE("mushroom/footsteps_stone.mp3"),
+    MUSHROOM_HIT_SOUND("mushroom/hit.mp3"),
+
+    // Environment
+    CAMPFIRE("environment/campfire_01.mp3"),
 }

@@ -1,12 +1,14 @@
 package io.bennyoe.event
 
 import com.badlogic.gdx.maps.tiled.TiledMap
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.Stage
-import io.bennyoe.assets.SoundAssets
-import io.bennyoe.systems.SoundTypes
+import com.github.quillraven.fleks.Entity
+import io.bennyoe.service.SoundType
 import io.bennyoe.utility.FloorType
 
+// helper for convenience
 fun Stage.fire(event: Event) {
     this.root.fire(event)
 }
@@ -23,19 +25,36 @@ data class MapChangedEvent(
 sealed interface AudioEvent : GameEvent
 
 data class PlaySoundEvent(
-    val sound: SoundAssets,
+    val entity: Entity,
+    val soundType: SoundType,
     val volume: Float,
+    val position: Vector2? = null,
+    val floorType: FloorType? = null,
 ) : Event(),
     AudioEvent
 
 data class PlayLoopingSoundEvent(
-    val loopId: SoundTypes,
+    val entity: Entity,
+    val soundType: SoundType,
     val volume: Float,
-    val floorType: FloorType?,
+    val position: Vector2? = null,
+    val floorType: FloorType? = null,
 ) : Event(),
     AudioEvent
 
 data class StopLoopingSoundEvent(
-    val loopId: SoundTypes,
+    val loopId: SoundType,
+) : Event(),
+    AudioEvent
+
+data class PlayerEnteredAudioZoneEvent(
+    val effect: String,
+    val preset: String?,
+    val intensity: Float?,
+) : Event(),
+    AudioEvent
+
+data class PlayerExitedAudioZoneEvent(
+    val effect: String,
 ) : Event(),
     AudioEvent

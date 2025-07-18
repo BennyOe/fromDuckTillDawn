@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.quillraven.fleks.Entity
@@ -9,74 +10,116 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import de.pottgames.tuningfork.Audio
 import de.pottgames.tuningfork.BufferedSoundSource
+import de.pottgames.tuningfork.EaxReverb
+import de.pottgames.tuningfork.SoundEffect
 import de.pottgames.tuningfork.StreamedSoundSource
-import io.bennyoe.assets.SoundAssets
 import io.bennyoe.components.AudioComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.SoundProfileComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
+import io.bennyoe.event.PlayerEnteredAudioZoneEvent
 import io.bennyoe.event.StopLoopingSoundEvent
-import io.bennyoe.utility.FloorType
+import io.bennyoe.service.SoundMappingService
+import io.bennyoe.service.SoundType
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
+import ktx.math.plus
 import ktx.tiled.propertyOrNull
 import kotlin.reflect.KClass
 
+private const val MIN_PITCH = 0.8f
+private const val MAX_PITCH = 1.3f
+
+/**
+ * Manages all audio playback within the game, including sound effects and background music.
+ *
+ * This system centralizes audio handling through a clear, event-driven, and component-based flow:
+ * 1.  **Trigger**: Sounds are requested either by firing a [PlaySoundEvent]/[PlayLoopingSoundEvent] or by an entity
+ * with an [AudioComponent]. Both methods use a logical [SoundType] enum to specify the sound's purpose
+ * (e.g., `FOOTSTEPS`, `ATTACK`).
+ * 2.  **Mapping**: The system uses the [SoundMapping] service to translate the logical [SoundType] into a
+ * concrete [io.bennyoe.assets.SoundAssets] file. This mapping can be context-dependent, for example,
+ * using the [io.bennyoe.utility.FloorType] to select the correct footstep sound.
+ * 3.  **Asset Loading**: The resolved asset descriptor is used to fetch the loaded [de.pottgames.tuningfork.SoundBuffer]
+ * from the [AssetStorage].
+ * 4.  **Playback**: Finally, the TuningFork [Audio] engine is used to obtain a source and play the sound.
+ * The system handles positioning by updating the listener's position to the player's location
+ * and setting the source's position for spatial audio effects.
+ *
+ * Looping sounds are managed in the `loopingSounds` map to ensure they can be started and stopped correctly.
+ */
 class AudioSystem(
     private val assets: AssetStorage = inject("assetManager"),
     private val audio: Audio = inject("audio"),
 ) : IteratingSystem(family { all(AudioComponent, TransformComponent) }),
     EventListener {
     private lateinit var bgMusic: StreamedSoundSource
-    private val loopingSounds = mutableMapOf<SoundTypes, BufferedSoundSource>()
+    private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
     private val eventHandlers = mutableMapOf<KClass<out Event>, (Event) -> Unit>()
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
 
-    // map the floorTypes to the footsteps
-    private val footstepSounds =
-        mapOf(
-            FloorType.STONE to SoundAssets.FOOTSTEPS_STONE,
-            FloorType.WOOD to SoundAssets.FOOTSTEPS_WOOD,
-            null to SoundAssets.FOOTSTEPS_STONE,
-        )
-
     init {
+        val soundEffect = SoundEffect(EaxReverb.arena())
         registerHandler(PlaySoundEvent::class) { event ->
-            val soundBuffer = assets[event.sound.descriptor]
-            soundBuffer.play(event.volume)
+            val soundProfile =
+                with(world) {
+                    event.entity.getOrNull(SoundProfileComponent)?.profile
+                }
+
+            val shouldVary = event.soundType.vary
+            val soundAsset = SoundMappingService.getSoundAsset(event.soundType, soundProfile, event.floorType) ?: return@registerHandler
+            val soundBuffer = assets[soundAsset.descriptor]
+            val source = audio.obtainSource(soundBuffer)
+
+            source.isRelative = true
+            event.position?.let {
+                source.setPosition(it.x, it.y, 0f)
+                source.isRelative = false
+                source.attenuationFactor = 3f
+            }
+            source.volume = event.volume
+            if (shouldVary) {
+                source.pitch = MathUtils.random(MIN_PITCH, MAX_PITCH)
+            }
+//            source.setFilter(0f, 0f)
+//            source.attachEffect(soundEffect)
+            source.play()
         }
 
         registerHandler(PlayLoopingSoundEvent::class) { event ->
-            if (loopingSounds.containsKey(event.loopId)) return@registerHandler
+            if (loopingSounds.containsKey(event.soundType)) return@registerHandler
 
-            val soundAsset =
-                when (event.loopId) {
-                    SoundTypes.FOOTSTEPS -> footstepSounds[event.floorType] ?: footstepSounds[null]!!
-                    else -> null
+            val soundProfile =
+                with(world) {
+                    event.entity.getOrNull(SoundProfileComponent)?.profile
                 }
 
-            if (soundAsset != null) {
-                val soundBuffer = assets[soundAsset.descriptor]
-                val source = audio.obtainSource(soundBuffer)
-                source.setLooping(true)
-                source.volume = event.volume
-                source.play()
-                loopingSounds[event.loopId] = source
-            }
+            val soundAsset = SoundMappingService.getSoundAsset(event.soundType, soundProfile, event.floorType) ?: return@registerHandler
+
+            val soundBuffer = assets[soundAsset.descriptor]
+            val source = audio.obtainSource(soundBuffer)
+            source.setLooping(true)
+            source.volume = event.volume
+            source.attenuationFactor = 1f
+            source.play()
+            loopingSounds[event.soundType] = source
         }
 
         registerHandler(StopLoopingSoundEvent::class) { event ->
             loopingSounds[event.loopId]?.stop()
             loopingSounds.remove(event.loopId)
         }
+
+        registerHandler(PlayerEnteredAudioZoneEvent::class) { event ->
+        }
     }
 
     override fun onTick() {
-        val playerPhysicCmp = playerEntity[PhysicComponent]
-        val playerPos = playerPhysicCmp.body.position
+        val playerPos = playerEntity[TransformComponent].position
 
         audio.listener.setPosition(playerPos.x, playerPos.y, 0f)
         super.onTick()
@@ -87,7 +130,13 @@ class AudioSystem(
         val transformCmp = entity[TransformComponent]
 
         if (soundCmp.bufferedSoundSource == null) {
-            val source = audio.obtainSource(assets[soundCmp.soundAsset.descriptor])
+            val soundProfile =
+                with(world) {
+                    entity.getOrNull(SoundProfileComponent)?.profile
+                }
+
+            val soundAsset = SoundMappingService.getSoundAsset(soundCmp.soundType) ?: return
+            val source = audio.obtainSource(assets[soundAsset.descriptor])
             source.volume = soundCmp.soundVolume
             source.attenuationFactor = 1f
             source.attenuationMaxDistance = soundCmp.soundAttenuationMaxDistance
@@ -110,9 +159,10 @@ class AudioSystem(
                 event.map.propertyOrNull<String>("bgMusic")?.let { path ->
                     logger.debug { "Music $path Played" }
                     bgMusic = StreamedSoundSource(Gdx.files.internal(path))
+                    bgMusic.isRelative = true
                     bgMusic.setLooping(true)
                     bgMusic.volume = 0.4f
-                    bgMusic.play()
+//                    bgMusic.play()
                 }
         }
         return true
@@ -139,10 +189,4 @@ class AudioSystem(
     companion object {
         val logger = logger<AudioSystem>()
     }
-}
-
-enum class SoundTypes {
-    NONE,
-    FOOTSTEPS,
-    CAMPFIRE,
 }

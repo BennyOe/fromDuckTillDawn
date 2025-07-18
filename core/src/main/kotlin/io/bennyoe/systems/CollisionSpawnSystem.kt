@@ -76,10 +76,7 @@ class CollisionSpawnSystem(
                             .get("floorType")
                             ?.toString()
                             ?.uppercase()
-                    var floorType: FloorType? = null
-                    if (mapFloorType != null) {
-                        floorType = FloorType.valueOf(mapFloorType)
-                    }
+                    val floorType: FloorType? = mapFloorType?.let { value -> FloorType.valueOf(value) }
                     physicsComponentFromShape2D(
                         phyWorld = phyWorld,
                         shape = mapObject.shape,

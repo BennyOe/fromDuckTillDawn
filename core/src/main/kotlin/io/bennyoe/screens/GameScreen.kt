@@ -137,13 +137,13 @@ class GameScreen(
                 add(PhysicTransformSyncSystem())
                 add(CameraSystem())
                 add(RenderMapSystem())
+                add(AudioSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())
                 add(ExpireSystem())
                 add(StateBubbleSystem())
                 add(BTBubbleSystem())
                 add(UiRenderSystem())
-                add(AudioSystem())
             }
         }
 

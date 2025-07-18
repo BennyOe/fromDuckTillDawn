@@ -23,14 +23,13 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.ai.blackboards.MushroomContext
-import io.bennyoe.assets.SoundAssets
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.AudioComponent
+import io.bennyoe.components.AudioZoneComponent
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
@@ -43,6 +42,7 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ShaderRenderingComponent
+import io.bennyoe.components.SoundProfileComponent
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
@@ -55,6 +55,7 @@ import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.service.DefaultDebugRenderService
+import io.bennyoe.service.SoundType
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
@@ -73,6 +74,7 @@ import ktx.math.plus
 import ktx.math.times
 import ktx.math.vec2
 import ktx.tiled.layer
+import ktx.tiled.shape
 import ktx.tiled.type
 import ktx.tiled.x
 import ktx.tiled.y
@@ -119,6 +121,12 @@ class EntitySpawnSystem(
                 objectsLayer.objects.forEach { mapObject ->
                     createMapObject(mapObject as TiledMapTileMapObject)
                 }
+                // Adding SoundEffects
+                val audioZones = event.map.layer("audioZones")
+                audioZones.objects.forEach { audioZoneObj ->
+                    createAudioZone(audioZoneObj)
+                }
+                // Adding lights
                 val lightsLayer = event.map.layer("lights")
                 lightsLayer.objects.forEach { light ->
                     val type = LightType.entries[(light.properties.get("type") as Int)]
@@ -156,6 +164,26 @@ class EntitySpawnSystem(
         return false
     }
 
+    private fun createAudioZone(audioZoneObj: MapObject) {
+        world.entity {
+            val physicCmp =
+                PhysicComponent.physicsComponentFromShape2D(
+                    phyWorld,
+                    audioZoneObj.shape,
+                    isSensor = true,
+                    sensorType = SensorType.AUDIO_EFFECT_SENSOR,
+                    setUserData = BodyData(EntityCategory.SENSOR, it),
+                )
+            it += physicCmp
+            it +=
+                AudioZoneComponent(
+                    audioZoneObj.properties.get("soundEffect", String::class.java),
+                    audioZoneObj.properties.get("effectPreset", String::class.java),
+                    audioZoneObj.properties.get("effectIntensity", Float::class.java),
+                )
+        }
+    }
+
     private fun createMapObject(mapObject: TiledMapTileMapObject) {
         world.entity {
             val zIndex = mapObject.properties.get("zIndex", Int::class.java) ?: 0
@@ -172,7 +200,7 @@ class EntitySpawnSystem(
             if (mapObject.properties.get("sound") != null) {
                 it +=
                     AudioComponent(
-                        SoundAssets.valueOf(mapObject.properties.get("sound", String::class.java).uppercase()),
+                        SoundType.valueOf(mapObject.properties.get("sound", String::class.java).uppercase()),
                         mapObject.properties.get("soundVolume", Float::class.java) ?: .5f,
                         mapObject.properties.get("soundAttenuationMaxDistance", Float::class.java) ?: 10f,
                         mapObject.properties.get("soundAttenuationMinDistance", Float::class.java) ?: 1f,
@@ -333,6 +361,8 @@ class EntitySpawnSystem(
             it += ShaderRenderingComponent()
 
             it += JumpComponent()
+
+            it += SoundProfileComponent(cfg.soundProfile)
 
             when (cfg.entityCategory) {
                 // Add Player specific components

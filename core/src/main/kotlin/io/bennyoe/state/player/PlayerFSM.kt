@@ -227,7 +227,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering ATTACK_1" }
             ctx.intentionCmp.wantsToAttack = false
-            ctx.setAnimation(AnimationType.ATTACK)
+            ctx.setAnimation(AnimationType.ATTACK_1)
             ctx.attackComponent.applyAttack = true
             ctx.stage.fire(PlaySoundEvent(SoundAssets.ATTACK_SOUND, 1f))
         }
@@ -256,7 +256,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             logger.debug { "Entering ATTACK_2" }
             ctx.intentionCmp.wantsToAttack2 = false
             ctx.intentionCmp.wantsToAttack = false
-            ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.SECOND)
+            ctx.setAnimation(AnimationType.ATTACK_2)
             ctx.attackComponent.applyAttack = true
         }
 
@@ -284,7 +284,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             logger.debug { "Entering ATTACK_3" }
             ctx.intentionCmp.wantsToAttack3 = false
             ctx.intentionCmp.wantsToAttack = false
-            ctx.setAnimation(AnimationType.ATTACK, variant = AnimationVariant.THIRD)
+            ctx.setAnimation(AnimationType.ATTACK_3)
             ctx.attackComponent.applyAttack = true
         }
 
@@ -350,7 +350,6 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.setAnimation(
                 AnimationType.DYING,
                 Animation.PlayMode.NORMAL,
-                AnimationVariant.FIRST,
                 // isReversed has to be set after the first time to prevent flickering because animation is played back reversed in RESURRECT state
                 isReversed = ctx.deathAlreadyEnteredBefore,
             )
@@ -375,7 +374,6 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.setAnimation(
                 AnimationType.DYING,
                 Animation.PlayMode.REVERSED,
-                AnimationVariant.FIRST,
                 resetStateTime = true,
                 isReversed = true,
             )

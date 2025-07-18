@@ -8,7 +8,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
@@ -64,11 +63,10 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     fun setAnimation(
         type: AnimationType,
         playMode: Animation.PlayMode = Animation.PlayMode.LOOP,
-        variant: AnimationVariant = AnimationVariant.FIRST,
         resetStateTime: Boolean = false,
         isReversed: Boolean = false,
     ) {
-        animationComponent.nextAnimation(type, variant)
+        animationComponent.nextAnimation(type)
         if (resetStateTime) animationComponent.stateTime = 0f
         animationComponent.isReversed = isReversed
         animationComponent.mode = playMode

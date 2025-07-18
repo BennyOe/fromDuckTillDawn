@@ -4,7 +4,6 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.BodyDef
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.config.GameConstants.CHASE_SPEED
 import io.bennyoe.config.GameConstants.NORMAL_DETECTION_RADIUS
@@ -53,7 +52,6 @@ data class SpawnCfg(
                             ),
                             animationModel = AnimationModel.PLAYER_DAWN,
                             animationType = AnimationType.IDLE,
-                            animationVariant = AnimationVariant.FIRST,
                             bodyType = BodyDef.BodyType.DynamicBody,
                             canAttack = true,
                             attackDelay = 0.1f,
@@ -75,7 +73,6 @@ data class SpawnCfg(
                             ),
                             animationModel = AnimationModel.ENEMY_MUSHROOM,
                             animationType = AnimationType.IDLE,
-                            animationVariant = AnimationVariant.FIRST,
                             bodyType = BodyDef.BodyType.DynamicBody,
                             canAttack = true,
                             attackDelay = 0.3f,

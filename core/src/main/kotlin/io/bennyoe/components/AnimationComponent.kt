@@ -20,22 +20,17 @@ class AnimationComponent(
         private set
     var nextAnimationType: AnimationType = AnimationType.NONE
         private set
-    var nextAnimationVariant: AnimationVariant = AnimationVariant.NONE
-        private set
 
-    fun nextAnimation(
-        type: AnimationType,
-        variant: AnimationVariant = AnimationVariant.FIRST,
-    ) {
+    var previousFrameIndex: Int = -1
+
+    fun nextAnimation(type: AnimationType) {
         nextAnimationModel = animationModel
         nextAnimationType = type
-        nextAnimationVariant = variant
     }
 
     fun clearAnimation() {
         nextAnimationModel = AnimationModel.NONE
         nextAnimationType = AnimationType.NONE
-        nextAnimationVariant = AnimationVariant.NONE
     }
 
     fun isAnimationFinished(): Boolean = animation.isAnimationFinished(stateTime)
@@ -60,41 +55,42 @@ enum class AnimationType(
     val specularMap: Boolean = true,
 ) {
     NONE(""),
-    IDLE("idle"),
+    IDLE("idle01"),
     WALK(
-        "walking",
+        "walking01",
     ),
     JUMP(
-        atlasKey = "jump",
+        atlasKey = "jump01",
         playMode = PlayMode.LOOP,
     ),
-    ATTACK(
-        atlasKey = "attack",
+    ATTACK_1(
+        atlasKey = "attack01",
+        PlayMode.NORMAL,
+        speed = 1 / 14f,
+    ),
+    ATTACK_2(
+        atlasKey = "attack02",
+        PlayMode.NORMAL,
+        speed = 1 / 14f,
+    ),
+    ATTACK_3(
+        atlasKey = "attack03",
         PlayMode.NORMAL,
         speed = 1 / 14f,
     ),
     BASH(
-        atlasKey = "bash",
+        atlasKey = "bash01",
         PlayMode.NORMAL,
         speed = 1 / 20f,
     ),
-    CROUCH_IDLE(atlasKey = "crouching_idle"),
-    CROUCH_WALK(atlasKey = "crouching_walking"),
+    CROUCH_IDLE(atlasKey = "crouching_idle01"),
+    CROUCH_WALK(atlasKey = "crouching_walking01"),
     HIT(
-        atlasKey = "hit",
+        atlasKey = "hit01",
         PlayMode.NORMAL,
     ),
     DYING(
-        atlasKey = "dying",
+        atlasKey = "dying01",
         PlayMode.NORMAL,
     ),
-}
-
-enum class AnimationVariant(
-    val atlasKey: String,
-) {
-    NONE(""),
-    FIRST("01"),
-    SECOND("02"),
-    THIRD("03"),
 }

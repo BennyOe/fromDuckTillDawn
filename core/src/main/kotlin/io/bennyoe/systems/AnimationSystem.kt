@@ -142,7 +142,7 @@ class AnimationSystem(
             atlasMap[aniCmp.animationModel]
                 ?: gdxError("No texture atlas found for model '${aniCmp.animationModel}'.")
 
-        val aniKeyPath = aniCmp.nextAnimationType.atlasKey + aniCmp.nextAnimationVariant.atlasKey
+        val aniKeyPath = aniCmp.nextAnimationType.atlasKey
 
         // Save the new animation frame as the current
         aniCmp.currentAnimationType = aniCmp.nextAnimationType

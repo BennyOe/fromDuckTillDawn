@@ -265,7 +265,7 @@ class EntitySpawnSystem(
         mapObj: MapObject,
         cfg: SpawnCfg,
     ) {
-        val relativeSize = size(cfg.animationModel, cfg.animationType, cfg.animationVariant)
+        val relativeSize = size(cfg.animationModel, cfg.animationType)
         world.entity {
             // Add general components
             val image =
@@ -282,7 +282,8 @@ class EntitySpawnSystem(
 
             val animation = AnimationComponent()
             animation.animationModel = cfg.animationModel
-            animation.nextAnimation(cfg.animationType, cfg.animationVariant)
+            animation.nextAnimation(cfg.animationType)
+            animation.animationSoundTriggers = cfg.soundTrigger
             it += animation
 
             val physics =
@@ -461,15 +462,14 @@ class EntitySpawnSystem(
     private fun size(
         model: AnimationModel,
         type: AnimationType,
-        variant: AnimationVariant,
     ): Vector2 {
-        val cacheKey = "${type.name}_${variant.name}"
+        val cacheKey = type.name
         return sizesCache.getOrPut(cacheKey) {
             val atlas =
                 atlasMap[model]
                     ?: gdxError("No texture atlas for model '$model' in EntitySpawnSystem found.")
 
-            val regions = atlas.findRegions(type.atlasKey + variant.atlasKey)
+            val regions = atlas.findRegions(type.atlasKey)
             if (regions.isEmpty) gdxError("No regions for the animation '$type' for model '$model' found")
 
             val firstFrame = regions.first()

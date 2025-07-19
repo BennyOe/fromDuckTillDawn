@@ -75,24 +75,42 @@ data class SpawnCfg(
                                         ),
                                     AnimationType.ATTACK_1 to
                                         mapOf(
-                                            1 to SoundType.DAWN_ATTACK,
+                                            1 to SoundType.DAWN_ATTACK_1,
                                         ),
                                     AnimationType.ATTACK_2 to
                                         mapOf(
-                                            1 to SoundType.DAWN_ATTACK,
+                                            1 to SoundType.DAWN_ATTACK_2,
+                                        ),
+                                    AnimationType.ATTACK_3 to
+                                        mapOf(
+                                            1 to SoundType.DAWN_ATTACK_3,
+                                        ),
+                                    AnimationType.JUMP to
+                                        mapOf(
+                                            1 to SoundType.DAWN_JUMP,
+                                        ),
+                                    AnimationType.BASH to
+                                        mapOf(
+                                            2 to SoundType.DAWN_BASH,
                                         ),
                                 ),
                             soundProfile =
                                 SoundProfile(
                                     simpleSounds =
                                         mapOf(
-                                            SoundType.DAWN_ATTACK to SoundAssets.DAWN_ATTACK_SOUND,
+                                            SoundType.DAWN_ATTACK_1 to SoundAssets.DAWN_ATTACK_1_SOUND,
+                                            SoundType.DAWN_ATTACK_2 to SoundAssets.DAWN_ATTACK_2_SOUND,
+                                            SoundType.DAWN_ATTACK_3 to SoundAssets.DAWN_ATTACK_3_SOUND,
+                                            SoundType.DAWN_JUMP to SoundAssets.DAWN_JUMP_SOUND,
+                                            SoundType.DAWN_HIT to SoundAssets.DAWN_HIT_SOUND,
+                                            SoundType.DAWN_BASH to SoundAssets.DAWN_BASH_SOUND,
                                         ),
                                     // Define the player's footstep sounds for each surface
                                     footstepsSounds =
                                         mapOf(
                                             FloorType.WOOD to SoundAssets.DAWN_FOOTSTEPS_WOOD,
                                             FloorType.STONE to SoundAssets.DAWN_FOOTSTEPS_STONE,
+                                            FloorType.GRASS to SoundAssets.DAWN_FOOTSTEPS_GRASS,
                                         ),
                                 ),
                         )
@@ -146,6 +164,7 @@ data class SpawnCfg(
                                         mapOf(
                                             FloorType.WOOD to SoundAssets.MUSHROOM_FOOTSTEPS_WOOD,
                                             FloorType.STONE to SoundAssets.MUSHROOM_FOOTSTEPS_STONE,
+                                            FloorType.GRASS to SoundAssets.MUSHROOM_FOOTSTEPS_GRASS,
                                         ),
                                 ),
                         )

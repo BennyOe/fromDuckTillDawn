@@ -31,6 +31,7 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.AudioComponent
 import io.bennyoe.components.AudioZoneComponent
 import io.bennyoe.components.DeadComponent
+import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
@@ -329,7 +330,21 @@ class EntitySpawnSystem(
                     sensorType = SensorType.HITBOX_SENSOR,
                 )
             physics.categoryBits = cfg.entityCategory.bit
+
+            physics.body.box(
+                physics.size.x * 0.99f,
+                0.01f,
+                Vector2(0f, 0f - physics.size.y * 0.5f) + cfg.offsetPhysic.y,
+            ) {
+                isSensor = true
+                userData = FixtureData(SensorType.GROUND_TYPE_SENSOR)
+                filter.categoryBits = EntityCategory.SENSOR.bit
+                filter.maskBits = EntityCategory.GROUND.bit
+            }
+
             it += physics
+
+            it += GroundTypeSensorComponent
 
             it +=
                 TransformComponent(
@@ -374,7 +389,7 @@ class EntitySpawnSystem(
                         Vector2(0f, 0f - physics.size.y * 0.5f),
                     ) {
                         isSensor = true
-                        userData = FixtureData(SensorType.GROUND_SENSOR)
+                        userData = FixtureData(SensorType.GROUND_DETECT_SENSOR)
                         filter.categoryBits = EntityCategory.SENSOR.bit
                         filter.maskBits = EntityCategory.GROUND.bit
                     }

@@ -16,6 +16,7 @@ import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.AudioZoneComponent
 import io.bennyoe.components.BashComponent
+import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
@@ -111,6 +112,7 @@ class PhysicsSystem(
         handleNearbyEnemiesBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handlePlayerEnemyCollision(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleAudioZoneContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
+        handleGroundTypeBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
     }
 
     override fun endContact(contact: Contact) {
@@ -198,23 +200,48 @@ class PhysicsSystem(
         )
     }
 
+    private fun handleGroundTypeBegin(
+        bodyDataA: BodyData,
+        bodyDataB: BodyData,
+        fixtureA: Fixture,
+        fixtureB: Fixture,
+    ) {
+        val (entityBodyData, groundBodyData) =
+            when {
+                fixtureA.fixtureData?.type == SensorType.GROUND_TYPE_SENSOR && bodyDataB.type == EntityCategory.GROUND ->
+                    bodyDataA to
+                        bodyDataB
+
+                fixtureB.fixtureData?.type == SensorType.GROUND_TYPE_SENSOR && bodyDataA.type == EntityCategory.GROUND ->
+                    bodyDataB to
+                        bodyDataA
+
+                else -> return
+            }
+
+        with(world) {
+            if (entityBodyData.entity has GroundTypeSensorComponent) {
+                entityBodyData.entity[PhysicComponent].floorType = groundBodyData.floorType
+            }
+        }
+    }
+
     private fun handleGroundContactBegin(
         bodyDataA: BodyData,
         bodyDataB: BodyData,
         fixtureA: Fixture,
         fixtureB: Fixture,
     ) {
-        val (playerBodyData, groundBodyData) =
+        val playerBodyData =
             when {
-                fixtureA.fixtureData?.type == SensorType.GROUND_SENSOR && bodyDataB.type == EntityCategory.GROUND -> bodyDataA to bodyDataB
-                fixtureB.fixtureData?.type == SensorType.GROUND_SENSOR && bodyDataA.type == EntityCategory.GROUND -> bodyDataB to bodyDataA
+                fixtureA.fixtureData?.type == SensorType.GROUND_DETECT_SENSOR && bodyDataB.type == EntityCategory.GROUND -> bodyDataA
+                fixtureB.fixtureData?.type == SensorType.GROUND_DETECT_SENSOR && bodyDataA.type == EntityCategory.GROUND -> bodyDataB
                 else -> return
             }
 
         if (playerBodyData.type == EntityCategory.PLAYER) {
             with(world) {
                 playerBodyData.entity[PhysicComponent].activeGroundContacts++
-                playerBodyData.entity[PhysicComponent].floorType = groundBodyData.floorType
             }
         }
     }
@@ -227,8 +254,8 @@ class PhysicsSystem(
     ) {
         val playerBodyData =
             when {
-                fixtureA.fixtureData?.type == SensorType.GROUND_SENSOR && bodyDataB.type == EntityCategory.GROUND -> bodyDataA
-                fixtureB.fixtureData?.type == SensorType.GROUND_SENSOR && bodyDataA.type == EntityCategory.GROUND -> bodyDataB
+                fixtureA.fixtureData?.type == SensorType.GROUND_DETECT_SENSOR && bodyDataB.type == EntityCategory.GROUND -> bodyDataA
+                fixtureB.fixtureData?.type == SensorType.GROUND_DETECT_SENSOR && bodyDataA.type == EntityCategory.GROUND -> bodyDataB
                 else -> return
             }
 

@@ -57,17 +57,18 @@ class BasicSensorsSystem(
 
         val sightSensor = basicSensorsCmp.sightSensor
         if (dst(sightSensor.from.x, sightSensor.from.y, sightSensor.to.x, sightSensor.to.y) < CHASE_DETECTION_RADIUS) {
-            processSensor(basicSensorsCmp.sightSensor) { rayHitCmp.sightIsBlocked = it }
+            processSensor(basicSensorsCmp.sightSensor, phyCmp) { rayHitCmp.sightIsBlocked = it }
         }
-        processSensor(basicSensorsCmp.wallSensor) { rayHitCmp.wallHit = it }
-        processSensor(basicSensorsCmp.wallHeightSensor) { rayHitCmp.wallHeightHit = it }
-        processSensor(basicSensorsCmp.groundSensor) { rayHitCmp.groundHit = it }
-        processSensor(basicSensorsCmp.jumpSensor) { rayHitCmp.jumpHit = it }
-        processSensor(basicSensorsCmp.attackSensor) { rayHitCmp.canAttack = it }
+        processSensor(basicSensorsCmp.wallSensor, phyCmp) { rayHitCmp.wallHit = it }
+        processSensor(basicSensorsCmp.wallHeightSensor, phyCmp) { rayHitCmp.wallHeightHit = it }
+        processSensor(basicSensorsCmp.groundSensor, phyCmp) { rayHitCmp.groundHit = it }
+        processSensor(basicSensorsCmp.jumpSensor, phyCmp) { rayHitCmp.jumpHit = it }
+        processSensor(basicSensorsCmp.attackSensor, phyCmp) { rayHitCmp.canAttack = it }
     }
 
     private fun processSensor(
         sensor: SensorDef,
+        phyCmp: PhysicComponent,
         setHit: (Boolean) -> Unit,
     ) {
         sensor.let {
@@ -77,6 +78,10 @@ class BasicSensorsSystem(
 
             phyWorld.rayCast(
                 { fixture, point, normal, fraction ->
+                    // ignore own body
+                    if (fixture.body == phyCmp.body) {
+                        return@rayCast -1f
+                    }
                     // if sensor has filter for specific type it gets filtered here
                     val bodyData = fixture.body.userData as BodyData?
                     if (sensor.hitFilter != null && bodyData != null && !sensor.hitFilter.invoke(bodyData)) {

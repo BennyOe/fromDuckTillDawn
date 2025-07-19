@@ -35,11 +35,22 @@ enum class SoundType(
     val isSurfaceDependent: Boolean = false,
 ) {
     NONE,
+
+    // Dawn
     DAWN_FOOTSTEPS(true, false, true),
-    DAWN_ATTACK,
+    DAWN_ATTACK_1(true),
+    DAWN_ATTACK_2(true),
+    DAWN_ATTACK_3(true),
     DAWN_HIT,
+    DAWN_BASH(true),
+    DAWN_DEATH,
+    DAWN_JUMP(true),
+
+    // Enemies
     FOOTSTEPS(true, true, true),
     ATTACK(true, true),
     HIT(false, true),
+
+    // Environment
     CAMPFIRE,
 }

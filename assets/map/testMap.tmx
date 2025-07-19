@@ -46,23 +46,51 @@
 </data>
  </layer>
  <objectgroup id="3" name="collisionBoxes">
-  <object id="3" name="2" x="66.7939" y="80.9704" width="42.2058" height="44.6175"/>
-  <object id="4" name="3" x="180.009" y="144.705" width="120.99" height="28.5391"/>
-  <object id="5" name="4" x="243.587" y="113.755" width="57.8822" height="30.5489"/>
-  <object id="6" name="5" x="371.009" y="65.9214" width="26.1274" height="43.0097"/>
-  <object id="7" name="6" x="434.92" y="80.7939" width="26.5293" height="28.5391"/>
-  <object id="8" name="1" x="49.843" y="192.539" width="92.0487" height="28.5391"/>
-  <object id="9" name="ground" x="0" y="256.852" width="221.462" height="62.7057">
+  <object id="3" name="2" x="66.7939" y="80.9704" width="42.2058" height="44.6175">
    <properties>
-    <property name="floorType" value="wood"/>
+    <property name="floorType" value="grass"/>
    </properties>
   </object>
-  <object id="24" name="ground" x="243.269" y="256.146" width="397.243" height="62.7057">
+  <object id="4" name="3" x="180.009" y="144.705" width="120.99" height="28.5391">
    <properties>
     <property name="floorType" value="stone"/>
    </properties>
   </object>
-  <object id="25" x="322.187" y="225.109" width="27.7832" height="30.8654"/>
+  <object id="5" name="4" x="243.587" y="113.755" width="57.8822" height="30.5489">
+   <properties>
+    <property name="floorType" value="stone"/>
+   </properties>
+  </object>
+  <object id="6" name="5" x="371.009" y="65.9214" width="26.1274" height="43.0097">
+   <properties>
+    <property name="floorType" value="grass"/>
+   </properties>
+  </object>
+  <object id="7" name="6" x="434.92" y="80.7939" width="26.5293" height="28.5391">
+   <properties>
+    <property name="floorType" value="grass"/>
+   </properties>
+  </object>
+  <object id="8" name="1" x="49.843" y="192.539" width="92.0487" height="28.5391">
+   <properties>
+    <property name="floorType" value="stone"/>
+   </properties>
+  </object>
+  <object id="9" name="ground" x="0" y="256.852" width="221.462" height="62.7057">
+   <properties>
+    <property name="floorType" value="grass"/>
+   </properties>
+  </object>
+  <object id="24" name="ground" x="243.269" y="256.146" width="397.243" height="62.7057">
+   <properties>
+    <property name="floorType" value="grass"/>
+   </properties>
+  </object>
+  <object id="25" x="322.187" y="225.109" width="27.7832" height="30.8654">
+   <properties>
+    <property name="floorType" value="grass"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="12" name="mapObjects">
   <object id="19" name="fire" type="fire" gid="649" x="156" y="256" width="32" height="32">

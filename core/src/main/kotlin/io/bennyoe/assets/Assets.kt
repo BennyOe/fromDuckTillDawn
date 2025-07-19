@@ -33,7 +33,7 @@ enum class SoundAssets(
     val descriptor: AssetDescriptor<SoundBuffer> = AssetDescriptor("$directory/$filename", SoundBuffer::class.java),
 ) {
     // Dawn
-    DAWN_ATTACK_SOUND("dawn/sword.mp3"),
+    DAWN_ATTACK_1_SOUND("dawn/sword.mp3"),
     DAWN_ATTACK_2_SOUND("dawn/sword_02.mp3"),
     DAWN_ATTACK_3_SOUND("dawn/sword_03.mp3"),
     DAWN_FOOTSTEPS_STONE("dawn/footsteps_stone.mp3"),

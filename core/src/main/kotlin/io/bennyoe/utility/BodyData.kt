@@ -16,7 +16,8 @@ data class FixtureData(
 enum class SensorType {
     NONE,
     HITBOX_SENSOR,
-    GROUND_SENSOR,
+    GROUND_DETECT_SENSOR,
+    GROUND_TYPE_SENSOR,
     NEARBY_ENEMY_SENSOR,
     WALL_SENSOR,
     WALL_HEIGHT_SENSOR,
@@ -31,4 +32,5 @@ enum class SensorType {
 enum class FloorType {
     WOOD,
     STONE,
+    GRASS,
 }

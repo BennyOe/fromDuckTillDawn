@@ -84,6 +84,7 @@ class AnimationSystemIntegrationTest {
                 injectables {
                     add("dawnAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
                     add("mushroomAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
+                    add("stage", stageMock)
                 }
                 systems {
                     add(MoveSystem())

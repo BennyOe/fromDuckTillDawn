@@ -7,7 +7,6 @@ import com.badlogic.gdx.physics.box2d.ContactListener
 import com.badlogic.gdx.physics.box2d.Fixture
 import com.badlogic.gdx.physics.box2d.Manifold
 import com.badlogic.gdx.physics.box2d.World
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
@@ -15,6 +14,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.AudioZoneComponent
+import io.bennyoe.components.AudioZoneContactComponent
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HasGroundContact
@@ -26,9 +26,6 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
-import io.bennyoe.event.PlayerEnteredAudioZoneEvent
-import io.bennyoe.event.PlayerExitedAudioZoneEvent
-import io.bennyoe.event.fire
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.bodyData
@@ -39,7 +36,6 @@ import ktx.math.component2
 
 class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
-    private val stage: Stage = inject("stage"),
 ) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(PHYSIC_TIME_STEP)),
     ContactListener,
     PausableSystem {
@@ -108,10 +104,10 @@ class PhysicsSystem(
         val bodyDataA = contact.fixtureA.bodyData ?: return
         val bodyDataB = contact.fixtureB.bodyData ?: return
 
+        handleAudioZoneContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleGroundContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleNearbyEnemiesBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handlePlayerEnemyCollision(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handleAudioZoneContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleGroundTypeBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
     }
 
@@ -119,9 +115,9 @@ class PhysicsSystem(
         val bodyDataA = contact.fixtureA.bodyData ?: return
         val bodyDataB = contact.fixtureB.bodyData ?: return
 
+        handleAudioZoneContactEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleGroundContactEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleNearbyEnemiesEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handleAudioZoneContactEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
     }
 
     override fun preSolve(
@@ -164,14 +160,9 @@ class PhysicsSystem(
             }
 
         val audioZoneCmp = audioZoneBodyData.entity[AudioZoneComponent]
+        val audioZoneContactCmp = playerBodyData.entity[AudioZoneContactComponent]
 
-        stage.fire(
-            PlayerEnteredAudioZoneEvent(
-                audioZoneCmp.effect,
-                audioZoneCmp.preset,
-                audioZoneCmp.intensity,
-            ),
-        )
+        audioZoneContactCmp.increaseContact(audioZoneCmp)
     }
 
     private fun handleAudioZoneContactEnd(
@@ -182,22 +173,29 @@ class PhysicsSystem(
     ) {
         val (playerBodyData, audioZoneBodyData) =
             when {
-                fixtureA.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR && bodyDataB.type == EntityCategory.PLAYER ->
+                fixtureA.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR &&
+                    bodyDataB.type == EntityCategory.PLAYER &&
+                    fixtureB.fixtureData?.type == SensorType.HITBOX_SENSOR -> {
                     bodyDataB to bodyDataA
+                }
 
-                fixtureB.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR && bodyDataA.type == EntityCategory.PLAYER ->
+                fixtureB.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR &&
+                    bodyDataA.type == EntityCategory.PLAYER &&
+                    fixtureA.fixtureData?.type == SensorType.HITBOX_SENSOR -> {
                     bodyDataA to bodyDataB
+                }
 
                 else -> return
             }
 
-        val audioZoneCmp = audioZoneBodyData.entity[AudioZoneComponent]
+        with(world) {
+            if (playerBodyData.entity has AudioZoneContactComponent && audioZoneBodyData.entity has AudioZoneComponent) {
+                val audioZoneCmp = audioZoneBodyData.entity[AudioZoneComponent]
+                val audioZoneContactCmp = playerBodyData.entity[AudioZoneContactComponent]
 
-        stage.fire(
-            PlayerExitedAudioZoneEvent(
-                audioZoneCmp.effect,
-            ),
-        )
+                audioZoneContactCmp.decreaseContact(audioZoneCmp)
+            }
+        }
     }
 
     private fun handleGroundTypeBegin(
@@ -261,7 +259,9 @@ class PhysicsSystem(
 
         if (playerBodyData.type == EntityCategory.PLAYER) {
             with(world) {
-                playerBodyData.entity[PhysicComponent].activeGroundContacts--
+                if (playerBodyData.entity has PhysicComponent) {
+                    playerBodyData.entity[PhysicComponent].activeGroundContacts--
+                }
             }
         }
     }

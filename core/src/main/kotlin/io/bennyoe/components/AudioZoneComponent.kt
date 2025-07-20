@@ -2,10 +2,11 @@ package io.bennyoe.components
 
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
+import io.bennyoe.utility.SoundEffectEnum
 
 class AudioZoneComponent(
-    val effect: String,
-    val preset: String? = null,
+    val effect: SoundEffectEnum,
+    val presetName: String? = null,
     val intensity: Float? = null,
 ) : Component<AudioZoneComponent> {
     override fun type() = AudioZoneComponent

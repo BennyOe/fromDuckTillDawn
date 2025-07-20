@@ -34,7 +34,7 @@
         "groundTiles1.tsx"
     ],
     "project": "testMap.tiled-project",
-    "property.type": "float",
+    "property.type": "soundEffect",
     "recentFiles": [
         "groundTiles1.tsx",
         "fire.tsx",

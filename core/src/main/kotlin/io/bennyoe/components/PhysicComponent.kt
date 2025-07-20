@@ -62,26 +62,37 @@ class PhysicComponent : Component<PhysicComponent> {
                     return PhysicComponent().apply {
                         body =
                             phyWorld.body(BodyDef.BodyType.StaticBody) {
-                                position.set(bodyX, bodyY)
+                                position.set(bodyX + bodyW * 0.5f, bodyY + bodyH * 0.5f)
                                 fixedRotation = true
                                 allowSleep = false
                                 userData = setUserData
-                                // the loop creates the fixture
-                                loop(
-                                    vec2(0f, 0f),
-                                    vec2(bodyW, 0f),
-                                    vec2(bodyW, bodyH),
-                                    vec2(0f, bodyH),
-                                ) {
-                                    friction = myFriction
-                                    filter.categoryBits = categoryBit
-                                    filter.maskBits = maskBit
-                                    this.isSensor = isSensor
-                                    this.userData = FixtureData(sensorType)
-                                    this.filter.categoryBits = categoryBit
-                                    this.filter.maskBits = maskBit
-                                    density = 1f
-                                    friction = myFriction
+
+                                // Use a box shape for the sensor to detect the entire area, not just the vertices
+                                if (isSensor) {
+                                    box(bodyW, bodyH) {
+                                        this.isSensor = true
+                                        this.userData = FixtureData(sensorType)
+                                        filter.categoryBits = categoryBit
+                                        filter.maskBits = maskBit
+                                        density = 1f
+                                        friction = myFriction
+                                    }
+                                } else {
+                                    val halfW = bodyW * 0.5f
+                                    val halfH = bodyH * 0.5f
+                                    loop(
+                                        vec2(-halfW, -halfH),
+                                        vec2(halfW, -halfH),
+                                        vec2(halfW, halfH),
+                                        vec2(-halfW, halfH),
+                                    ) {
+                                        this.isSensor = false
+                                        this.userData = FixtureData(sensorType)
+                                        filter.categoryBits = categoryBit
+                                        filter.maskBits = maskBit
+                                        density = 1f
+                                        friction = myFriction
+                                    }
                                 }
                             }
                     }

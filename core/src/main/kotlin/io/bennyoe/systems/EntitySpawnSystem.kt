@@ -30,6 +30,7 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.AudioComponent
 import io.bennyoe.components.AudioZoneComponent
+import io.bennyoe.components.AudioZoneContactComponent
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
@@ -67,6 +68,7 @@ import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
 import io.bennyoe.utility.SensorType
+import io.bennyoe.utility.SoundEffectEnum
 import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
@@ -174,11 +176,12 @@ class EntitySpawnSystem(
                     isSensor = true,
                     sensorType = SensorType.AUDIO_EFFECT_SENSOR,
                     setUserData = BodyData(EntityCategory.SENSOR, it),
+                    categoryBit = EntityCategory.SENSOR.bit,
                 )
             it += physicCmp
             it +=
                 AudioZoneComponent(
-                    audioZoneObj.properties.get("soundEffect", String::class.java),
+                    SoundEffectEnum.valueOf(audioZoneObj.properties.get("soundEffect", String::class.java).uppercase()),
                     audioZoneObj.properties.get("effectPreset", String::class.java),
                     audioZoneObj.properties.get("effectIntensity", Float::class.java),
                 )
@@ -407,6 +410,8 @@ class EntitySpawnSystem(
 
                     it += LightComponent(flashlight)
 
+                    it += AudioZoneContactComponent()
+
                     val input = InputComponent()
                     it += input
 
@@ -464,16 +469,15 @@ class EntitySpawnSystem(
                     it += LightComponent(pulseLight)
 
                     // create normal nearbyEnemiesSensor
-                    val nearbyEnemiesDefaultSensorFixture =
-                        phyCmp.body.circle(
-                            cfg.nearbyEnemiesDefaultSensorRadius,
-                            cfg.nearbyEnemiesSensorOffset,
-                        ) {
-                            isSensor = true
-                            userData = FixtureData(SensorType.NEARBY_ENEMY_SENSOR)
-                            filter.categoryBits = EntityCategory.SENSOR.bit
-                            filter.maskBits = EntityCategory.PLAYER.bit
-                        }
+                    phyCmp.body.circle(
+                        cfg.nearbyEnemiesDefaultSensorRadius,
+                        cfg.nearbyEnemiesSensorOffset,
+                    ) {
+                        isSensor = true
+                        userData = FixtureData(SensorType.NEARBY_ENEMY_SENSOR)
+                        filter.categoryBits = EntityCategory.SENSOR.bit
+                        filter.maskBits = EntityCategory.PLAYER.bit
+                    }
 
                     it += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius)
 

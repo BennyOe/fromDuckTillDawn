@@ -14,6 +14,8 @@ import de.pottgames.tuningfork.EaxReverb
 import de.pottgames.tuningfork.SoundEffect
 import de.pottgames.tuningfork.StreamedSoundSource
 import io.bennyoe.components.AudioComponent
+import io.bennyoe.components.AudioZoneComponent
+import io.bennyoe.components.AudioZoneContactComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SoundProfileComponent
@@ -21,13 +23,12 @@ import io.bennyoe.components.TransformComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
-import io.bennyoe.event.PlayerEnteredAudioZoneEvent
 import io.bennyoe.event.StopLoopingSoundEvent
 import io.bennyoe.service.SoundMappingService
 import io.bennyoe.service.SoundType
+import io.bennyoe.utility.AudioEffectRegistry
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
-import ktx.math.plus
 import ktx.tiled.propertyOrNull
 import kotlin.reflect.KClass
 
@@ -61,9 +62,10 @@ class AudioSystem(
     private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
     private val eventHandlers = mutableMapOf<KClass<out Event>, (Event) -> Unit>()
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
+    private var activeEffect: SoundEffect? = SoundEffect(EaxReverb.arena())
+    private var activeEffectName: String? = null
 
     init {
-        val soundEffect = SoundEffect(EaxReverb.arena())
         registerHandler(PlaySoundEvent::class) { event ->
             val soundProfile =
                 with(world) {
@@ -80,6 +82,11 @@ class AudioSystem(
                 source.setPosition(it.x, it.y, 0f)
                 source.isRelative = false
                 source.attenuationFactor = 3f
+            }
+
+            activeEffect?.let {
+                logger.debug { "EFFEKT APPLIED" }
+                source.attachEffect(it)
             }
             source.volume = event.volume
             if (shouldVary) {
@@ -103,6 +110,9 @@ class AudioSystem(
             val soundBuffer = assets[soundAsset.descriptor]
             val source = audio.obtainSource(soundBuffer)
             source.setLooping(true)
+            activeEffect?.let {
+                source.attachEffect(it)
+            }
             source.volume = event.volume
             source.attenuationFactor = 1f
             source.play()
@@ -113,15 +123,21 @@ class AudioSystem(
             loopingSounds[event.loopId]?.stop()
             loopingSounds.remove(event.loopId)
         }
-
-        registerHandler(PlayerEnteredAudioZoneEvent::class) { event ->
-        }
     }
 
     override fun onTick() {
         val playerPos = playerEntity[TransformComponent].position
 
         audio.listener.setPosition(playerPos.x, playerPos.y, 0f)
+
+        val audioZoneContactCmp = playerEntity[AudioZoneContactComponent]
+        val currentZone = audioZoneContactCmp.activeZone
+
+        if (currentZone != null && activeEffectName != currentZone.effect.name) {
+            getAndSetSoundEffect(currentZone)
+        } else if (currentZone == null && activeEffectName != null) {
+            removeSoundEffect()
+        }
         super.onTick()
     }
 
@@ -130,10 +146,9 @@ class AudioSystem(
         val transformCmp = entity[TransformComponent]
 
         if (soundCmp.bufferedSoundSource == null) {
-            val soundProfile =
-                with(world) {
-                    entity.getOrNull(SoundProfileComponent)?.profile
-                }
+            with(world) {
+                entity.getOrNull(SoundProfileComponent)?.profile
+            }
 
             val soundAsset = SoundMappingService.getSoundAsset(soundCmp.soundType) ?: return
             val source = audio.obtainSource(assets[soundAsset.descriptor])
@@ -142,6 +157,7 @@ class AudioSystem(
             source.attenuationMaxDistance = soundCmp.soundAttenuationMaxDistance
             source.attenuationMinDistance = soundCmp.soundAttenuationMinDistance
             source.attenuationFactor = soundCmp.soundAttenuationFactor
+            activeEffect?.let { source.attachEffect(it) }
             source.setLooping(soundCmp.isLooping)
             source.isRelative = false
             soundCmp.bufferedSoundSource = source
@@ -149,6 +165,31 @@ class AudioSystem(
         }
 
         soundCmp.bufferedSoundSource?.setPosition(transformCmp.position.x + transformCmp.width * 0.5f, transformCmp.position.y, 0f)
+    }
+
+    private fun removeSoundEffect() {
+        logger.debug { "Exited audio zone" }
+        activeEffect?.dispose()
+        activeEffect = null
+        activeEffectName = null
+        removeEffectFromAllSources()
+    }
+
+    private fun getAndSetSoundEffect(audioZone: AudioZoneComponent) {
+        logger.debug { "Entered audio zone" }
+        activeEffect?.dispose()
+        try {
+            val handler = AudioEffectRegistry.getHandler(audioZone.effect)
+            if (handler != null) {
+                activeEffect = handler.applyPreset(audioZone.effect, audioZone.presetName)
+                applyEffectToAllSources()
+                activeEffectName = audioZone.effect.name
+            } else {
+                logger.error { "No AudioEffectHandler found for effect: '${audioZone.effect}'" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to process sound effect for event: ${audioZone.effect}" }
+        }
     }
 
     override fun handle(event: Event): Boolean {
@@ -162,7 +203,7 @@ class AudioSystem(
                     bgMusic.isRelative = true
                     bgMusic.setLooping(true)
                     bgMusic.volume = 0.4f
-//                    bgMusic.play()
+                    bgMusic.play()
                 }
         }
         return true
@@ -173,6 +214,24 @@ class AudioSystem(
         bgMusic.dispose()
         audio.dispose()
         super.onDispose()
+    }
+
+    private fun applyEffectToAllSources() {
+        activeEffect?.let { effect ->
+            loopingSounds.values.forEach { it.attachEffect(effect) }
+            world.family { all(AudioComponent) }.forEach { entity ->
+                entity[AudioComponent].bufferedSoundSource?.attachEffect(effect)
+            }
+        }
+    }
+
+    private fun removeEffectFromAllSources() {
+        activeEffect?.let { effect ->
+            loopingSounds.values.forEach { it.detachEffect(effect) }
+            world.family { all(AudioComponent) }.forEach { entity ->
+                entity[AudioComponent].bufferedSoundSource?.detachEffect(effect)
+            }
+        }
     }
 
     /** The `registerHandler` function registers an event handler for a specific event type in the `eventHandlers` map. It allows the system to

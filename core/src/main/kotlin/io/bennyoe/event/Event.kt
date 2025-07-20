@@ -46,15 +46,3 @@ data class StopLoopingSoundEvent(
     val loopId: SoundType,
 ) : Event(),
     AudioEvent
-
-data class PlayerEnteredAudioZoneEvent(
-    val effect: String,
-    val preset: String?,
-    val intensity: Float?,
-) : Event(),
-    AudioEvent
-
-data class PlayerExitedAudioZoneEvent(
-    val effect: String,
-) : Event(),
-    AudioEvent

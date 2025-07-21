@@ -64,6 +64,7 @@ class AudioSystem(
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
     private var activeEffect: SoundEffect? = SoundEffect(EaxReverb.arena())
     private var activeEffectName: String? = null
+    private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
 
     init {
         registerHandler(PlaySoundEvent::class) { event ->
@@ -85,7 +86,6 @@ class AudioSystem(
             }
 
             activeEffect?.let {
-                logger.debug { "EFFEKT APPLIED" }
                 source.attachEffect(it)
             }
             source.volume = event.volume
@@ -95,6 +95,7 @@ class AudioSystem(
 //            source.setFilter(0f, 0f)
 //            source.attachEffect(soundEffect)
             source.play()
+            oneShotSoundSources.add(source)
         }
 
         registerHandler(PlayLoopingSoundEvent::class) { event ->
@@ -121,11 +122,20 @@ class AudioSystem(
 
         registerHandler(StopLoopingSoundEvent::class) { event ->
             loopingSounds[event.loopId]?.stop()
+            loopingSounds[event.loopId]?.free()
             loopingSounds.remove(event.loopId)
         }
     }
 
     override fun onTick() {
+        val iterator = oneShotSoundSources.iterator()
+        while (iterator.hasNext()) {
+            val source = iterator.next()
+            if (!source.isPlaying) {
+                source.free()
+                iterator.remove()
+            }
+        }
         val playerPos = playerEntity[TransformComponent].position
 
         audio.listener.setPosition(playerPos.x, playerPos.y, 0f)
@@ -182,6 +192,7 @@ class AudioSystem(
             val handler = AudioEffectRegistry.getHandler(audioZone.effect)
             if (handler != null) {
                 activeEffect = handler.applyPreset(audioZone.effect, audioZone.presetName)
+                activeEffect?.setEnvironmental(true)
                 applyEffectToAllSources()
                 activeEffectName = audioZone.effect.name
             } else {
@@ -203,13 +214,18 @@ class AudioSystem(
                     bgMusic.isRelative = true
                     bgMusic.setLooping(true)
                     bgMusic.volume = 0.4f
-                    bgMusic.play()
+//                    bgMusic.play()
                 }
         }
         return true
     }
 
     override fun onDispose() {
+        loopingSounds.forEach { type, source ->
+            source.free()
+        }
+        oneShotSoundSources.forEach { it.free() }
+        oneShotSoundSources.clear()
         loopingSounds.clear()
         bgMusic.dispose()
         audio.dispose()

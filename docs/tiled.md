@@ -43,10 +43,10 @@ Rectangles on this layer define the static, solid collision bodies of the world.
 Rectangles on this layer define zones that trigger audio effects when the player enters them.
 
 | Property | Data Type | Description | Example Value |
-| :--- | :--- | :--- | :--- |
-| `effect` | `String` | **(Required)** The name of the EAX Reverb effect to activate. | `arena` |
-| `preset` | `String` | *Optional.* A specific preset for the effect. | `small_room` |
-| `intensity` | `Float` | *Optional.* The intensity of the effect. | `0.7` |
+| :--- | :--- | :--- |:--------------|
+| `effect` | `String` | **(Required)** The name of the EAX Reverb effect to activate. | `EAX_REVERB`  |
+| `preset` | `String` | *Optional.* A specific preset for the effect. | `small_room`  |
+| `intensity` | `Float` | *Optional.* The intensity of the effect. | `0.7`         |
 
 ### Layer: `lights`
 
@@ -71,6 +71,6 @@ Objects (usually points or rectangles) on this layer create dynamic light source
 
 These properties are set at the top level of the Tiled map (in the `Properties` panel for the map itself).
 
-| Property | Data Type | Description | Example Value |
-| :--- | :--- | :--- | :--- |
-| `bgMusic` | `String` | *Optional.* The path to the background music file that should be played when the map loads. | `music/level_1_theme.mp3` |
+| Property | Data Type | Description                                                                        | Example Value |
+| :--- | :--- |:-----------------------------------------------------------------------------------| :--- |
+| `bgMusic` | `String` | The path to the background music file that should be played when the map loads. | `music/level_1_theme.mp3` |

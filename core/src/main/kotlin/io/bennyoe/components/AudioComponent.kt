@@ -22,6 +22,7 @@ class AudioComponent(
 
     override fun World.onRemove(entity: Entity) {
         bufferedSoundSource?.stop()
+        bufferedSoundSource?.free()
     }
 
     companion object : ComponentType<AudioComponent>() {

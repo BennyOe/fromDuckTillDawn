@@ -6,6 +6,7 @@ import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
 import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.ai.core.AbstractAction
+import io.bennyoe.components.GameMood
 import ktx.log.logger
 
 class Idle(
@@ -18,6 +19,7 @@ class Idle(
     override fun enter() {
         Attack.Companion.logger.debug { "Idle Enter" }
         ctx.lastTaskName = this.javaClass.simpleName
+        ctx.currentMood = GameMood.NORMAL
         ctx.idle()
         currentDuration = duration?.nextFloat() ?: 1f
     }

@@ -1,6 +1,7 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
@@ -13,9 +14,17 @@ import de.pottgames.tuningfork.BufferedSoundSource
 import de.pottgames.tuningfork.EaxReverb
 import de.pottgames.tuningfork.SoundEffect
 import de.pottgames.tuningfork.StreamedSoundSource
+import de.pottgames.tuningfork.jukebox.JukeBox
+import de.pottgames.tuningfork.jukebox.playlist.PlayList
+import de.pottgames.tuningfork.jukebox.playlist.ThemePlayListProvider
+import de.pottgames.tuningfork.jukebox.song.Song
+import de.pottgames.tuningfork.jukebox.song.SongMeta
+import de.pottgames.tuningfork.jukebox.song.SongSettings
 import io.bennyoe.components.AudioComponent
 import io.bennyoe.components.AudioZoneComponent
 import io.bennyoe.components.AudioZoneContactComponent
+import io.bennyoe.components.GameMood
+import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.SoundProfileComponent
@@ -59,12 +68,25 @@ class AudioSystem(
 ) : IteratingSystem(family { all(AudioComponent, TransformComponent) }),
     EventListener {
     private lateinit var bgMusic: StreamedSoundSource
+    private lateinit var chaseMusic: StreamedSoundSource
+    private lateinit var deadMusic: StreamedSoundSource
+    private val bgMusicPlayList: PlayList = PlayList()
+    private val chaseMusicPlayList: PlayList = PlayList()
+    private val deadMusicPlaylist: PlayList = PlayList()
+    private val playListProvider: ThemePlayListProvider by lazy {
+        ThemePlayListProvider()
+            .add(chaseMusicPlayList, GameMood.CHASE.ordinal)
+            .add(bgMusicPlayList, GameMood.NORMAL.ordinal)
+            .add(deadMusicPlaylist, GameMood.PLAYER_DEAD.ordinal)
+    }
+    private val jukebox: JukeBox by lazy { JukeBox(playListProvider) }
     private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
     private val eventHandlers = mutableMapOf<KClass<out Event>, (Event) -> Unit>()
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
     private var activeEffect: SoundEffect? = SoundEffect(EaxReverb.arena())
     private var activeEffectName: String? = null
     private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
+    private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
 
     init {
         registerHandler(PlaySoundEvent::class) { event ->
@@ -92,8 +114,7 @@ class AudioSystem(
             if (shouldVary) {
                 source.pitch = MathUtils.random(MIN_PITCH, MAX_PITCH)
             }
-//            source.setFilter(0f, 0f)
-//            source.attachEffect(soundEffect)
+
             source.play()
             oneShotSoundSources.add(source)
         }
@@ -128,6 +149,21 @@ class AudioSystem(
     }
 
     override fun onTick() {
+        val gameStateCmp = gameStateEntity[GameStateComponent]
+        val newTheme =
+            when (gameStateCmp.gameMood) {
+                GameMood.CHASE -> GameMood.CHASE.ordinal
+                GameMood.PLAYER_DEAD -> GameMood.PLAYER_DEAD.ordinal
+                else -> GameMood.NORMAL.ordinal
+            }
+
+        if (playListProvider.theme != newTheme) {
+            playListProvider.theme = newTheme
+            jukebox.softStopAndResume(Interpolation.linear, 1f)
+        }
+
+        jukebox.update()
+
         val iterator = oneShotSoundSources.iterator()
         while (iterator.hasNext()) {
             val source = iterator.next()
@@ -207,15 +243,39 @@ class AudioSystem(
         eventHandlers[event::class]?.invoke(event)
 
         when (event) {
-            is MapChangedEvent ->
+            is MapChangedEvent -> {
                 event.map.propertyOrNull<String>("bgMusic")?.let { path ->
-                    logger.debug { "Music $path Played" }
                     bgMusic = StreamedSoundSource(Gdx.files.internal(path))
                     bgMusic.isRelative = true
                     bgMusic.setLooping(true)
                     bgMusic.volume = 0.4f
-//                    bgMusic.play()
+                    val bgSongSettings = SongSettings.linear(0.6f, 1f, 1f)
+                    val meta = SongMeta().setTitle("BG-MUSIC")
+                    val bgSong = Song(bgMusic, bgSongSettings, meta)
+                    bgMusicPlayList.addSong(bgSong)
                 }
+                event.map.propertyOrNull<String>("chaseMusic")?.let { path ->
+                    chaseMusic = StreamedSoundSource(Gdx.files.internal(path))
+                    chaseMusic.isRelative = true
+                    chaseMusic.setLooping(true)
+                    val chaseSongSettings = SongSettings.linear(0.6f, 1f, 1f)
+                    val meta = SongMeta().setTitle("CHASE-MUSIC")
+                    val chaseSong = Song(chaseMusic, chaseSongSettings, meta)
+                    chaseMusicPlayList.addSong(chaseSong)
+                }
+                event.map.propertyOrNull<String>("deadMusic")?.let { path ->
+                    deadMusic = StreamedSoundSource(Gdx.files.internal(path))
+                    deadMusic.isRelative = true
+                    deadMusic.setLooping(true)
+                    val deadSongSettings = SongSettings.linear(0.6f, 1f, 1f)
+                    val meta = SongMeta().setTitle("DEAD-MUSIC")
+                    val deadSong = Song(deadMusic, deadSongSettings, meta)
+                    deadMusicPlaylist.addSong(deadSong)
+                }
+                if (!jukebox.isPlaying) {
+                    jukebox.play()
+                }
+            }
         }
         return true
     }
@@ -228,6 +288,7 @@ class AudioSystem(
         oneShotSoundSources.clear()
         loopingSounds.clear()
         bgMusic.dispose()
+        chaseMusic.dispose()
         audio.dispose()
         super.onDispose()
     }

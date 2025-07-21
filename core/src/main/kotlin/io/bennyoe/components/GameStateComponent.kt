@@ -7,6 +7,7 @@ import io.bennyoe.components.debug.DebugComponent.Companion.logger
 class GameStateComponent(
     var isPaused: Boolean = false,
     var isLightingEnabled: Boolean = true,
+    var gameMood: GameMood = GameMood.NORMAL,
 ) : Component<GameStateComponent> {
     private var alreadyChanged: Boolean = false
 
@@ -35,4 +36,12 @@ class GameStateComponent(
     override fun type() = GameStateComponent
 
     companion object : ComponentType<GameStateComponent>()
+}
+
+enum class GameMood(
+    val priority: Int,
+) {
+    NORMAL(0),
+    CHASE(1),
+    PLAYER_DEAD(100),
 }

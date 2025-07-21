@@ -2,6 +2,8 @@
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="16" nextobjectid="98">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
+  <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
+  <property name="deadMusic" value="sound/music/deadMusic.mp3"/>
  </properties>
  <tileset firstgid="1" source="groundTiles1.tsx"/>
  <tileset firstgid="649" source="fire.tsx"/>

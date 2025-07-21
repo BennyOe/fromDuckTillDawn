@@ -4,6 +4,7 @@ import com.badlogic.gdx.ai.GdxAI
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
 import io.bennyoe.ai.core.AbstractAction
+import io.bennyoe.components.GameMood
 import io.bennyoe.components.WalkDirection
 import ktx.log.logger
 
@@ -18,6 +19,7 @@ class Patrol(
         logger.debug { "Patrol Enter" }
         ctx.stopAttack()
         ctx.lastTaskName = this.javaClass.simpleName
+        ctx.currentMood = GameMood.NORMAL
         ctx.intentionCmp.walkDirection = WalkDirection.RIGHT
         currentDuration = duration?.nextFloat() ?: 1f
     }

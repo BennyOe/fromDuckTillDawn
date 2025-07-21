@@ -3,8 +3,10 @@ package io.bennyoe.service
 import io.bennyoe.assets.SoundAssets
 import io.bennyoe.utility.FloorType
 import io.bennyoe.utility.SoundProfile
+import ktx.log.logger
 
 object SoundMappingService {
+    private val logger = logger<SoundMappingService>()
     private val defaultGeneralSounds: Map<SoundType, SoundAssets> =
         mapOf(
             SoundType.CAMPFIRE to SoundAssets.CAMPFIRE,
@@ -20,11 +22,17 @@ object SoundMappingService {
         }
 
         return if (type.isSurfaceDependent) {
-            // If the sound depends on the surface, look in the footstep map
-            profile.footstepsSounds[floorType] ?: profile.footstepsSounds.values.first()
+            profile.footstepsSounds[floorType]?.randomOrNull()
+                ?: profile.footstepsSounds[FloorType.STONE]?.randomOrNull()
+                ?: run {
+                    logger.error { "No sound found for floorType '$floorType' and no default could be used." }
+                    null
+                }
         } else {
-            // Otherwise, look in the simple sounds map
-            profile.simpleSounds[type]
+            profile.simpleSounds[type]?.randomOrNull() ?: run {
+                logger.error { "No sound found for simple sound type '$type'." }
+                null
+            }
         }
     }
 }

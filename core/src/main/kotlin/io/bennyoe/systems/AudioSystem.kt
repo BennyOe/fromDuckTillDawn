@@ -11,7 +11,6 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import de.pottgames.tuningfork.Audio
 import de.pottgames.tuningfork.BufferedSoundSource
-import de.pottgames.tuningfork.EaxReverb
 import de.pottgames.tuningfork.SoundEffect
 import de.pottgames.tuningfork.StreamedSoundSource
 import de.pottgames.tuningfork.jukebox.JukeBox
@@ -33,11 +32,13 @@ import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StopLoopingSoundEvent
+import io.bennyoe.event.StreamSoundEvent
 import io.bennyoe.service.SoundMappingService
 import io.bennyoe.service.SoundType
 import io.bennyoe.utility.AudioEffectRegistry
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
+import ktx.math.vec3
 import ktx.tiled.propertyOrNull
 import kotlin.reflect.KClass
 
@@ -83,10 +84,22 @@ class AudioSystem(
     private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
     private val eventHandlers = mutableMapOf<KClass<out Event>, (Event) -> Unit>()
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
-    private var activeEffect: SoundEffect? = SoundEffect(EaxReverb.arena())
+    private var activeEffect: SoundEffect? = null
     private var activeEffectName: String? = null
     private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
+
+    // fading
+    private var isFading = false
+    private var fadeInTimer = 0f
+    private var currentFadeInDuration = 1f
+    private var fadeOutTimer = 0f
+    private var currentFadeOutDuration = 1f
+    private var lastKnownFadeDuration: Float = 1f
+    private var initialGain = 0f
+    private var targetGain = 0f
+    private var currentGain = 0f
+    private var disposeCountdown = -1f
 
     init {
         registerHandler(PlaySoundEvent::class) { event ->
@@ -133,8 +146,9 @@ class AudioSystem(
             val source = audio.obtainSource(soundBuffer)
             source.setLooping(true)
             activeEffect?.let {
-                source.attachEffect(it)
+                source.attachEffect(it, 1f, currentGain)
             }
+
             source.volume = event.volume
             source.attenuationFactor = 1f
             source.play()
@@ -164,6 +178,8 @@ class AudioSystem(
 
         jukebox.update()
 
+        handleFading()
+
         val iterator = oneShotSoundSources.iterator()
         while (iterator.hasNext()) {
             val source = iterator.next()
@@ -179,10 +195,12 @@ class AudioSystem(
         val audioZoneContactCmp = playerEntity[AudioZoneContactComponent]
         val currentZone = audioZoneContactCmp.activeZone
 
-        if (currentZone != null && activeEffectName != currentZone.effect.name) {
-            getAndSetSoundEffect(currentZone)
-        } else if (currentZone == null && activeEffectName != null) {
-            removeSoundEffect()
+        if (!isFading) {
+            if (currentZone != null && activeEffectName != currentZone.effect.name) {
+                startFadeIn(currentZone)
+            } else if (currentZone == null && activeEffectName != null) {
+                startFadeOut(lastKnownFadeDuration)
+            }
         }
         super.onTick()
     }
@@ -213,29 +231,96 @@ class AudioSystem(
         soundCmp.bufferedSoundSource?.setPosition(transformCmp.position.x + transformCmp.width * 0.5f, transformCmp.position.y, 0f)
     }
 
-    private fun removeSoundEffect() {
-        logger.debug { "Exited audio zone" }
-        activeEffect?.dispose()
-        activeEffect = null
-        activeEffectName = null
-        removeEffectFromAllSources()
+    private fun handleFading() {
+        if (!isFading) return
+
+        fadeInTimer += deltaTime
+        fadeOutTimer += deltaTime
+
+        // choose the correct timer depending on fade direction
+        val progress =
+            if (targetGain > initialGain) {
+                (fadeInTimer / currentFadeInDuration).coerceAtMost(1f) // Fade‑In
+            } else {
+                (fadeOutTimer / currentFadeOutDuration).coerceAtMost(1f) // Fade‑Out
+            }
+
+        currentGain = Interpolation.sine.apply(initialGain, targetGain, progress)
+        updateAllSourcesEffectGain(currentGain)
+
+        if (progress >= 1f) {
+            isFading = false
+            if (targetGain == 0f && activeEffect != null) {
+                disposeCountdown = 2f
+            }
+        }
+        if (disposeCountdown >= 0f) {
+            disposeCountdown -= deltaTime
+            if (disposeCountdown <= 0f) {
+                detachAllSourcesFromEffect(activeEffect!!)
+                activeEffect?.dispose()
+                activeEffect = null
+                activeEffectName = null
+                disposeCountdown = -1f
+            }
+        }
     }
 
-    private fun getAndSetSoundEffect(audioZone: AudioZoneComponent) {
-        logger.debug { "Entered audio zone" }
-        activeEffect?.dispose()
-        try {
-            val handler = AudioEffectRegistry.getHandler(audioZone.effect)
-            if (handler != null) {
-                activeEffect = handler.applyPreset(audioZone.effect, audioZone.presetName)
-                activeEffect?.setEnvironmental(true)
-                applyEffectToAllSources()
-                activeEffectName = audioZone.effect.name
-            } else {
-                logger.error { "No AudioEffectHandler found for effect: '${audioZone.effect}'" }
+    private fun startFadeIn(audioZone: AudioZoneComponent) {
+        logger.debug { "Start fade-in für: ${audioZone.effect.name}" }
+        if (activeEffect != null) {
+            detachAllSourcesFromEffect(activeEffect!!)
+            activeEffect?.dispose()
+        }
+
+        val handler = AudioEffectRegistry.getHandler(audioZone.effect) ?: return
+        activeEffect = handler.applyPreset(audioZone.effect, audioZone.presetName)
+        activeEffectName = audioZone.effect.name
+        lastKnownFadeDuration = audioZone.fadeOutDuration
+
+        isFading = true
+        fadeInTimer = 0f
+        currentFadeInDuration = audioZone.fadeInDuration
+        initialGain = 0f
+        targetGain = audioZone.intensity ?: 1f
+        updateAllSourcesEffectGain(currentGain)
+    }
+
+    private fun startFadeOut(fadeDuration: Float) {
+        logger.debug { "Start fade-out" }
+        if (activeEffect == null) return
+
+        val safeDuration = fadeDuration.coerceAtLeast(0.05f)
+        isFading = true
+        fadeInTimer = 0f
+        fadeOutTimer = 0f
+        currentFadeOutDuration = safeDuration
+        initialGain = currentGain
+        targetGain = 0f
+
+        updateAllSourcesEffectGain(currentGain)
+    }
+
+    private fun updateAllSourcesEffectGain(gain: Float) {
+        activeEffect?.let { effect ->
+            val update: (BufferedSoundSource) -> Unit = { src ->
+                src.detachEffect(effect)
+                src.attachEffect(effect, 1f, gain)
             }
-        } catch (e: Exception) {
-            logger.error(e) { "Failed to process sound effect for event: ${audioZone.effect}" }
+
+            loopingSounds.values.forEach(update)
+            oneShotSoundSources.forEach(update)
+            world.family { all(AudioComponent) }.forEach { e ->
+                e[AudioComponent].bufferedSoundSource?.let(update)
+            }
+        }
+    }
+
+    private fun detachAllSourcesFromEffect(effect: SoundEffect) {
+        loopingSounds.values.forEach { it.detachEffect(effect) }
+        oneShotSoundSources.forEach { it.detachEffect(effect) }
+        world.family { all(AudioComponent) }.forEach { entity ->
+            entity[AudioComponent].bufferedSoundSource?.detachEffect(effect)
         }
     }
 

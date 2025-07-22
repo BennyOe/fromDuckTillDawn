@@ -8,6 +8,8 @@ class AudioZoneComponent(
     val effect: SoundEffectEnum,
     val presetName: String? = null,
     val intensity: Float? = null,
+    val fadeInDuration: Float = 0f,
+    val fadeOutDuration: Float = 0f,
 ) : Component<AudioZoneComponent> {
     override fun type() = AudioZoneComponent
 

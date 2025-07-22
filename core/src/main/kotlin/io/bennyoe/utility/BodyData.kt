@@ -27,6 +27,7 @@ enum class SensorType {
     ATTACK_SENSOR,
     SIGHT_SENSOR,
     AUDIO_EFFECT_SENSOR,
+    SOUND_TRIGGER_SENSOR,
 }
 
 enum class FloorType {

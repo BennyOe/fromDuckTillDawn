@@ -46,3 +46,11 @@ data class StopLoopingSoundEvent(
     val loopId: SoundType,
 ) : Event(),
     AudioEvent
+
+data class StreamSoundEvent(
+    val entity: Entity,
+    val sound: String,
+    val volume: Float,
+    val position: Vector2? = null,
+) : Event(),
+    AudioEvent

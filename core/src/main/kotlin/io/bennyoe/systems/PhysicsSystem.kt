@@ -7,6 +7,7 @@ import com.badlogic.gdx.physics.box2d.ContactListener
 import com.badlogic.gdx.physics.box2d.Fixture
 import com.badlogic.gdx.physics.box2d.Manifold
 import com.badlogic.gdx.physics.box2d.World
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
@@ -23,19 +24,25 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.SoundTriggerComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
+import io.bennyoe.event.PlaySoundEvent
+import io.bennyoe.event.StreamSoundEvent
+import io.bennyoe.event.fire
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.bodyData
 import io.bennyoe.utility.fixtureData
+import ktx.actors.stage
 import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2
 
 class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
+    private val stage: Stage = inject("stage"),
 ) : IteratingSystem(family { all(PhysicComponent, ImageComponent) }, interval = Fixed(PHYSIC_TIME_STEP)),
     ContactListener,
     PausableSystem {
@@ -105,6 +112,7 @@ class PhysicsSystem(
         val bodyDataB = contact.fixtureB.bodyData ?: return
 
         handleAudioZoneContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
+        handleSoundTriggerContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleGroundContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleNearbyEnemiesBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handlePlayerEnemyCollision(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
@@ -140,6 +148,51 @@ class PhysicsSystem(
         contact: Contact,
         impulse: ContactImpulse,
     ) {
+    }
+
+    private fun handleSoundTriggerContactBegin(
+        bodyDataA: BodyData,
+        bodyDataB: BodyData,
+        fixtureA: Fixture,
+        fixtureB: Fixture,
+    ) {
+        val (playerBodyData, soundTriggerBodyData) =
+            when {
+                fixtureA.fixtureData?.type == SensorType.SOUND_TRIGGER_SENSOR && bodyDataB.type == EntityCategory.PLAYER ->
+                    bodyDataB to bodyDataA
+
+                fixtureB.fixtureData?.type == SensorType.SOUND_TRIGGER_SENSOR && bodyDataA.type == EntityCategory.PLAYER ->
+                    bodyDataA to bodyDataB
+
+                else -> return
+            }
+
+        val soundTriggerCmp = soundTriggerBodyData.entity[SoundTriggerComponent]
+        val physicCmp = soundTriggerBodyData.entity[PhysicComponent]
+
+        if (soundTriggerCmp.streamed) {
+            logger.debug { "SoundStream Event fired at position ${physicCmp.body.position}" }
+            stage.fire(
+                StreamSoundEvent(
+                    soundTriggerBodyData.entity,
+                    soundTriggerCmp.sound!!,
+                    soundTriggerCmp.volume,
+                    physicCmp.body.position,
+                ),
+            )
+        } else {
+            // TODO not usable atm. Have to think about how preloaded sounds should be handled since other sounds are managed with a
+            //  SoundProfileComponent.
+            logger.debug { "SoundType Event fired" }
+            stage.fire(
+                PlaySoundEvent(
+                    soundTriggerBodyData.entity,
+                    soundTriggerCmp.type!!,
+                    soundTriggerCmp.volume,
+                    physicCmp.body.position,
+                ),
+            )
+        }
     }
 
     private fun handleAudioZoneContactBegin(

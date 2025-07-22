@@ -44,6 +44,7 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.SoundProfileComponent
+import io.bennyoe.components.SoundTriggerComponent
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
@@ -129,6 +130,11 @@ class EntitySpawnSystem(
                 audioZones.objects.forEach { audioZoneObj ->
                     createAudioZone(audioZoneObj)
                 }
+                // Adding SoundTriggers
+                val soundTriggers = event.map.layer("soundTriggers")
+                soundTriggers.objects.forEach { audioZoneObj ->
+                    createSoundTrigger(audioZoneObj)
+                }
                 // Adding lights
                 val lightsLayer = event.map.layer("lights")
                 lightsLayer.objects.forEach { light ->
@@ -186,6 +192,28 @@ class EntitySpawnSystem(
                     audioZoneObj.properties.get("effectIntensity", Float::class.java),
                     audioZoneObj.properties.get("fadeIn", Float::class.java),
                     audioZoneObj.properties.get("fadeOut", Float::class.java),
+                )
+        }
+    }
+
+    private fun createSoundTrigger(soundTriggerObj: MapObject) {
+        world.entity {
+            val physicCmp =
+                PhysicComponent.physicsComponentFromShape2D(
+                    phyWorld,
+                    soundTriggerObj.shape,
+                    isSensor = true,
+                    sensorType = SensorType.SOUND_TRIGGER_SENSOR,
+                    setUserData = BodyData(EntityCategory.SENSOR, it),
+                    categoryBit = EntityCategory.SENSOR.bit,
+                )
+            it += physicCmp
+            it +=
+                SoundTriggerComponent(
+                    soundTriggerObj.properties.get("sound") as String?,
+                    (soundTriggerObj.properties.get("type") as String?)?.uppercase()?.let { type -> SoundType.valueOf(type) },
+                    soundTriggerObj.properties.get("streamed", Boolean::class.java),
+                    soundTriggerObj.properties.get("volume", Float::class.java),
                 )
         }
     }

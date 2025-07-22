@@ -160,6 +160,19 @@ class AudioSystem(
             loopingSounds[event.loopId]?.free()
             loopingSounds.remove(event.loopId)
         }
+
+        registerHandler(StreamSoundEvent::class) { event ->
+            val triggeredSound = StreamedSoundSource(Gdx.files.internal(event.sound))
+            if (event.position != null) {
+                triggeredSound.isRelative = false
+                triggeredSound.setPosition(vec3(event.position.x, event.position.y, 0f))
+            } else {
+                triggeredSound.isRelative = true
+            }
+            triggeredSound.setLooping(false)
+            triggeredSound.volume = event.volume
+            triggeredSound.play()
+        }
     }
 
     override fun onTick() {
@@ -376,24 +389,6 @@ class AudioSystem(
         chaseMusic.dispose()
         audio.dispose()
         super.onDispose()
-    }
-
-    private fun applyEffectToAllSources() {
-        activeEffect?.let { effect ->
-            loopingSounds.values.forEach { it.attachEffect(effect) }
-            world.family { all(AudioComponent) }.forEach { entity ->
-                entity[AudioComponent].bufferedSoundSource?.attachEffect(effect)
-            }
-        }
-    }
-
-    private fun removeEffectFromAllSources() {
-        activeEffect?.let { effect ->
-            loopingSounds.values.forEach { it.detachEffect(effect) }
-            world.family { all(AudioComponent) }.forEach { entity ->
-                entity[AudioComponent].bufferedSoundSource?.detachEffect(effect)
-            }
-        }
     }
 
     /** The `registerHandler` function registers an event handler for a specific event type in the `eventHandlers` map. It allows the system to

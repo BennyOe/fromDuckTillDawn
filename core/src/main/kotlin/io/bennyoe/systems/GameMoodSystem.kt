@@ -17,6 +17,11 @@ class GameMoodSystem : IteratingSystem(family { all(BehaviorTreeComponent) }) {
     override fun onTick() {
         highestMoodThisTick = GameMood.NORMAL
 
+        val playerHealthCmp = playerEntity[HealthComponent]
+        if (playerHealthCmp.isDead) {
+            highestMoodThisTick = GameMood.PLAYER_DEAD
+        }
+
         super.onTick()
 
         val gameStateCmp = with(world) { gameStateEntity[GameStateComponent] }
@@ -26,13 +31,13 @@ class GameMoodSystem : IteratingSystem(family { all(BehaviorTreeComponent) }) {
     }
 
     override fun onTickEntity(entity: Entity) {
+        val healthCmp = entity[HealthComponent]
+
+        if (healthCmp.isDead) {
+            return
+        }
         val behaviorTreeCmp = entity[BehaviorTreeComponent]
         val currentEntityMood = behaviorTreeCmp.behaviorTree.`object`.currentMood
-        val playerHealthCmp = playerEntity[HealthComponent]
-
-        if (playerHealthCmp.isDead) {
-            highestMoodThisTick = GameMood.PLAYER_DEAD
-        }
 
         if (currentEntityMood.priority > highestMoodThisTick.priority) {
             highestMoodThisTick = currentEntityMood

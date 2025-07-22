@@ -99,6 +99,7 @@ class GameScreen(
             entityCategory = EntityCategory.LIGHT.bit,
             entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv() and EntityCategory.SENSOR.bit.inv()),
             lightActivationRadius = 18f,
+            lightViewportScale = 4f,
         )
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val entityWorld =
@@ -150,6 +151,7 @@ class GameScreen(
         }
 
     override fun show() {
+        rayHandler.setBlurNum(2)
         profiler.enable()
         // add a gameState Entity to the screen
         entityWorld.entity {
@@ -193,6 +195,7 @@ class GameScreen(
     ) {
         super.resize(width, height)
         lightEngine.resize(width, height)
+        rayHandler.resizeFBO(width / 2, height / 2)
     }
 
     companion object {

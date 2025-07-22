@@ -70,4 +70,9 @@ data class Stages(
 ) {
     val stage by lazy { Stage(FitViewport(WORLD_WIDTH, WORLD_HEIGHT), spriteBatch) }
     val uiStage by lazy { Stage(ScreenViewport(), spriteBatch) }
+
+    init {
+        stage.camera.position.set(24f, WORLD_HEIGHT / 2f, 0f)
+        stage.camera.update()
+    }
 }

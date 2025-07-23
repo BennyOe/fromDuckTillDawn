@@ -12,6 +12,7 @@ import com.github.quillraven.fleks.World.Companion.inject
 import de.pottgames.tuningfork.Audio
 import de.pottgames.tuningfork.BufferedSoundSource
 import de.pottgames.tuningfork.SoundEffect
+import de.pottgames.tuningfork.SoundSource
 import de.pottgames.tuningfork.StreamedSoundSource
 import de.pottgames.tuningfork.jukebox.JukeBox
 import de.pottgames.tuningfork.jukebox.playlist.PlayList
@@ -19,15 +20,16 @@ import de.pottgames.tuningfork.jukebox.playlist.ThemePlayListProvider
 import de.pottgames.tuningfork.jukebox.song.Song
 import de.pottgames.tuningfork.jukebox.song.SongMeta
 import de.pottgames.tuningfork.jukebox.song.SongSettings
-import io.bennyoe.components.AudioComponent
-import io.bennyoe.components.AudioZoneComponent
-import io.bennyoe.components.AudioZoneContactComponent
 import io.bennyoe.components.GameMood
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
-import io.bennyoe.components.SoundProfileComponent
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.components.audio.AudioComponent
+import io.bennyoe.components.audio.ReverbZoneContactComponent
+import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.event.AmbienceChangeEvent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
@@ -35,7 +37,7 @@ import io.bennyoe.event.StopLoopingSoundEvent
 import io.bennyoe.event.StreamSoundEvent
 import io.bennyoe.service.SoundMappingService
 import io.bennyoe.service.SoundType
-import io.bennyoe.utility.AudioEffectRegistry
+import io.bennyoe.utility.getReverb
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
 import ktx.math.vec3
@@ -44,62 +46,68 @@ import kotlin.reflect.KClass
 
 private const val MIN_PITCH = 0.8f
 private const val MAX_PITCH = 1.3f
+private const val REVERB_TAIL = 5f
 
 /**
- * Manages all audio playback within the game, including sound effects and background music.
+ * Manages all audio playback within the game, including sound effects, ambience, and background music.
  *
- * This system centralizes audio handling through a clear, event-driven, and component-based flow:
- * 1.  **Trigger**: Sounds are requested either by firing a [PlaySoundEvent]/[PlayLoopingSoundEvent] or by an entity
- * with an [AudioComponent]. Both methods use a logical [SoundType] enum to specify the sound's purpose
- * (e.g., `FOOTSTEPS`, `ATTACK`).
- * 2.  **Mapping**: The system uses the [SoundMapping] service to translate the logical [SoundType] into a
- * concrete [io.bennyoe.assets.SoundAssets] file. This mapping can be context-dependent, for example,
- * using the [io.bennyoe.utility.FloorType] to select the correct footstep sound.
- * 3.  **Asset Loading**: The resolved asset descriptor is used to fetch the loaded [de.pottgames.tuningfork.SoundBuffer]
- * from the [AssetStorage].
- * 4.  **Playback**: Finally, the TuningFork [Audio] engine is used to obtain a source and play the sound.
- * The system handles positioning by updating the listener's position to the player's location
- * and setting the source's position for spatial audio effects.
+ * This system centralizes audio handling through an event-driven and component-based architecture:
  *
- * Looping sounds are managed in the `loopingSounds` map to ensure they can be started and stopped correctly.
+ * 1. **Trigger**: Sounds are requested by firing events (e.g. [PlaySoundEvent], [PlayLoopingSoundEvent]) or by adding an [AudioComponent] to an entity.
+ * 2. **Mapping**: Logical [SoundType]s are resolved via [SoundMappingService] into actual audio files, optionally influenced by [SoundProfileComponent] or floor types.
+ * 3. **Asset Loading**: The resolved sound asset is loaded via [AssetStorage] and passed to TuningFork's [Audio] engine.
+ * 4. **Playback**: The sound is played, optionally spatialized if a world position is given. Looping sounds are tracked for later removal.
+ *
+ * Additional Features:
+ * - **Ambience and Music**: Background and ambience music are playlist-managed via [JukeBox] and automatically change depending on [GameMood] and map properties.
+ * - **Reverb Zones**: Environmental effects (e.g., cave echo) are automatically applied when the player enters a reverb zone and gracefully fade out when leaving.
  */
 class AudioSystem(
     private val assets: AssetStorage = inject("assetManager"),
     private val audio: Audio = inject("audio"),
 ) : IteratingSystem(family { all(AudioComponent, TransformComponent) }),
     EventListener {
+    private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
+    private val eventHandlers = mutableMapOf<KClass<out Event>, (Event) -> Unit>()
+    private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
+    private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
+
+    // music
+    private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
     private lateinit var bgMusic: StreamedSoundSource
     private lateinit var chaseMusic: StreamedSoundSource
     private lateinit var deadMusic: StreamedSoundSource
     private val bgMusicPlayList: PlayList = PlayList()
     private val chaseMusicPlayList: PlayList = PlayList()
     private val deadMusicPlaylist: PlayList = PlayList()
-    private val playListProvider: ThemePlayListProvider by lazy {
+    private val musicPlayListProvider: ThemePlayListProvider by lazy {
         ThemePlayListProvider()
             .add(chaseMusicPlayList, GameMood.CHASE.ordinal)
             .add(bgMusicPlayList, GameMood.NORMAL.ordinal)
             .add(deadMusicPlaylist, GameMood.PLAYER_DEAD.ordinal)
     }
-    private val jukebox: JukeBox by lazy { JukeBox(playListProvider) }
-    private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
-    private val eventHandlers = mutableMapOf<KClass<out Event>, (Event) -> Unit>()
-    private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
-    private var activeEffect: SoundEffect? = null
-    private var activeEffectName: String? = null
-    private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
-    private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
+    private val musicJukebox: JukeBox by lazy { JukeBox(musicPlayListProvider) }
 
-    // fading
-    private var isFading = false
-    private var fadeInTimer = 0f
-    private var currentFadeInDuration = 1f
-    private var fadeOutTimer = 0f
-    private var currentFadeOutDuration = 1f
-    private var lastKnownFadeDuration: Float = 1f
-    private var initialGain = 0f
-    private var targetGain = 0f
-    private var currentGain = 0f
-    private var disposeCountdown = -1f
+    // ambience
+    private val ambiencePlayLists: MutableList<PlayList> = mutableListOf()
+    private val ambiencePlayListProvider: ThemePlayListProvider by lazy {
+        ThemePlayListProvider()
+    }
+    private val ambienceJukebox: JukeBox by lazy { JukeBox(ambiencePlayListProvider) }
+    private var currentAmbienceId: AmbienceType? = null
+
+    // effects
+    private var attachEffectToNewSources = false
+    private var activeEffect: SoundEffect? = null
+    private var activePreset: String? = null
+    private var currentWet = 1f
+
+    private data class TailReverb(
+        val effect: SoundEffect,
+        var ttl: Float = REVERB_TAIL,
+    )
+
+    private val detachedEffects: MutableList<TailReverb> = mutableListOf()
 
     init {
         registerHandler(PlaySoundEvent::class) { event ->
@@ -120,9 +128,7 @@ class AudioSystem(
                 source.attenuationFactor = 3f
             }
 
-            activeEffect?.let {
-                source.attachEffect(it)
-            }
+            applyReverbToNewSource(source)
             source.volume = event.volume
             if (shouldVary) {
                 source.pitch = MathUtils.random(MIN_PITCH, MAX_PITCH)
@@ -145,9 +151,8 @@ class AudioSystem(
             val soundBuffer = assets[soundAsset.descriptor]
             val source = audio.obtainSource(soundBuffer)
             source.setLooping(true)
-            activeEffect?.let {
-                source.attachEffect(it, 1f, currentGain)
-            }
+
+            applyReverbToNewSource(source)
 
             source.volume = event.volume
             source.attenuationFactor = 1f
@@ -170,51 +175,31 @@ class AudioSystem(
                 triggeredSound.isRelative = true
             }
             triggeredSound.setLooping(false)
+            applyReverbToNewSource(triggeredSound)
             triggeredSound.volume = event.volume
             triggeredSound.play()
+        }
+
+        registerHandler(AmbienceChangeEvent::class) { event ->
+            if (currentAmbienceId == event.type) return@registerHandler
+
+            currentAmbienceId = event.type
+            ambiencePlayListProvider.theme = event.type.ordinal
+            ambienceJukebox.softStopAndResume(Interpolation.sine, 0.8f)
         }
     }
 
     override fun onTick() {
-        val gameStateCmp = gameStateEntity[GameStateComponent]
-        val newTheme =
-            when (gameStateCmp.gameMood) {
-                GameMood.CHASE -> GameMood.CHASE.ordinal
-                GameMood.PLAYER_DEAD -> GameMood.PLAYER_DEAD.ordinal
-                else -> GameMood.NORMAL.ordinal
-            }
-
-        if (playListProvider.theme != newTheme) {
-            playListProvider.theme = newTheme
-            jukebox.softStopAndResume(Interpolation.linear, 1f)
-        }
-
-        jukebox.update()
-
-        handleFading()
-
-        val iterator = oneShotSoundSources.iterator()
-        while (iterator.hasNext()) {
-            val source = iterator.next()
-            if (!source.isPlaying) {
-                source.free()
-                iterator.remove()
-            }
-        }
         val playerPos = playerEntity[TransformComponent].position
 
+        musicJukebox.update()
+        ambienceJukebox.update()
         audio.listener.setPosition(playerPos.x, playerPos.y, 0f)
 
-        val audioZoneContactCmp = playerEntity[AudioZoneContactComponent]
-        val currentZone = audioZoneContactCmp.activeZone
+        updateMusicTheme()
+        cleanUpOneShotSounds()
+        updateReverbZones()
 
-        if (!isFading) {
-            if (currentZone != null && activeEffectName != currentZone.effect.name) {
-                startFadeIn(currentZone)
-            } else if (currentZone == null && activeEffectName != null) {
-                startFadeOut(lastKnownFadeDuration)
-            }
-        }
         super.onTick()
     }
 
@@ -234,7 +219,7 @@ class AudioSystem(
             source.attenuationMaxDistance = soundCmp.soundAttenuationMaxDistance
             source.attenuationMinDistance = soundCmp.soundAttenuationMinDistance
             source.attenuationFactor = soundCmp.soundAttenuationFactor
-            activeEffect?.let { source.attachEffect(it) }
+            applyReverbToNewSource(source)
             source.setLooping(soundCmp.isLooping)
             source.isRelative = false
             soundCmp.bufferedSoundSource = source
@@ -244,104 +229,15 @@ class AudioSystem(
         soundCmp.bufferedSoundSource?.setPosition(transformCmp.position.x + transformCmp.width * 0.5f, transformCmp.position.y, 0f)
     }
 
-    private fun handleFading() {
-        if (!isFading) return
-
-        fadeInTimer += deltaTime
-        fadeOutTimer += deltaTime
-
-        // choose the correct timer depending on fade direction
-        val progress =
-            if (targetGain > initialGain) {
-                (fadeInTimer / currentFadeInDuration).coerceAtMost(1f) // Fade‑In
-            } else {
-                (fadeOutTimer / currentFadeOutDuration).coerceAtMost(1f) // Fade‑Out
-            }
-
-        currentGain = Interpolation.sine.apply(initialGain, targetGain, progress)
-        updateAllSourcesEffectGain(currentGain)
-
-        if (progress >= 1f) {
-            isFading = false
-            if (targetGain == 0f && activeEffect != null) {
-                disposeCountdown = 2f
-            }
-        }
-        if (disposeCountdown >= 0f) {
-            disposeCountdown -= deltaTime
-            if (disposeCountdown <= 0f) {
-                detachAllSourcesFromEffect(activeEffect!!)
-                activeEffect?.dispose()
-                activeEffect = null
-                activeEffectName = null
-                disposeCountdown = -1f
-            }
-        }
-    }
-
-    private fun startFadeIn(audioZone: AudioZoneComponent) {
-        logger.debug { "Start fade-in für: ${audioZone.effect.name}" }
-        if (activeEffect != null) {
-            detachAllSourcesFromEffect(activeEffect!!)
-            activeEffect?.dispose()
-        }
-
-        val handler = AudioEffectRegistry.getHandler(audioZone.effect) ?: return
-        activeEffect = handler.applyPreset(audioZone.effect, audioZone.presetName)
-        activeEffectName = audioZone.effect.name
-        lastKnownFadeDuration = audioZone.fadeOutDuration
-
-        isFading = true
-        fadeInTimer = 0f
-        currentFadeInDuration = audioZone.fadeInDuration
-        initialGain = 0f
-        targetGain = audioZone.intensity ?: 1f
-        updateAllSourcesEffectGain(currentGain)
-    }
-
-    private fun startFadeOut(fadeDuration: Float) {
-        logger.debug { "Start fade-out" }
-        if (activeEffect == null) return
-
-        val safeDuration = fadeDuration.coerceAtLeast(0.05f)
-        isFading = true
-        fadeInTimer = 0f
-        fadeOutTimer = 0f
-        currentFadeOutDuration = safeDuration
-        initialGain = currentGain
-        targetGain = 0f
-
-        updateAllSourcesEffectGain(currentGain)
-    }
-
-    private fun updateAllSourcesEffectGain(gain: Float) {
-        activeEffect?.let { effect ->
-            val update: (BufferedSoundSource) -> Unit = { src ->
-                src.detachEffect(effect)
-                src.attachEffect(effect, 1f, gain)
-            }
-
-            loopingSounds.values.forEach(update)
-            oneShotSoundSources.forEach(update)
-            world.family { all(AudioComponent) }.forEach { e ->
-                e[AudioComponent].bufferedSoundSource?.let(update)
-            }
-        }
-    }
-
-    private fun detachAllSourcesFromEffect(effect: SoundEffect) {
-        loopingSounds.values.forEach { it.detachEffect(effect) }
-        oneShotSoundSources.forEach { it.detachEffect(effect) }
-        world.family { all(AudioComponent) }.forEach { entity ->
-            entity[AudioComponent].bufferedSoundSource?.detachEffect(effect)
-        }
-    }
-
     override fun handle(event: Event): Boolean {
         eventHandlers[event::class]?.invoke(event)
-
         when (event) {
             is MapChangedEvent -> {
+                ambienceJukebox.stop()
+                currentAmbienceId = null
+                ambiencePlayLists.clear()
+                createAmbiencePlaylists()
+
                 event.map.propertyOrNull<String>("bgMusic")?.let { path ->
                     bgMusic = StreamedSoundSource(Gdx.files.internal(path))
                     bgMusic.isRelative = true
@@ -370,23 +266,174 @@ class AudioSystem(
                     val deadSong = Song(deadMusic, deadSongSettings, meta)
                     deadMusicPlaylist.addSong(deadSong)
                 }
-                if (!jukebox.isPlaying) {
-                    jukebox.play()
+                if (!musicJukebox.isPlaying) {
+                    musicJukebox.volume = 0.3f
+                    musicJukebox.play()
                 }
             }
         }
         return true
     }
 
-    override fun onDispose() {
-        loopingSounds.forEach { type, source ->
-            source.free()
+    private fun createAmbiencePlaylists() {
+        world.family { all(AmbienceSoundComponent) }.forEach { entity ->
+            val ambience = entity[AmbienceSoundComponent]
+            val source =
+                StreamedSoundSource(Gdx.files.internal(ambience.sound)).apply {
+                    isRelative = true
+                    setLooping(true)
+                    volume = ambience.volume!!
+                }
+
+            val settings = SongSettings.linear(1f, 2f, 2f)
+            val meta = SongMeta().setTitle("Ambience-${ambience.type}")
+            val song = Song(source, settings, meta)
+            val playlist = PlayList()
+            playlist.addSong(song)
+
+            ambiencePlayLists.add(playlist)
+            ambiencePlayListProvider.add(playlist, ambience.type.ordinal)
         }
+    }
+
+    private fun updateMusicTheme() {
+        val gameStateCmp = gameStateEntity[GameStateComponent]
+        val newTheme =
+            when (gameStateCmp.gameMood) {
+                GameMood.CHASE -> GameMood.CHASE.ordinal
+                GameMood.PLAYER_DEAD -> GameMood.PLAYER_DEAD.ordinal
+                else -> GameMood.NORMAL.ordinal
+            }
+
+        if (musicPlayListProvider.theme != newTheme) {
+            musicPlayListProvider.theme = newTheme
+            musicJukebox.softStopAndResume(Interpolation.linear, 1f)
+        }
+    }
+
+    private fun updateReverbZones() {
+        val currentZone = playerEntity[ReverbZoneContactComponent].activeZone
+        if (currentZone != null) {
+            // Change only if the preset has changed
+            if (activePreset != currentZone.presetName) {
+                // alten Effekt in Tail schicken
+                activeEffect?.let {
+                    detachEffectFromAllSources(it)
+                    detachedEffects += TailReverb(it)
+                }
+
+                // create and apply new effect
+                getReverb(currentZone.presetName)?.let { newFx ->
+                    activeEffect = newFx
+                    activePreset = currentZone.presetName
+                    currentWet = currentZone.intensity.coerceIn(0f, 1f)
+                    attachEffectToNewSources = true
+                    attachEffectToAllSources(newFx, currentWet)
+                }
+            } else {
+                // same preset. Only update dry/wet
+                val newWet = currentZone.intensity.coerceIn(0f, 1f)
+                if (!MathUtils.isEqual(newWet, currentWet)) {
+                    currentWet = newWet
+                    val dry = 1f - newWet
+                    (oneShotSoundSources + loopingSounds.values).forEach { it.setFilter(dry, dry) }
+                    world.family { all(AudioComponent) }.forEach { e ->
+                        e[AudioComponent].bufferedSoundSource?.setFilter(dry, dry)
+                    }
+                }
+            }
+        } else if (activeEffect != null) {
+            // player left all reverb zones
+            detachEffectFromAllSources(activeEffect!!)
+            detachedEffects += TailReverb(activeEffect!!)
+            activeEffect = null
+            activePreset = null
+            attachEffectToNewSources = false
+            currentWet = 1f
+        }
+
+        cleanupReverbs()
+    }
+
+    private fun attachEffectToAllSources(
+        effect: SoundEffect,
+        wet: Float,
+    ) {
+        val dry = 1f - wet
+        oneShotSoundSources.forEach {
+            it.setFilter(dry, dry)
+            it.attachEffect(effect, wet, wet)
+        }
+        loopingSounds.values.forEach {
+            it.setFilter(dry, dry)
+            it.attachEffect(effect, wet, wet)
+        }
+        world.family { all(AudioComponent) }.forEach { e ->
+            e[AudioComponent].bufferedSoundSource?.attachEffect(effect, wet, wet)
+            e[AudioComponent].bufferedSoundSource?.setFilter(dry, dry)
+        }
+    }
+
+    private fun applyReverbToNewSource(src: SoundSource) {
+        if (!attachEffectToNewSources || activeEffect == null) return
+        val dry = 1f - currentWet
+        src.setFilter(dry, dry)
+        src.attachEffect(activeEffect!!, currentWet, currentWet)
+    }
+
+    private fun cleanupReverbs() {
+        val it = detachedEffects.iterator()
+        while (it.hasNext()) {
+            val tail = it.next()
+            tail.ttl -= deltaTime
+            if (tail.ttl <= 0f) {
+                detachAndDisposeEffect(tail.effect)
+                it.remove()
+            }
+        }
+    }
+
+    private fun detachAndDisposeEffect(effect: SoundEffect) {
+        detachEffectFromAllSources(effect)
+        effect.dispose()
+    }
+
+    private fun detachEffectFromAllSources(effect: SoundEffect) {
+        oneShotSoundSources.forEach { it.detachEffect(effect) }
+        loopingSounds.values.forEach { it.detachEffect(effect) }
+        world.family { all(AudioComponent) }.forEach { e ->
+            e[AudioComponent].bufferedSoundSource?.detachEffect(effect)
+        }
+    }
+
+    private fun cleanUpOneShotSounds() {
+        val iterator = oneShotSoundSources.iterator()
+        while (iterator.hasNext()) {
+            val source = iterator.next()
+            if (!source.isPlaying) {
+                source.free()
+                iterator.remove()
+            }
+        }
+    }
+
+    override fun onDispose() {
+        loopingSounds.forEach { (_, source) -> source.free() }
         oneShotSoundSources.forEach { it.free() }
         oneShotSoundSources.clear()
         loopingSounds.clear()
+
         bgMusic.dispose()
         chaseMusic.dispose()
+        deadMusic.dispose()
+
+        ambienceJukebox.stop()
+        ambiencePlayLists.clear()
+
+        activeEffect?.dispose()
+        detachedEffects.forEach { it.effect.dispose() }
+        detachedEffects.clear()
+
         audio.dispose()
         super.onDispose()
     }
@@ -405,4 +452,9 @@ class AudioSystem(
     companion object {
         val logger = logger<AudioSystem>()
     }
+}
+
+enum class AmbienceType {
+    FOREST,
+    CAVE,
 }

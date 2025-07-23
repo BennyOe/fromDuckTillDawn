@@ -1,4 +1,4 @@
-package io.bennyoe.components
+package io.bennyoe.components.audio
 
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType

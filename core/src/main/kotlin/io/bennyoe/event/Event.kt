@@ -6,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import io.bennyoe.service.SoundType
+import io.bennyoe.systems.AmbienceType
 import io.bennyoe.utility.FloorType
 
 // helper for convenience
@@ -52,5 +53,12 @@ data class StreamSoundEvent(
     val sound: String,
     val volume: Float,
     val position: Vector2? = null,
+) : Event(),
+    AudioEvent
+
+data class AmbienceChangeEvent(
+    val type: AmbienceType,
+    val path: String,
+    val volume: Float,
 ) : Event(),
     AudioEvent

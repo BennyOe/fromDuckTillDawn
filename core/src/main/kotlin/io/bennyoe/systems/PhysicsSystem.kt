@@ -14,8 +14,6 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AttackComponent
-import io.bennyoe.components.AudioZoneComponent
-import io.bennyoe.components.AudioZoneContactComponent
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HasGroundContact
@@ -24,10 +22,14 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.SoundTriggerComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
+import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.components.audio.ReverbZoneComponent
+import io.bennyoe.components.audio.ReverbZoneContactComponent
+import io.bennyoe.components.audio.SoundTriggerComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
+import io.bennyoe.event.AmbienceChangeEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StreamSoundEvent
 import io.bennyoe.event.fire
@@ -35,7 +37,6 @@ import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.bodyData
 import io.bennyoe.utility.fixtureData
-import ktx.actors.stage
 import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2
@@ -111,8 +112,9 @@ class PhysicsSystem(
         val bodyDataA = contact.fixtureA.bodyData ?: return
         val bodyDataB = contact.fixtureB.bodyData ?: return
 
-        handleAudioZoneContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
+        handleReverbZoneContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleSoundTriggerContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
+        handleAmbienceSoundContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleGroundContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleNearbyEnemiesBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handlePlayerEnemyCollision(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
@@ -123,7 +125,7 @@ class PhysicsSystem(
         val bodyDataA = contact.fixtureA.bodyData ?: return
         val bodyDataB = contact.fixtureB.bodyData ?: return
 
-        handleAudioZoneContactEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
+        handleReverbZoneContactEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleGroundContactEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
         handleNearbyEnemiesEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
     }
@@ -195,13 +197,42 @@ class PhysicsSystem(
         }
     }
 
-    private fun handleAudioZoneContactBegin(
+    private fun handleAmbienceSoundContactBegin(
         bodyDataA: BodyData,
         bodyDataB: BodyData,
         fixtureA: Fixture,
         fixtureB: Fixture,
     ) {
-        val (playerBodyData, audioZoneBodyData) =
+        val (playerBodyData, ambienceSoundBodyData) =
+            when {
+                fixtureA.fixtureData?.type == SensorType.SOUND_AMBIENCE_SENSOR && bodyDataB.type == EntityCategory.PLAYER ->
+                    bodyDataB to bodyDataA
+
+                fixtureB.fixtureData?.type == SensorType.SOUND_AMBIENCE_SENSOR && bodyDataA.type == EntityCategory.PLAYER ->
+                    bodyDataA to bodyDataB
+
+                else -> return
+            }
+
+        val ambienceSoundCmp = ambienceSoundBodyData.entity[AmbienceSoundComponent]
+
+        logger.debug { "Ambience Event ${ambienceSoundCmp.sound} played" }
+        stage.fire(
+            AmbienceChangeEvent(
+                ambienceSoundCmp.type,
+                ambienceSoundCmp.sound,
+                ambienceSoundCmp.volume!!,
+            ),
+        )
+    }
+
+    private fun handleReverbZoneContactBegin(
+        bodyDataA: BodyData,
+        bodyDataB: BodyData,
+        fixtureA: Fixture,
+        fixtureB: Fixture,
+    ) {
+        val (playerBodyData, reverbZoneBodyData) =
             when {
                 fixtureA.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR && bodyDataB.type == EntityCategory.PLAYER ->
                     bodyDataB to bodyDataA
@@ -212,19 +243,19 @@ class PhysicsSystem(
                 else -> return
             }
 
-        val audioZoneCmp = audioZoneBodyData.entity[AudioZoneComponent]
-        val audioZoneContactCmp = playerBodyData.entity[AudioZoneContactComponent]
+        val reverbZoneCmp = reverbZoneBodyData.entity[ReverbZoneComponent]
+        val reverbZoneContactCmp = playerBodyData.entity[ReverbZoneContactComponent]
 
-        audioZoneContactCmp.increaseContact(audioZoneCmp)
+        reverbZoneContactCmp.increaseContact(reverbZoneCmp)
     }
 
-    private fun handleAudioZoneContactEnd(
+    private fun handleReverbZoneContactEnd(
         bodyDataA: BodyData,
         bodyDataB: BodyData,
         fixtureA: Fixture,
         fixtureB: Fixture,
     ) {
-        val (playerBodyData, audioZoneBodyData) =
+        val (playerBodyData, reverbZoneBodyData) =
             when {
                 fixtureA.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR &&
                     bodyDataB.type == EntityCategory.PLAYER &&
@@ -242,11 +273,11 @@ class PhysicsSystem(
             }
 
         with(world) {
-            if (playerBodyData.entity has AudioZoneContactComponent && audioZoneBodyData.entity has AudioZoneComponent) {
-                val audioZoneCmp = audioZoneBodyData.entity[AudioZoneComponent]
-                val audioZoneContactCmp = playerBodyData.entity[AudioZoneContactComponent]
+            if (playerBodyData.entity has ReverbZoneContactComponent && reverbZoneBodyData.entity has ReverbZoneComponent) {
+                val reverbZoneCmp = reverbZoneBodyData.entity[ReverbZoneComponent]
+                val reverbZoneContactCmp = playerBodyData.entity[ReverbZoneContactComponent]
 
-                audioZoneContactCmp.decreaseContact(audioZoneCmp)
+                reverbZoneContactCmp.decreaseContact(reverbZoneCmp)
             }
         }
     }

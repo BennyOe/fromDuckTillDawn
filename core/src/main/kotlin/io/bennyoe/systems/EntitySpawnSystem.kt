@@ -28,9 +28,6 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
-import io.bennyoe.components.AudioComponent
-import io.bennyoe.components.AudioZoneComponent
-import io.bennyoe.components.AudioZoneContactComponent
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
@@ -44,8 +41,6 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ShaderRenderingComponent
-import io.bennyoe.components.SoundProfileComponent
-import io.bennyoe.components.SoundTriggerComponent
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
@@ -53,6 +48,12 @@ import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.components.audio.AudioComponent
+import io.bennyoe.components.audio.ReverbZoneComponent
+import io.bennyoe.components.audio.ReverbZoneContactComponent
+import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.components.audio.SoundTriggerComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
@@ -69,7 +70,7 @@ import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
 import io.bennyoe.utility.SensorType
-import io.bennyoe.utility.SoundEffectEnum
+import io.bennyoe.utility.findLayerDeep
 import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
@@ -126,14 +127,19 @@ class EntitySpawnSystem(
                     createMapObject(mapObject as TiledMapTileMapObject)
                 }
                 // Adding SoundEffects
-                val audioZones = event.map.layer("audioZones")
-                audioZones.objects.forEach { audioZoneObj ->
-                    createAudioZone(audioZoneObj)
+                val audioZones = event.map.layers.findLayerDeep("reverbZones")
+                audioZones?.objects?.forEach { audioZoneObj ->
+                    createReverbZone(audioZoneObj)
+                }
+                // Adding AmbienceSounds
+                val ambienceSounds = event.map.layers.findLayerDeep("ambienceZones")
+                ambienceSounds?.objects?.forEach { ambienceSoundObj ->
+                    createAmbienceSounds(ambienceSoundObj)
                 }
                 // Adding SoundTriggers
-                val soundTriggers = event.map.layer("soundTriggers")
-                soundTriggers.objects.forEach { audioZoneObj ->
-                    createSoundTrigger(audioZoneObj)
+                val soundTriggers = event.map.layers.findLayerDeep("soundTriggers")
+                soundTriggers?.objects?.forEach { soundTriggerObj ->
+                    createSoundTrigger(soundTriggerObj)
                 }
                 // Adding lights
                 val lightsLayer = event.map.layer("lights")
@@ -173,7 +179,7 @@ class EntitySpawnSystem(
         return false
     }
 
-    private fun createAudioZone(audioZoneObj: MapObject) {
+    private fun createReverbZone(audioZoneObj: MapObject) {
         world.entity {
             val physicCmp =
                 PhysicComponent.physicsComponentFromShape2D(
@@ -186,12 +192,9 @@ class EntitySpawnSystem(
                 )
             it += physicCmp
             it +=
-                AudioZoneComponent(
-                    SoundEffectEnum.valueOf(audioZoneObj.properties.get("soundEffect", String::class.java).uppercase()),
+                ReverbZoneComponent(
                     audioZoneObj.properties.get("effectPreset", String::class.java),
                     audioZoneObj.properties.get("effectIntensity", Float::class.java),
-                    audioZoneObj.properties.get("fadeIn", Float::class.java),
-                    audioZoneObj.properties.get("fadeOut", Float::class.java),
                 )
         }
     }
@@ -214,6 +217,27 @@ class EntitySpawnSystem(
                     (soundTriggerObj.properties.get("type") as String?)?.uppercase()?.let { type -> SoundType.valueOf(type) },
                     soundTriggerObj.properties.get("streamed", Boolean::class.java),
                     soundTriggerObj.properties.get("volume", Float::class.java),
+                )
+        }
+    }
+
+    private fun createAmbienceSounds(soundTriggerObj: MapObject) {
+        world.entity {
+            val physicCmp =
+                PhysicComponent.physicsComponentFromShape2D(
+                    phyWorld,
+                    soundTriggerObj.shape,
+                    isSensor = true,
+                    sensorType = SensorType.SOUND_AMBIENCE_SENSOR,
+                    setUserData = BodyData(EntityCategory.SENSOR, it),
+                    categoryBit = EntityCategory.SENSOR.bit,
+                )
+            it += physicCmp
+            it +=
+                AmbienceSoundComponent(
+                    AmbienceType.valueOf((soundTriggerObj.properties.get("type") as String).uppercase()),
+                    soundTriggerObj.properties.get("sound") as String,
+                    soundTriggerObj.properties.get("volume") as? Float,
                 )
         }
     }
@@ -437,10 +461,11 @@ class EntitySpawnSystem(
                             falloffProfile = 0.4f,
                             shaderIntensityMultiplier = 0.9f,
                         )
+                    flashlight.setOn(false)
 
                     it += LightComponent(flashlight)
 
-                    it += AudioZoneContactComponent()
+                    it += ReverbZoneContactComponent()
 
                     val input = InputComponent()
                     it += input

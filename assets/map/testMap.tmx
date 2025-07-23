@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="70" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="18" nextobjectid="109">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="70" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="20" nextobjectid="114">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
@@ -120,17 +120,48 @@
   <object id="99" x="795.322" y="0.584795" width="228.07" height="106.433"/>
   <object id="100" x="1023.98" y="107.018" width="7.01754" height="148.538"/>
  </objectgroup>
- <objectgroup id="15" name="audioZones">
-  <object id="89" x="651.918" y="106.027" width="372.484" height="150.262">
-   <properties>
-    <property name="effectIntensity" type="float" value="1"/>
-    <property name="effectPreset" value="arena"/>
-    <property name="fadeIn" type="float" value="2"/>
-    <property name="fadeOut" type="float" value="0.5"/>
-    <property name="soundEffect" propertytype="soundEffect" value="EAX_REVERB"/>
-   </properties>
-  </object>
- </objectgroup>
+ <group id="19" name="audio">
+  <objectgroup id="15" name="reverbZones">
+   <object id="89" x="797.532" y="108.366" width="229.794" height="150.262">
+    <properties>
+     <property name="effectIntensity" type="float" value="0.8"/>
+     <property name="effectPreset" value="arena"/>
+    </properties>
+   </object>
+   <object id="113" x="644.46" y="214.927" width="150.847" height="39.7357">
+    <properties>
+     <property name="effectIntensity" type="float" value="0.5"/>
+     <property name="effectPreset" value="cave"/>
+    </properties>
+   </object>
+  </objectgroup>
+  <objectgroup id="18" name="ambienceZones">
+   <object id="109" x="0.584795" y="0.584795" width="642.69" height="256.14">
+    <properties>
+     <property name="sound" value="sound/ambience/goodweather.mp3"/>
+     <property name="type" value="forest"/>
+     <property name="volume" type="float" value="0.5"/>
+    </properties>
+   </object>
+   <object id="111" x="655.263" y="0.584971" width="367.836" height="256.14">
+    <properties>
+     <property name="sound" value="sound/ambience/badweather.mp3"/>
+     <property name="type" value="cave"/>
+     <property name="volume" type="float" value="0.5"/>
+    </properties>
+   </object>
+  </objectgroup>
+  <objectgroup id="17" name="soundTriggers">
+   <object id="108" x="798.246" y="193.567" width="23.9766" height="61.9883">
+    <properties>
+     <property name="sound" value="sound/dawn/bash.mp3"/>
+     <property name="streamed" type="bool" value="true"/>
+     <property name="type" value="DAWN_BASH"/>
+     <property name="volume" type="float" value="0.6"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </group>
  <objectgroup id="12" name="mapObjects">
   <object id="19" name="fire" type="fire" gid="649" x="156" y="256" width="32" height="32">
    <properties>
@@ -150,16 +181,6 @@
     <property name="soundAttenuationMinDistance" type="float" value="1"/>
     <property name="soundVolume" type="float" value="0.5"/>
     <property name="zIndex" type="int" value="5"/>
-   </properties>
-  </object>
- </objectgroup>
- <objectgroup id="17" name="soundTriggers">
-  <object id="108" x="485.38" y="194.737" width="23.9766" height="61.9883">
-   <properties>
-    <property name="sound" value="sound/dawn/bash.mp3"/>
-    <property name="streamed" type="bool" value="true"/>
-    <property name="type" value="DAWN_BASH"/>
-    <property name="volume" type="float" value="0.6"/>
    </properties>
   </object>
  </objectgroup>

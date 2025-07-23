@@ -115,6 +115,98 @@ With the correct audio file identified, the `AudioSystem` handles the final play
 4.  **Play**: It calls `source.play()` to play the sound, which is now audible in the game at the correct position and time.
 
 -----
+---
+## Additional AudioSystem Details
+
+### 6. Music & Ambience Playlists (`JukeBox`)
+The `AudioSystem` owns two independent **TuningFork JukeBox** instances: one for **background / mood music** and one for **environmental ambience**.
+
+| JukeBox | Theme source | Trigger                             | Volume |
+|---------|--------------|--------------------------------------|--------|
+| `musicJukebox`    | `GameStateComponent.gameMood` (via `musicPlayListProvider`) | Updated every frame in `onTick()` | `0.3 – 0.6` (soft-faded) |
+| `ambienceJukebox` | `AmbienceChangeEvent` carrying an `AmbienceType` | Emitted by map logic / physics when the player enters a new ambience zone | Configured per‐playlist |
+
+```kotlin
+// Switching music when game mood changes
+val newTheme = when (gameStateCmp.gameMood) {
+    GameMood.CHASE       -> GameMood.CHASE.ordinal
+    GameMood.PLAYER_DEAD -> GameMood.PLAYER_DEAD.ordinal
+    else                 -> GameMood.NORMAL.ordinal
+}
+if (musicPlayListProvider.theme != newTheme) {
+    musicPlayListProvider.theme = newTheme
+    musicJukebox.softStopAndResume(Interpolation.linear, 1f)
+}
+```
+
+**How to add new tracks**
+
+1. Add an `mp3/ogg` file to your assets folder.
+2. Expose its path as a **Tiled™ map property** (`bgMusic`, `chaseMusic`, `deadMusic`, …) _or_ emit a dedicated `AmbienceChangeEvent`.
+3. The system will create a `StreamedSoundSource`, wrap it in a `Song`, and push it onto the corresponding `PlayList`.
+
+---
+
+### 7. Environmental Reverb Zones
+When the player overlaps a map object tagged with a `reverb="arena"` Tiled property, a **preset OpenAL EAX effect** is created and attached to _all currently playing sources_:
+
+```kotlin
+val newEffect = getReverb(zone.presetName)
+attachEffectToAllSources(newEffect, wet = zone.intensity)
+```
+
+* When the player leaves the zone the effect is **detached gradually**:  
+  `TailReverb` keeps the effect alive for `REVERB_TAIL` seconds so the decay sounds natural.
+* New sources spawned while inside the zone automatically inherit the effect via `applyReverbToNewSource`.
+
+> **Tip:** Keep zone polygons tight around enclosed spaces (caves, halls) to avoid abrupt wet/dry jumps.
+
+---
+
+### 8. Looping & Streamed Sounds
+| Event | Purpose | Notes |
+|-------|---------|-------|
+| `PlayLoopingSoundEvent`   | Starts a **looping** `BufferedSoundSource` (e.g. engine hum). | Duplicate requests for the same `SoundType` are ignored. |
+| `StopLoopingSoundEvent`   | Stops and frees a looping source tracked in `loopingSounds`. | |
+| `StreamSoundEvent`        | Fires a **one-shot or positional stream** (e.g. thunder clap). | Uses a `StreamedSoundSource` so large files do not block RAM. |
+
+All three share the same argument structure: `sound`, `volume`, and an optional `position` for spatialisation.
+
+---
+
+### 9. Resource Lifecycle & Disposal
+* **One-shot sources** are stored in `oneShotSoundSources` and are freed automatically once `!source.isPlaying`.
+* **Looping sources** live in `loopingSounds`; always pair a `PlayLoopingSoundEvent` with `StopLoopingSoundEvent`.
+* On `AudioSystem.onDispose()` every source, effect and jukebox is **explicitly disposed** to prevent OpenAL leaks.
+
+---
+
+### 10. Component & Event Reference
+
+| Name | Type | Key Fields | Used By |
+|------|------|-----------|---------|
+| `AudioComponent`              | component | `soundType`, `volume`, `isLooping`, attenuation params | Authoring looping/world sounds directly on entities |
+| `SoundProfileComponent`       | component | `profile: SoundProfile` | Allows per-entity overrides for `SoundMappingService` |
+| `AmbienceSoundComponent`      | component | `sound`, `type: AmbienceType`, `volume` | Map entities that define looping ambience tracks |
+| `ReverbZoneContactComponent`  | component | `activeZone` (polygon, `presetName`, `intensity`) | Tracks current environmental reverb |
+| `PlaySoundEvent`              | event     | `soundType`, `position`, `floorType`, `volume` | Usual one-shot SFX |
+| `PlayLoopingSoundEvent`       | event     | `soundType`, `volume`, `floorType?` | Long-running loops |
+| `StopLoopingSoundEvent`       | event     | `loopId: SoundType` | Stops loop |
+| `StreamSoundEvent`            | event     | `sound`, `position?`, `volume` | Large streamed sounds |
+| `AmbienceChangeEvent`         | event     | `type: AmbienceType` | Switches ambience playlist |
+| `MapChangedEvent`             | event     | `map` (Tiled map) | Reloads playlists & clears ambience |
+
+---
+
+### 11. Best Practices & Tuning Tips
+* **Pitch variance** (`MIN_PITCH…MAX_PITCH`) breathes life into frequent sounds (footsteps, impacts).
+* **Volume staging:** `music < ambience < SFX`, roughly `-10 LU → -8 LU → -6 LU`.
+* Always call `StopLoopingSoundEvent` _before_ removing an entity to prevent dangling OpenAL sources.
+* Prefer **surface-dependent** `SoundType`s for footsteps; fall back asset is chosen automatically.
+* Keep long ambience loops to ≤ 2 minutes; cross-fades are managed by `JukeBox.softStopAndResume()`.
+* Validate attenuation distances in-game with the `audio_debug` overlay (toggle with <kbd>F5</kbd>).
+
+---
 
 ## Workflow Diagram
 

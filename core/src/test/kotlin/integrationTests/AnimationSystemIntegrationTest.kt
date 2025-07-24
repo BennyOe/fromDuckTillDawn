@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test
 class AnimationSystemIntegrationTest {
     private lateinit var world: World
     private lateinit var entity: Entity
+    private lateinit var stage: Stage
 
     @BeforeEach
     fun setup() {
@@ -77,11 +78,13 @@ class AnimationSystemIntegrationTest {
                 it.image = imageMock
             }
 
+        stage = mockk<Stage>(relaxed = true)
         world =
             configureWorld {
                 injectables {
                     add("dawnAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
                     add("mushroomAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
+                    add("stage", stageMock)
                 }
                 systems {
                     add(MoveSystem())
@@ -107,7 +110,7 @@ class AnimationSystemIntegrationTest {
                 it +=
                     StateComponent(
                         world,
-                        PlayerStateContext(it, world),
+                        PlayerStateContext(it, world, stage),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
                     )

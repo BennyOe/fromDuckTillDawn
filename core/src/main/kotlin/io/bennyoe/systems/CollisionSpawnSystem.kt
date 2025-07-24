@@ -14,6 +14,7 @@ import io.bennyoe.components.PhysicComponent.Companion.physicsComponentFromShape
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.FloorType
 import ktx.box2d.body
 import ktx.box2d.loop
 import ktx.log.logger
@@ -70,10 +71,16 @@ class CollisionSpawnSystem(
         event.map.layers.get("collisionBoxes").apply {
             objects.forEach { mapObject ->
                 world.entity {
+                    val mapFloorType =
+                        mapObject.properties
+                            .get("floorType")
+                            ?.toString()
+                            ?.uppercase()
+                    val floorType: FloorType? = mapFloorType?.let { value -> FloorType.valueOf(value) }
                     physicsComponentFromShape2D(
                         phyWorld = phyWorld,
                         shape = mapObject.shape,
-                        setUserData = BodyData(EntityCategory.GROUND, it),
+                        setUserData = BodyData(EntityCategory.GROUND, it, floorType),
                     )
                 }
             }

@@ -47,13 +47,15 @@ class LightSystem(
         lightEngine.setSpecularIntensity(.2f)
         lightEngine.setSpecularRemap(0.0f, 0.2f)
 
-        val dir =
-            lightEngine.addDirectionalLight(
-                Color(0.15f, 0.18f, 0.25f, .6f),
-                45f,
-                6f,
-                15f,
-            )
+        lightEngine.addDirectionalLight(
+            Color(0.15f, 0.18f, 0.25f, .6f),
+            45f,
+            6f,
+            15f,
+            isManaged = false,
+            isStatic = true,
+            rays = 2048,
+        )
     }
 
     companion object {

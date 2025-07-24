@@ -3,6 +3,7 @@ package io.bennyoe.systems
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
@@ -13,15 +14,39 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.ShaderRenderingComponent
+import io.bennyoe.components.TransformComponent
+import io.bennyoe.event.PlaySoundEvent
+import io.bennyoe.event.fire
+import io.bennyoe.service.SoundType
 import ktx.app.gdxError
 import ktx.collections.map
 import ktx.log.logger
+import ktx.math.minus
+import ktx.math.plus
 
+/**
+ * System responsible for updating entity animations in the ECS.
+ *
+ * Handles both tile-based and model-based animations, supporting diffuse, normal, and specular maps for advanced rendering.
+ *
+ * **Flow:**
+ * - For each entity with `AnimationComponent` and `ImageComponent`:
+ *   - If the animation model is `NONE`, updates the animation frame for simple tile animations.
+ *   - Otherwise, manages model-based animations:
+ *     - Applies a new animation if requested.
+ *     - Advances the animation state and updates the displayed frame.
+ *     - If the entity has a `ShaderRenderingComponent`, sets the corresponding normal and specular map regions for the current frame.
+ * - Caches animations for performance.
+ *
+ * Integrates with Fleks ECS, uses injected texture atlases, and supports animation switching, play modes, and speed.
+ */
 class AnimationSystem(
     dawnAtlases: TextureAtlases = inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
-) : IteratingSystem(family { all(AnimationComponent, ImageComponent) }),
+    val stage: Stage = inject("stage"),
+) : IteratingSystem(family { all(AnimationComponent, ImageComponent, TransformComponent) }),
     PausableSystem {
     private val cachedAnimations = mutableMapOf<String, Animation<TextureRegionDrawable>>()
 
@@ -46,6 +71,8 @@ class AnimationSystem(
     override fun onTickEntity(entity: Entity) {
         val aniCmp = entity[AnimationComponent]
         val imageCmp = entity[ImageComponent]
+        val transformCmp = entity[TransformComponent]
+        val physicCmp = entity.getOrNull(PhysicComponent)
 
         if (aniCmp.animationModel == AnimationModel.NONE) {
             // Simplified logic for tile animations
@@ -64,10 +91,33 @@ class AnimationSystem(
             // 2. Let the animation progress and get the current diffuse frame.
             aniCmp.stateTime += deltaTime
             aniCmp.animation.playMode = aniCmp.mode
+
+            // 3. Sound triggering
+            val currentFrameIndex = aniCmp.animation.getKeyFrameIndex(aniCmp.stateTime)
+            if (currentFrameIndex != aniCmp.previousFrameIndex) {
+                // A frame change happened
+                aniCmp.animationSoundTriggers[aniCmp.currentAnimationType]?.get(currentFrameIndex)?.let { soundType: SoundType ->
+
+                    // Check if the entity has a PhysicComponent before accessing it
+                    physicCmp?.let { pCmp ->
+                        stage.fire(
+                            PlaySoundEvent(
+                                entity,
+                                soundType = soundType,
+                                volume = 1f,
+                                position = if (soundType.positional) transformCmp.position else null,
+                                floorType = pCmp.floorType,
+                            ),
+                        )
+                    }
+                }
+                aniCmp.previousFrameIndex = currentFrameIndex
+            }
+
             val currentFrameDrawable = aniCmp.animation.getKeyFrame(aniCmp.stateTime)
             imageCmp.image.drawable = currentFrameDrawable
 
-            // 3. Find the matching normal frame for the CURRENT diffuse frame.
+            // 4. Find the matching normal frame for the CURRENT diffuse frame.
             if (shaderRenderingComponent != null) {
                 val currentDiffuseRegion = currentFrameDrawable.region as TextureAtlas.AtlasRegion
                 shaderRenderingComponent.diffuse = currentDiffuseRegion
@@ -142,7 +192,7 @@ class AnimationSystem(
             atlasMap[aniCmp.animationModel]
                 ?: gdxError("No texture atlas found for model '${aniCmp.animationModel}'.")
 
-        val aniKeyPath = aniCmp.nextAnimationType.atlasKey + aniCmp.nextAnimationVariant.atlasKey
+        val aniKeyPath = aniCmp.nextAnimationType.atlasKey
 
         // Save the new animation frame as the current
         aniCmp.currentAnimationType = aniCmp.nextAnimationType
@@ -154,6 +204,9 @@ class AnimationSystem(
                 aniCmp.nextAnimationType.speed,
                 aniCmp.nextAnimationType.playMode,
             )
+
+        // Reset previousFrameIndex when a new animation is set
+        aniCmp.previousFrameIndex = -1
 
         // Reset the request for a new animation.
         aniCmp.clearAnimation()

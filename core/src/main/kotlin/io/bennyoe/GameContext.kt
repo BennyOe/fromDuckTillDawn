@@ -10,6 +10,11 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import de.pottgames.tuningfork.Audio
+import de.pottgames.tuningfork.AudioConfig
+import de.pottgames.tuningfork.DistanceAttenuationModel
+import de.pottgames.tuningfork.SoundBuffer
+import de.pottgames.tuningfork.SoundBufferLoader
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.WORLD_HEIGHT
 import io.bennyoe.config.GameConstants.WORLD_WIDTH
@@ -27,6 +32,11 @@ class GameContext : Context() {
         val stages = Stages(spriteBatch)
         val shapeRenderer = ShapeRenderer()
         val debugRenderService = if (ENABLE_DEBUG) DefaultDebugRenderService() else NoOpDebugRenderService()
+        val config =
+            AudioConfig().apply {
+                distanceAttenuationModel = DistanceAttenuationModel.LINEAR_DISTANCE_CLAMPED
+            }
+        val audio: Audio = Audio.init(config)
         val assets: AssetStorage by lazy {
             KtxAsync.initiate() // has to be called before using coroutines
             AssetStorage() // the KTX extension for the asset manager
@@ -37,7 +47,13 @@ class GameContext : Context() {
             TmxMapLoader(InternalFileHandleResolver())
         }
 
+        // set SoundBuffer as custom loader for mp3 files
+        assets.setLoader(SoundBuffer::class.java, "mp3") {
+            SoundBufferLoader(InternalFileHandleResolver())
+        }
+
         register { bindSingleton(assets) }
+        register { bindSingleton(audio) }
         register { bindSingleton(stages) }
         register { bindSingleton(shapeRenderer) }
         register { bindSingleton(spriteBatch) }
@@ -54,4 +70,9 @@ data class Stages(
 ) {
     val stage by lazy { Stage(FitViewport(WORLD_WIDTH, WORLD_HEIGHT), spriteBatch) }
     val uiStage by lazy { Stage(ScreenViewport(), spriteBatch) }
+
+    init {
+        stage.camera.position.set(24f, WORLD_HEIGHT / 2f, 0f)
+        stage.camera.update()
+    }
 }

@@ -37,7 +37,7 @@ class BasicSensorsComponent(
             color = Color.BLUE,
             hitFilter = { it.type == EntityCategory.GROUND },
         )
-    val groundSensor = SensorDef(vec2(0.5f, 0f), vec2(0f, -1.6f), SensorType.GROUND_SENSOR, false, "ground sensor", Color.GREEN)
+    val groundSensor = SensorDef(vec2(0.5f, 0f), vec2(0f, -1.6f), SensorType.GROUND_DETECT_SENSOR, false, "ground sensor", Color.GREEN)
     val jumpSensor = SensorDef(vec2(2.2f, 0f), vec2(0f, -1.6f), SensorType.JUMP_SENSOR, false, "jump sensor", Color.GREEN)
     val sightSensor =
         SensorDef(

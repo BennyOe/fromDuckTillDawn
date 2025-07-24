@@ -12,10 +12,10 @@ import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.systems.AnimationSystem
 import io.mockk.Runs
 import io.mockk.every
@@ -23,6 +23,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import ktx.collections.gdxArrayOf
+import ktx.math.vec2
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -53,6 +54,7 @@ class AnimationSystemUnitTest {
                 injectables {
                     add("dawnAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
                     add("mushroomAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
+                    add("stage", stageMock)
                 }
                 systems { add(AnimationSystem()) }
             }
@@ -74,6 +76,7 @@ class AnimationSystemUnitTest {
             it += HealthComponent()
             it += aniCmp
             it += imgCmp
+            it += TransformComponent(vec2(0f, 0f), 0f, 0f)
         }
     }
 
@@ -105,7 +108,6 @@ class AnimationSystemUnitTest {
     fun `nextAnimation triggers applyNextAnimation and resets flags`() {
         aniCmp.nextAnimation(
             AnimationType.WALK,
-            AnimationVariant.FIRST,
         )
 
         world.update(0f)

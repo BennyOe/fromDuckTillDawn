@@ -27,9 +27,9 @@ import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.DeadComponent
+import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
@@ -48,11 +48,18 @@ import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.components.audio.AudioComponent
+import io.bennyoe.components.audio.ReverbZoneComponent
+import io.bennyoe.components.audio.ReverbZoneContactComponent
+import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.components.audio.SoundTriggerComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.service.DefaultDebugRenderService
+import io.bennyoe.service.SoundType
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
@@ -60,18 +67,20 @@ import io.bennyoe.state.mushroom.MushroomStateContext
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
+import io.bennyoe.systems.audio.AmbienceType
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
 import io.bennyoe.utility.SensorType
+import io.bennyoe.utility.findLayerDeep
 import ktx.app.gdxError
 import ktx.box2d.box
 import ktx.box2d.circle
-import ktx.collections.map
 import ktx.log.logger
 import ktx.math.plus
 import ktx.math.times
 import ktx.math.vec2
 import ktx.tiled.layer
+import ktx.tiled.shape
 import ktx.tiled.type
 import ktx.tiled.x
 import ktx.tiled.y
@@ -118,6 +127,22 @@ class EntitySpawnSystem(
                 objectsLayer.objects.forEach { mapObject ->
                     createMapObject(mapObject as TiledMapTileMapObject)
                 }
+                // Adding SoundEffects
+                val audioZones = event.map.layers.findLayerDeep("reverbZones")
+                audioZones?.objects?.forEach { audioZoneObj ->
+                    createReverbZone(audioZoneObj)
+                }
+                // Adding AmbienceSounds
+                val ambienceSounds = event.map.layers.findLayerDeep("ambienceZones")
+                ambienceSounds?.objects?.forEach { ambienceSoundObj ->
+                    createAmbienceSounds(ambienceSoundObj)
+                }
+                // Adding SoundTriggers
+                val soundTriggers = event.map.layers.findLayerDeep("soundTriggers")
+                soundTriggers?.objects?.forEach { soundTriggerObj ->
+                    createSoundTrigger(soundTriggerObj)
+                }
+                // Adding lights
                 val lightsLayer = event.map.layer("lights")
                 lightsLayer.objects.forEach { light ->
                     val type = LightType.entries[(light.properties.get("type") as Int)]
@@ -155,6 +180,69 @@ class EntitySpawnSystem(
         return false
     }
 
+    private fun createReverbZone(audioZoneObj: MapObject) {
+        world.entity {
+            val physicCmp =
+                PhysicComponent.physicsComponentFromShape2D(
+                    phyWorld,
+                    audioZoneObj.shape,
+                    isSensor = true,
+                    sensorType = SensorType.AUDIO_EFFECT_SENSOR,
+                    setUserData = BodyData(EntityCategory.SENSOR, it),
+                    categoryBit = EntityCategory.SENSOR.bit,
+                )
+            it += physicCmp
+            it +=
+                ReverbZoneComponent(
+                    audioZoneObj.properties.get("effectPreset", String::class.java),
+                    audioZoneObj.properties.get("effectIntensity", Float::class.java),
+                )
+        }
+    }
+
+    private fun createSoundTrigger(soundTriggerObj: MapObject) {
+        world.entity {
+            val physicCmp =
+                PhysicComponent.physicsComponentFromShape2D(
+                    phyWorld,
+                    soundTriggerObj.shape,
+                    isSensor = true,
+                    sensorType = SensorType.SOUND_TRIGGER_SENSOR,
+                    setUserData = BodyData(EntityCategory.SENSOR, it),
+                    categoryBit = EntityCategory.SENSOR.bit,
+                )
+            it += physicCmp
+            it +=
+                SoundTriggerComponent(
+                    soundTriggerObj.properties.get("sound") as String?,
+                    (soundTriggerObj.properties.get("type") as String?)?.uppercase()?.let { type -> SoundType.valueOf(type) },
+                    soundTriggerObj.properties.get("streamed", Boolean::class.java),
+                    soundTriggerObj.properties.get("volume", Float::class.java),
+                )
+        }
+    }
+
+    private fun createAmbienceSounds(soundTriggerObj: MapObject) {
+        world.entity {
+            val physicCmp =
+                PhysicComponent.physicsComponentFromShape2D(
+                    phyWorld,
+                    soundTriggerObj.shape,
+                    isSensor = true,
+                    sensorType = SensorType.SOUND_AMBIENCE_SENSOR,
+                    setUserData = BodyData(EntityCategory.SENSOR, it),
+                    categoryBit = EntityCategory.SENSOR.bit,
+                )
+            it += physicCmp
+            it +=
+                AmbienceSoundComponent(
+                    AmbienceType.valueOf((soundTriggerObj.properties.get("type") as String).uppercase()),
+                    soundTriggerObj.properties.get("sound") as String,
+                    soundTriggerObj.properties.get("volume") as? Float,
+                )
+        }
+    }
+
     private fun createMapObject(mapObject: TiledMapTileMapObject) {
         world.entity {
             val zIndex = mapObject.properties.get("zIndex", Int::class.java) ?: 0
@@ -167,6 +255,17 @@ class EntitySpawnSystem(
                 mapObject.tile.textureRegion.regionHeight
                     .toFloat() * UNIT_SCALE
             it += image
+
+            if (mapObject.properties.get("sound") != null) {
+                it +=
+                    AudioComponent(
+                        SoundType.valueOf(mapObject.properties.get("sound", String::class.java).uppercase()),
+                        mapObject.properties.get("soundVolume", Float::class.java) ?: .5f,
+                        mapObject.properties.get("soundAttenuationMaxDistance", Float::class.java) ?: 10f,
+                        mapObject.properties.get("soundAttenuationMinDistance", Float::class.java) ?: 1f,
+                        mapObject.properties.get("soundAttenuationFactor", Float::class.java) ?: 1f,
+                    )
+            }
 
             if (mapObject.tile is AnimatedTiledMapTile) {
                 val animatedTile = mapObject.tile as AnimatedTiledMapTile
@@ -253,7 +352,7 @@ class EntitySpawnSystem(
         mapObj: MapObject,
         cfg: SpawnCfg,
     ) {
-        val relativeSize = size(cfg.animationModel, cfg.animationType, cfg.animationVariant)
+        val relativeSize = size(cfg.animationModel, cfg.animationType)
         world.entity {
             // Add general components
             val image =
@@ -270,7 +369,8 @@ class EntitySpawnSystem(
 
             val animation = AnimationComponent()
             animation.animationModel = cfg.animationModel
-            animation.nextAnimation(cfg.animationType, cfg.animationVariant)
+            animation.nextAnimation(cfg.animationType)
+            animation.animationSoundTriggers = cfg.soundTrigger
             it += animation
 
             val physics =
@@ -288,7 +388,21 @@ class EntitySpawnSystem(
                     sensorType = SensorType.HITBOX_SENSOR,
                 )
             physics.categoryBits = cfg.entityCategory.bit
+
+            physics.body.box(
+                physics.size.x * 0.99f,
+                0.01f,
+                Vector2(0f, 0f - physics.size.y * 0.5f) + cfg.offsetPhysic.y,
+            ) {
+                isSensor = true
+                userData = FixtureData(SensorType.GROUND_TYPE_SENSOR)
+                filter.categoryBits = EntityCategory.SENSOR.bit
+                filter.maskBits = EntityCategory.GROUND.bit
+            }
+
             it += physics
+
+            it += GroundTypeSensorComponent
 
             it +=
                 TransformComponent(
@@ -321,6 +435,8 @@ class EntitySpawnSystem(
 
             it += JumpComponent()
 
+            it += SoundProfileComponent(cfg.soundProfile)
+
             when (cfg.entityCategory) {
                 // Add Player specific components
                 EntityCategory.PLAYER -> {
@@ -331,7 +447,7 @@ class EntitySpawnSystem(
                         Vector2(0f, 0f - physics.size.y * 0.5f),
                     ) {
                         isSensor = true
-                        userData = FixtureData(SensorType.GROUND_SENSOR)
+                        userData = FixtureData(SensorType.GROUND_DETECT_SENSOR)
                         filter.categoryBits = EntityCategory.SENSOR.bit
                         filter.maskBits = EntityCategory.GROUND.bit
                     }
@@ -346,8 +462,11 @@ class EntitySpawnSystem(
                             falloffProfile = 0.4f,
                             shaderIntensityMultiplier = 0.9f,
                         )
+                    flashlight.setOn(false)
 
                     it += LightComponent(flashlight)
+
+                    it += ReverbZoneContactComponent()
 
                     val input = InputComponent()
                     it += input
@@ -360,7 +479,7 @@ class EntitySpawnSystem(
                     val state =
                         StateComponent(
                             world = world,
-                            owner = PlayerStateContext(entity = it, world = world),
+                            owner = PlayerStateContext(it, world, stage),
                             initialState = PlayerFSM.IDLE,
                             globalState = PlayerCheckAliveState,
                         )
@@ -383,7 +502,7 @@ class EntitySpawnSystem(
                     val state =
                         StateComponent(
                             world = world,
-                            owner = MushroomStateContext(entity = it, world = world),
+                            owner = MushroomStateContext(it, world, stage),
                             initialState = MushroomFSM.IDLE,
                             globalState = MushroomCheckAliveState,
                         )
@@ -395,7 +514,7 @@ class EntitySpawnSystem(
                     val pulseLight =
                         lightEngine.addPointLight(
                             phyCmp.body.position + 1f,
-                            Color.RED,
+                            Color.ORANGE,
                             11f,
                         )
                     pulseLight.effectParams.pulseMaxIntensity = 4f
@@ -406,16 +525,15 @@ class EntitySpawnSystem(
                     it += LightComponent(pulseLight)
 
                     // create normal nearbyEnemiesSensor
-                    val nearbyEnemiesDefaultSensorFixture =
-                        phyCmp.body.circle(
-                            cfg.nearbyEnemiesDefaultSensorRadius,
-                            cfg.nearbyEnemiesSensorOffset,
-                        ) {
-                            isSensor = true
-                            userData = FixtureData(SensorType.NEARBY_ENEMY_SENSOR)
-                            filter.categoryBits = EntityCategory.SENSOR.bit
-                            filter.maskBits = EntityCategory.PLAYER.bit
-                        }
+                    phyCmp.body.circle(
+                        cfg.nearbyEnemiesDefaultSensorRadius,
+                        cfg.nearbyEnemiesSensorOffset,
+                    ) {
+                        isSensor = true
+                        userData = FixtureData(SensorType.NEARBY_ENEMY_SENSOR)
+                        filter.categoryBits = EntityCategory.SENSOR.bit
+                        filter.maskBits = EntityCategory.PLAYER.bit
+                    }
 
                     it += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius)
 
@@ -449,15 +567,14 @@ class EntitySpawnSystem(
     private fun size(
         model: AnimationModel,
         type: AnimationType,
-        variant: AnimationVariant,
     ): Vector2 {
-        val cacheKey = "${type.name}_${variant.name}"
+        val cacheKey = type.name
         return sizesCache.getOrPut(cacheKey) {
             val atlas =
                 atlasMap[model]
                     ?: gdxError("No texture atlas for model '$model' in EntitySpawnSystem found.")
 
-            val regions = atlas.findRegions(type.atlasKey + variant.atlasKey)
+            val regions = atlas.findRegions(type.atlasKey)
             if (regions.isEmpty) gdxError("No regions for the animation '$type' for model '$model' found")
 
             val firstFrame = regions.first()

@@ -2,6 +2,7 @@ package io.bennyoe.screens
 
 import io.bennyoe.Duckee
 import io.bennyoe.assets.MapAssets
+import io.bennyoe.assets.SoundAssets
 import io.bennyoe.assets.TextureAssets
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -23,6 +24,7 @@ class LoadingScreen(
             gdxArrayOf(
                 TextureAssets.entries.map { assets.loadAsync(it.descriptor) },
                 MapAssets.entries.map { assets.loadAsync(it.descriptor) },
+                SoundAssets.entries.map { assets.loadAsync(it.descriptor) },
             ).flatten()
 
         KtxAsync.launch {

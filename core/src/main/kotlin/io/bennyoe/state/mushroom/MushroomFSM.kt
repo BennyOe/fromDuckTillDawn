@@ -3,7 +3,6 @@ package io.bennyoe.state.mushroom
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.LANDING_VELOCITY_EPS
@@ -81,7 +80,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
 
     data object ATTACK : MushroomFSM() {
         override fun enter(ctx: MushroomStateContext) {
-            ctx.setAnimation(AnimationType.ATTACK)
+            ctx.setAnimation(AnimationType.ATTACK_1)
             ctx.attackCmp.applyAttack = true
         }
 
@@ -119,7 +118,6 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
             ctx.setAnimation(
                 AnimationType.DYING,
                 Animation.PlayMode.NORMAL,
-                AnimationVariant.FIRST,
                 // isReversed has to be set after the first time to prevent flickering because animation is played back reversed in RESURRECT state
                 isReversed = ctx.deathAlreadyEnteredBefore,
             )

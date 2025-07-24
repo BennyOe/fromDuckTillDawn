@@ -110,7 +110,7 @@ class MushroomContextUnitTest {
                 it +=
                     StateComponent(
                         world,
-                        PlayerStateContext(it, world),
+                        PlayerStateContext(it, world, stage),
                         PlayerFSM.IDLE,
                         PlayerCheckAliveState,
                     )
@@ -128,7 +128,7 @@ class MushroomContextUnitTest {
                 it +=
                     StateComponent(
                         world,
-                        MushroomStateContext(it, world),
+                        MushroomStateContext(it, world, stage),
                         MushroomFSM.IDLE,
                         MushroomCheckAliveState,
                     )

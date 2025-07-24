@@ -36,7 +36,7 @@ dependencies {
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
   api "io.github.quillraven.fleks:Fleks-jvm:$fleksVersion"
-  implementation("io.github.bennyoe:gdx-normal-light:1.0.1")
+  implementation("io.github.bennyoe:gdx-normal-light:1.0.3")
 
 // Test Setup
   testImplementation "org.jetbrains.kotlin:kotlin-test-junit5"
@@ -44,6 +44,7 @@ dependencies {
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.2"
 
   testImplementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+  implementation "com.github.Hangman:TuningFork:$tuningForkVersion"
   testImplementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
   testImplementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
   testImplementation files(rootProject.file('assets').path)

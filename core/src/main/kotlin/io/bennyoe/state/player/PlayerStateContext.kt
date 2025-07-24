@@ -1,5 +1,6 @@
 package io.bennyoe.state.player
 
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.AttackComponent
@@ -10,8 +11,9 @@ import io.bennyoe.state.player.PlayerFSM.IDLE
 class PlayerStateContext(
     entity: Entity,
     world: World,
+    stage: Stage,
     deltaTime: Float = 0f,
-) : AbstractStateContext<PlayerStateContext>(entity, world, deltaTime) {
+) : AbstractStateContext<PlayerStateContext>(entity, world, stage, deltaTime) {
     fun resurrectEntity() {
         deadComponent.resetRemoveDealyCounter()
         healthComponent.resetHealth()

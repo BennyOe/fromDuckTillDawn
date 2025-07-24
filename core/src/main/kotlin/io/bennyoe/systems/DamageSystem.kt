@@ -9,7 +9,6 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.PhysicComponent
@@ -37,7 +36,7 @@ class DamageSystem(
             healthCmp.current -= healthCmp.takenDamage
             healthCmp.takenDamage = 0f
             if (entity hasNo PlayerComponent) {
-                animationCmp.nextAnimation(AnimationType.HIT, AnimationVariant.FIRST)
+                animationCmp.nextAnimation(AnimationType.HIT)
             }
 
             if (entity has PlayerComponent) {

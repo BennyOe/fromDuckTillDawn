@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
 import com.github.quillraven.fleks.configureWorld
+import de.pottgames.tuningfork.Audio
 import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets
@@ -34,6 +35,7 @@ import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DamageSystem
 import io.bennyoe.systems.EntitySpawnSystem
 import io.bennyoe.systems.ExpireSystem
+import io.bennyoe.systems.GameMoodSystem
 import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
@@ -46,6 +48,10 @@ import io.bennyoe.systems.RenderMapSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
+import io.bennyoe.systems.audio.AmbienceSystem
+import io.bennyoe.systems.audio.MusicSystem
+import io.bennyoe.systems.audio.ReverbSystem
+import io.bennyoe.systems.audio.SoundEffectSystem
 import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
@@ -62,6 +68,7 @@ class GameScreen(
     context: Context,
 ) : AbstractScreen(context) {
     private val assets = context.inject<AssetStorage>()
+    private val audio = context.inject<Audio>()
     private val dawnAtlases =
         TextureAtlases(
             assets[TextureAssets.DAWN_ATLAS.descriptor],
@@ -93,13 +100,16 @@ class GameScreen(
             viewport = stage.viewport,
             stage = stage,
             entityCategory = EntityCategory.LIGHT.bit,
-            entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv()),
+            entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv() and EntityCategory.SENSOR.bit.inv()),
             lightActivationRadius = 18f,
+            lightViewportScale = 4f,
         )
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val entityWorld =
         configureWorld {
             injectables {
+                add("audio", audio)
+                add("assetManager", assets)
                 add("phyWorld", phyWorld)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
@@ -125,9 +135,14 @@ class GameScreen(
                 add(DamageTextSystem())
                 add(JumpSystem())
                 add(PhysicsSystem())
+                add(AmbienceSystem())
+                add(ReverbSystem())
+                add(SoundEffectSystem())
+                add(MusicSystem())
                 add(BasicSensorsSystem())
                 add(StateSystem())
                 add(BehaviorTreeSystem())
+                add(GameMoodSystem())
                 add(MoveSystem())
                 add(PhysicTransformSyncSystem())
                 add(CameraSystem())
@@ -142,6 +157,7 @@ class GameScreen(
         }
 
     override fun show() {
+        rayHandler.setBlurNum(2)
         profiler.enable()
         // add a gameState Entity to the screen
         entityWorld.entity {
@@ -185,6 +201,7 @@ class GameScreen(
     ) {
         super.resize(width, height)
         lightEngine.resize(width, height)
+        rayHandler.resizeFBO(width / 2, height / 2)
     }
 
     companion object {

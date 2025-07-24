@@ -1,13 +1,13 @@
 package io.bennyoe.state
 
 import com.badlogic.gdx.graphics.g2d.Animation
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationType
-import io.bennyoe.components.AnimationVariant
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
@@ -20,6 +20,7 @@ import io.bennyoe.components.WalkDirection
 abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     val entity: Entity,
     val world: World,
+    val stage: Stage,
     var deltaTime: Float = 0f,
 ) {
     // this is needed to prevent flickering of the death animation
@@ -62,11 +63,10 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     fun setAnimation(
         type: AnimationType,
         playMode: Animation.PlayMode = Animation.PlayMode.LOOP,
-        variant: AnimationVariant = AnimationVariant.FIRST,
         resetStateTime: Boolean = false,
         isReversed: Boolean = false,
     ) {
-        animationComponent.nextAnimation(type, variant)
+        animationComponent.nextAnimation(type)
         if (resetStateTime) animationComponent.stateTime = 0f
         animationComponent.isReversed = isReversed
         animationComponent.mode = playMode

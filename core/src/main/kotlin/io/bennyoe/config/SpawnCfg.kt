@@ -8,9 +8,9 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.config.GameConstants.CHASE_SPEED
 import io.bennyoe.config.GameConstants.NORMAL_DETECTION_RADIUS
+import io.bennyoe.service.SoundProfile
 import io.bennyoe.service.SoundType
 import io.bennyoe.utility.FloorType
-import io.bennyoe.utility.SoundProfile
 import ktx.app.gdxError
 import ktx.math.vec2
 import kotlin.experimental.or

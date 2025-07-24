@@ -28,7 +28,6 @@ import io.bennyoe.event.fire
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
-import io.bennyoe.systems.AudioSystem
 import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
@@ -49,6 +48,10 @@ import io.bennyoe.systems.RenderMapSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
+import io.bennyoe.systems.audio.AmbienceSystem
+import io.bennyoe.systems.audio.MusicSystem
+import io.bennyoe.systems.audio.ReverbSystem
+import io.bennyoe.systems.audio.SoundEffectSystem
 import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
@@ -132,6 +135,10 @@ class GameScreen(
                 add(DamageTextSystem())
                 add(JumpSystem())
                 add(PhysicsSystem())
+                add(AmbienceSystem())
+                add(ReverbSystem())
+                add(SoundEffectSystem())
+                add(MusicSystem())
                 add(BasicSensorsSystem())
                 add(StateSystem())
                 add(BehaviorTreeSystem())
@@ -140,7 +147,6 @@ class GameScreen(
                 add(PhysicTransformSyncSystem())
                 add(CameraSystem())
                 add(RenderMapSystem())
-                add(AudioSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())
                 add(ExpireSystem())

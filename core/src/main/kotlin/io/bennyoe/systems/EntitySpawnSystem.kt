@@ -67,6 +67,7 @@ import io.bennyoe.state.mushroom.MushroomStateContext
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
+import io.bennyoe.systems.audio.AmbienceType
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
 import io.bennyoe.utility.SensorType

@@ -122,7 +122,7 @@
  </objectgroup>
  <group id="19" name="audio">
   <objectgroup id="15" name="reverbZones">
-   <object id="89" x="797.532" y="108.366" width="229.794" height="150.262">
+   <object id="89" x="745.485" y="108.366" width="281.841" height="150.262">
     <properties>
      <property name="effectIntensity" type="float" value="0.8"/>
      <property name="effectPreset" value="arena"/>
@@ -135,7 +135,7 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="18" name="ambienceZones">
+  <objectgroup id="18" name="ambienceZones" visible="0">
    <object id="109" x="0.584795" y="0.584795" width="642.69" height="256.14">
     <properties>
      <property name="sound" value="sound/ambience/goodweather.mp3"/>

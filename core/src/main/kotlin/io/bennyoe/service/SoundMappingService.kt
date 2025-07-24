@@ -2,7 +2,6 @@ package io.bennyoe.service
 
 import io.bennyoe.assets.SoundAssets
 import io.bennyoe.utility.FloorType
-import io.bennyoe.utility.SoundProfile
 import ktx.log.logger
 
 object SoundMappingService {
@@ -62,3 +61,10 @@ enum class SoundType(
     // Environment
     CAMPFIRE,
 }
+
+data class SoundProfile(
+    // non contextual sounds
+    val simpleSounds: Map<SoundType, List<SoundAssets>> = emptyMap(),
+    // footsteps sounds depends on the surface
+    val footstepsSounds: Map<FloorType, List<SoundAssets>> = emptyMap(),
+)

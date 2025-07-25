@@ -212,7 +212,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
         override fun update(ctx: PlayerStateContext) {
             // this looks buggy but will be fixed as soon as the animations are split into top and bottom
-            if (ctx.wantsToJump) ctx.changeState(JUMP)
+            if (ctx.wantsToJump) ctx.changeState(JUMP_ATTACK)
             if (ctx.wantsToAttack) ctx.intentionCmp.wantsToAttack2 = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
@@ -240,7 +240,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
         override fun update(ctx: PlayerStateContext) {
             // this looks buggy but will be fixed as soon as the animations are split into top and bottom
-            if (ctx.wantsToJump) ctx.changeState(JUMP)
+            if (ctx.wantsToJump) ctx.changeState(JUMP_ATTACK)
             if (ctx.wantsToAttack) ctx.intentionCmp.wantsToAttack3 = true
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
@@ -268,12 +268,33 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
         override fun update(ctx: PlayerStateContext) {
             // this looks buggy but will be fixed as soon as the animations are split into top and bottom
-            if (ctx.wantsToJump) ctx.changeState(JUMP)
+            if (ctx.wantsToJump) ctx.changeState(JUMP_ATTACK)
             if (ctx.animationComponent.isAnimationFinished()) {
                 when {
                     isFalling(ctx) -> ctx.changeState(FALL)
                     else -> ctx.changeState(IDLE)
                 }
+            }
+        }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    data object JUMP_ATTACK : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            logger.debug { "Entering JUMP_ATTACK" }
+            ctx.jumpComponent.wantsToJump = true
+            ctx.intentionCmp.wantsToJump = false
+            ctx.jumpComponent.jumpFromBuffer = false
+            ctx.setAnimation(AnimationType.JUMP)
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            when {
+                isFalling(ctx) -> ctx.changeState(FALL)
             }
         }
 

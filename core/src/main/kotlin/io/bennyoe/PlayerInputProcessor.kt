@@ -7,6 +7,8 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.InputComponent
+import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.state.FsmMessageTypes
 import ktx.app.KtxInputAdapter
@@ -19,7 +21,26 @@ class PlayerInputProcessor(
     private val debugEntities = world.family { all(DebugComponent) }
     private val gameStateEntities = world.family { all(GameStateComponent) }
     private val cameraEntities = world.family { all(CameraComponent) }
+    val playerEntity = world.family { all(PlayerComponent) }.first()
     private val messageDispatcher = MessageManager.getInstance()
+
+    // map that explicitly allows certain actions in specific states
+    private val allowedActionsPerState: Map<String, Set<Action>> =
+        mapOf(
+            "IDLE" to Action.entries.toSet(),
+            "WALK" to Action.entries.toSet(),
+            "JUMP" to Action.entries.toSet(),
+            "DOUBLE_JUMP" to Action.entries.toSet(),
+            "FALL" to setOf(Action.JUMP, Action.MOVE_LEFT, Action.MOVE_RIGHT),
+            "CROUCH_IDLE" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.CROUCH),
+            "CROUCH_WALK" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.CROUCH),
+            "ATTACK_1" to Action.entries.toSet(),
+            "ATTACK_2" to Action.entries.toSet(),
+            "ATTACK_3" to Action.entries.toSet(),
+            "BASH" to emptySet(),
+            "HIT" to Action.entries.toSet(),
+            "DEAD" to emptySet(),
+        )
 
     // Mapping der Steuerungstasten zu Aktionen
     private val keyActions =
@@ -83,14 +104,22 @@ class PlayerInputProcessor(
             }
         }
         inputEntities.forEach { input ->
+            val playerState = playerEntity[StateComponent].stateMachine.currentState.toString()
             val inputCmp = input[InputComponent]
+            val allowed = allowedActionsPerState[playerState] ?: emptySet()
+            logger.debug { "playerState $playerState" }
+            if (pressed && action != Action.KILL && action !in allowed) return@forEach
+
             when (action) {
                 Action.JUMP -> {
                     inputCmp.jumpJustPressed = pressed
                     inputCmp.jumpIsPressed = pressed
                 }
 
-                Action.CROUCH -> inputCmp.crouchJustPressed = pressed
+                Action.CROUCH -> {
+                    inputCmp.crouchJustPressed = pressed
+                }
+
                 Action.ATTACK -> inputCmp.attackJustPressed = pressed
                 Action.BASH -> inputCmp.bashJustPressed = pressed
 

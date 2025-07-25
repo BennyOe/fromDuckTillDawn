@@ -135,7 +135,7 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="18" name="ambienceZones" visible="0">
+  <objectgroup id="18" name="ambienceZones">
    <object id="109" x="0.584795" y="0.584795" width="642.69" height="256.14">
     <properties>
      <property name="sound" value="sound/ambience/goodweather.mp3"/>
@@ -145,7 +145,7 @@
    </object>
    <object id="111" x="655.263" y="0.584971" width="367.836" height="256.14">
     <properties>
-     <property name="sound" value="sound/ambience/badweather.mp3"/>
+     <property name="sound" value="sound/ambience/cave2.mp3"/>
      <property name="type" value="cave"/>
      <property name="volume" type="float" value="0.5"/>
     </properties>
@@ -154,9 +154,9 @@
   <objectgroup id="17" name="soundTriggers">
    <object id="108" x="798.246" y="193.567" width="23.9766" height="61.9883">
     <properties>
-     <property name="sound" value="sound/dawn/bash.mp3"/>
+     <property name="sound" value="sound/trigger/laugh.mp3"/>
      <property name="streamed" type="bool" value="true"/>
-     <property name="type" value="DAWN_BASH"/>
+     <property name="type" value="LAUGH"/>
      <property name="volume" type="float" value="0.6"/>
     </properties>
    </object>

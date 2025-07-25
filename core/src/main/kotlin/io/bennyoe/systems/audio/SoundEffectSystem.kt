@@ -98,8 +98,6 @@ class SoundEffectSystem(
         soundCmp.bufferedSoundSource?.setPosition(transformCmp.position.x + transformCmp.width * 0.5f, transformCmp.position.y, 0f)
     }
 
-    fun allActiveSoundSources(): Collection<BufferedSoundSource> = oneShotSoundSources + loopingSounds.values
-
     private fun cleanUpOneShotSounds() {
         val iterator = oneShotSoundSources.iterator()
         while (iterator.hasNext()) {

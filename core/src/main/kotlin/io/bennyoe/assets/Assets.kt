@@ -52,4 +52,7 @@ enum class SoundAssets(
 
     // Environment
     CAMPFIRE("environment/campfire_01.mp3"),
+
+    // Environment
+    LAUGH("trigger/laugh.mp3"),
 }

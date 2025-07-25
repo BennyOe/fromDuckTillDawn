@@ -60,6 +60,9 @@ enum class SoundType(
 
     // Environment
     CAMPFIRE,
+
+    // Trigger
+    LAUGH,
 }
 
 data class SoundProfile(

@@ -13,6 +13,7 @@ import de.pottgames.tuningfork.jukebox.song.Song
 import de.pottgames.tuningfork.jukebox.song.SongMeta
 import de.pottgames.tuningfork.jukebox.song.SongSettings
 import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.config.GameConstants.AMBIENCE_VOLUME
 import io.bennyoe.event.AmbienceChangeEvent
 import io.bennyoe.event.MapChangedEvent
 
@@ -80,7 +81,7 @@ class AmbienceSystem :
                 StreamedSoundSource(Gdx.files.internal(ambience.sound)).apply {
                     isRelative = true
                     setLooping(true)
-                    volume = ambience.volume!!
+                    volume = ambience.volume!! * AMBIENCE_VOLUME
                 }
 
             val settings = SongSettings.linear(1f, 2f, 2f)

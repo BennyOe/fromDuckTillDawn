@@ -8,4 +8,3 @@ class LunarComponent : Component<LunarComponent> {
 
     companion object : ComponentType<LunarComponent>()
 }
-

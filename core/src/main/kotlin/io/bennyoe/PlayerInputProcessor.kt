@@ -12,7 +12,6 @@ import io.bennyoe.components.StateComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.systems.LightSystem
-import io.bennyoe.systems.TimeOfDay
 import ktx.app.KtxInputAdapter
 import ktx.log.logger
 

@@ -16,6 +16,7 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.config.GameConstants.EFFECT_VOLUME
 import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StopLoopingSoundEvent
@@ -144,7 +145,7 @@ class SoundEffectSystem(
                 }
 
                 reverb.registerSource(source)
-                source.volume = event.volume
+                source.volume = event.volume * EFFECT_VOLUME
                 if (shouldVary) {
                     source.pitch = MathUtils.random(MIN_PITCH, MAX_PITCH)
                 }
@@ -170,7 +171,7 @@ class SoundEffectSystem(
 
                 reverb.registerSource(source)
 
-                source.volume = event.volume
+                source.volume = event.volume * EFFECT_VOLUME
                 source.attenuationFactor = 1f
                 source.play()
                 loopingSounds[event.soundType] = source
@@ -194,7 +195,7 @@ class SoundEffectSystem(
                 }
                 triggeredSound.setLooping(false)
                 reverb.registerSource(triggeredSound)
-                triggeredSound.volume = event.volume
+                triggeredSound.volume = event.volume * EFFECT_VOLUME
                 triggeredSound.play()
                 true
             }

@@ -41,16 +41,16 @@ class LightEngine(
     entityMask: Short = -1,
     lightActivationRadius: Float = -1f,
 ) : AbstractLightEngine(
-    rayHandler,
-    cam,
-    batch,
-    viewport,
-    useDiffuseLight,
-    maxShaderLights,
-    entityCategory,
-    entityMask,
-    lightActivationRadius,
-) {
+        rayHandler,
+        cam,
+        batch,
+        viewport,
+        useDiffuseLight,
+        maxShaderLights,
+        entityCategory,
+        entityMask,
+        lightActivationRadius,
+    ) {
     private val lightCam = OrthographicCamera()
 
     /**
@@ -95,7 +95,6 @@ class LightEngine(
         lightCam.position.set(cam.position)
         lightCam.zoom = cam.zoom
         lightCam.update()
-
 
         rayHandler.setCombinedMatrix(
             lightCam.combined,

@@ -37,6 +37,7 @@ class CameraSystem(
     private var cameraTargetX = 0f
     val deadzone = Rectangle(0f, 0f, 1f, 1f)
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
+    private val cameraEntity by lazy { world.family { all(CameraComponent) }.first() }
 
     override fun onTickEntity(entity: Entity) {
         val imageCmps = entity[ImageComponent]
@@ -53,7 +54,7 @@ class CameraSystem(
     }
 
     override fun onTick() {
-        val cameraComponent = world.family { any(CameraComponent) }.firstOrNull()?.getOrNull(CameraComponent)
+        val cameraComponent = cameraEntity.getOrNull(CameraComponent)
         cameraComponent?.let { camera.zoom = it.zoomFactor }
         super.onTick()
         camera.update()

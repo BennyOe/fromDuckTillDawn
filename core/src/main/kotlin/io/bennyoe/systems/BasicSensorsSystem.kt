@@ -33,8 +33,9 @@ class BasicSensorsSystem(
         family { all(BasicSensorsComponent, RayHitComponent) },
 //        interval = Fixed(PHYSIC_TIME_STEP * 3),
     ) {
+    private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
+
     override fun onTickEntity(entity: Entity) {
-        val playerEntity = world.family { all(PlayerComponent, PhysicComponent) }.first()
         val basicSensorsCmp = entity[BasicSensorsComponent]
         val rayHitCmp = entity[RayHitComponent]
         val phyCmp = entity[PhysicComponent]

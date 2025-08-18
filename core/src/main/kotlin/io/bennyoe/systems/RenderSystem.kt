@@ -1,12 +1,10 @@
 package io.bennyoe.systems
 
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.maps.tiled.TiledMapImageLayer
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.maps.tiled.tiles.AnimatedTiledMapTile
-import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -33,82 +31,87 @@ import ktx.tiled.forEachLayer
 class RenderSystem(
     private val stage: Stage = inject("stage"),
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
-) : IteratingSystem(family { all(TransformComponent).any(ImageComponent, ParticleComponent) }, enabled = !SHOW_ONLY_DEBUG),
+) : IteratingSystem(
+        family { all(TransformComponent).any(ImageComponent, ParticleComponent) },
+        enabled = !SHOW_ONLY_DEBUG,
+    ),
     EventListener {
     private val mapRenderer = OrthogonalTiledMapRenderer(null, UNIT_SCALE, stage.batch)
-    private val mapTileLayer: MutableList<TiledMapTileLayer> = mutableListOf()
-    private val mapBg: MutableList<TiledMapImageLayer> = mutableListOf()
     private val orthoCam = stage.camera as OrthographicCamera
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
+
+    // Storage for map layers from MapChangedEvent
+    private val mapTileLayers = mutableListOf<TiledMapTileLayer>()
+    private val mapImageLayers = mutableListOf<TiledMapImageLayer>()
+
+    // The unified render queue - rebuilt each frame
+    private val renderQueue = mutableListOf<RenderableElement>()
 
     override fun handle(event: Event?): Boolean {
         when (event) {
             is MapChangedEvent -> {
-                mapTileLayer.clear()
-                mapBg.clear()
+                // Clear and store map layers with their zIndex
+                mapTileLayers.clear()
+                mapImageLayers.clear()
                 mapRenderer.map = event.map
 
                 event.map.forEachLayer<TiledMapTileLayer> { layer ->
-                    mapTileLayer.add(layer)
+                    mapTileLayers.add(layer)
                 }
                 event.map.forEachLayer<TiledMapImageLayer> { layer ->
-                    mapBg.add(layer)
+                    mapImageLayers.add(layer)
                 }
+
+                return true
             }
         }
-        return true
+        return false
     }
 
     override fun onTick() {
         val gameStateCmp = gameStateEntity[GameStateComponent]
-        // 1. Execute logic
+
+        // 1. Update camera and stage
         orthoCam.update()
         stage.viewport.apply()
         stage.act(deltaTime)
 
-        mapRenderer.setView(orthoCam)
-        mapRenderer.render()
-        renderMap()
+        // 2. Update all entity transforms/positions via onTickEntity
+        super.onTick() // This calls onTickEntity for each entity
 
-        // 2. Sort actors on the stage. This is for the stage.draw() path.
-        stage.root.children.sort { a, b -> getZIndex(a).compareTo(getZIndex(b)) }
+        // 3. Build the render queue with everything sorted by zIndex
+        buildRenderQueue()
 
+        // 4. Update lighting system
         lightEngine.update()
 
+        // 5. Render everything in the correct order
         if (!gameStateCmp.isLightingEnabled) {
-            // 3. Default rendering path - uses the sorted actors on the stage
-            stage.draw()
+            renderWithoutLighting()
         } else {
-            // 4. Advanced rendering path with lighting
-            drawWithLightingEngine()
+            renderWithLighting()
         }
-        super.onTick()
     }
 
     override fun onTickEntity(entity: Entity) {
+        // This stays exactly as it was - updating entity positions and sizes
         val transformCmp = entity[TransformComponent]
         val gameStateCmp = gameStateEntity[GameStateComponent]
 
         entity.getOrNull(ImageComponent)?.let { imageCmp ->
-            // Differentiate sizing logic based on whether the entity has a PhysicComponent
             val targetWidth: Float
             val targetHeight: Float
 
             if (entity has PhysicComponent) {
-                // For entities with a PhysicComponent (e.g., player, mushroom),
                 targetWidth = imageCmp.scaleX
                 targetHeight = imageCmp.scaleY
             } else {
-                // Update position for ImageComponent
                 imageCmp.image.setPosition(transformCmp.position.x, transformCmp.position.y)
-                // For entities without a PhysicComponent (e.g., map objects like fire),
-                // transformCmp.width/height are the base sizes, and imageCmp.scaleX/Y are multipliers.
                 targetWidth = transformCmp.width * imageCmp.scaleX
                 targetHeight = transformCmp.height * imageCmp.scaleY
             }
 
             // TODO remove later when light engine is not switchable anymore
-            // Apply flipping based on imageCmp.flipImage
             if (!gameStateCmp.isLightingEnabled) {
                 val finalWidth = if (imageCmp.flipImage) -targetWidth else targetWidth
                 imageCmp.image.setSize(finalWidth, targetHeight)
@@ -117,7 +120,6 @@ class RenderSystem(
             }
         }
 
-        // Update position for ParticleComponent
         entity.getOrNull(ParticleComponent)?.let { particleCmp ->
             particleCmp.actor.setPosition(
                 transformCmp.position.x + particleCmp.offsetX,
@@ -126,145 +128,229 @@ class RenderSystem(
         }
     }
 
-    private fun drawWithLightingEngine() {
-        val playerEntity = world.family { any(PlayerComponent) }.first()
-        val playerActor = playerEntity[ImageComponent].image
-        lightEngine.renderLights(playerActor) { engine ->
-            // The batch already has the light shader active here.
+    private fun buildRenderQueue() {
+        renderQueue.clear()
 
-            // get all renderable entities
-            val renderableEntities = mutableListOf<Entity>()
-            world.family { any(ImageComponent, ParticleComponent) }.forEach {
-                renderableEntities.add(it)
+        // 1. Add all map image layers
+        mapImageLayers.forEach { layer ->
+            val zIndex = layer.properties.get("zIndex", Int::class.java) ?: 0
+            renderQueue.add(RenderableElement.ImageLayer(layer, zIndex))
+        }
+
+        // 2. Add all map tile layers
+        mapTileLayers.forEach { layer ->
+            val zIndex = layer.properties.get("zIndex", Int::class.java) ?: 7000
+            renderQueue.add(RenderableElement.TileLayer(layer, zIndex))
+        }
+
+        // 3. Add all entities
+        world.family { any(ImageComponent, ParticleComponent) }.forEach { entity ->
+            entity.getOrNull(ImageComponent)?.let { imageCmp ->
+                renderQueue.add(
+                    RenderableElement.EntityWithImage(
+                        entity = entity,
+                        imageCmp = imageCmp,
+                        zIndex = imageCmp.zIndex,
+                    ),
+                )
             }
 
-            val sortedRenderableEntities =
-                renderableEntities.sortedBy { it.zIndex }
-
-            // Keep track of the current shader state
-            var currentShaderIsDefault = false
-
-            sortedRenderableEntities.forEach { entity ->
-                val imageCmp = entity.getOrNull(ImageComponent)
-                val shaderCmp = entity.getOrNull(ShaderRenderingComponent)
-                val particleCmp = entity.getOrNull(ParticleComponent)
-
-                if (shaderCmp?.normal != null && imageCmp != null) {
-                    // This entity requires a custom shader
-                    if (currentShaderIsDefault) {
-                        engine.batch.flush()
-                        engine.setShaderToEngineShader()
-                        currentShaderIsDefault = false
-                    }
-
-                    if (shaderCmp.specular != null) {
-                        engine.draw(
-                            diffuse = shaderCmp.diffuse!!,
-                            normals = shaderCmp.normal!!,
-                            specular = shaderCmp.specular!!,
-                            x = imageCmp.image.x,
-                            y = imageCmp.image.y,
-                            width = imageCmp.image.width,
-                            height = imageCmp.image.height,
-                            flipX = imageCmp.flipImage,
-                        )
-                    } else {
-                        engine.draw(
-                            diffuse = shaderCmp.diffuse!!,
-                            normals = shaderCmp.normal!!,
-                            x = imageCmp.image.x,
-                            y = imageCmp.image.y,
-                            width = imageCmp.image.width,
-                            height = imageCmp.image.height,
-                            flipX = imageCmp.flipImage,
-                        )
-                    }
-                } else {
-                    // This entity is a default entity (no special shaders) or a particle
-                    if (!currentShaderIsDefault) {
-                        engine.batch.flush()
-                        engine.setShaderToDefaultShader()
-                        currentShaderIsDefault = true
-                    }
-
-                    // Draw image if it exists
-                    imageCmp?.let {
-                        (it.image.drawable as? TextureRegionDrawable)?.let { tex ->
-                            val region = tex.region
-                            val x = it.image.x
-                            val y = it.image.y
-                            val width = it.image.width
-                            val height = it.image.height
-
-                            if (it.flipImage) {
-                                engine.batch.draw(region, x + width, y, -width, height)
-                            } else {
-                                engine.batch.draw(region, x, y, width, height)
-                            }
-                        }
-                    }
-
-                    // Draw particles if they exist
-                    particleCmp?.actor?.draw(engine.batch, 1f)
+            entity.getOrNull(ParticleComponent)?.let { particleCmp ->
+                // Only add particle if entity doesn't have image (to avoid duplicates)
+                if (!entity.has(ImageComponent)) {
+                    renderQueue.add(
+                        RenderableElement.EntityWithParticle(
+                            entity = entity,
+                            particleCmp = particleCmp,
+                            zIndex = particleCmp.zIndex,
+                        ),
+                    )
                 }
             }
-            // Ensure the engine shader is active at the end
-            if (currentShaderIsDefault) {
-                engine.batch.flush()
-                engine.setShaderToEngineShader()
-            }
         }
+
+        // 4. Sort everything by zIndex
+        renderQueue.sortBy { it.zIndex }
     }
 
-    private fun renderMap() {
-        AnimatedTiledMapTile.updateAnimationBaseTime() // is called to render animated tiles in the map
+    private fun renderWithoutLighting() {
+        // Simple rendering without lighting - everything in order
+        AnimatedTiledMapTile.updateAnimationBaseTime()
         mapRenderer.setView(orthoCam)
-        // this is rendering the map
+
         stage.batch.use(orthoCam.combined) {
-            mapBg.forEach {
-                mapRenderer.renderImageLayer(it)
-            }
-            mapTileLayer.forEach {
-                mapRenderer.renderTileLayer(it)
+            renderQueue.forEach { renderable ->
+                when (renderable) {
+                    is RenderableElement.TileLayer -> {
+                        mapRenderer.renderTileLayer(renderable.layer)
+                    }
+
+                    is RenderableElement.ImageLayer -> {
+                        mapRenderer.renderImageLayer(renderable.layer)
+                    }
+
+                    is RenderableElement.EntityWithImage -> {
+                        // Draw the image actor directly
+                        renderable.imageCmp.image.draw(it, 1f)
+                    }
+
+                    is RenderableElement.EntityWithParticle -> {
+                        renderable.particleCmp.actor.draw(it, 1f)
+                    }
+                }
             }
         }
     }
 
-    // Helper to get zIndex from an Actor's entity
-    private fun getZIndex(actor: Actor): Int {
-        val entity = actor.userObject as? Entity ?: return 0
-        val imageZ = entity.getOrNull(ImageComponent)?.zIndex
-        val particleZ = entity.getOrNull(ParticleComponent)?.zIndex
-        return imageZ ?: particleZ ?: 0
+    private fun renderWithLighting() {
+        AnimatedTiledMapTile.updateAnimationBaseTime()
+        mapRenderer.setView(orthoCam)
+
+        val playerEntity = world.family { any(PlayerComponent) }.first()
+        val playerActor = playerEntity[ImageComponent].image
+
+        lightEngine.renderLights(playerActor) { engine ->
+            var currentShaderIsDefault = false
+
+            engine.batch.projectionMatrix = orthoCam.combined
+            renderQueue.forEach { renderable ->
+                when (renderable) {
+                    is RenderableElement.TileLayer -> {
+                        ensureDefaultShader(engine, currentShaderIsDefault) { currentShaderIsDefault = it }
+                        mapRenderer.renderTileLayer(renderable.layer)
+                    }
+
+                    is RenderableElement.ImageLayer -> {
+                        ensureDefaultShader(engine, currentShaderIsDefault) { currentShaderIsDefault = it }
+                        mapRenderer.renderImageLayer(renderable.layer)
+                    }
+
+                    is RenderableElement.EntityWithImage -> {
+                        renderEntityWithLighting(
+                            renderable.entity,
+                            renderable.imageCmp,
+                            engine,
+                            currentShaderIsDefault,
+                        ) { currentShaderIsDefault = it }
+                    }
+
+                    is RenderableElement.EntityWithParticle -> {
+                        ensureDefaultShader(engine, currentShaderIsDefault) { currentShaderIsDefault = it }
+                        renderable.particleCmp.actor.draw(engine.batch, 1f)
+                    }
+                }
+            }
+        }
     }
 
-    // Helper to get zIndex directly from an entity
-    private val Entity.zIndex: Int
-        get() = this.getOrNull(ImageComponent)?.zIndex ?: this.getOrNull(ParticleComponent)?.zIndex ?: 0
+    private fun renderEntityWithLighting(
+        entity: Entity,
+        imageCmp: ImageComponent,
+        engine: Scene2dLightEngine,
+        currentShaderIsDefault: Boolean,
+        updateShaderState: (Boolean) -> Unit,
+    ) {
+        val shaderCmp = entity.getOrNull(ShaderRenderingComponent)
+        val particleCmp = entity.getOrNull(ParticleComponent)
+
+        when {
+            shaderCmp?.normal != null -> {
+                ensureEngineShader(engine, currentShaderIsDefault, updateShaderState)
+                drawWithNormalMapping(engine, imageCmp, shaderCmp)
+            }
+
+            else -> {
+                ensureDefaultShader(engine, currentShaderIsDefault, updateShaderState)
+                drawWithDefaultShader(engine, imageCmp)
+            }
+        }
+
+        // Draw optional particles
+        particleCmp?.actor?.draw(engine.batch, 1f)
+    }
+
+    private fun ensureEngineShader(
+        engine: Scene2dLightEngine,
+        current: Boolean,
+        update: (Boolean) -> Unit,
+    ) {
+        if (current) {
+            engine.batch.flush()
+            engine.setShaderToEngineShader()
+            update(false)
+        }
+    }
+
+    private fun ensureDefaultShader(
+        engine: Scene2dLightEngine,
+        current: Boolean,
+        update: (Boolean) -> Unit,
+    ) {
+        if (!current) {
+            engine.batch.flush()
+            engine.setShaderToDefaultShader()
+            update(true)
+        }
+    }
+
+    private fun drawWithNormalMapping(
+        engine: Scene2dLightEngine,
+        imageCmp: ImageComponent,
+        shaderCmp: ShaderRenderingComponent,
+    ) {
+        if (shaderCmp.specular != null) {
+            engine.draw(
+                diffuse = shaderCmp.diffuse!!,
+                normals = shaderCmp.normal!!,
+                specular = shaderCmp.specular!!,
+                x = imageCmp.image.x,
+                y = imageCmp.image.y,
+                width = imageCmp.image.width,
+                height = imageCmp.image.height,
+                flipX = imageCmp.flipImage,
+            )
+        } else {
+            engine.draw(
+                diffuse = shaderCmp.diffuse!!,
+                normals = shaderCmp.normal!!,
+                x = imageCmp.image.x,
+                y = imageCmp.image.y,
+                width = imageCmp.image.width,
+                height = imageCmp.image.height,
+                flipX = imageCmp.flipImage,
+            )
+        }
+    }
+
+    private fun drawWithDefaultShader(
+        engine: Scene2dLightEngine,
+        imageCmp: ImageComponent,
+    ) {
+        val texture = imageCmp.image.drawable as? TextureRegionDrawable ?: return
+        val region = texture.region
+
+        if (imageCmp.flipImage) {
+            engine.batch.draw(
+                region,
+                imageCmp.image.x + imageCmp.image.width,
+                imageCmp.image.y,
+                -imageCmp.image.width,
+                imageCmp.image.height,
+            )
+        } else {
+            engine.batch.draw(
+                region,
+                imageCmp.image.x,
+                imageCmp.image.y,
+                imageCmp.image.width,
+                imageCmp.image.height,
+            )
+        }
+    }
 
     companion object {
         val logger = logger<RenderSystem>()
     }
-}
-
-enum class RenderLayer(
-    val baseZIndex: Int,
-) {
-    BG_SKY(0),
-    SKY(1000),
-    BG_PARALLAX_1(2000),
-    BG_PARALLAX_2(3000),
-    BG_PARALLAX_3(4000),
-    BG_PARALLAX_4(5000),
-    MAP_BG(6000),
-    TILES(7000),
-    BG_MAP_OBJECTS(8000),
-    CHARACTERS(9000),
-    PROJECTILES(9500),
-    FG_MAP_OBJECTS(10_000),
-    FG_PARALLAX_1(11_000),
-    FG_PARALLAX_2(12_000),
-    UI(20_000),
 }
 
 sealed class RenderableElement {
@@ -283,7 +369,7 @@ sealed class RenderableElement {
     data class EntityWithImage(
         val entity: Entity,
         val imageCmp: ImageComponent,
-        override val zIndex: Int, // layerZIndex + entity.zIndex
+        override val zIndex: Int,
     ) : RenderableElement()
 
     data class EntityWithParticle(

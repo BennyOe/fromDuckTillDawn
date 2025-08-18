@@ -16,7 +16,7 @@ Objects on these layers are spawned as dynamic characters in the game. The most 
 | :--- | :--- | :--- | :--- |
 | `type` | `String` | **(Required)** Determines the template (`SpawnCfg`) used to create the entity. Must match a predefined type. | `playerStart` or `enemy` |
 
-### Layer: `mapObjects`
+### Layer: `bgMapObjects`
 
 These are static or animated objects that are added to the game world.
 
@@ -74,3 +74,26 @@ These properties are set at the top level of the Tiled map (in the `Properties` 
 | Property | Data Type | Description                                                                        | Example Value |
 | :--- | :--- |:-----------------------------------------------------------------------------------| :--- |
 | `bgMusic` | `String` | The path to the background music file that should be played when the map loads. | `music/level_1_theme.mp3` |
+
+
+## RenderLayer convention (zIndex)
+
+These values define the rendering order of scene elements. A higher `zIndex` means the element appears visually in front.
+
+| RenderLayer        | zIndex | Description                              |
+|--------------------|--------|------------------------------------------|
+| BG_SKY             | 0      | Deepest background – e.g., stars         |
+| SKY                | 1000   | Sky layers, such as clouds, sun, moon    |
+| BG_PARALLAX_1      | 2000   | Far distant parallax layer               |
+| BG_PARALLAX_2      | 3000   | Distant parallax layer                   |
+| BG_PARALLAX_3      | 4000   | Closer parallax layer                    |
+| BG_PARALLAX_4      | 5000   | Foremost background parallax             |
+| MAP_BG             | 6000   | Tile map background layers               |
+| TILES              | 7000   | Main gameplay tile layer                 |
+| BG_MAP_OBJECTS     | 8000   | Objects behind characters                |
+| CHARACTERS         | 9000   | Players, enemies, NPCs                   |
+| PROJECTILES        | 9500   | Projectiles, spells, ranged attacks      |
+| FG_MAP_OBJECTS     | 10000  | Foreground map decorations               |
+| FG_PARALLAX_1      | 11000  | Foreground parallax layer (e.g., leaves) |
+| FG_PARALLAX_2      | 12000  | Closest parallax elements                |
+| UI                 | 20000  | User interface elements                  |

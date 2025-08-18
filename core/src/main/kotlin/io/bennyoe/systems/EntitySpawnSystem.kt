@@ -15,8 +15,6 @@ import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
-import com.github.bennyOe.gdxNormalLight.core.LightEffectType
-import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
@@ -58,6 +56,8 @@ import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.event.MapChangedEvent
+import io.bennyoe.lightEngine.core.LightEffectType
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.service.SoundType
 import io.bennyoe.state.FsmMessageTypes
@@ -112,20 +112,21 @@ class EntitySpawnSystem(
             is MapChangedEvent -> {
                 // Adding Player
                 val playerEntityLayer = event.map.layer("playerStart")
+                val layerZIndex = playerEntityLayer.properties.get("zIndex") as Int?
                 playerEntityLayer.objects.forEach { playerObj ->
                     val cfg = SpawnCfg.createSpawnCfg(playerObj.type!!)
-                    createEntity(playerObj, cfg)
+                    createEntity(playerObj, cfg, layerZIndex ?: 9000)
                 }
                 // Adding enemies
                 val enemyEntityLayer = event.map.layer("enemies")
                 enemyEntityLayer.objects.forEach { enemyObj ->
                     val cfg = SpawnCfg.createSpawnCfg(enemyObj.type!!)
-                    createEntity(enemyObj, cfg)
+                    createEntity(enemyObj, cfg, layerZIndex ?: 9000)
                 }
                 // Adding all map objects (also animated ones)
-                val objectsLayer = event.map.layer("mapObjects")
+                val objectsLayer = event.map.layer("bgMapObjects")
                 objectsLayer.objects.forEach { mapObject ->
-                    createMapObject(mapObject as TiledMapTileMapObject)
+                    createMapObject(mapObject as TiledMapTileMapObject, layerZIndex ?: 8000)
                 }
                 // Adding SoundEffects
                 val audioZones = event.map.layers.findLayerDeep("reverbZones")
@@ -243,10 +244,13 @@ class EntitySpawnSystem(
         }
     }
 
-    private fun createMapObject(mapObject: TiledMapTileMapObject) {
+    private fun createMapObject(
+        mapObject: TiledMapTileMapObject,
+        layerZIndex: Int,
+    ) {
         world.entity {
             val zIndex = mapObject.properties.get("zIndex", Int::class.java) ?: 0
-            val image = ImageComponent(stage, zIndex = zIndex)
+            val image = ImageComponent(stage, zIndex = layerZIndex + zIndex)
             image.image = Image(mapObject.tile.textureRegion)
             val width =
                 mapObject.tile.textureRegion.regionWidth
@@ -351,13 +355,14 @@ class EntitySpawnSystem(
     private fun createEntity(
         mapObj: MapObject,
         cfg: SpawnCfg,
+        layerZIndex: Int,
     ) {
         val relativeSize = size(cfg.animationModel, cfg.animationType)
         world.entity {
             // Add general components
             val image =
                 // scale sets the image size
-                ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y, zIndex = cfg.zIndex).apply {
+                ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y, zIndex = layerZIndex + cfg.zIndex).apply {
                     image =
                         Image().apply {
                             setPosition(mapObj.x * UNIT_SCALE, mapObj.y * UNIT_SCALE)

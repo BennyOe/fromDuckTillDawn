@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
-import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.configureWorld
 import de.pottgames.tuningfork.Audio
 import io.bennyoe.Stages
@@ -18,6 +18,9 @@ import io.bennyoe.assets.TextureAssets
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
+import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.LunarComponent
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
@@ -25,6 +28,7 @@ import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.config.GameConstants.TIME_SCALE
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
@@ -44,7 +48,6 @@ import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.PhysicTransformSyncSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.PlayerLightSystem
-import io.bennyoe.systems.RenderMapSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.UiRenderSystem
@@ -61,6 +64,7 @@ import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
 import ktx.inject.Context
 import ktx.log.logger
+import ktx.math.vec2
 import kotlin.experimental.and
 import kotlin.experimental.inv
 
@@ -69,6 +73,7 @@ class GameScreen(
 ) : AbstractScreen(context) {
     private val assets = context.inject<AssetStorage>()
     private val audio = context.inject<Audio>()
+    private val worldObjectsAtlas = assets[TextureAssets.WORLD_OBJECTS.descriptor]
     private val dawnAtlases =
         TextureAtlases(
             assets[TextureAssets.DAWN_ATLAS.descriptor],
@@ -111,6 +116,7 @@ class GameScreen(
                 add("audio", audio)
                 add("assetManager", assets)
                 add("phyWorld", phyWorld)
+                add("worldObjectAtlas", worldObjectsAtlas)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
                 add("particlesAtlas", particleAtlas)
@@ -146,7 +152,6 @@ class GameScreen(
                 add(MoveSystem())
                 add(PhysicTransformSyncSystem())
                 add(CameraSystem())
-                add(RenderMapSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())
                 add(ExpireSystem())
@@ -164,6 +169,16 @@ class GameScreen(
             if (ENABLE_DEBUG) it += DebugComponent()
             it += GameStateComponent()
             it += CameraComponent()
+        }
+
+        // add sun / moon component
+        entityWorld.entity {
+            it += LunarComponent()
+            val image = ImageComponent(stage, zIndex = 8110)
+            image.image = Image(worldObjectsAtlas.findRegion("moon"))
+            image.image.name = "moon"
+            it += image
+            it += TransformComponent(vec2(stage.camera.position.x, stage.camera.position.y), 4f, 4f)
         }
 
         // this adds all EventListenerSystems also to Scene2D
@@ -185,6 +200,7 @@ class GameScreen(
     }
 
     override fun dispose() {
+        worldObjectsAtlas.dispose()
         dawnAtlases.diffuseAtlas.dispose()
         dawnAtlases.normalAtlas?.dispose()
         dawnAtlases.specularAtlas?.dispose()

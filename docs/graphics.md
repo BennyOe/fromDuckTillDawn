@@ -2,7 +2,7 @@
 
 This document outlines the architecture of the game's rendering pipeline. The system is designed to handle complex scenes with animated characters, normal and specular mapping for realistic lighting, and dynamic light sources, all integrated within the Fleks ECS framework.
 
-The core of the system is the `RenderSystem`, which orchestrates the final drawing process, but it relies on several other systems to prepare the data for each frame.
+The core of the system is the `RenderSystem`, which orchestrates the final drawing process using a **unified render queue** that sorts all renderable elements (map layers and entities) by their Z-index for proper layering.
 
 -----
 
@@ -17,7 +17,7 @@ Every visual object in the game world starts as an entity created by the `Entity
     * `AnimationComponent`: Manages the entity's current animation state, including the active animation, playback mode, and speed.
     * `TransformComponent`: Stores the entity's logical position and dimensions, which are synced with the physics system.
     * `PhysicComponent`: A Box2D body that gives the entity a physical presence in the world.
-    * `ShaderRenderingComponent`: An empty component that acts as a flag for the `RenderSystem`. When present, it will be populated with texture regions for diffuse, normal, and specular maps, enabling advanced lighting effects.
+    * `ShaderRenderingComponent`: Contains texture regions for diffuse, normal, and specular maps when populated by the AnimationSystem. When present, enables advanced lighting effects in the RenderSystem.
     * `LightComponent`: Attaches a `GameLight` (e.g., a `PointLight` or `SpotLight`) from the `gdx-normal-light` engine to the entity.
 
 **Example from `main/kotlin/io/bennyoe/systems/EntitySpawnSystem.kt`:**
@@ -70,20 +70,63 @@ This system manages the dynamic lights in the scene.
 
 -----
 
-### Step 5: The Rendering System (`RenderSystem.kt`)
+### Step 5: The Unified Rendering System (`RenderSystem.kt`)
 
-This is the final and most complex system in the pipeline, responsible for drawing everything to the screen.
+This is the final and most complex system in the pipeline, responsible for drawing everything to the screen using a unified approach that handles both map layers and entities together.
 
-1.  **Z-Sorting**: Before drawing, the system sorts all renderable actors on the stage based on their Z-index. This ensures that objects in the background are drawn before objects in the foreground.
-2.  **Dual Rendering Paths**: The system chooses one of two paths based on whether lighting is enabled:
-    * **Default Path (No Lighting)**: If lighting is disabled, it simply calls `stage.draw()`, rendering all actors in their sorted order.
-    * **Lighting Path (`isLightingEnabled = true`)**: This path uses the `Scene2dLightEngine`. The engine takes control of the `SpriteBatch` and activates its own lighting shaders. The `RenderSystem` then iterates through the sorted list of renderable entities:
-        * **For entities with advanced shaders** (i.e., they have a populated `ShaderRenderingComponent`), it calls a special `lightEngine.draw()` method, passing the diffuse, normal, and specular textures. The engine's shader combines these textures with the scene's light information to produce a lit, textured, and shadowed sprite.
-        * **For standard entities or particles**, the `RenderSystem` flushes the batch, switches to a default shader, and draws the objects normally without advanced lighting calculations. This shader management is crucial for performance.
+#### **Key Architecture Changes:**
+
+1.  **Unified Render Queue**: Instead of separate rendering passes, the system now builds a single `renderQueue` containing all renderable elements:
+    * **Map Image Layers**: Background images and static elements from Tiled maps
+    * **Map Tile Layers**: Tilemap layers with their collision and visual data
+    * **Entities with ImageComponent**: Animated characters, objects, and sprites
+    * **Entities with ParticleComponent**: Particle effects and systems
+
+2.  **Z-Index Based Sorting**: All elements in the render queue are sorted by their `zIndex` property, ensuring proper layering regardless of whether they're map elements or entities. Map layers get their zIndex from Tiled map properties, while entities use their `ImageComponent.zIndex`.
+
+#### **Rendering Process:**
+
+1.  **Entity Transform Update**: The `onTickEntity` method updates all entity positions and sizes, ensuring physics interpolation is applied for smooth movement.
+
+2.  **Render Queue Building**: The `buildRenderQueue()` method collects all renderable elements:
+   ```kotlin
+   // Map layers get zIndex from Tiled properties
+   val zIndex = layer.properties.get("zIndex", Int::class.java) ?: defaultValue
+   
+   // Entities use their ImageComponent zIndex
+   renderQueue.add(RenderableElement.EntityWithImage(entity, imageCmp, imageCmp.zIndex))
+   ```
+
+3.  **Dual Rendering Paths**: Based on the `GameStateComponent.isLightingEnabled` flag:
+
+#### **Without Lighting (`renderWithoutLighting()`):**
+- Simple batch rendering in Z-order
+- Direct drawing of all elements using `stage.batch`
+- Efficient for scenes without advanced lighting needs
+
+#### **With Lighting (`renderWithLighting()`):**
+- Uses the `Scene2dLightEngine` for advanced lighting calculations
+- **Dynamic Shader Management**: The system intelligently switches between two shaders:
+    * **Engine Shader**: For entities with normal/specular maps (`ShaderRenderingComponent` populated)
+    * **Default Shader**: For standard sprites, map layers, and particles
+- **Shader State Tracking**: Minimizes expensive shader switches by tracking the current shader state
+- **Advanced Lighting Effects**:
+    * Entities with populated `ShaderRenderingComponent` are drawn using `lightEngine.draw()` with diffuse, normal, and specular textures
+    * Standard entities fall back to default rendering but still receive basic lighting
+
+#### **Renderable Element Types:**
+```kotlin
+sealed class RenderableElement {
+    data class TileLayer(val layer: TiledMapTileLayer, override val zIndex: Int)
+    data class ImageLayer(val layer: TiledMapImageLayer, override val zIndex: Int)  
+    data class EntityWithImage(val entity: Entity, val imageCmp: ImageComponent, override val zIndex: Int)
+    data class EntityWithParticle(val entity: Entity, val particleCmp: ParticleComponent, override val zIndex: Int)
+}
+```
 
 -----
 
-### Graphics Pipeline Diagram
+### Updated Graphics Pipeline Diagram
 
 ```mermaid
 graph TD
@@ -91,12 +134,36 @@ graph TD
     B["<b>Step 2: AnimationSystem</b><br/>- Updates animation frame<br/>- Finds & sets Normal/Specular maps in ShaderComponent"] --> C;
     C["<b>Step 3: Physics & Sync Systems</b><br/>- PhysicsSystem interpolates visual position<br/>- PhysicTransformSyncSystem updates logical position"] --> D;
     D["<b>Step 4: LightSystem</b><br/>Updates light positions to match entities"] --> E;
-    E["<b>Step 5: RenderSystem</b><br/>- Sorts all entities by Z-index<br/>- Uses LightEngine to draw the scene"] --> F;
-    subgraph "RenderSystem Logic"
-        direction LR
-        E --> E_1{Has ShaderComponent?};
-        E_1 -- Yes --> E_2["Draw with<br/>Lighting Shader<br/>(Diffuse+Normal+Lights)"];
-        E_1 -- No --> E_3["Draw with<br/>Default Shader"];
+    E["<b>Step 5: RenderSystem</b><br/>- Builds unified render queue (map layers + entities)<br/>- Sorts everything by Z-index<br/>- Renders with appropriate shader"] --> F;
+    
+    subgraph "Unified Render Queue"
+        direction TB
+        E --> E_0["Collect:<br/>• Map Image Layers<br/>• Map Tile Layers<br/>• Entities with Images<br/>• Entities with Particles"];
+        E_0 --> E_1["Sort all by Z-index"];
+        E_1 --> E_2{Lighting Enabled?};
+        E_2 -- No --> E_3["Simple Batch Rendering<br/>All elements in Z-order"];
+        E_2 -- Yes --> E_4["Light Engine Rendering<br/>with Dynamic Shader Management"];
+        
+        subgraph "Light Engine Rendering"
+            direction LR
+            E_4 --> E_5{Has Normal Maps?};
+            E_5 -- Yes --> E_6["Use Engine Shader<br/>(Diffuse+Normal+Specular+Lights)"];
+            E_5 -- No --> E_7["Use Default Shader<br/>(Basic lighting)"];
+        end
     end
-    F["Final Lit Scene is Drawn to Screen ✨"]
+    
+    E_3 --> F;
+    E_6 --> F;
+    E_7 --> F;
+    F["Final Lit Scene with Proper Layering ✨"]
 ```
+
+-----
+
+### **Key Benefits of the New Architecture:**
+
+- **Unified Sorting**: Perfect Z-order layering between map elements and entities
+- **Performance Optimization**: Minimized shader switches through intelligent state tracking
+- **Flexibility**: Easy to add new renderable element types
+- **Maintainability**: Single rendering pipeline instead of multiple separate passes
+- **Lighting Integration**: Seamless lighting effects while maintaining compatibility with non-lit elements

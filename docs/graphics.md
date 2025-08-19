@@ -106,13 +106,37 @@ This is the final and most complex system in the pipeline, responsible for drawi
 
 #### **With Lighting (`renderWithLighting()`):**
 - Uses the `Scene2dLightEngine` for advanced lighting calculations
-- **Dynamic Shader Management**: The system intelligently switches between two shaders:
-    * **Engine Shader**: For entities with normal/specular maps (`ShaderRenderingComponent` populated)
-    * **Default Shader**: For standard sprites, map layers, and particles
-- **Shader State Tracking**: Minimizes expensive shader switches by tracking the current shader state
+- **Simplified Shader Management**: The system uses clear shader state tracking with a `ShaderType` enum to minimize expensive GPU state changes while maintaining strict Z-order rendering:
+    * **NONE**: Initial state before any shader is set
+    * **DEFAULT**: For standard sprites, map layers, and particles
+    * **LIGHTING**: For entities with normal/specular maps (`ShaderRenderingComponent` with populated normal maps)
+- **Intelligent Shader Switching**: The system only switches shaders when necessary using simple helper functions:
+    * `switchToDefaultShaderIfNeeded()`: Ensures default shader is active
+    * `switchToLightingShaderIfNeeded()`: Ensures lighting shader is active
+    * `renderEntityWithCorrectShader()`: Determines which shader an entity needs and renders it accordingly
 - **Advanced Lighting Effects**:
-    * Entities with populated `ShaderRenderingComponent` are drawn using `lightEngine.draw()` with diffuse, normal, and specular textures
-    * Standard entities fall back to default rendering but still receive basic lighting
+    * Entities with populated `ShaderRenderingComponent.normal` are drawn using `lightEngine.draw()` with diffuse, normal, and specular textures
+    * Standard entities fall back to basic texture rendering but still receive ambient lighting
+
+#### **Shader Management Flow:**
+```kotlin
+// Simplified shader state tracking
+var currentShader = ShaderType.NONE
+
+renderQueue.forEach { renderable ->
+    currentShader = when (renderable) {
+        is RenderableElement.TileLayer -> {
+            switchToDefaultShaderIfNeeded(engine, currentShader)
+            mapRenderer.renderTileLayer(renderable.layer)
+            ShaderType.DEFAULT
+        }
+        is RenderableElement.EntityWithImage -> {
+            renderEntityWithCorrectShader(engine, renderable.entity, renderable.imageCmp, currentShader)
+        }
+        // ... other cases
+    }
+}
+```
 
 #### **Renderable Element Types:**
 ```kotlin
@@ -121,6 +145,12 @@ sealed class RenderableElement {
     data class ImageLayer(val layer: TiledMapImageLayer, override val zIndex: Int)  
     data class EntityWithImage(val entity: Entity, val imageCmp: ImageComponent, override val zIndex: Int)
     data class EntityWithParticle(val entity: Entity, val particleCmp: ParticleComponent, override val zIndex: Int)
+}
+
+enum class ShaderType {
+    NONE,      // Initial state
+    DEFAULT,   // Default/basic shader 
+    LIGHTING   // Engine lighting shader
 }
 ```
 
@@ -134,7 +164,7 @@ graph TD
     B["<b>Step 2: AnimationSystem</b><br/>- Updates animation frame<br/>- Finds & sets Normal/Specular maps in ShaderComponent"] --> C;
     C["<b>Step 3: Physics & Sync Systems</b><br/>- PhysicsSystem interpolates visual position<br/>- PhysicTransformSyncSystem updates logical position"] --> D;
     D["<b>Step 4: LightSystem</b><br/>Updates light positions to match entities"] --> E;
-    E["<b>Step 5: RenderSystem</b><br/>- Builds unified render queue (map layers + entities)<br/>- Sorts everything by Z-index<br/>- Renders with appropriate shader"] --> F;
+    E["<b>Step 5: RenderSystem</b><br/>- Builds unified render queue (map layers + entities)<br/>- Sorts everything by Z-index<br/>- Renders with simplified shader management"] --> F;
     
     subgraph "Unified Render Queue"
         direction TB
@@ -142,28 +172,31 @@ graph TD
         E_0 --> E_1["Sort all by Z-index"];
         E_1 --> E_2{Lighting Enabled?};
         E_2 -- No --> E_3["Simple Batch Rendering<br/>All elements in Z-order"];
-        E_2 -- Yes --> E_4["Light Engine Rendering<br/>with Dynamic Shader Management"];
+        E_2 -- Yes --> E_4["Light Engine Rendering<br/>with Clear Shader State Tracking"];
         
         subgraph "Light Engine Rendering"
             direction LR
-            E_4 --> E_5{Has Normal Maps?};
-            E_5 -- Yes --> E_6["Use Engine Shader<br/>(Diffuse+Normal+Specular+Lights)"];
-            E_5 -- No --> E_7["Use Default Shader<br/>(Basic lighting)"];
+            E_4 --> E_5["Track Shader State:<br/>NONE → DEFAULT → LIGHTING"];
+            E_5 --> E_6{Has Normal Maps?};
+            E_6 -- Yes --> E_7["Switch to LIGHTING shader<br/>(Diffuse+Normal+Specular+Lights)"];
+            E_6 -- No --> E_8["Switch to DEFAULT shader<br/>(Basic lighting)"];
         end
     end
     
     E_3 --> F;
-    E_6 --> F;
     E_7 --> F;
+    E_8 --> F;
     F["Final Lit Scene with Proper Layering ✨"]
 ```
 
 -----
 
-### **Key Benefits of the New Architecture:**
+### **Key Benefits of the Updated Architecture:**
 
-- **Unified Sorting**: Perfect Z-order layering between map elements and entities
+- **Unified Sorting**: Perfect Z-order layering between map elements and entities maintained
+- **Simplified Shader Management**: Clear state tracking with enum instead of confusing boolean flags
 - **Performance Optimization**: Minimized shader switches through intelligent state tracking
-- **Flexibility**: Easy to add new renderable element types
-- **Maintainability**: Single rendering pipeline instead of multiple separate passes
+- **Code Clarity**: Descriptive function names and single responsibility principle
+- **Maintainability**: Easier to understand and extend shader logic
+- **Flexibility**: Easy to add new renderable element types or shader states
 - **Lighting Integration**: Seamless lighting effects while maintaining compatibility with non-lit elements

@@ -95,30 +95,29 @@ class RenderSystem(
 
     override fun onTickEntity(entity: Entity) {
         val transformCmp = entity[TransformComponent]
-        val gameStateCmp = gameStateEntity[GameStateComponent]
 
         entity.getOrNull(ImageComponent)?.let { imageCmp ->
+            // Differentiate sizing logic based on whether the entity has a PhysicComponent
             val targetWidth: Float
             val targetHeight: Float
 
             if (entity has PhysicComponent) {
+                // For entities with a PhysicComponent (e.g., player, mushroom),
                 targetWidth = imageCmp.scaleX
                 targetHeight = imageCmp.scaleY
             } else {
+                // Update position for ImageComponent
                 imageCmp.image.setPosition(transformCmp.position.x, transformCmp.position.y)
+                // For entities without a PhysicComponent (e.g., map objects like fire),
+                // transformCmp.width/height are the base sizes, and imageCmp.scaleX/Y are multipliers.
                 targetWidth = transformCmp.width * imageCmp.scaleX
                 targetHeight = transformCmp.height * imageCmp.scaleY
             }
 
-            // TODO remove later when light engine is not switchable anymore
-            if (!gameStateCmp.isLightingEnabled) {
-                val finalWidth = if (imageCmp.flipImage) -targetWidth else targetWidth
-                imageCmp.image.setSize(finalWidth, targetHeight)
-            } else {
-                imageCmp.image.setSize(targetWidth, targetHeight)
-            }
+            imageCmp.image.setSize(targetWidth, targetHeight)
         }
 
+        // Update position for ParticleComponent
         entity.getOrNull(ParticleComponent)?.let { particleCmp ->
             particleCmp.actor.setPosition(
                 transformCmp.position.x + particleCmp.offsetX,
@@ -189,8 +188,23 @@ class RenderSystem(
                     }
 
                     is RenderableElement.EntityWithImage -> {
-                        // Draw the image actor directly
-                        renderable.imageCmp.image.draw(it, 1f)
+                        if (renderable.imageCmp.flipImage) {
+                            // Draw flipped by adjusting position and using negative width
+                            val texture = renderable.imageCmp.image.drawable as? TextureRegionDrawable
+                            val region = texture?.region
+                            if (region != null) {
+                                it.draw(
+                                    region,
+                                    renderable.imageCmp.image.x + renderable.imageCmp.image.width,
+                                    renderable.imageCmp.image.y,
+                                    -renderable.imageCmp.image.width,
+                                    renderable.imageCmp.image.height,
+                                )
+                            }
+                        } else {
+                            // Draw normally
+                            renderable.imageCmp.image.draw(it, 1f)
+                        }
                     }
 
                     is RenderableElement.EntityWithParticle -> {

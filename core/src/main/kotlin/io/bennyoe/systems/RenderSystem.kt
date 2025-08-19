@@ -94,7 +94,6 @@ class RenderSystem(
     }
 
     override fun onTickEntity(entity: Entity) {
-        // This stays exactly as it was - updating entity positions and sizes
         val transformCmp = entity[TransformComponent]
         val gameStateCmp = gameStateEntity[GameStateComponent]
 
@@ -210,90 +209,89 @@ class RenderSystem(
         val playerActor = playerEntity[ImageComponent].image
 
         lightEngine.renderLights(playerActor) { engine ->
-            var currentShaderIsDefault = false
-
+            var currentShader = ShaderType.NONE
             engine.batch.projectionMatrix = orthoCam.combined
+
             renderQueue.forEach { renderable ->
-                when (renderable) {
-                    is RenderableElement.TileLayer -> {
-                        ensureDefaultShader(engine, currentShaderIsDefault) { currentShaderIsDefault = it }
-                        mapRenderer.renderTileLayer(renderable.layer)
-                    }
+                currentShader =
+                    when (renderable) {
+                        is RenderableElement.TileLayer -> {
+                            switchToDefaultShaderIfNeeded(engine, currentShader)
+                            mapRenderer.renderTileLayer(renderable.layer)
+                            ShaderType.DEFAULT
+                        }
 
-                    is RenderableElement.ImageLayer -> {
-                        ensureDefaultShader(engine, currentShaderIsDefault) { currentShaderIsDefault = it }
-                        mapRenderer.renderImageLayer(renderable.layer)
-                    }
+                        is RenderableElement.ImageLayer -> {
+                            switchToDefaultShaderIfNeeded(engine, currentShader)
+                            mapRenderer.renderImageLayer(renderable.layer)
+                            ShaderType.DEFAULT
+                        }
 
-                    is RenderableElement.EntityWithImage -> {
-                        renderEntityWithLighting(
-                            renderable.entity,
-                            renderable.imageCmp,
-                            engine,
-                            currentShaderIsDefault,
-                        ) { currentShaderIsDefault = it }
-                    }
+                        is RenderableElement.EntityWithImage -> {
+                            renderEntityWithCorrectShader(engine, renderable.entity, renderable.imageCmp, currentShader)
+                        }
 
-                    is RenderableElement.EntityWithParticle -> {
-                        ensureDefaultShader(engine, currentShaderIsDefault) { currentShaderIsDefault = it }
-                        renderable.particleCmp.actor.draw(engine.batch, 1f)
+                        is RenderableElement.EntityWithParticle -> {
+                            switchToDefaultShaderIfNeeded(engine, currentShader)
+                            renderable.particleCmp.actor.draw(engine.batch, 1f)
+                            ShaderType.DEFAULT
+                        }
                     }
-                }
             }
         }
     }
 
-    private fun renderEntityWithLighting(
+    private fun switchToDefaultShaderIfNeeded(
+        engine: Scene2dLightEngine,
+        currentShader: ShaderType,
+    ): ShaderType {
+        if (currentShader != ShaderType.DEFAULT) {
+            engine.batch.flush()
+            engine.setShaderToDefaultShader()
+        }
+        return ShaderType.DEFAULT
+    }
+
+    private fun switchToLightingShaderIfNeeded(
+        engine: Scene2dLightEngine,
+        currentShader: ShaderType,
+    ): ShaderType {
+        if (currentShader != ShaderType.LIGHTING) {
+            engine.batch.flush()
+            engine.setShaderToEngineShader()
+        }
+        return ShaderType.LIGHTING
+    }
+
+    private fun renderEntityWithCorrectShader(
+        engine: Scene2dLightEngine,
         entity: Entity,
         imageCmp: ImageComponent,
-        engine: Scene2dLightEngine,
-        currentShaderIsDefault: Boolean,
-        updateShaderState: (Boolean) -> Unit,
-    ) {
+        currentShader: ShaderType,
+    ): ShaderType {
         val shaderCmp = entity.getOrNull(ShaderRenderingComponent)
         val particleCmp = entity.getOrNull(ParticleComponent)
 
-        when {
-            shaderCmp?.normal != null -> {
-                ensureEngineShader(engine, currentShaderIsDefault, updateShaderState)
-                drawWithNormalMapping(engine, imageCmp, shaderCmp)
+        val newShaderType =
+            if (shaderCmp?.normal != null) {
+                // Entity needs lighting shader
+                val updatedShader = switchToLightingShaderIfNeeded(engine, currentShader)
+                renderWithNormalMapping(engine, imageCmp, shaderCmp)
+                updatedShader
+            } else {
+                // Entity uses default shader
+                val updatedShader = switchToDefaultShaderIfNeeded(engine, currentShader)
+                renderWithBasicShader(engine, imageCmp)
+                updatedShader
             }
 
-            else -> {
-                ensureDefaultShader(engine, currentShaderIsDefault, updateShaderState)
-                drawWithDefaultShader(engine, imageCmp)
-            }
-        }
-
-        // Draw optional particles
+        // Draw particles if present (use current shader)
         particleCmp?.actor?.draw(engine.batch, 1f)
+
+        return newShaderType
     }
 
-    private fun ensureEngineShader(
-        engine: Scene2dLightEngine,
-        current: Boolean,
-        update: (Boolean) -> Unit,
-    ) {
-        if (current) {
-            engine.batch.flush()
-            engine.setShaderToEngineShader()
-            update(false)
-        }
-    }
-
-    private fun ensureDefaultShader(
-        engine: Scene2dLightEngine,
-        current: Boolean,
-        update: (Boolean) -> Unit,
-    ) {
-        if (!current) {
-            engine.batch.flush()
-            engine.setShaderToDefaultShader()
-            update(true)
-        }
-    }
-
-    private fun drawWithNormalMapping(
+    private fun renderWithNormalMapping(
         engine: Scene2dLightEngine,
         imageCmp: ImageComponent,
         shaderCmp: ShaderRenderingComponent,
@@ -322,7 +320,7 @@ class RenderSystem(
         }
     }
 
-    private fun drawWithDefaultShader(
+    private fun renderWithBasicShader(
         engine: Scene2dLightEngine,
         imageCmp: ImageComponent,
     ) {
@@ -351,6 +349,12 @@ class RenderSystem(
     companion object {
         val logger = logger<RenderSystem>()
     }
+}
+
+enum class ShaderType {
+    NONE, // Initial state
+    DEFAULT, // Default/basic shader
+    LIGHTING, // Engine lighting shader
 }
 
 sealed class RenderableElement {

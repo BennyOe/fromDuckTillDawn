@@ -11,7 +11,6 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.state.FsmMessageTypes
-import io.bennyoe.systems.LightSystem
 import ktx.app.KtxInputAdapter
 import ktx.log.logger
 
@@ -23,7 +22,6 @@ class PlayerInputProcessor(
     private val gameStateEntities = world.family { all(GameStateComponent) }
     private val cameraEntities = world.family { all(CameraComponent) }
     private val playerEntity = world.family { all(PlayerComponent) }.first()
-    private val lightSystem = world.system<LightSystem>()
     private val messageDispatcher = MessageManager.getInstance()
 
     // map that explicitly allows certain actions in specific states
@@ -95,7 +93,7 @@ class PlayerInputProcessor(
             when (action) {
                 Action.PAUSE -> gameStateCmp.togglePause(pressed)
                 Action.TOGGLE_LIGHTING -> gameStateCmp.toggleLighting(pressed)
-                Action.TOGGLE_DAY_NIGHT -> lightSystem.toggleTimeOfDay()
+                Action.TOGGLE_DAY_NIGHT -> gameStateCmp.toggleTimeOfDayChange(pressed)
                 else -> Unit
             }
         }

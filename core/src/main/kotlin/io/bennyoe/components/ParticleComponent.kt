@@ -19,6 +19,7 @@ class ParticleComponent(
     var looping: Boolean = true,
     var offsetX: Float = 0f,
     var offsetY: Float = 0f,
+    var enabled: Boolean = true,
 ) : Component<ParticleComponent> {
     lateinit var actor: ParticleActor
 

@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
-import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.configureWorld
 import de.pottgames.tuningfork.Audio
 import io.bennyoe.Stages
@@ -18,9 +17,6 @@ import io.bennyoe.assets.TextureAssets
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
-import io.bennyoe.components.ImageComponent
-import io.bennyoe.components.LunarComponent
-import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
@@ -50,6 +46,7 @@ import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.PlayerLightSystem
 import io.bennyoe.systems.RenderSystem
 import io.bennyoe.systems.StateSystem
+import io.bennyoe.systems.TimeOfDaySystem
 import io.bennyoe.systems.UiRenderSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
@@ -64,7 +61,6 @@ import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
 import ktx.inject.Context
 import ktx.log.logger
-import ktx.math.vec2
 import kotlin.experimental.and
 import kotlin.experimental.inv
 
@@ -116,7 +112,7 @@ class GameScreen(
                 add("audio", audio)
                 add("assetManager", assets)
                 add("phyWorld", phyWorld)
-                add("worldObjectAtlas", worldObjectsAtlas)
+                add("worldObjectsAtlas", worldObjectsAtlas)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
                 add("particlesAtlas", particleAtlas)
@@ -149,6 +145,7 @@ class GameScreen(
                 add(StateSystem())
                 add(BehaviorTreeSystem())
                 add(GameMoodSystem())
+                add(TimeOfDaySystem())
                 add(MoveSystem())
                 add(PhysicTransformSyncSystem())
                 add(CameraSystem())
@@ -169,16 +166,6 @@ class GameScreen(
             if (ENABLE_DEBUG) it += DebugComponent()
             it += GameStateComponent()
             it += CameraComponent()
-        }
-
-        // add sun / moon component
-        entityWorld.entity {
-            it += LunarComponent()
-            val image = ImageComponent(stage, zIndex = 8110)
-            image.image = Image(worldObjectsAtlas.findRegion("moon"))
-            image.image.name = "moon"
-            it += image
-            it += TransformComponent(vec2(stage.camera.position.x, stage.camera.position.y), 4f, 4f)
         }
 
         // this adds all EventListenerSystems also to Scene2D

@@ -33,7 +33,6 @@ import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DamageSystem
-import io.bennyoe.systems.EntitySpawnSystem
 import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.GameMoodSystem
 import io.bennyoe.systems.GameStateSystem
@@ -41,13 +40,11 @@ import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.LightSystem
 import io.bennyoe.systems.MoveSystem
-import io.bennyoe.systems.PhysicTransformSyncSystem
 import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.PlayerLightSystem
-import io.bennyoe.systems.RenderSystem
+import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
-import io.bennyoe.systems.TimeOfDaySystem
-import io.bennyoe.systems.UiRenderSystem
+import io.bennyoe.systems.TimeSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem
@@ -56,6 +53,11 @@ import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem
+import io.bennyoe.systems.entitySpawn.EntitySpawnSystem
+import io.bennyoe.systems.render.PhysicTransformSyncSystem
+import io.bennyoe.systems.render.RenderSystem
+import io.bennyoe.systems.render.TransformVisualSyncSystem
+import io.bennyoe.systems.render.UiRenderSystem
 import ktx.assets.async.AssetStorage
 import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
@@ -145,9 +147,11 @@ class GameScreen(
                 add(StateSystem())
                 add(BehaviorTreeSystem())
                 add(GameMoodSystem())
-                add(TimeOfDaySystem())
+                add(TimeSystem())
+                add(SkySystem())
                 add(MoveSystem())
                 add(PhysicTransformSyncSystem())
+                add(TransformVisualSyncSystem())
                 add(CameraSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())

@@ -19,7 +19,6 @@ import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import ktx.log.logger
 import ktx.math.vec2
 
-// TODO refactor
 class LightSystem(
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
 ) : IteratingSystem(family { all(LightComponent, TransformComponent) }),
@@ -35,21 +34,24 @@ class LightSystem(
     override fun onTickEntity(entity: Entity) {
         val lightCmp = entity[LightComponent]
         val transformCmp = entity[TransformComponent]
+
         // with PhysicComponent the center is in the middle of the image
-        if (entity has PhysicComponent) {
-            when (val light = lightCmp.gameLight) {
-                is GameLight.Spot -> light.position = transformCmp.position
-                is GameLight.Point -> light.position = transformCmp.position
-                else -> {}
+        when {
+            entity has PhysicComponent -> {
+                when (val light = lightCmp.gameLight) {
+                    is GameLight.Spot -> light.position = transformCmp.position
+                    is GameLight.Point -> light.position = transformCmp.position
+                    else -> Unit
+                }
             }
-        }
-        // without PhysicComponent the center is in the bottom left of the image
-        if (entity hasNo PhysicComponent) {
-            val newPos = vec2(transformCmp.position.x + transformCmp.width / 2, transformCmp.position.y + transformCmp.height / 2)
-            when (val light = lightCmp.gameLight) {
-                is GameLight.Spot -> light.position = newPos
-                is GameLight.Point -> light.position = newPos
-                else -> {}
+            // without PhysicComponent the center is in the bottom left of the image
+            entity hasNo PhysicComponent -> {
+                val newPos = vec2(transformCmp.position.x + transformCmp.width / 2, transformCmp.position.y + transformCmp.height / 2)
+                when (val light = lightCmp.gameLight) {
+                    is GameLight.Spot -> light.position = newPos
+                    is GameLight.Point -> light.position = newPos
+                    else -> Unit
+                }
             }
         }
     }
@@ -64,84 +66,27 @@ class LightSystem(
         return false
     }
 
-    // 0° = Light from right
-    // 90° = Light from top
-    // 180° = Light from left
-    // 270° = Light from bottom
+    private fun setupLights() {
+        val initialData = dawnData
+        lightEngine.updateShaderAmbientColor(initialData.ambientColor.cpy())
+        lightEngine.setBox2dAmbientLight(initialData.ambientColor.cpy())
+        lightEngine.setDiffuseLight(true)
+        lightEngine.setNormalInfluence(initialData.normalInfluence)
+        lightEngine.setSpecularIntensity(.4f)
+        lightEngine.setSpecularRemap(0.0f, 0.7f)
 
-    // Times: 5-6 Twilight, 6-8 Dawn, 8-16 Day, 16-18 Dusk, 18-19 Twilight2, 19-5 Night
-
-    private val twilightData =
-        TimeOfDayData(
-            timeOfDay = TimeOfDay.TWILIGHT,
-            lightColor = Color(0.3f, 0.25f, 0.4f, 0f),
-            ambientColor = Color(0.25f, 0.22f, 0.35f, 1f),
-            direction = 90f,
-            shaderIntensity = 0.5f,
-            elevation = 15f,
-            normalInfluence = 0.7f,
-            tintColor = Color(0.2f, 0.15f, 0.3f, 0.6f),
-        )
-
-    private val dawnData =
-        TimeOfDayData(
-            timeOfDay = TimeOfDay.DAWN,
-            lightColor = Color(0.8f, 0.6f, 0.4f, 0.8f),
-            ambientColor = Color(0.4f, 0.3f, 0.2f, 1f),
-            direction = 45f,
-            shaderIntensity = 2.5f,
-            elevation = 25f,
-            normalInfluence = 0.8f,
-            tintColor = Color(0.8f, 0.5f, 0.3f, 0.7f),
-        )
-
-    private val dayData =
-        TimeOfDayData(
-            timeOfDay = TimeOfDay.DAY,
-            lightColor = Color(0.75f, 0.6f, 0.8f, 1f),
-            ambientColor = Color(0.4f, 0.5f, 0.7f, 1f),
-            direction = 90f,
-            shaderIntensity = 4.5f,
-            elevation = 60f,
-            normalInfluence = 0.9f,
-            tintColor = Color(0.95f, 0.95f, 0.9f, 0.8f),
-        )
-
-    private val duskData =
-        TimeOfDayData(
-            timeOfDay = TimeOfDay.DUSK,
-            lightColor = Color(0.8f, 0.5f, 0.3f, 1f),
-            ambientColor = Color(0.5f, 0.3f, 0.15f, 1f),
-            direction = 135f,
-            shaderIntensity = 2.0f,
-            elevation = 20f,
-            normalInfluence = 0.8f,
-            tintColor = Color(0.9f, 0.4f, 0.2f, 0.7f),
-        )
-
-    private val twilight2Data =
-        TimeOfDayData(
-            timeOfDay = TimeOfDay.TWILIGHT,
-            lightColor = Color(0.4f, 0.2f, 0.1f, 0f),
-            ambientColor = Color(0.3f, 0.2f, 0.3f, 1f),
-            direction = 180f,
-            shaderIntensity = 0.3f,
-            elevation = 10f,
-            normalInfluence = 0.6f,
-            tintColor = Color(0.3f, 0.15f, 0.08f, 0.5f),
-        )
-
-    private val nightData =
-        TimeOfDayData(
-            TimeOfDay.NIGHT,
-            Color(0.3f, 0.3f, 0.6f, 1f),
-            Color(0.05f, 0.13f, 0.45f, 1f),
-            135f,
-            5f,
-            5f,
-            1f,
-            Color(0.1f, 0.18f, 0.25f, .4f),
-        )
+        sunLight =
+            lightEngine.addDirectionalLight(
+                initialData.lightColor.cpy(),
+                initialData.direction,
+                initialData.shaderIntensity,
+                initialData.elevation,
+                isManaged = false,
+                isStatic = true,
+                // TODO find sweet spot
+                rays = 8192,
+            )
+    }
 
     private fun updateDaylightFromTimeOfDay() {
         val time = gameStateCmp.timeOfDay // 0.0 .. 24.0
@@ -235,10 +180,11 @@ class LightSystem(
         val t = factor.coerceIn(0f, 1f)
 
         return TimeOfDayData(
-            timeOfDay = to.timeOfDay, // Use target time of day
+            timeOfDay = to.timeOfDay,
             lightColor = interpolateColor(from.lightColor, to.lightColor, t),
             ambientColor = interpolateColor(from.ambientColor, to.ambientColor, t),
-            direction = 0f, // is set later
+            // direction will be set later in *updateDaylightFromTimeOfDay*
+            direction = 0f,
             shaderIntensity = MathUtils.lerp(from.shaderIntensity, to.shaderIntensity, t),
             elevation = MathUtils.lerp(from.elevation, to.elevation, t),
             normalInfluence = MathUtils.lerp(from.normalInfluence, to.normalInfluence, t),
@@ -276,28 +222,84 @@ class LightSystem(
         return Color(r, g, b, a)
     }
 
-    private fun setupLights() {
-        // Start at night
-        val initialData = dawnData
-        lightEngine.updateShaderAmbientColor(initialData.ambientColor.cpy())
-        lightEngine.setBox2dAmbientLight(initialData.ambientColor.cpy())
-        lightEngine.setDiffuseLight(true)
-        lightEngine.setNormalInfluence(initialData.normalInfluence)
-        lightEngine.setSpecularIntensity(.4f)
-        lightEngine.setSpecularRemap(0.0f, 0.7f)
+    // 0° = Light from right
+    // 90° = Light from top
+    // 180° = Light from left
+    // 270° = Light from bottom
 
-        sunLight =
-            lightEngine.addDirectionalLight(
-                initialData.lightColor.cpy(),
-                initialData.direction,
-                initialData.shaderIntensity,
-                initialData.elevation,
-                isManaged = false,
-                isStatic = true,
-                // TODO find sweet spot
-                rays = 8192,
-            )
-    }
+    // Times: 5-6 Twilight, 6-8 Dawn, 8-16 Day, 16-18 Dusk, 18-19 Twilight2, 19-5 Night
+
+    private val twilightData =
+        TimeOfDayData(
+            timeOfDay = TimeOfDay.TWILIGHT,
+            lightColor = Color(0.3f, 0.25f, 0.4f, 0f),
+            ambientColor = Color(0.25f, 0.22f, 0.35f, 1f),
+            direction = 90f,
+            shaderIntensity = 0.5f,
+            elevation = 15f,
+            normalInfluence = 0.7f,
+            tintColor = Color(0.2f, 0.15f, 0.3f, 0.6f),
+        )
+
+    private val dawnData =
+        TimeOfDayData(
+            timeOfDay = TimeOfDay.DAWN,
+            lightColor = Color(0.8f, 0.6f, 0.4f, 0.8f),
+            ambientColor = Color(0.4f, 0.3f, 0.2f, 1f),
+            direction = 45f,
+            shaderIntensity = 2.5f,
+            elevation = 25f,
+            normalInfluence = 0.8f,
+            tintColor = Color(0.8f, 0.5f, 0.3f, 0.7f),
+        )
+
+    private val dayData =
+        TimeOfDayData(
+            timeOfDay = TimeOfDay.DAY,
+            lightColor = Color(0.75f, 0.6f, 0.8f, 1f),
+            ambientColor = Color(0.4f, 0.5f, 0.7f, 1f),
+            direction = 90f,
+            shaderIntensity = 4.5f,
+            elevation = 60f,
+            normalInfluence = 0.9f,
+            tintColor = Color(0.95f, 0.95f, 0.9f, 0.8f),
+        )
+
+    private val duskData =
+        TimeOfDayData(
+            timeOfDay = TimeOfDay.DUSK,
+            lightColor = Color(0.8f, 0.5f, 0.3f, 1f),
+            ambientColor = Color(0.5f, 0.3f, 0.15f, 1f),
+            direction = 135f,
+            shaderIntensity = 2.0f,
+            elevation = 20f,
+            normalInfluence = 0.8f,
+            tintColor = Color(0.9f, 0.4f, 0.2f, 0.7f),
+        )
+
+    private val twilight2Data =
+        TimeOfDayData(
+            timeOfDay = TimeOfDay.TWILIGHT,
+            lightColor = Color(0.4f, 0.2f, 0.1f, 0f),
+            ambientColor = Color(0.3f, 0.2f, 0.3f, 1f),
+            direction = 180f,
+            shaderIntensity = 0.3f,
+            elevation = 10f,
+            normalInfluence = 0.6f,
+            tintColor = Color(0.3f, 0.15f, 0.08f, 0.5f),
+        )
+
+    private val nightData =
+        TimeOfDayData(
+            TimeOfDay.NIGHT,
+            Color(0.3f, 0.3f, 0.6f, 1f),
+            Color(0.05f, 0.13f, 0.45f, 1f),
+            135f,
+            5f,
+            5f,
+            1f,
+            Color(0.1f, 0.18f, 0.25f, .4f),
+        )
 
     companion object {
         val logger = logger<LightSystem>()

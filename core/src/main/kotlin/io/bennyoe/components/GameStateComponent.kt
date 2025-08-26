@@ -3,13 +3,14 @@ package io.bennyoe.components
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import io.bennyoe.components.debug.DebugComponent.Companion.logger
+import io.bennyoe.config.GameConstants.INITIAL_TIME_OF_DAY
 
 class GameStateComponent(
     var isPaused: Boolean = false,
     var isLightingEnabled: Boolean = true,
     var gameMood: GameMood = GameMood.NORMAL,
     var isTriggerTimeOfDayJustPressed: Boolean = false,
-    var timeOfDay: Float = 0f,
+    var timeOfDay: Float = INITIAL_TIME_OF_DAY,
 ) : Component<GameStateComponent> {
     private var alreadyChanged: Boolean = false
 

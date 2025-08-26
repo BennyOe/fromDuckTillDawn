@@ -48,6 +48,6 @@ object GameConstants {
 
     // ------------------------- Game constants ------------------------------//
     const val DYNAMIC_TIME_OF_DAY = false
-    const val TIME_OF_DAY_SPEED = 0.2f
-    const val INITIAL_TIME_OF_DAY = 1f
+    const val TIME_OF_DAY_SPEED = 0.6f
+    const val INITIAL_TIME_OF_DAY = 17f
 }

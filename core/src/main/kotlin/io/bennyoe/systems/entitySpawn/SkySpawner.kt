@@ -1,0 +1,177 @@
+package io.bennyoe.systems.entitySpawn
+
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.files.FileHandle
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
+import com.badlogic.gdx.maps.MapLayer
+import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.utils.GdxRuntimeException
+import com.github.quillraven.fleks.World
+import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.LightComponent
+import io.bennyoe.components.ParticleComponent
+import io.bennyoe.components.ShaderRenderingComponent
+import io.bennyoe.components.SkyComponent
+import io.bennyoe.components.SkyComponentType
+import io.bennyoe.components.TransformComponent
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
+import ktx.math.vec2
+import ktx.tiled.type
+
+class SkySpawner(
+    val world: World,
+    val lightEngine: Scene2dLightEngine,
+    val stage: Stage,
+    val worldObjectsAtlas: TextureAtlas,
+) {
+    fun spawnSkyObjects(
+        skyObjectsLayer: MapLayer,
+        layerZIndex: Int,
+    ) {
+        skyObjectsLayer.objects?.forEach { mapObject ->
+            val zIndex = mapObject.properties.get("zIndex", Int::class.java) ?: 0
+            val width = (stage.camera as OrthographicCamera).viewportWidth
+            val height = (stage.camera as OrthographicCamera).viewportHeight
+            when (mapObject.type) {
+                "shootingStar" -> {
+                    world.entity {
+                        it += TransformComponent(vec2(0f, 0f), width, height)
+                        val particle =
+                            ParticleComponent(
+                                particleFile = Gdx.files.internal("particles/shootingStar.p"),
+                                scaleFactor = 0.1f,
+                                motionScaleFactor = 0.2f,
+                                looping = true,
+                                stage = stage,
+                                zIndex = layerZIndex + zIndex,
+                            )
+                        it += particle
+                        it += SkyComponent(SkyComponentType.SHOOTING_STAR)
+                    }
+                }
+
+                "sky", "stars" -> {
+                    world.entity {
+                        val imageCmp = ImageComponent(stage, zIndex = layerZIndex + zIndex)
+                        val imageName = mapObject.properties.get("image") as String
+                        imageCmp.image = Image(worldObjectsAtlas.findRegion(imageName))
+
+                        it += imageCmp
+                        it += TransformComponent(vec2(0f, 0f), width, height)
+
+                        val skyType = if (mapObject.type == "sky") SkyComponentType.SKY else SkyComponentType.STARS
+                        it += SkyComponent(skyType)
+                    }
+                }
+
+                "moon" -> {
+                    world.entity {
+                        it += SkyComponent(SkyComponentType.MOON)
+                        val image = ImageComponent(stage, zIndex = layerZIndex + zIndex)
+                        image.image = Image(worldObjectsAtlas.findRegion("moon2"))
+                        it += image
+                        val transform = TransformComponent(vec2(0f, 0f), 3f, 3f)
+                        it += transform
+                        val moonLight =
+                            LightComponent(
+                                lightEngine.addPointLight(
+                                    position = transform.position,
+                                    color = Color.WHITE,
+                                    b2dDistance = 9f,
+                                    isManaged = false,
+                                ),
+                            )
+                        moonLight.gameLight.b2dLight.isXray = true
+                        moonLight.gameLight.b2dLight.isStaticLight = false
+                        it += moonLight
+                        val shaderRenderingCmp = ShaderRenderingComponent()
+                        shaderRenderingCmp.shader = setupShader("moon")
+                        shaderRenderingCmp.uniforms.putAll(
+                            mapOf(
+                                "u_halo_color" to Vector3(1f, 1f, 1f),
+                                "u_halo_radius" to 0.13f,
+                                "u_halo_falloff" to 0.42f,
+                                "u_halo_strength" to 0.4f,
+                            ),
+                        )
+                        it += shaderRenderingCmp
+                    }
+                }
+
+                "sun" -> {
+                    world.entity {
+                        it += SkyComponent(SkyComponentType.SUN)
+                        val image = ImageComponent(stage, zIndex = layerZIndex + zIndex)
+                        image.image = Image(worldObjectsAtlas.findRegion("sun2"))
+                        it += image
+                        val transform = TransformComponent(vec2(0f, 0f), 6f, 6f)
+                        it += transform
+                        val sunLight =
+                            LightComponent(
+                                lightEngine.addPointLight(
+                                    position = transform.position,
+                                    color = Color.ORANGE,
+                                    b2dDistance = 2f,
+                                    isManaged = false,
+                                ),
+                            )
+                        sunLight.gameLight.b2dLight.isStaticLight = true
+                        it += sunLight
+                        val shaderRenderingCmp = ShaderRenderingComponent()
+                        shaderRenderingCmp.shader = setupShader("sun")
+                        val region = worldObjectsAtlas.findRegion("noise")
+                        val tex =
+                            region.texture.apply {
+                                setWrap(
+                                    Texture.TextureWrap.Repeat,
+                                    Texture.TextureWrap.Repeat,
+                                )
+                            }
+                        shaderRenderingCmp.noiseTexture = tex
+                        shaderRenderingCmp.uniforms.putAll(
+                            mapOf(
+                                "u_noiseOffset" to Vector2(region.u, region.v),
+                                "u_noiseScale" to Vector2(region.u2 - region.u, region.v2 - region.v),
+                                "u_sunsetCenter" to 17.25f,
+                                "u_halfWidth" to 1.25f,
+                                "u_tintStrength" to 0.6f,
+                                "u_sunsetTint" to Vector3(1.0f, 0.5f, 0.2f),
+                                "u_halo_color" to Vector3(1.0f, 0.6f, 0.2f),
+                                "u_halo_radius" to 0.13f,
+                                "u_halo_falloff" to 0.42f,
+                                "u_halo_strength" to 1.0f,
+                                "u_shimmer_strength" to 0.03f,
+                                "u_shimmer_speed" to 0.2f,
+                                "u_shimmer_scale" to 1.0f,
+                            ),
+                        )
+                        it += shaderRenderingCmp
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupShader(name: String): ShaderProgram {
+        val vertShader: FileHandle = Gdx.files.internal("shader/$name.vert")
+        val fragShader: FileHandle = Gdx.files.internal("shader/$name.frag")
+        ShaderProgram.pedantic = false
+        val shader = ShaderProgram(vertShader, fragShader)
+
+        if (!shader.isCompiled) {
+            throw GdxRuntimeException("Could not compile shader: ${shader.log}")
+        }
+
+        shader.bind()
+        shader.setUniformi("u_texture", 0)
+
+        return shader
+    }
+}

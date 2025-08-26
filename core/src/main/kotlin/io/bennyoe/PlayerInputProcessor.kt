@@ -100,11 +100,18 @@ class PlayerInputProcessor(
         cameraEntities.forEach { cameraEntity ->
             val cameraCmp = cameraEntity[CameraComponent]
             when (action) {
-                Action.ZOOM_IN -> cameraCmp.zoomFactor -= 0.05f
-                Action.ZOOM_OUT -> cameraCmp.zoomFactor += 0.05f
+                Action.ZOOM_IN -> {
+                    cameraCmp.zoomFactor -= 0.05f
+                    logger.debug { "Camera zoom: ${cameraCmp.zoomFactor}" }
+                }
+
+                Action.ZOOM_OUT -> {
+                    cameraCmp.zoomFactor += 0.05f
+                    logger.debug { "Camera zoom: ${cameraCmp.zoomFactor}" }
+                }
+
                 else -> Unit
             }
-            logger.debug { "Camera zoom: ${cameraCmp.zoomFactor}" }
         }
         inputEntities.forEach { input ->
             val playerState = playerEntity[StateComponent].stateMachine.currentState.toString()

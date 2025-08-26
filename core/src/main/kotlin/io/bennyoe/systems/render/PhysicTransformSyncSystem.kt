@@ -1,4 +1,4 @@
-package io.bennyoe.systems
+package io.bennyoe.systems.render
 
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem

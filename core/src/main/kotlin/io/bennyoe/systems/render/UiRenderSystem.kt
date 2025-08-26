@@ -1,12 +1,12 @@
-package io.bennyoe.systems
+package io.bennyoe.systems.render
 
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.IntervalSystem
-import com.github.quillraven.fleks.World.Companion.inject
+import com.github.quillraven.fleks.World
 import ktx.log.logger
 
 class UiRenderSystem(
-    private val uiStage: Stage = inject("uiStage"),
+    private val uiStage: Stage = World.Companion.inject("uiStage"),
 ) : IntervalSystem(enabled = true) {
     override fun onTick() {
         with(uiStage) {

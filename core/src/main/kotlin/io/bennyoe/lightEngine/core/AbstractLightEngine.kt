@@ -101,6 +101,18 @@ abstract class AbstractLightEngine(
     }
 
     /**
+     * Sets the batch's shader to a provided custom shader, disabling the engine's lighting shader.
+     *
+     * This method assigns the given `customShader` to the `SpriteBatch`, overriding the engine's lighting shader.
+     * Use this when you want to render with a different shader (e.g., for special effects or post-processing).
+     * After calling this, rendering will use the specified custom shader until you restore the engine or default shader.
+     * @param customShader The [ShaderProgram] to render.
+     */
+    fun setShaderToCustomShader(customShader: ShaderProgram) {
+        batch.shader = customShader
+    }
+
+    /**
      * Enables or disables **diffuse** compositing for the Box2D lightmap (`RayHandler.useDiffuseLight`).
      *
      * - `true` → *Diffuse / multiplicative* blend: unlit areas are darkened, overall contrast increases.

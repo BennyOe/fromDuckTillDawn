@@ -51,6 +51,7 @@ sealed class GameLight(
         get() = b2dLight.color
         set(value) {
             b2dLight.color = value
+            shaderLight.color.set(value)
         }
 
     data class Directional(
@@ -58,7 +59,7 @@ sealed class GameLight(
         override var b2dLight: Light,
         override var isManaged: Boolean = true,
     ) : GameLight(shaderLight, b2dLight) {
-        var intensity: Float
+        var shaderIntensity: Float
             get() = shaderLight.intensity
             set(value) {
                 shaderLight.intensity = value
@@ -101,7 +102,7 @@ sealed class GameLight(
             get() = b2dLight.distance
             set(value) {
                 b2dLight.distance = value
-                shaderLight.falloff = Falloff.Companion.fromDistance(value).toVector3()
+                shaderLight.falloff = Falloff.fromDistance(value).toVector3()
             }
 
         override fun update() {
@@ -110,7 +111,7 @@ sealed class GameLight(
 
             shaderLight.position = b2dLight.position
             shaderLight.color.set(b2dLight.color)
-            shaderLight.falloff = Falloff.Companion.fromDistance(b2dLight.distance).toVector3()
+            shaderLight.falloff = Falloff.fromDistance(b2dLight.distance).toVector3()
         }
     }
 
@@ -159,7 +160,7 @@ sealed class GameLight(
             shaderLight.color.set(b2dLight.color)
             shaderLight.directionDegree = b2dLight.direction
             shaderLight.coneDegree = (b2dLight as ConeLight).coneDegree * 2f
-            shaderLight.falloff = Falloff.Companion.fromDistance(b2dLight.distance).toVector3()
+            shaderLight.falloff = Falloff.fromDistance(b2dLight.distance).toVector3()
         }
     }
 }

@@ -79,10 +79,10 @@ class CameraSystem(
         val viewH = camera.viewportHeight * 0.5f
 
         // set map boundaries for the camera
-        val camMinW = min(viewW, maxW - viewW)
-        val camMaxW = max(viewW, maxW - viewW)
-        val camMinH = min(viewH, maxH - viewH)
-        val camMaxH = max(viewH, maxH - viewH)
+        val camMinW = min(viewW * camera.zoom, maxW - viewW * camera.zoom)
+        val camMaxW = max(viewW * camera.zoom, maxW - viewW * camera.zoom)
+        val camMinH = min(viewH * camera.zoom, maxH - viewH * camera.zoom)
+        val camMaxH = max(viewH * camera.zoom, maxH - viewH * camera.zoom)
 
         // this is needed as long as the lighting engine can switched off. TODO remove else when not having switch
         val desiredX =

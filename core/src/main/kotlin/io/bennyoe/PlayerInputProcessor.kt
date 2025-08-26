@@ -106,6 +106,7 @@ class PlayerInputProcessor(
                 Action.ZOOM_OUT -> cameraCmp.zoomFactor += 0.05f
                 else -> Unit
             }
+            logger.debug { "Camera zoom: ${cameraCmp.zoomFactor}" }
         }
         inputEntities.forEach { input ->
             val playerState = playerEntity[StateComponent].stateMachine.currentState.toString()

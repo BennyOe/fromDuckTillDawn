@@ -119,10 +119,19 @@ class RenderSystem(
 
         // Update position for ParticleComponent
         entity.getOrNull(ParticleComponent)?.let { particleCmp ->
-            particleCmp.actor.setPosition(
-                transformCmp.position.x + particleCmp.offsetX,
-                transformCmp.position.y + particleCmp.offsetY,
-            )
+            if (skyCmp != null) {
+                val vw = orthoCam.viewportWidth * orthoCam.zoom
+                val vh = orthoCam.viewportHeight * orthoCam.zoom
+                val camX = orthoCam.position.x - vw * 0.5f
+                val camY = orthoCam.position.y + vh * 0.5f
+                particleCmp.actor.setPosition(camX + particleCmp.offsetX, camY + particleCmp.offsetY)
+                particleCmp.actor.setSize(vw, vh)
+            } else {
+                particleCmp.actor.setPosition(
+                    transformCmp.position.x + particleCmp.offsetX,
+                    transformCmp.position.y + particleCmp.offsetY,
+                )
+            }
         }
     }
 

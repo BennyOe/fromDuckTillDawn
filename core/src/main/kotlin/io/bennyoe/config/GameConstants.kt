@@ -30,6 +30,7 @@ object GameConstants {
 
     // ------------------------- Camera constants ------------------------------//
     const val CAMERA_SMOOTHING_FACTOR = 0.04f // smoothes the camera movement, so that it is delayed of the player movement
+    const val CAMERA_ZOOM_FACTOR = 1.7f
 
     // ------------------------- Debug constants ------------------------------//
     const val ENABLE_DEBUG = true // enables the debug draw

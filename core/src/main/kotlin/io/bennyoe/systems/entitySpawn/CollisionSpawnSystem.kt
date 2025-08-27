@@ -1,7 +1,7 @@
-package io.bennyoe.systems
+package io.bennyoe.systems.entitySpawn
 
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
-import com.badlogic.gdx.physics.box2d.BodyDef.BodyType.StaticBody
+import com.badlogic.gdx.physics.box2d.BodyDef
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
@@ -10,9 +10,9 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PhysicComponent.Companion.physicsComponentFromShape2D
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.event.MapChangedEvent
+import io.bennyoe.systems.PausableSystem
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FloorType
 import ktx.box2d.body
@@ -53,7 +53,7 @@ class CollisionSpawnSystem(
 
                 cell.tile.objects.forEach { mapObject ->
                     world.entity {
-                        physicsComponentFromShape2D(
+                        PhysicComponent.physicsComponentFromShape2D(
                             phyWorld,
                             mapObject.shape,
                             x,
@@ -77,7 +77,7 @@ class CollisionSpawnSystem(
                             ?.toString()
                             ?.uppercase()
                     val floorType: FloorType? = mapFloorType?.let { value -> FloorType.valueOf(value) }
-                    physicsComponentFromShape2D(
+                    PhysicComponent.physicsComponentFromShape2D(
                         phyWorld = phyWorld,
                         shape = mapObject.shape,
                         setUserData = BodyData(EntityCategory.GROUND, it, floorType),
@@ -93,7 +93,7 @@ class CollisionSpawnSystem(
             val h = event.map.height
             PhysicComponent().apply {
                 body =
-                    phyWorld.body(StaticBody) {
+                    phyWorld.body(BodyDef.BodyType.StaticBody) {
                         position.set(0f, 0f)
                         fixedRotation = true
                         allowSleep = false

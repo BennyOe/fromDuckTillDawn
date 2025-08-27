@@ -31,7 +31,6 @@ import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
-import io.bennyoe.systems.CollisionSpawnSystem
 import io.bennyoe.systems.DamageSystem
 import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.GameMoodSystem
@@ -40,7 +39,6 @@ import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.LightSystem
 import io.bennyoe.systems.MoveSystem
-import io.bennyoe.systems.PhysicsSystem
 import io.bennyoe.systems.PlayerLightSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
@@ -53,7 +51,10 @@ import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
 import io.bennyoe.systems.debug.StateBubbleSystem
+import io.bennyoe.systems.entitySpawn.CollisionSpawnSystem
 import io.bennyoe.systems.entitySpawn.EntitySpawnSystem
+import io.bennyoe.systems.physic.ContactHandlerSystem
+import io.bennyoe.systems.physic.PhysicsSystem
 import io.bennyoe.systems.render.PhysicTransformSyncSystem
 import io.bennyoe.systems.render.RenderSystem
 import io.bennyoe.systems.render.TransformVisualSyncSystem
@@ -138,6 +139,7 @@ class GameScreen(
                 add(DamageSystem())
                 add(DamageTextSystem())
                 add(JumpSystem())
+                add(ContactHandlerSystem())
                 add(PhysicsSystem())
                 add(AmbienceSystem())
                 add(ReverbSystem())

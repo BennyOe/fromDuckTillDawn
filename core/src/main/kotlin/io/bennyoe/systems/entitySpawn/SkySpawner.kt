@@ -117,16 +117,17 @@ class SkySpawner(
                             LightComponent(
                                 lightEngine.addPointLight(
                                     position = transform.position,
-                                    color = Color.ORANGE,
-                                    b2dDistance = 2f,
+                                    color = Color.WHITE,
+                                    b2dDistance = 9f,
                                     isManaged = false,
                                 ),
                             )
                         sunLight.gameLight.b2dLight.isStaticLight = true
+                        sunLight.gameLight.b2dLight.isXray = true
                         it += sunLight
                         val shaderRenderingCmp = ShaderRenderingComponent()
                         shaderRenderingCmp.shader = setupShader("sun")
-                        val region = worldObjectsAtlas.findRegion("noise")
+                        val region = worldObjectsAtlas.findRegion("noiseTexture")
                         val tex =
                             region.texture.apply {
                                 setWrap(
@@ -150,6 +151,9 @@ class SkySpawner(
                                 "u_shimmer_strength" to 0.03f,
                                 "u_shimmer_speed" to 0.2f,
                                 "u_shimmer_scale" to 1.0f,
+                                "u_bloom_threshold" to 0.97f,
+                                "u_bloom_strength" to 4f,
+                                "u_bloom_radius" to 129f,
                             ),
                         )
                         it += shaderRenderingCmp

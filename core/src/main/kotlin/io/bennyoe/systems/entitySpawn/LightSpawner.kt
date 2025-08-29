@@ -6,7 +6,6 @@ import com.badlogic.gdx.math.Vector2
 import io.bennyoe.config.GameConstants
 import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
-import io.bennyoe.systems.LightType
 import ktx.math.times
 import ktx.math.vec2
 import ktx.tiled.x
@@ -94,4 +93,9 @@ class LightSpawner(
             }
         }
     }
+}
+
+enum class LightType {
+    POINT_LIGHT,
+    SPOT_LIGHT,
 }

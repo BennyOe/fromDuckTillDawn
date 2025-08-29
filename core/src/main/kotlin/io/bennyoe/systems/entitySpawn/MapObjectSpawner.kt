@@ -15,7 +15,7 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.config.GameConstants
-import io.bennyoe.service.SoundType
+import io.bennyoe.systems.audio.SoundType
 import ktx.math.vec2
 import ktx.tiled.type
 

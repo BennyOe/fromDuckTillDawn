@@ -2,7 +2,7 @@ package io.bennyoe.components.audio
 
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
-import io.bennyoe.service.SoundProfile
+import io.bennyoe.systems.audio.SoundProfile
 
 class SoundProfileComponent(
     val profile: SoundProfile = SoundProfile(),

@@ -12,7 +12,6 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.TimeOfDay
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
-import io.bennyoe.service.ShaderService
 import io.bennyoe.systems.render.DrawUtils.drawRegion
 
 class LightingRenderer(

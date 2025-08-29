@@ -17,9 +17,9 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.event.MapChangedEvent
-import io.bennyoe.service.DefaultDebugRenderService
-import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
+import io.bennyoe.systems.debug.DefaultDebugRenderService
+import io.bennyoe.systems.debug.addToDebugView
 import ktx.log.logger
 import ktx.tiled.height
 import ktx.tiled.width

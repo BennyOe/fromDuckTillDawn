@@ -21,8 +21,6 @@ import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StopLoopingSoundEvent
 import io.bennyoe.event.StreamSoundEvent
-import io.bennyoe.service.SoundMappingService
-import io.bennyoe.service.SoundType
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
 import ktx.math.vec3

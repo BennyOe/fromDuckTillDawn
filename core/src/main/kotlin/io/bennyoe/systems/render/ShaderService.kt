@@ -1,4 +1,4 @@
-package io.bennyoe.service
+package io.bennyoe.systems.render
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
@@ -10,7 +10,7 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.math.Vector4
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
-import io.bennyoe.systems.render.ShaderType
+import kotlin.collections.iterator
 
 /**
  * Minimal helper: centralizes shader switching + per-frame uniforms + optional noise texture.

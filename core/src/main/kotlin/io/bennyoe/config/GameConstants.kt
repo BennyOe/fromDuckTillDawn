@@ -30,7 +30,7 @@ object GameConstants {
 
     // ------------------------- Camera constants ------------------------------//
     const val CAMERA_SMOOTHING_FACTOR = 0.04f // smoothes the camera movement, so that it is delayed of the player movement
-    const val CAMERA_ZOOM_FACTOR = 1.7f
+    const val CAMERA_ZOOM_FACTOR = 2.3f
 
     // ------------------------- Debug constants ------------------------------//
     const val ENABLE_DEBUG = true // enables the debug draw
@@ -48,6 +48,6 @@ object GameConstants {
 
     // ------------------------- Game constants ------------------------------//
     const val DYNAMIC_TIME_OF_DAY = false
-    const val TIME_OF_DAY_SPEED = 0.6f
-    const val INITIAL_TIME_OF_DAY = 17f
+    const val TIME_OF_DAY_SPEED = 2.6f
+    const val INITIAL_TIME_OF_DAY = 14f
 }

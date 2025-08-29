@@ -7,8 +7,8 @@ import io.bennyoe.components.audio.AmbienceSoundComponent
 import io.bennyoe.components.audio.ReverbZoneComponent
 import io.bennyoe.components.audio.SoundTriggerComponent
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.service.SoundType
 import io.bennyoe.systems.audio.AmbienceType
+import io.bennyoe.systems.audio.SoundType
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.SensorType
 import ktx.tiled.shape

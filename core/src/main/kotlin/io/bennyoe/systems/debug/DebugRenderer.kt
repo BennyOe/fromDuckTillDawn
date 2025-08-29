@@ -1,4 +1,4 @@
-package io.bennyoe.service
+package io.bennyoe.systems.debug
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -10,17 +10,14 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Shape2D
 import io.bennyoe.config.GameConstants.DEBUG_ALPHA
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
-import io.bennyoe.systems.debug.DebugType
 import ktx.collections.GdxArray
 import ktx.collections.gdxArrayOf
 
-interface DebugRenderService {
+interface DebugRenderer {
     fun addShape(shape: DebugShape)
-
-    companion object {}
 }
 
-class DefaultDebugRenderService : DebugRenderService {
+class DefaultDebugRenderService : DebugRenderer {
     val shapes: GdxArray<DebugShape> = gdxArrayOf()
 
     override fun addShape(shape: DebugShape) {
@@ -28,7 +25,7 @@ class DefaultDebugRenderService : DebugRenderService {
     }
 }
 
-class NoOpDebugRenderService : DebugRenderService {
+class NoOpDebugRenderService : DebugRenderer {
     override fun addShape(shape: DebugShape) = Unit
 }
 
@@ -48,7 +45,7 @@ data class DebugShape(
 }
 
 fun Rectangle.addToDebugView(
-    service: DebugRenderService,
+    service: DebugRenderer,
     color: Color = Color.RED,
     label: String = "",
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
@@ -60,7 +57,7 @@ fun Rectangle.addToDebugView(
 }
 
 fun Circle.addToDebugView(
-    service: DebugRenderService,
+    service: DebugRenderer,
     color: Color = Color.RED,
     label: String = "",
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
@@ -72,7 +69,7 @@ fun Circle.addToDebugView(
 }
 
 fun Ellipse.addToDebugView(
-    service: DebugRenderService,
+    service: DebugRenderer,
     color: Color = Color.RED,
     label: String = "",
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
@@ -84,7 +81,7 @@ fun Ellipse.addToDebugView(
 }
 
 fun Polyline.addToDebugView(
-    service: DebugRenderService,
+    service: DebugRenderer,
     color: Color = Color.RED,
     label: String = "",
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,
@@ -96,7 +93,7 @@ fun Polyline.addToDebugView(
 }
 
 fun Polygon.addToDebugView(
-    service: DebugRenderService,
+    service: DebugRenderer,
     color: Color = Color.RED,
     label: String = "",
     type: ShapeRenderer.ShapeType = ShapeRenderer.ShapeType.Line,

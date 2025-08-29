@@ -1,8 +1,9 @@
-package io.bennyoe.service
+package io.bennyoe.systems.audio
 
 import io.bennyoe.assets.SoundAssets
 import io.bennyoe.utility.FloorType
 import ktx.log.logger
+import kotlin.collections.get
 
 object SoundMappingService {
     private val logger = logger<SoundMappingService>()

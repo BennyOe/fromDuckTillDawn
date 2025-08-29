@@ -25,7 +25,6 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.lightEngine.core.GameLight
-import io.bennyoe.service.DebugRenderService
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
 import io.bennyoe.state.mushroom.MushroomStateContext
@@ -34,6 +33,7 @@ import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.InputSystem
+import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
 import io.bennyoe.utility.SensorType
@@ -55,7 +55,7 @@ class AttackSystemIntegrationTest {
         Gdx.app = mockk<Application>(relaxed = true)
         val stageMock = mockk<Stage>(relaxed = true)
         val gameLight = mockk<GameLight>(relaxed = true)
-        val debugRenderServiceMock = mockk<DebugRenderService>(relaxed = true)
+        val debugRendererMock = mockk<DebugRenderer>(relaxed = true)
         val animationCmpMock = mockk<AnimationComponent>(relaxed = true)
 
         stage = mockk<Stage>(relaxed = true)
@@ -66,7 +66,7 @@ class AttackSystemIntegrationTest {
             configureWorld {
                 injectables {
                     add("phyWorld", phyWorld)
-                    add("debugRenderService", debugRenderServiceMock)
+                    add("debugRenderService", debugRendererMock)
                 }
                 systems {
                     add(AttackSystem())

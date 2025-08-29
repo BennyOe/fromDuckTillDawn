@@ -19,9 +19,9 @@ import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
-import io.bennyoe.service.DefaultDebugRenderService
-import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
+import io.bennyoe.systems.debug.DefaultDebugRenderService
+import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.BodyData
 import ktx.collections.GdxArray
 import ktx.log.logger

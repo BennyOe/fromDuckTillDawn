@@ -19,12 +19,10 @@ import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.fire
-import io.bennyoe.service.SoundType
+import io.bennyoe.systems.audio.SoundType
 import ktx.app.gdxError
 import ktx.collections.map
 import ktx.log.logger
-import ktx.math.minus
-import ktx.math.plus
 
 /**
  * System responsible for updating entity animations in the ECS.

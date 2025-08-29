@@ -29,6 +29,12 @@ uniform float u_shimmer_speed;
 uniform float u_shimmer_scale;
 
 
+// --- ADDED: Bloom effect uniforms ---
+uniform float u_bloom_threshold;
+uniform float u_bloom_strength;
+uniform vec2  u_texelSize;
+uniform float u_bloom_radius;
+
 varying vec2 v_texCoord;
 
 // --- Helper function for sunset tint ---
@@ -43,9 +49,10 @@ void main() {
     vec2 range = u_texCoord_max - u_texCoord_min;
     vec2 normalizedTexCoord = (v_texCoord - u_texCoord_min) / range;
     vec2 proceduralCoord = normalizedTexCoord;
-    proceduralCoord.y = 1.0 - proceduralCoord.y;
 
-    vec2 noiseUV01 = fract(proceduralCoord * u_shimmer_scale + vec2(0.0, u_continuousTime * u_shimmer_speed));
+    // --- Noise texture coordinates (for heat shimmer) ---
+    vec2 noiseUV01 = mod(proceduralCoord * u_shimmer_scale + vec2(0.0, u_continuousTime * u_shimmer_speed), 1.0);
+
 
     // 2. --- Heat shimmer effect ---
     // Create scrolling coordinates for the noise texture
@@ -72,12 +79,39 @@ void main() {
     // 5. --- Halo effect ---
     // Calculate the halo with the clean, undistorted procedural coordinates
     float dist = distance(proceduralCoord, vec2(0.5));
-    float glow = smoothstep(u_halo_radius + u_halo_falloff, u_halo_radius, dist);
-    float haloAlpha = glow * u_halo_strength;
+    float glow = smoothstep(u_halo_radius, u_halo_radius - u_halo_falloff, dist);
+    vec3 bloomedRgb = mix(tintedSunRgb, u_halo_color, glow * u_halo_strength);
 
-    // 6. --- Final composition ---
-    vec3 finalRgb = mix(u_halo_color, tintedSunRgb, baseColor.a);
-    float finalAlpha = max(baseColor.a, haloAlpha);
+    vec4 finalColor = vec4(bloomedRgb, baseColor.a);
 
-    gl_FragColor = vec4(finalRgb, finalAlpha);
+    // --- ADDED: Bloom effect (single-pass approximation) ---
+    vec4 bloomColor = vec4(0.0);
+    float brightness = dot(finalColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if (brightness > u_bloom_threshold) {
+        vec2 texelSize = u_texelSize;   // Provided by the app
+        float totalWeight = 0.0;
+
+        // Constant loop bounds (−2..2) to satisfy ES2 compilers
+        for (int x = -2; x <= 2; x++) {
+            for (int y = -2; y <= 2; y++) {
+                if (x == 0 && y == 0) continue;
+
+                vec2 offset = vec2(float(x), float(y)) * texelSize * u_bloom_radius;
+                vec4 sampleColor = texture2D(u_texture, v_texCoord + offset);
+
+                // Simple Gaussian-ish falloff
+                float r2 = float(x * x + y * y);
+                float weight = exp(-r2 / 8.0);
+
+                bloomColor += sampleColor * weight;
+                totalWeight += weight;
+            }
+        }
+        if (totalWeight > 0.0) {
+            bloomColor /= totalWeight;
+        }
+        finalColor += bloomColor * u_bloom_strength;
+    }
+
+    gl_FragColor = finalColor;
 }

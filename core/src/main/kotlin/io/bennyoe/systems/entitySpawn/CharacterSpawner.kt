@@ -42,7 +42,6 @@ import io.bennyoe.config.GameConstants
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
-import io.bennyoe.service.DebugRenderService
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
@@ -50,6 +49,7 @@ import io.bennyoe.state.mushroom.MushroomStateContext
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
+import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
 import io.bennyoe.utility.SensorType
@@ -67,7 +67,7 @@ class CharacterSpawner(
     val phyWorld: com.badlogic.gdx.physics.box2d.World,
     val lightEngine: Scene2dLightEngine,
     val stage: Stage,
-    val debugRenderService: DebugRenderService,
+    val debugRenderer: DebugRenderer,
     dawnAtlases: TextureAtlases,
     mushroomAtlases: TextureAtlases,
 ) {
@@ -238,7 +238,7 @@ class CharacterSpawner(
                 // The blackboard must be created via a function reference (or lambda)
                 // because at this point we finally have access to the correct Entity, World, and Stage.
                 createBlackboard = { entity, world, stage ->
-                    MushroomContext(entity, world, stage, debugRenderService)
+                    MushroomContext(entity, world, stage, debugRenderer)
                 },
             )
     }

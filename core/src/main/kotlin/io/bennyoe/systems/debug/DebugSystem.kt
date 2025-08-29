@@ -29,8 +29,6 @@ import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_ENEMY_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
-import io.bennyoe.service.DebugShape
-import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.widgets.DrawCallsCounterWidget
 import io.bennyoe.widgets.FpsCounterWidget
 import io.bennyoe.widgets.LabelWidget

@@ -8,8 +8,8 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.config.GameConstants.CHASE_SPEED
 import io.bennyoe.config.GameConstants.NORMAL_DETECTION_RADIUS
-import io.bennyoe.service.SoundProfile
-import io.bennyoe.service.SoundType
+import io.bennyoe.systems.audio.SoundProfile
+import io.bennyoe.systems.audio.SoundType
 import io.bennyoe.utility.FloorType
 import ktx.app.gdxError
 import ktx.math.vec2

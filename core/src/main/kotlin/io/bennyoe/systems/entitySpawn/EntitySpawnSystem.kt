@@ -12,8 +12,8 @@ import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
-import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.systems.PausableSystem
+import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.utility.findLayerDeep
 
 class EntitySpawnSystem(

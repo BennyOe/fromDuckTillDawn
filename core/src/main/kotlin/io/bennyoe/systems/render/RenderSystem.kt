@@ -19,7 +19,6 @@ import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
-import io.bennyoe.service.ShaderService
 import io.bennyoe.utility.findImageLayerDeep
 import io.bennyoe.utility.findTileLayerDeep
 import ktx.log.logger

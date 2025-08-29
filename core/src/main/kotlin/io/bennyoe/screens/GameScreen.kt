@@ -25,21 +25,19 @@ import io.bennyoe.config.GameConstants.TIME_SCALE
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
-import io.bennyoe.service.DefaultDebugRenderService
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
+import io.bennyoe.systems.CloudSystem
 import io.bennyoe.systems.DamageSystem
 import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.GameMoodSystem
 import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
-import io.bennyoe.systems.LightSystem
 import io.bennyoe.systems.MoveSystem
-import io.bennyoe.systems.PlayerLightSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.TimeSystem
@@ -50,9 +48,13 @@ import io.bennyoe.systems.audio.SoundEffectSystem
 import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
+import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.StateBubbleSystem
 import io.bennyoe.systems.entitySpawn.CollisionSpawnSystem
 import io.bennyoe.systems.entitySpawn.EntitySpawnSystem
+import io.bennyoe.systems.light.AmbientLightSystem
+import io.bennyoe.systems.light.EntityLightSystem
+import io.bennyoe.systems.light.PlayerLightSystem
 import io.bennyoe.systems.physic.ContactHandlerSystem
 import io.bennyoe.systems.physic.PhysicsSystem
 import io.bennyoe.systems.render.PhysicTransformSyncSystem
@@ -72,7 +74,9 @@ class GameScreen(
 ) : AbstractScreen(context) {
     private val assets = context.inject<AssetStorage>()
     private val audio = context.inject<Audio>()
-    private val worldObjectsAtlas = assets[TextureAssets.WORLD_OBJECTS.descriptor]
+    private val worldObjectsAtlas = assets[TextureAssets.WORLD_OBJECTS_ATLAS.descriptor]
+    private val cloudsAtlas = assets[TextureAssets.CLOUDS_ATLAS.descriptor]
+    private val rainCloudsAtlas = assets[TextureAssets.RAIN_CLOUDS_ATLAS.descriptor]
     private val dawnAtlases =
         TextureAtlases(
             assets[TextureAssets.DAWN_ATLAS.descriptor],
@@ -116,6 +120,8 @@ class GameScreen(
                 add("assetManager", assets)
                 add("phyWorld", phyWorld)
                 add("worldObjectsAtlas", worldObjectsAtlas)
+                add("cloudsAtlas", cloudsAtlas)
+                add("rainCloudsAtlas", rainCloudsAtlas)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
                 add("particlesAtlas", particleAtlas)
@@ -130,7 +136,8 @@ class GameScreen(
             systems {
                 add(AnimationSystem())
                 add(EntitySpawnSystem())
-                add(LightSystem())
+                add(AmbientLightSystem())
+                add(EntityLightSystem())
                 add(PlayerLightSystem())
                 add(CollisionSpawnSystem())
                 add(InputSystem())
@@ -143,6 +150,7 @@ class GameScreen(
                 add(PhysicsSystem())
                 add(AmbienceSystem())
                 add(ReverbSystem())
+                add(CloudSystem())
                 add(SoundEffectSystem())
                 add(MusicSystem())
                 add(BasicSensorsSystem())
@@ -176,8 +184,9 @@ class GameScreen(
 
         // this adds all EventListenerSystems also to Scene2D
         entityWorld.systems.forEach { system ->
-            if (system is EventListener) {
-                stage.addListener(system)
+            when (system) {
+                is EventListener -> stage.addListener(system)
+                is CloudSystem -> system.initializeCloudPool()
             }
         }
 

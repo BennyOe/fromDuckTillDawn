@@ -61,6 +61,7 @@ class PlayerInputProcessor(
             Keys.L to Action.TOGGLE_LIGHTING,
             Keys.F to Action.TOGGLE_FLASHLIGHT,
             Keys.X to Action.TOGGLE_DAY_NIGHT,
+            Keys.Z to Action.TOGGLE_WEATHER,
         )
 
     init {
@@ -94,6 +95,7 @@ class PlayerInputProcessor(
                 Action.PAUSE -> gameStateCmp.togglePause(pressed)
                 Action.TOGGLE_LIGHTING -> gameStateCmp.toggleLighting(pressed)
                 Action.TOGGLE_DAY_NIGHT -> gameStateCmp.toggleTimeOfDayChange(pressed)
+                Action.TOGGLE_WEATHER -> gameStateCmp.toggleWeatherChange(pressed)
                 else -> Unit
             }
         }
@@ -185,5 +187,6 @@ class PlayerInputProcessor(
         TOGGLE_LIGHTING,
         TOGGLE_FLASHLIGHT,
         TOGGLE_DAY_NIGHT,
+        TOGGLE_WEATHER,
     }
 }

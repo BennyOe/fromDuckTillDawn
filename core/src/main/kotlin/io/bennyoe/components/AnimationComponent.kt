@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Animation.PlayMode
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
-import io.bennyoe.service.SoundType
+import io.bennyoe.systems.audio.SoundType
 
 class AnimationComponent(
     var stateTime: Float = 0f,

@@ -71,7 +71,6 @@ class TransformVisualSyncSystem(
                 val camX = orthoCam.position.x - vw * 0.5f
                 val camY = orthoCam.position.y + vh * 0.5f
                 particleCmp.actor.setPosition(camX + particleCmp.offsetX, camY + particleCmp.offsetY)
-                particleCmp.actor.setSize(vw, vh)
             } else {
                 particleCmp.actor.setPosition(
                     transformCmp.position.x + particleCmp.offsetX,

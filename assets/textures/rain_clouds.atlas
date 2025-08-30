@@ -1,0 +1,15 @@
+rain_clouds.png
+size:2048,2048
+repeat:none
+rainCloud1
+bounds:804,1572,800,450
+rainCloud2
+bounds:2,1222,800,800
+rainCloud3
+bounds:804,1120,800,450
+rainCloud4
+bounds:2,770,800,450
+rainCloud5
+bounds:2,2,800,314
+rainCloud6
+bounds:2,318,800,450

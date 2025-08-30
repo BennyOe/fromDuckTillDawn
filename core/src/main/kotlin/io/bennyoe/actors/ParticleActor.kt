@@ -6,7 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.utils.Disposable
 
 class ParticleActor(
-    private val effect: ParticleEffect,
+    val effect: ParticleEffect,
 ) : Actor(),
     Disposable {
     init {

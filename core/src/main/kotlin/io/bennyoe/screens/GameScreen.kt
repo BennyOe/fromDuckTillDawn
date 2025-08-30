@@ -38,6 +38,7 @@ import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.TimeSystem
@@ -151,6 +152,7 @@ class GameScreen(
                 add(AmbienceSystem())
                 add(ReverbSystem())
                 add(CloudSystem())
+                add(RainSystem())
                 add(SoundEffectSystem())
                 add(MusicSystem())
                 add(BasicSensorsSystem())

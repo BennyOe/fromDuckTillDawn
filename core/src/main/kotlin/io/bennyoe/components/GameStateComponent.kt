@@ -87,7 +87,7 @@ enum class GameMood(
 enum class TimeOfDay { DAY, NIGHT, DAWN, DUSK, TWILIGHT }
 
 enum class Weather(
-    val spawnSpeed: Float,
+    val cloudSpawnSpeed: Float,
     val minZIndex: Int = 1000,
     val maxZIndex: Int = 1000,
     val minSize: Float = 16f,
@@ -98,23 +98,23 @@ enum class Weather(
     val lightMultiplier: Color = Color(1f, 1f, 1f, 1f),
     val transitionDuration: Float = 8f,
 ) {
-    CLEAR(spawnSpeed = -1f),
-    PARTIALLY_CLOUDY(spawnSpeed = 20f),
+    CLEAR(cloudSpawnSpeed = -1f),
+    PARTIALLY_CLOUDY(cloudSpawnSpeed = 20f),
     CLOUDY(
-        spawnSpeed = 6f,
+        cloudSpawnSpeed = 6f,
         maxZIndex = 3000,
-        shadowMultiplier = .8f,
+        shadowMultiplier = .6f,
         lightMultiplier = Color(.8f, .8f, .8f, .8f),
     ),
     RAIN(
-        spawnSpeed = 1f,
+        cloudSpawnSpeed = 1f,
         maxZIndex = 4000,
         minSize = 32f,
         maxSize = 64f,
         minImageAlpha = 1f,
         minHeightMultiplier = .5f,
         shadowMultiplier = .2f,
-        lightMultiplier = Color(.8f, .8f, .8f, .8f),
-        transitionDuration = 20f,
+        lightMultiplier = Color(.7f, .7f, .7f, .7f),
+        transitionDuration = 22f,
     ),
 }

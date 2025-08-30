@@ -21,6 +21,8 @@ import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StopLoopingSoundEvent
 import io.bennyoe.event.StreamSoundEvent
+import io.bennyoe.lightEngine.core.Consumer
+import io.bennyoe.lightEngine.core.LightningEventListener
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
 import ktx.math.vec3
@@ -57,11 +59,21 @@ class SoundEffectSystem(
     private val assets: AssetStorage = inject("assetManager"),
     private val audio: Audio = inject("audio"),
 ) : IteratingSystem(family { all(AudioComponent, TransformComponent) }),
-    EventListener {
+    EventListener,
+    Consumer {
     private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
     private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
     private val reverb = world.system<ReverbSystem>()
+
+    init {
+        LightningEventListener.subscribe(this)
+    }
+
+    override fun onLightning() {
+        // TODO fire thunder sound fx
+        logger.debug { "LIGHT EVENT RECEIVED!!!" }
+    }
 
     override fun onTick() {
         val playerPos = playerEntity[TransformComponent].position
@@ -110,6 +122,7 @@ class SoundEffectSystem(
     }
 
     override fun onDispose() {
+        LightningEventListener.unsubscribe(this)
         loopingSounds.forEach { (_, source) -> source.free() }
         oneShotSoundSources.forEach { it.free() }
         oneShotSoundSources.clear()

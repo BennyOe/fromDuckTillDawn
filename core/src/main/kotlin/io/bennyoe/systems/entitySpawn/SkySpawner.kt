@@ -17,10 +17,13 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.ParticleComponent
+import io.bennyoe.components.RainComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.SkyComponent
 import io.bennyoe.components.SkyComponentType
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.config.GameConstants.WORLD_HEIGHT
+import io.bennyoe.config.GameConstants.WORLD_WIDTH
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import ktx.math.vec2
 import ktx.tiled.type
@@ -35,6 +38,23 @@ class SkySpawner(
         skyObjectsLayer: MapLayer,
         layerZIndex: Int,
     ) {
+        // spawn rain
+        world.entity {
+            it += TransformComponent(vec2(-WORLD_WIDTH, WORLD_HEIGHT + 10f), WORLD_WIDTH, WORLD_HEIGHT)
+            val particle =
+                ParticleComponent(
+                    particleFile = Gdx.files.internal("particles/rain.p"),
+                    scaleFactor = .1f,
+                    motionScaleFactor = .3f,
+                    looping = true,
+                    stage = stage,
+                    zIndex = 90000,
+                    enabled = false,
+                )
+            it += particle
+            it += RainComponent
+        }
+
         skyObjectsLayer.objects?.forEach { mapObject ->
             val zIndex = mapObject.properties.get("zIndex", Int::class.java) ?: 0
             val width = (stage.camera as OrthographicCamera).viewportWidth

@@ -46,7 +46,7 @@ class CloudSystem(
         spawnTimer -= deltaTime
         if ((spawnTimer <= 0f || previousWeather != gameStateCmp.weather) && cloudPool.notEmpty()) {
             spawnCloud(cloudPool.pop())
-            spawnTimer = gameStateCmp.weather.spawnSpeed
+            spawnTimer = gameStateCmp.weather.cloudSpawnSpeed
         }
         previousWeather = gameStateCmp.weather
     }

@@ -138,8 +138,13 @@ private fun lightning(
     } else if (light.flickerTimer > 0f) {
         light.shaderLight.intensity = light.baseIntensity * 5f
         light.shaderLight.color = Color.WHITE
+        if (!light.didEventFire) {
+            LightningEventListener.emitLightningEvent()
+            light.didEventFire = true
+        }
     } else {
         light.flickerTimer = (minDelay + Math.random() * (maxDelay - minDelay)).toFloat()
+        light.didEventFire = false
     }
     light.b2dLight.distance = light.baseDistance * light.shaderLight.intensity * 2f
     light.b2dLight.setColor(light.shaderLight.color)

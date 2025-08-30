@@ -18,6 +18,7 @@ sealed class GameLight(
     internal val baseDistance: Float = b2dLight.distance,
 ) : IGameLight {
     var effect: LightEffectType? = null
+    var didEventFire: Boolean = false
     val effectParams: LightEffectParameters = LightEffectParameters()
 
     var isOn: Boolean = true

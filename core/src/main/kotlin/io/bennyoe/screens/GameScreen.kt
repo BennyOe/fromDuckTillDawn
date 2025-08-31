@@ -55,7 +55,7 @@ import io.bennyoe.systems.entitySpawn.CollisionSpawnSystem
 import io.bennyoe.systems.entitySpawn.EntitySpawnSystem
 import io.bennyoe.systems.light.AmbientLightSystem
 import io.bennyoe.systems.light.EntityLightSystem
-import io.bennyoe.systems.light.PlayerLightSystem
+import io.bennyoe.systems.light.FlashlightSystem
 import io.bennyoe.systems.physic.ContactHandlerSystem
 import io.bennyoe.systems.physic.PhysicsSystem
 import io.bennyoe.systems.render.PhysicTransformSyncSystem
@@ -139,7 +139,7 @@ class GameScreen(
                 add(EntitySpawnSystem())
                 add(AmbientLightSystem())
                 add(EntityLightSystem())
-                add(PlayerLightSystem())
+                add(FlashlightSystem())
                 add(CollisionSpawnSystem())
                 add(InputSystem())
                 add(AttackSystem())

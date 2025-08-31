@@ -13,6 +13,7 @@ import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.state.FsmMessageTypes
 import ktx.app.KtxInputAdapter
 import ktx.log.logger
+import java.security.Key
 
 class PlayerInputProcessor(
     world: World,
@@ -62,6 +63,7 @@ class PlayerInputProcessor(
             Keys.F to Action.TOGGLE_FLASHLIGHT,
             Keys.X to Action.TOGGLE_DAY_NIGHT,
             Keys.Z to Action.TOGGLE_WEATHER,
+            Keys.SHIFT_LEFT to Action.FIRE_LIGHTNING,
         )
 
     init {
@@ -96,6 +98,7 @@ class PlayerInputProcessor(
                 Action.TOGGLE_LIGHTING -> gameStateCmp.toggleLighting(pressed)
                 Action.TOGGLE_DAY_NIGHT -> gameStateCmp.toggleTimeOfDayChange(pressed)
                 Action.TOGGLE_WEATHER -> gameStateCmp.toggleWeatherChange(pressed)
+                Action.FIRE_LIGHTNING -> gameStateCmp.fireLightning(pressed)
                 else -> Unit
             }
         }
@@ -188,5 +191,6 @@ class PlayerInputProcessor(
         TOGGLE_FLASHLIGHT,
         TOGGLE_DAY_NIGHT,
         TOGGLE_WEATHER,
+        FIRE_LIGHTNING,
     }
 }

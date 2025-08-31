@@ -14,6 +14,7 @@ class EntityLightSystem : IteratingSystem(family { all(LightComponent, Transform
         val lightCmp = entity[LightComponent]
         val transformCmp = entity[TransformComponent]
 
+        // TODO check if this is needed when b2dLight.attachToBody(phyCmp.body) is used at spawn
         // with PhysicComponent the center is in the middle of the image
         if (entity has PhysicComponent) {
             when (val light = lightCmp.gameLight) {

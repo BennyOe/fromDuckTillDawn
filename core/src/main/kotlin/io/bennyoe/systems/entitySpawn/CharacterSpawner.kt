@@ -18,6 +18,7 @@ import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.DeadComponent
+import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
@@ -258,20 +259,35 @@ class CharacterSpawner(
             filter.categoryBits = EntityCategory.SENSOR.bit
             filter.maskBits = EntityCategory.GROUND.bit
         }
-        val flashlight =
-            lightEngine.addSpotLight(
-                position = phyCmp.body.position,
-                color = Color.WHITE,
-                direction = 0f,
-                coneDegree = 30f,
-                initialIntensity = 1.8f,
-                b2dDistance = 12f,
-                falloffProfile = 0.4f,
-                shaderIntensityMultiplier = 0.9f,
-            )
-        flashlight.setOn(false)
+        val flashlightSpot =
+            lightEngine
+                .addSpotLight(
+                    position = phyCmp.body.position,
+                    color = Color.WHITE,
+                    direction = 0f,
+                    coneDegree = 30f,
+                    initialIntensity = 1.8f,
+                    b2dDistance = 12f,
+                    falloffProfile = 0.4f,
+                    shaderIntensityMultiplier = 0.9f,
+                ).apply {
+                    setOn(false)
+                }
 
-        entity += LightComponent(flashlight)
+        val flashLightHalo =
+            lightEngine
+                .addPointLight(
+                    position = phyCmp.body.position,
+                    color = Color.WHITE,
+                    initialIntensity = 1f,
+                    b2dDistance = 1f,
+                    falloffProfile = 0.4f,
+                    shaderIntensityMultiplier = 1f,
+                ).apply {
+                    setOn(false)
+                }
+
+        entity += FlashlightComponent(flashlightSpot, flashLightHalo)
 
         entity += ReverbZoneContactComponent()
 

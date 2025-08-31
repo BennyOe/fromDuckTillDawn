@@ -14,12 +14,12 @@ import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
-import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
@@ -54,7 +54,8 @@ class AttackSystemIntegrationTest {
         // --------------- Setup World ----------------
         Gdx.app = mockk<Application>(relaxed = true)
         val stageMock = mockk<Stage>(relaxed = true)
-        val gameLight = mockk<GameLight>(relaxed = true)
+        val spotLight = mockk<GameLight.Spot>(relaxed = true)
+        val pointLight = mockk<GameLight.Point>(relaxed = true)
         val debugRendererMock = mockk<DebugRenderer>(relaxed = true)
         val animationCmpMock = mockk<AnimationComponent>(relaxed = true)
 
@@ -97,7 +98,7 @@ class AttackSystemIntegrationTest {
                 it += MoveComponent()
                 it += IntentionComponent()
                 it += HealthComponent()
-                it += LightComponent(gameLight)
+                it += FlashlightComponent(spotLight, pointLight)
                 it += playerImageCmp
                 it += InputComponent()
                 it += JumpComponent()
@@ -133,7 +134,7 @@ class AttackSystemIntegrationTest {
                 it += MoveComponent()
                 it += IntentionComponent()
                 it += HealthComponent()
-                it += LightComponent(gameLight)
+                it += FlashlightComponent(spotLight, pointLight)
                 it += JumpComponent()
                 it +=
                     StateComponent(

@@ -8,7 +8,6 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
 import ktx.math.vec2
-import kotlin.math.truncate
 
 class FlashlightSystem :
     IteratingSystem(

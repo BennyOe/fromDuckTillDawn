@@ -13,12 +13,12 @@ import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.DeadComponent
+import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
-import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
@@ -45,7 +45,8 @@ class MovementIntegrationTest {
         val animationMock = mockk<Animation<TextureRegionDrawable>>(relaxed = true)
         val bodyMock = mockk<Body>(relaxed = true)
         val stageMock = mockk<Stage>(relaxed = true)
-        val gameLight = mockk<GameLight>(relaxed = true)
+        val spotLight = mockk<GameLight.Spot>(relaxed = true)
+        val pointLight = mockk<GameLight.Point>(relaxed = true)
 
         val imageMock: Image = mockk(relaxed = true)
         val imgCmp =
@@ -69,7 +70,7 @@ class MovementIntegrationTest {
                 it += PhysicComponent().apply { body = bodyMock }
                 it += MoveComponent(maxSpeed = 10f)
                 it += HealthComponent()
-                it += LightComponent(gameLight)
+                it += FlashlightComponent(spotLight, pointLight)
                 it += IntentionComponent()
                 it += InputComponent()
                 it +=

@@ -6,10 +6,10 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
-import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.lightEngine.core.GameLight
@@ -28,7 +28,8 @@ class MoveSystemUnitTest {
     fun setup() {
         val stageMock = mockk<Stage>(relaxed = true)
 
-        val gameLight = mockk<GameLight>(relaxed = true)
+        val spotLight = mockk<GameLight.Spot>(relaxed = true)
+        val pointLight = mockk<GameLight.Point>(relaxed = true)
         val imageMock: Image = mockk(relaxed = true)
         val imgCmp =
             ImageComponent(stageMock).also {
@@ -47,7 +48,7 @@ class MoveSystemUnitTest {
                 it += PhysicComponent()
                 it += IntentionComponent()
                 it += MoveComponent(maxSpeed = 10f)
-                it += LightComponent(gameLight)
+                it += FlashlightComponent(spotLight, pointLight)
                 it += imgCmp
                 it += InputComponent()
                 it += AnimationComponent()

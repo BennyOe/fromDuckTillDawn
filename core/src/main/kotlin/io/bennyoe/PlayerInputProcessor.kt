@@ -13,7 +13,6 @@ import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.state.FsmMessageTypes
 import ktx.app.KtxInputAdapter
 import ktx.log.logger
-import java.security.Key
 
 class PlayerInputProcessor(
     world: World,

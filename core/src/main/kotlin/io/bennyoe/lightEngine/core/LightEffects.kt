@@ -132,12 +132,20 @@ private fun lightning(
     minDelay: Float,
     maxDelay: Float,
 ) {
+    // return immediately when lightning is disabled
+    if (!light.enableLightning) {
+        light.shaderLight.intensity = 0f
+        light.b2dLight.distance = 0f
+        return
+    }
+
     light.flickerTimer -= Gdx.graphics.deltaTime
     if (light.flickerTimer > 0.1f) {
         light.shaderLight.intensity = 0f
-    } else if (light.flickerTimer > 0f) {
+    } else if (light.flickerTimer > 0f || light.fireLightning) {
         light.shaderLight.intensity = light.baseIntensity * 5f
         light.shaderLight.color = Color.WHITE
+        light.fireLightning = false
         if (!light.didEventFire) {
             LightningEventListener.emitLightningEvent()
             light.didEventFire = true

@@ -4,26 +4,26 @@ package io.bennyoe.lightEngine.core
  * Manages consumers and broadcasts lightning events.
  */
 object LightningEventListener {
-    private val lightningConsumerList: MutableList<Consumer> = mutableListOf()
+    private val lightningConsumerList: MutableList<LightningEventConsumer> = mutableListOf()
 
     /**
      * Adds a consumer to the listener.
      *
-     * @param consumer the consumer to add
+     * @param lightningEventConsumer the consumer to add
      */
-    fun subscribe(consumer: Consumer) {
-        lightningConsumerList.add(consumer)
-        println("Consumer: ${consumer.javaClass.simpleName} successfully added to LightningEventListener")
+    fun subscribe(lightningEventConsumer: LightningEventConsumer) {
+        lightningConsumerList.add(lightningEventConsumer)
+        println("Consumer: ${lightningEventConsumer.javaClass.simpleName} successfully added to LightningEventListener")
     }
 
     /**
      * Removes a consumer from the listener.
      *
-     * @param consumer the consumer to remove
+     * @param lightningEventConsumer the consumer to remove
      */
-    fun unsubscribe(consumer: Consumer) {
-        lightningConsumerList.remove(consumer)
-        println("Consumer: ${consumer.javaClass.simpleName} successfully removed from LightningEventListener")
+    fun unsubscribe(lightningEventConsumer: LightningEventConsumer) {
+        lightningConsumerList.remove(lightningEventConsumer)
+        println("Consumer: ${lightningEventConsumer.javaClass.simpleName} successfully removed from LightningEventListener")
     }
 
     /**
@@ -37,7 +37,7 @@ object LightningEventListener {
 /**
  * An observer that reacts to lightning events.
  */
-interface Consumer {
+interface LightningEventConsumer {
     /**
      * Called when a lightning event is emitted.
      */

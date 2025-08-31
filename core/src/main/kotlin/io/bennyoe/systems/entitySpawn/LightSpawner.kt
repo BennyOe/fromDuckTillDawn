@@ -16,7 +16,7 @@ class LightSpawner(
 ) {
     fun spawnFromMap(lightsLayer: MapLayer) {
         lightsLayer.objects?.forEach { light ->
-            val type = LightType.entries[(light.properties.get("type") as Int)]
+            val type = LightType.entries[(light.properties.get("lightType") as Int)]
             val position = vec2(light.x, light.y)
             val color = light.properties.get("color") as Color
             val initialIntensity = light.properties.get("initialIntensity") as Float? ?: 1f

@@ -59,8 +59,6 @@ class AmbienceSystem :
             }
 
             is AmbienceChangeEvent -> {
-                if (currentAmbienceId == event.type) true
-
                 currentAmbienceId = event.type
                 ambiencePlayListProvider.theme = event.type.ordinal
                 ambienceJukebox.softStopAndResume(Interpolation.sine, 0.8f)
@@ -76,22 +74,22 @@ class AmbienceSystem :
 
     private fun createAmbiencePlaylists() {
         world.family { all(AmbienceSoundComponent) }.forEach { entity ->
-            val ambience = entity[AmbienceSoundComponent]
+            val ambienceCmp = entity[AmbienceSoundComponent]
             val source =
-                StreamedSoundSource(Gdx.files.internal(ambience.sound)).apply {
+                StreamedSoundSource(Gdx.files.internal(ambienceCmp.sound)).apply {
                     isRelative = true
                     setLooping(true)
-                    volume = ambience.volume!! * AMBIENCE_VOLUME
+                    volume = ambienceCmp.volume!! * AMBIENCE_VOLUME
                 }
 
             val settings = SongSettings.linear(1f, 2f, 2f)
-            val meta = SongMeta().setTitle("Ambience-${ambience.type}")
+            val meta = SongMeta().setTitle("Ambience-${ambienceCmp.type}")
             val song = Song(source, settings, meta)
             val playlist = PlayList()
             playlist.addSong(song)
 
             ambiencePlayLists.add(playlist)
-            ambiencePlayListProvider.add(playlist, ambience.type.ordinal)
+            ambiencePlayListProvider.add(playlist, ambienceCmp.type.ordinal)
         }
     }
 

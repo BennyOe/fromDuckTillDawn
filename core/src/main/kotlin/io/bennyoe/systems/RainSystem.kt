@@ -6,20 +6,39 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.GameStateComponent
+import io.bennyoe.components.LightComponent
+import io.bennyoe.components.LightningComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.RainComponent
 import io.bennyoe.components.Weather
 
 class RainSystem : IteratingSystem(family { all(RainComponent, ParticleComponent) }) {
     private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
+    private val lightningFamily by lazy { world.family { all(LightningComponent) } }
+
     private var transitionTime = 0f
     private var waitTime = 0f
     private var effectIsSetup = false
+    private var lastLightningOn: Boolean? = null
 
     companion object {
         const val WAIT_DURATION = 22f
         const val FADE_DURATION = 22f
         const val MAX_EMISSION = 1200f
+    }
+
+    override fun onTick() {
+        val isRaining = gameStateCmp.weather == Weather.RAIN
+        val newLightningOn = isRaining && gameStateCmp.isLightningEnabled
+
+        if (lastLightningOn != newLightningOn) {
+            lightningFamily.forEach { e ->
+                e[LightComponent].gameLight.enableLightning = newLightningOn
+            }
+            lastLightningOn = newLightningOn
+        }
+
+        super.onTick()
     }
 
     override fun onTickEntity(entity: Entity) {

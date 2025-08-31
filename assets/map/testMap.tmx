@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="70" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="24" nextobjectid="128">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="70" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="24" nextobjectid="130">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
   <property name="deadMusic" value="sound/music/deadMusic.mp3"/>
+  <property name="rainAmbience" value="sound/ambience/rain.mp3"/>
  </properties>
  <tileset firstgid="1" source="groundTiles1.tsx"/>
  <tileset firstgid="649" source="fire.tsx"/>
@@ -14,13 +15,13 @@
     <property name="zIndex" type="int" value="2000"/>
    </properties>
   </imagelayer>
-  <imagelayer id="6" name="backgroundForestFar" visible="0" locked="1" parallaxx="0.5">
+  <imagelayer id="6" name="backgroundForestFar" locked="1" parallaxx="0.5">
    <image source="GandalfHardcore FREE Platformer Assets/GandalfHardcore Background layers/Autumn BG/GandalfHardcore Background layers_layer 3.png" width="1024" height="346"/>
    <properties>
     <property name="zIndex" type="int" value="3000"/>
    </properties>
   </imagelayer>
-  <imagelayer id="7" name="backgroundForestMiddle" visible="0" parallaxx="0.7">
+  <imagelayer id="7" name="backgroundForestMiddle" parallaxx="0.7">
    <image source="GandalfHardcore FREE Platformer Assets/GandalfHardcore Background layers/Autumn BG/GandalfHardcore Background layers_layer 2.png" width="1024" height="346"/>
    <properties>
     <property name="zIndex" type="int" value="4000"/>
@@ -32,7 +33,7 @@
     <property name="zIndex" type="int" value="5000"/>
    </properties>
   </imagelayer>
-  <objectgroup id="20" name="sky" parallaxx="0.05">
+  <objectgroup id="20" name="sky">
    <properties>
     <property name="zIndex" type="int" value="0"/>
    </properties>
@@ -63,6 +64,18 @@
    <object id="125" name="shootingStar" type="shootingStar" x="80" y="32">
     <properties>
      <property name="zIndex" type="int" value="600"/>
+    </properties>
+    <point/>
+   </object>
+   <object id="128" name="lightning" type="lightning" x="197.944" y="74.3636">
+    <properties>
+     <property name="color" type="color" value="#ffffffff"/>
+     <property name="distance" type="float" value="7"/>
+     <property name="effect" type="int" propertytype="lightEffect" value="4"/>
+     <property name="falloffProfile" type="float" value="0.5"/>
+     <property name="initialIntensity" type="float" value="6"/>
+     <property name="isManaged" type="bool" value="false"/>
+     <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
     </properties>
     <point/>
    </object>
@@ -122,7 +135,7 @@
 56,57,58,59,56,56,56,56,56,56,56,56,59,60,0,55,56,56,56,56,56,56,56,56,56,56,56,57,58,59,56,56,56,56,56,56,56,57,58,59,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,57,58,59,57,57,58,57,58,59
 </data>
  </layer>
- <objectgroup id="3" name="collisionBoxes">
+ <objectgroup id="3" name="collisionBoxes" visible="0">
   <object id="3" name="2" x="66.7939" y="80.9704" width="42.2058" height="44.6175">
    <properties>
     <property name="floorType" value="grass"/>
@@ -173,7 +186,7 @@
   <object id="100" x="1013.98" y="0.351333" width="105.018" height="319.205"/>
  </objectgroup>
  <group id="19" name="audio" visible="0">
-  <objectgroup id="15" name="reverbZones">
+  <objectgroup id="15" name="reverbZones" visible="0">
    <object id="89" x="745.485" y="108.366" width="281.841" height="150.262">
     <properties>
      <property name="effectIntensity" type="float" value="0.8"/>
@@ -187,7 +200,7 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="18" name="ambienceZones">
+  <objectgroup id="18" name="ambienceZones" visible="0">
    <object id="109" x="0.584795" y="0.584795" width="642.69" height="256.14">
     <properties>
      <property name="sound" value="sound/ambience/goodweather.mp3"/>
@@ -249,8 +262,8 @@
     <property name="effect" type="int" propertytype="lightEffect" value="0"/>
     <property name="falloffProfile" type="float" value="12"/>
     <property name="initialIntensity" type="float" value="9"/>
+    <property name="lightType" type="int" propertytype="lightType" value="1"/>
     <property name="shaderIntensityMultiplier" type="float" value="1"/>
-    <property name="type" type="int" propertytype="lightType" value="1"/>
    </properties>
    <point/>
   </object>
@@ -262,8 +275,8 @@
     <property name="falloffProfile" type="float" value="0.9"/>
     <property name="initialIntensity" type="float" value="10"/>
     <property name="isManaged" type="bool" value="false"/>
+    <property name="lightType" type="int" propertytype="lightType" value="0"/>
     <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
-    <property name="type" type="int" propertytype="lightType" value="0"/>
    </properties>
    <point/>
   </object>
@@ -276,8 +289,8 @@
     <property name="effect" type="int" propertytype="lightEffect" value="0"/>
     <property name="falloffProfile" type="float" value="12"/>
     <property name="initialIntensity" type="float" value="9"/>
+    <property name="lightType" type="int" propertytype="lightType" value="1"/>
     <property name="shaderIntensityMultiplier" type="float" value="1"/>
-    <property name="type" type="int" propertytype="lightType" value="1"/>
    </properties>
    <point/>
   </object>
@@ -290,8 +303,8 @@
     <property name="effect" type="int" propertytype="lightEffect" value="0"/>
     <property name="falloffProfile" type="float" value="12"/>
     <property name="initialIntensity" type="float" value="9"/>
+    <property name="lightType" type="int" propertytype="lightType" value="1"/>
     <property name="shaderIntensityMultiplier" type="float" value="1"/>
-    <property name="type" type="int" propertytype="lightType" value="1"/>
    </properties>
    <point/>
   </object>
@@ -302,8 +315,8 @@
     <property name="effect" type="int" propertytype="lightEffect" value="1"/>
     <property name="falloffProfile" type="float" value="0.5"/>
     <property name="initialIntensity" type="float" value="6"/>
+    <property name="lightType" type="int" propertytype="lightType" value="0"/>
     <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
-    <property name="type" type="int" propertytype="lightType" value="0"/>
    </properties>
    <point/>
   </object>
@@ -316,8 +329,8 @@
     <property name="effect" type="int" propertytype="lightEffect" value="0"/>
     <property name="falloffProfile" type="float" value="12"/>
     <property name="initialIntensity" type="float" value="9"/>
+    <property name="lightType" type="int" propertytype="lightType" value="0"/>
     <property name="shaderIntensityMultiplier" type="float" value="1"/>
-    <property name="type" type="int" propertytype="lightType" value="0"/>
    </properties>
    <point/>
   </object>
@@ -330,8 +343,8 @@
     <property name="effect" type="int" propertytype="lightEffect" value="0"/>
     <property name="falloffProfile" type="float" value="12"/>
     <property name="initialIntensity" type="float" value="9"/>
+    <property name="lightType" type="int" propertytype="lightType" value="0"/>
     <property name="shaderIntensityMultiplier" type="float" value="1"/>
-    <property name="type" type="int" propertytype="lightType" value="0"/>
    </properties>
    <point/>
   </object>
@@ -342,20 +355,8 @@
     <property name="effect" type="int" propertytype="lightEffect" value="1"/>
     <property name="falloffProfile" type="float" value="0.5"/>
     <property name="initialIntensity" type="float" value="6"/>
+    <property name="lightType" type="int" propertytype="lightType" value="0"/>
     <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
-    <property name="type" type="int" propertytype="lightType" value="0"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="127" name="fireLight" type="fireLight" x="40.6667" y="52.6667">
-   <properties>
-    <property name="color" type="color" value="#ffff0000"/>
-    <property name="distance" type="float" value="7"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="4"/>
-    <property name="falloffProfile" type="float" value="0.5"/>
-    <property name="initialIntensity" type="float" value="6"/>
-    <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
-    <property name="type" type="int" propertytype="lightType" value="0"/>
    </properties>
    <point/>
   </object>

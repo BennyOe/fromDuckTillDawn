@@ -16,17 +16,22 @@ import com.badlogic.gdx.utils.GdxRuntimeException
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.LightComponent
+import io.bennyoe.components.LightningComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.RainComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.SkyComponent
 import io.bennyoe.components.SkyComponentType
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.GameConstants.WORLD_HEIGHT
 import io.bennyoe.config.GameConstants.WORLD_WIDTH
+import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import ktx.math.vec2
 import ktx.tiled.type
+import ktx.tiled.x
+import ktx.tiled.y
 
 class SkySpawner(
     val world: World,
@@ -55,11 +60,41 @@ class SkySpawner(
             it += RainComponent
         }
 
-        skyObjectsLayer.objects?.forEach { mapObject ->
-            val zIndex = mapObject.properties.get("zIndex", Int::class.java) ?: 0
+        skyObjectsLayer.objects?.forEach { skyObject ->
+            val zIndex = skyObject.properties.get("zIndex", Int::class.java) ?: 0
             val width = (stage.camera as OrthographicCamera).viewportWidth
             val height = (stage.camera as OrthographicCamera).viewportHeight
-            when (mapObject.type) {
+            when (skyObject.type) {
+                "lightning" -> {
+                    val position = vec2(skyObject.x * UNIT_SCALE, skyObject.y * UNIT_SCALE)
+                    val isManaged = skyObject.properties.get("isManaged") as Boolean? ?: true
+                    val effect = (skyObject.properties.get("effect") as? Int)?.let { LightEffectType.entries[it] }
+                    val b2dDistance = skyObject.properties.get("distance") as Float? ?: 1f
+                    val initialIntensity = skyObject.properties.get("initialIntensity") as Float? ?: 1f
+                    val color = skyObject.properties.get("color") as Color
+                    val falloffProfile = skyObject.properties.get("falloffProfile") as Float? ?: 0.5f
+                    val shaderIntensityMultiplier = skyObject.properties.get("shaderIntensityMultiplier") as Float? ?: 0.5f
+                    world.entity {
+                        it += LightningComponent
+                        val lightning =
+                            LightComponent(
+                                lightEngine.addPointLight(
+                                    position = position,
+                                    color = color,
+                                    b2dDistance = b2dDistance,
+                                    initialIntensity = initialIntensity,
+                                    falloffProfile = falloffProfile,
+                                    shaderIntensityMultiplier = shaderIntensityMultiplier,
+                                    isManaged = isManaged,
+                                ),
+                            )
+                        lightning.gameLight.effect = effect
+                        lightning.gameLight.effectParams.lightningMinDelay = 8f
+                        lightning.gameLight.effectParams.lightningMaxDelay = 30f
+                        it += lightning
+                    }
+                }
+
                 "shootingStar" -> {
                     world.entity {
                         it += TransformComponent(vec2(0f, 0f), width, height)
@@ -80,13 +115,13 @@ class SkySpawner(
                 "sky", "stars" -> {
                     world.entity {
                         val imageCmp = ImageComponent(stage, zIndex = layerZIndex + zIndex)
-                        val imageName = mapObject.properties.get("image") as String
+                        val imageName = skyObject.properties.get("image") as String
                         imageCmp.image = Image(worldObjectsAtlas.findRegion(imageName))
 
                         it += imageCmp
                         it += TransformComponent(vec2(0f, 0f), width, height)
 
-                        val skyType = if (mapObject.type == "sky") SkyComponentType.SKY else SkyComponentType.STARS
+                        val skyType = if (skyObject.type == "sky") SkyComponentType.SKY else SkyComponentType.STARS
                         it += SkyComponent(skyType)
                     }
                 }
@@ -179,6 +214,8 @@ class SkySpawner(
                         it += shaderRenderingCmp
                     }
                 }
+
+                else -> Unit
             }
         }
     }

@@ -21,7 +21,7 @@ import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StopLoopingSoundEvent
 import io.bennyoe.event.StreamSoundEvent
-import io.bennyoe.lightEngine.core.Consumer
+import io.bennyoe.lightEngine.core.LightningEventConsumer
 import io.bennyoe.lightEngine.core.LightningEventListener
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
@@ -30,6 +30,7 @@ import kotlin.collections.set
 
 private const val MIN_PITCH = 0.8f
 private const val MAX_PITCH = 1.3f
+private const val THUNDER_DELAY = 1f
 
 /**
  * A Fleks [IteratingSystem] responsible for managing spatialized sound effects in the game.
@@ -60,23 +61,25 @@ class SoundEffectSystem(
     private val audio: Audio = inject("audio"),
 ) : IteratingSystem(family { all(AudioComponent, TransformComponent) }),
     EventListener,
-    Consumer {
+    LightningEventConsumer {
     private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
     private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
     private val reverb = world.system<ReverbSystem>()
+    private var thunderTriggered = false
+    private var thunderDelayCounter = 0f
 
     init {
         LightningEventListener.subscribe(this)
     }
 
     override fun onLightning() {
-        // TODO fire thunder sound fx
-        logger.debug { "LIGHT EVENT RECEIVED!!!" }
+        thunderTriggered = true
     }
 
     override fun onTick() {
         val playerPos = playerEntity[TransformComponent].position
+        triggerThunder()
 
         audio.listener.setPosition(playerPos.x, playerPos.y, 0f)
         cleanUpOneShotSounds()
@@ -107,6 +110,24 @@ class SoundEffectSystem(
         }
 
         soundCmp.bufferedSoundSource?.setPosition(transformCmp.position.x + transformCmp.width * 0.5f, transformCmp.position.y, 0f)
+    }
+
+    private fun triggerThunder() {
+        if (thunderTriggered && thunderDelayCounter < THUNDER_DELAY) {
+            thunderDelayCounter += deltaTime
+            return
+        }
+
+        if (thunderTriggered) {
+            val triggeredSound = StreamedSoundSource(Gdx.files.internal("sound/thunder.mp3"))
+            triggeredSound.isRelative = true
+            triggeredSound.setLooping(false)
+            reverb.registerSource(triggeredSound)
+            triggeredSound.volume = EFFECT_VOLUME
+            triggeredSound.play()
+            thunderDelayCounter = 0f
+            thunderTriggered = false
+        }
     }
 
     private fun cleanUpOneShotSounds() {

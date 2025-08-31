@@ -13,6 +13,7 @@ class GameStateComponent(
     var isTriggerTimeOfDayJustPressed: Boolean = false,
     var timeOfDay: Float = INITIAL_TIME_OF_DAY,
     var isTriggerWeatherJustPressed: Boolean = false,
+    var isLightningEnabled: Boolean = false,
     var weather: Weather = Weather.CLEAR,
 ) : Component<GameStateComponent> {
     private var alreadyChanged: Boolean = false
@@ -65,6 +66,17 @@ class GameStateComponent(
             val nextIndex = (weather.ordinal + 1) % values.size
             weather = values[nextIndex]
             logger.debug { "Weather change is triggered to ${weather.name}" }
+        }
+        if (!pressed) {
+            alreadyChanged = false
+        }
+    }
+
+    fun fireLightning(pressed: Boolean) {
+        if (pressed && !alreadyChanged) {
+            isLightningEnabled = !isLightningEnabled
+            alreadyChanged = true
+            logger.debug { "Lightning manually set to $isLightningEnabled" }
         }
         if (!pressed) {
             alreadyChanged = false

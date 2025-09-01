@@ -32,6 +32,7 @@ class EntitySpawnSystem(
     private val skySpawner = SkySpawner(world, lightEngine, stage, worldObjectsAtlas)
     private val mapObjectSpawner = MapObjectSpawner(world, stage)
     private val characterSpawner = CharacterSpawner(world, phyWorld, lightEngine, stage, debugRenderService, dawnAtlases, mushroomAtlases)
+    private val rainMaskSpawner = RainMaskSpawner(world, stage)
 
     override fun onTickEntity(entity: Entity) {
     }
@@ -71,6 +72,10 @@ class EntitySpawnSystem(
                 event.map.layers
                     .findLayerDeep("lights")
                     ?.let { lightSpawner.spawnFromMap(it) }
+                // Adding rain masks
+                event.map.layers
+                    .findLayerDeep("rainMask")
+                    ?.let { rainMaskSpawner.spawnRainMasks(it) }
 
                 return true
             }

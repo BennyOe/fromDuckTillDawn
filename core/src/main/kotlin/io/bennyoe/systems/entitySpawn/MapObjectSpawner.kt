@@ -12,6 +12,7 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ParticleComponent
+import io.bennyoe.components.ParticleType
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.config.GameConstants
@@ -81,6 +82,7 @@ class MapObjectSpawner(
                             offsetX = width * 0.5f,
                             offsetY = 0.2f,
                             stage = stage,
+                            type = ParticleType.FIRE,
                         )
                 }
             }

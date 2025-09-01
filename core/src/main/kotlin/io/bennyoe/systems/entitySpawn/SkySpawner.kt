@@ -18,6 +18,7 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.LightningComponent
 import io.bennyoe.components.ParticleComponent
+import io.bennyoe.components.ParticleType
 import io.bennyoe.components.RainComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.SkyComponent
@@ -55,6 +56,7 @@ class SkySpawner(
                     stage = stage,
                     zIndex = 90000,
                     enabled = false,
+                    type = ParticleType.RAIN,
                 )
             it += particle
             it += RainComponent
@@ -106,6 +108,7 @@ class SkySpawner(
                                 looping = true,
                                 stage = stage,
                                 zIndex = layerZIndex + zIndex,
+                                type = ParticleType.SHOOTING_STAR,
                             )
                         it += particle
                         it += SkyComponent(SkyComponentType.SHOOTING_STAR)

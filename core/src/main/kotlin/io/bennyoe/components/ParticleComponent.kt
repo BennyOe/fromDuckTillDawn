@@ -12,6 +12,7 @@ import io.bennyoe.actors.ParticleActor
 
 class ParticleComponent(
     private val stage: Stage,
+    val type: ParticleType,
     var zIndex: Int = 0,
     val particleFile: FileHandle,
     val scaleFactor: Float = 1f,
@@ -48,4 +49,10 @@ class ParticleComponent(
     }
 
     companion object : ComponentType<ParticleComponent>()
+}
+
+enum class ParticleType {
+    RAIN,
+    FIRE,
+    SHOOTING_STAR,
 }

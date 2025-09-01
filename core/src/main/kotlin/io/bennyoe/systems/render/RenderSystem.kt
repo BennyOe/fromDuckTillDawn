@@ -14,6 +14,7 @@ import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.RainMaskComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
 import io.bennyoe.config.GameConstants.UNIT_SCALE
@@ -35,6 +36,7 @@ class RenderSystem(
     private val orthoCam = stage.camera as OrthographicCamera
     private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
     private val playerActor by lazy { world.family { all(PlayerComponent) }.first()[ImageComponent].image }
+    private val rainMaskFamily by lazy { world.family { all(RainMaskComponent) } }
 
     // Storage for map layers from MapChangedEvent
     private val mapTileLayers = mutableListOf<TiledMapTileLayer>()
@@ -86,7 +88,7 @@ class RenderSystem(
         if (!gameStateCmp.isLightingEnabled) {
             simpleRenderer.render(renderQueue, gameStateCmp.timeOfDay, continuousTime, orthoCam)
         } else {
-            lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime)
+            lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime, rainMaskFamily)
         }
     }
 

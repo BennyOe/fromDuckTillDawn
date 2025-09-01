@@ -11,6 +11,7 @@ import io.bennyoe.components.LightningComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.RainComponent
 import io.bennyoe.components.Weather
+import io.bennyoe.config.GameConstants.RAIN_DELAY
 
 class RainSystem : IteratingSystem(family { all(RainComponent, ParticleComponent) }) {
     private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
@@ -22,7 +23,6 @@ class RainSystem : IteratingSystem(family { all(RainComponent, ParticleComponent
     private var lastLightningOn: Boolean? = null
 
     companion object {
-        const val WAIT_DURATION = 22f
         const val FADE_DURATION = 22f
         const val MAX_EMISSION = 1200f
     }
@@ -50,7 +50,7 @@ class RainSystem : IteratingSystem(family { all(RainComponent, ParticleComponent
                 setupRainEffect(particleCmp)
             }
 
-            if (waitTime < WAIT_DURATION) {
+            if (waitTime < RAIN_DELAY) {
                 waitTime += deltaTime
                 return
             }

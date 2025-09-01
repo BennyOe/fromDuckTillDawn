@@ -150,11 +150,11 @@ class ContactHandlerSystem(
 
         val ambienceSoundCmp = ambienceSoundBodyData.entity[AmbienceSoundComponent]
 
-        logger.debug { "Ambience Event ${ambienceSoundCmp.sound} played" }
+        logger.debug { "Ambience Event ${ambienceSoundCmp.type} played" }
         stage.fire(
             AmbienceChangeEvent(
                 ambienceSoundCmp.type,
-                ambienceSoundCmp.sound,
+                ambienceSoundCmp.variations,
                 ambienceSoundCmp.volume!!,
             ),
         )

@@ -4,10 +4,11 @@ import com.badlogic.gdx.maps.MapLayer
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.components.audio.AmbienceType
 import io.bennyoe.components.audio.ReverbZoneComponent
 import io.bennyoe.components.audio.SoundTriggerComponent
+import io.bennyoe.components.audio.SoundVariation
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.systems.audio.AmbienceType
 import io.bennyoe.systems.audio.SoundType
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.SensorType
@@ -65,21 +66,28 @@ class AudioSpawner(
 
     fun spawnAmbienceZones(ambienceZonesLayer: MapLayer) {
         ambienceZonesLayer.objects?.forEach { ambienceSoundObj ->
-            world.entity {
+            world.entity { entity ->
                 val physicCmp =
                     PhysicComponent.physicsComponentFromShape2D(
                         phyWorld,
                         ambienceSoundObj.shape,
                         isSensor = true,
                         sensorType = SensorType.SOUND_AMBIENCE_SENSOR,
-                        setUserData = BodyData(EntityCategory.SENSOR, it),
+                        setUserData = BodyData(EntityCategory.SENSOR, entity),
                         categoryBit = EntityCategory.SENSOR.bit,
                     )
-                it += physicCmp
-                it +=
+                entity += physicCmp
+
+                val baseSound = ambienceSoundObj.properties.get("base")?.let { SoundVariation.BASE to it as String }
+                val daySound = ambienceSoundObj.properties.get("day")?.let { SoundVariation.DAY to it as String }
+                val nightSound = ambienceSoundObj.properties.get("night")?.let { SoundVariation.NIGHT to it as String }
+                val rainSound = ambienceSoundObj.properties.get("rain")?.let { SoundVariation.RAIN to it as String }
+                val variations = listOfNotNull(baseSound, daySound, nightSound, rainSound).toMap()
+
+                entity +=
                     AmbienceSoundComponent(
                         AmbienceType.valueOf((ambienceSoundObj.properties.get("type") as String).uppercase()),
-                        ambienceSoundObj.properties.get("sound") as String,
+                        variations,
                         ambienceSoundObj.properties.get("volume") as? Float,
                     )
             }

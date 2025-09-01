@@ -21,8 +21,11 @@ import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StopLoopingSoundEvent
 import io.bennyoe.event.StreamSoundEvent
-import io.bennyoe.lightEngine.core.LightningEventConsumer
-import io.bennyoe.lightEngine.core.LightningEventListener
+import io.bennyoe.lightEngine.core.FaultyLightEvent
+import io.bennyoe.lightEngine.core.LightEngineEvent
+import io.bennyoe.lightEngine.core.LightEngineEventConsumer
+import io.bennyoe.lightEngine.core.LightEngineEventListener
+import io.bennyoe.lightEngine.core.LightningEvent
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
 import ktx.math.vec3
@@ -31,6 +34,7 @@ import kotlin.collections.set
 private const val MIN_PITCH = 0.8f
 private const val MAX_PITCH = 1.3f
 private const val THUNDER_DELAY = 1f
+private const val BUZZ_SOUND_LIFETIME = 0.1f
 
 /**
  * A Fleks [IteratingSystem] responsible for managing spatialized sound effects in the game.
@@ -61,25 +65,54 @@ class SoundEffectSystem(
     private val audio: Audio = inject("audio"),
 ) : IteratingSystem(family { all(AudioComponent, TransformComponent) }),
     EventListener,
-    LightningEventConsumer {
+    LightEngineEventConsumer {
     private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
     private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
     private val reverb = world.system<ReverbSystem>()
     private var thunderTriggered = false
     private var thunderDelayCounter = 0f
+    private var buzzSound = StreamedSoundSource(Gdx.files.internal("sound/buzz.mp3"))
+
+    private var buzzSoundTimeout = 0f
 
     init {
-        LightningEventListener.subscribe(this)
+        buzzSound.isRelative = false
+        buzzSound.setLooping(true)
+        buzzSound.volume = 8f
+        buzzSound.playbackPosition = 3f
+        LightEngineEventListener.subscribe(this)
     }
 
-    override fun onLightning() {
-        thunderTriggered = true
+    override fun onEvent(event: LightEngineEvent) {
+        when (event) {
+            is LightningEvent -> thunderTriggered = true
+            is FaultyLightEvent -> {
+                if (event.lightIsOn) {
+                    reverb.registerSource(buzzSound)
+                    buzzSound.setPosition(vec3(event.position.x, event.position.y, 0f))
+                    if (!buzzSound.isPlaying) {
+                        buzzSound.play()
+                    }
+                    buzzSoundTimeout = BUZZ_SOUND_LIFETIME
+                }
+            }
+
+            else -> Unit
+        }
     }
 
     override fun onTick() {
         val playerPos = playerEntity[TransformComponent].position
         triggerThunder()
+
+        if (buzzSound.isPlaying) {
+            if (buzzSoundTimeout > 0f) {
+                buzzSoundTimeout -= deltaTime
+            } else {
+                buzzSound.stop()
+            }
+        }
 
         audio.listener.setPosition(playerPos.x, playerPos.y, 0f)
         cleanUpOneShotSounds()
@@ -143,7 +176,7 @@ class SoundEffectSystem(
     }
 
     override fun onDispose() {
-        LightningEventListener.unsubscribe(this)
+        LightEngineEventListener.unsubscribe(this)
         loopingSounds.forEach { (_, source) -> source.free() }
         oneShotSoundSources.forEach { it.free() }
         oneShotSoundSources.clear()

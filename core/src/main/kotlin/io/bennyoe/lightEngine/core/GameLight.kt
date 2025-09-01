@@ -19,8 +19,8 @@ sealed class GameLight(
 ) : IGameLight {
     val effectParams: LightEffectParameters = LightEffectParameters()
     var effect: LightEffectType? = null
-    var didEventFire: Boolean = false
-    var fireLightning: Boolean = false
+    var didLightningEventFire: Boolean = false
+    var didFaultyLampEventFire: Boolean = false
     var enableLightning: Boolean = false
 
     var isOn: Boolean = true

@@ -118,12 +118,22 @@ private fun faultyLampDiffuse(
 ) {
     if (Math.random() < chanceToFlicker) {
         // Fully ON
+        if (!light.didFaultyLampEventFire) {
+            LightEngineEventListener.emit(FaultyLightEvent(true, light.b2dLight.position))
+            light.didFaultyLampEventFire = true
+        }
         light.shaderLight.intensity = light.baseIntensity
         light.b2dLight.distance = light.baseDistance
+        light.didFaultyLampEventFire = false
     } else {
         // Fully OFF
+        if (!light.didFaultyLampEventFire) {
+            LightEngineEventListener.emit(FaultyLightEvent(false, light.b2dLight.position))
+            light.didFaultyLampEventFire = true
+        }
         light.shaderLight.intensity = 0f
         light.b2dLight.distance = 0f
+        light.didFaultyLampEventFire = false
     }
 }
 
@@ -142,17 +152,16 @@ private fun lightning(
     light.flickerTimer -= Gdx.graphics.deltaTime
     if (light.flickerTimer > 0.1f) {
         light.shaderLight.intensity = 0f
-    } else if (light.flickerTimer > 0f || light.fireLightning) {
+    } else if (light.flickerTimer > 0f) {
         light.shaderLight.intensity = light.baseIntensity * 5f
         light.shaderLight.color = Color.WHITE
-        light.fireLightning = false
-        if (!light.didEventFire) {
-            LightningEventListener.emitLightningEvent()
-            light.didEventFire = true
+        if (!light.didLightningEventFire) {
+            LightEngineEventListener.emit(LightningEvent())
+            light.didLightningEventFire = true
         }
     } else {
         light.flickerTimer = (minDelay + Math.random() * (maxDelay - minDelay)).toFloat()
-        light.didEventFire = false
+        light.didLightningEventFire = false
     }
     light.b2dLight.distance = light.baseDistance * light.shaderLight.intensity * 2f
     light.b2dLight.setColor(light.shaderLight.color)

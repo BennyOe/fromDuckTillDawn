@@ -84,6 +84,7 @@ class ReverbSystem : IntervalSystem() {
         activePreset = null
         attachEffectToNewSources = false
         currentWet = 1f
+        resetFiltersToDry()
     }
 
     private fun handleZoneChange(zone: ReverbZoneComponent) {
@@ -98,6 +99,14 @@ class ReverbSystem : IntervalSystem() {
             currentWet = zone.intensity.coerceIn(0f, 1f)
             attachEffectToNewSources = true
             attachEffectToAllSources(newFx, currentWet)
+        }
+    }
+
+    private fun resetFiltersToDry() {
+        val dry = 1f
+        activeSources.forEach { it.setFilter(dry, dry) }
+        world.family { all(AudioComponent) }.forEach { e ->
+            e[AudioComponent].bufferedSoundSource?.setFilter(dry, dry)
         }
     }
 

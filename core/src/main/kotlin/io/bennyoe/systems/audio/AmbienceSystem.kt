@@ -26,6 +26,14 @@ class AmbienceSystem :
 
     private val soundsFadingOut = mutableListOf<FadingSound>()
 
+    private data class AmbienceSignature(
+        val zoneId: String?,
+        val timeOfDay: TimeOfDay,
+        val weather: Weather,
+    )
+
+    private var lastSig: AmbienceSignature? = null
+
     override fun handle(event: Event): Boolean =
         when (event) {
             is MapChangedEvent -> {
@@ -45,8 +53,6 @@ class AmbienceSystem :
                 if (newAmbienceCmp != currentAmbienceCmp) {
                     logger.debug { "Ambience changed to ${newAmbienceCmp?.type}" }
                     currentAmbienceCmp = newAmbienceCmp
-                    stopAllSources()
-                    updateAllLayers()
                 }
                 true
             }
@@ -70,64 +76,96 @@ class AmbienceSystem :
             }
         }
 
-        updateAllLayers()
+        val sig =
+            AmbienceSignature(
+                zoneId = currentAmbienceCmp?.type?.name,
+                timeOfDay = gameStateCmp.getTimeOfDay(),
+                weather = gameStateCmp.weather,
+            )
+
+        if (sig != lastSig) {
+            applySignatureChange(previous = lastSig, current = sig)
+            lastSig = sig
+        }
     }
 
-    private fun updateAllLayers() {
+    private fun applySignatureChange(
+        previous: AmbienceSignature?,
+        current: AmbienceSignature,
+    ) {
         val variations = currentAmbienceCmp?.variations
         val volume = currentAmbienceCmp?.volume ?: 1f
 
-        // If there's no active zone, fade out everything
+        // No active zone → fade out everything
         if (variations == null) {
             stopAllSources()
             return
         }
 
-        // Layer 1: Base Sound (always plays if defined)
-        baseSound = updateSourceForLayer(variations[SoundVariation.BASE], volume, baseSound)
+        // Base layer (zone dependent)
+        val basePath = variations[SoundVariation.BASE]
+        baseSound =
+            updateSource(
+                soundPath = basePath,
+                volume = volume,
+                currentSound = baseSound,
+                fadeInSec = 2.0f,
+                startDelaySec = 0f,
+            )
 
-        // Layer 2: Time of Day Sound
-        val timeVariation = if (gameStateCmp.getTimeOfDay() == TimeOfDay.DAY) SoundVariation.DAY else SoundVariation.NIGHT
-        timeSound = updateSourceForLayer(variations[timeVariation], volume, timeSound)
+        // Time-of-day layer
+        val timeVar = if (current.timeOfDay == TimeOfDay.DAY) SoundVariation.DAY else SoundVariation.NIGHT
+        val timePath = variations[timeVar]
+        timeSound =
+            updateSource(
+                soundPath = timePath,
+                volume = volume,
+                currentSound = timeSound,
+                fadeInSec = 2.0f,
+                startDelaySec = 0f,
+            )
 
-        // Layer 3: Weather Sound
-        val weatherVariation = if (gameStateCmp.weather == Weather.RAIN) SoundVariation.RAIN else null
-        weatherSound = updateSourceForLayer(weatherVariation?.let { variations[it] }, volume, weatherSound, SoundVariation.RAIN)
+        // Weather layer (special handling for rain)
+        val newWeatherPath = if (current.weather == Weather.RAIN) variations[SoundVariation.RAIN] else null
+        val weatherChanged = previous?.weather != current.weather
+        val startDelayForRain = if (weatherChanged && current.weather == Weather.RAIN) RAIN_DELAY else 0f
+
+        weatherSound =
+            updateSource(
+                soundPath = newWeatherPath,
+                volume = volume,
+                currentSound = weatherSound,
+                fadeInSec = 2.0f,
+                startDelaySec = startDelayForRain,
+            )
     }
 
-    private fun updateSourceForLayer(
+    private fun updateSource(
         soundPath: String?,
         volume: Float,
         currentSound: FadingSound?,
-        type: SoundVariation? = null,
+        fadeInSec: Float,
+        startDelaySec: Float,
     ): FadingSound? {
-        val soundIsPlaying = currentSound != null
+        val isPlaying = currentSound != null
 
-        // Case 1: Sound should play, but isn't.
-        if (soundPath != null && (!soundIsPlaying || currentSound.path != soundPath)) {
-            currentSound?.fadeOut()
+        // Should play but isn't / or path changed → crossfade to new
+        if (soundPath != null && (!isPlaying || currentSound.path != soundPath)) {
             currentSound?.let {
                 it.fadeOut()
                 soundsFadingOut.add(it)
             }
-            return if (type == SoundVariation.RAIN) {
-                FadingSound(soundPath, volume, RAIN_DELAY, reverb, RAIN_DELAY) // Start new rain sound
-            } else {
-                FadingSound(soundPath, volume, 2.0f, reverb) // Start new sound
-            }
+            return FadingSound(soundPath, volume, fadeInSec, reverb, startDelaySec)
         }
 
-        // Case 2: Sound should stop, but is playing.
-        if (soundPath == null && soundIsPlaying) {
+        // Should stop but is playing → fade out
+        if (soundPath == null && isPlaying) {
             currentSound.fadeOut()
-            currentSound.let {
-                it.fadeOut()
-                soundsFadingOut.add(it)
-            }
-            return null // Sound will be removed once fade-out is complete
+            soundsFadingOut.add(currentSound)
+            return null
         }
 
-        // Case 3: Sound is playing and should continue, or should not play and isn't.
+        // Unchanged
         return currentSound
     }
 

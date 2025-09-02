@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="70" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="25" nextobjectid="132">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="70" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="25" nextobjectid="133">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
@@ -135,7 +135,7 @@
 56,57,58,59,56,56,56,56,56,56,56,56,59,60,0,55,56,56,56,56,56,56,56,56,56,56,56,57,58,59,56,56,56,56,56,56,56,57,58,59,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,57,58,59,57,57,58,57,58,59
 </data>
  </layer>
- <objectgroup id="3" name="collisionBoxes" visible="0">
+ <objectgroup id="3" name="collisionBoxes">
   <object id="3" name="2" x="66.7939" y="80.9704" width="42.2058" height="44.6175">
    <properties>
     <property name="floorType" value="grass"/>
@@ -171,9 +171,9 @@
     <property name="floorType" value="grass"/>
    </properties>
   </object>
-  <object id="24" name="ground" x="243.269" y="256.146" width="780.869" height="62.7057">
+  <object id="24" name="ground" x="242.5" y="256" width="405.502" height="62.7057">
    <properties>
-    <property name="floorType" value="stone"/>
+    <property name="floorType" value="grass"/>
    </properties>
   </object>
   <object id="25" x="322.187" y="225.109" width="27.7832" height="30.8654">
@@ -184,6 +184,11 @@
   <object id="98" x="643.86" y="1.16959" width="151.462" height="218.129"/>
   <object id="99" x="795.322" y="0.584795" width="228.07" height="106.433"/>
   <object id="100" x="1013.98" y="0.351333" width="105.018" height="319.205"/>
+  <object id="132" name="ground" x="648" y="256" width="367.369" height="62.7057">
+   <properties>
+    <property name="floorType" value="stone"/>
+   </properties>
+  </object>
  </objectgroup>
  <group id="19" name="audio">
   <objectgroup id="15" name="reverbZones" visible="0">
@@ -203,15 +208,18 @@
   <objectgroup id="18" name="ambienceZones">
    <object id="109" x="0.584795" y="0.584795" width="642.69" height="256.14">
     <properties>
-     <property name="base" value="sound/ambience/goodweather.mp3"/>
-     <property name="rain" value="sound/ambience/rain.mp3"/>
+     <property name="base" value="sound/ambience/forest/forest_base.mp3"/>
+     <property name="day" value="sound/ambience/forest/forest_day.mp3"/>
+     <property name="night" value="sound/ambience/forest/forest_night.mp3"/>
+     <property name="rain" value="sound/ambience/forest/forest_rain_1.mp3"/>
      <property name="type" value="forest"/>
      <property name="volume" type="float" value="0.5"/>
     </properties>
    </object>
    <object id="111" x="655.263" y="0.584971" width="367.836" height="256.14">
     <properties>
-     <property name="base" value="sound/ambience/cave2.mp3"/>
+     <property name="base" value="sound/ambience/cave/cave_base.mp3"/>
+     <property name="rain" value="sound/ambience/cave/cave_rain.mp3"/>
      <property name="type" value="cave"/>
      <property name="volume" type="float" value="0.5"/>
     </properties>
@@ -228,7 +236,7 @@
    </object>
   </objectgroup>
  </group>
- <objectgroup id="12" name="bgMapObjects" visible="0">
+ <objectgroup id="12" name="bgMapObjects">
   <properties>
    <property name="zIndex" type="int" value="8000"/>
   </properties>
@@ -238,7 +246,7 @@
     <property name="soundAttenuationFactor" type="float" value="1"/>
     <property name="soundAttenuationMaxDistance" type="float" value="5"/>
     <property name="soundAttenuationMinDistance" type="float" value="1"/>
-    <property name="soundVolume" type="float" value="0.5"/>
+    <property name="soundVolume" type="float" value="1"/>
     <property name="zIndex" type="int" value="5"/>
    </properties>
   </object>
@@ -248,12 +256,12 @@
     <property name="soundAttenuationFactor" type="float" value="1"/>
     <property name="soundAttenuationMaxDistance" type="float" value="5"/>
     <property name="soundAttenuationMinDistance" type="float" value="1"/>
-    <property name="soundVolume" type="float" value="0.5"/>
+    <property name="soundVolume" type="float" value="1"/>
     <property name="zIndex" type="int" value="5"/>
    </properties>
   </object>
  </objectgroup>
- <objectgroup id="14" name="lights">
+ <objectgroup id="14" name="lights" visible="0">
   <object id="32" name="greenLight" type="greenLight" x="416" y="176">
    <properties>
     <property name="color" type="color" value="#ff01ff17"/>
@@ -381,10 +389,7 @@
    <point/>
   </object>
  </objectgroup>
- <objectgroup id="24" name="rainMask">
+ <objectgroup id="24" name="rainMask" visible="0">
   <object id="130" x="644.082" y="0.93" width="474.836" height="319.14"/>
-  <object id="131" x="522" y="139">
-   <polygon points="0,0 -0.5,105 120,15"/>
-  </object>
  </objectgroup>
 </map>

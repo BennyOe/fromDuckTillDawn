@@ -55,9 +55,11 @@ enum class SoundType(
     DAWN_JUMP(true),
 
     // Enemies
-    FOOTSTEPS(true, true, true),
-    ATTACK(true, true),
-    HIT(false, true),
+    MUSHROOM_FOOTSTEPS(true, true, true),
+    MUSHROOM_ATTACK(true, true),
+    MUSHROOM_HIT(false, true),
+    MUSHROOM_DEATH,
+    MUSHROOM_JUMP,
 
     // Environment
     CAMPFIRE,

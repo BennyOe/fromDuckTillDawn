@@ -31,31 +31,73 @@ enum class MapAssets(
 }
 
 enum class SoundAssets(
-    filename: String,
+    files: List<String>,
     directory: String = "sound",
-    val descriptor: AssetDescriptor<SoundBuffer> = AssetDescriptor("$directory/$filename", SoundBuffer::class.java),
+    val descriptor: List<AssetDescriptor<SoundBuffer>> = files.map { file -> AssetDescriptor("$directory/$file", SoundBuffer::class.java) },
 ) {
     // Dawn
-    DAWN_ATTACK_1_SOUND("dawn/sword.mp3"),
-    DAWN_ATTACK_2_SOUND("dawn/sword_02.mp3"),
-    DAWN_ATTACK_3_SOUND("dawn/sword_03.mp3"),
-    DAWN_FOOTSTEPS_STONE("dawn/footsteps_stone.mp3"),
-    DAWN_FOOTSTEPS_WOOD("dawn/footsteps_wood.mp3"),
-    DAWN_FOOTSTEPS_GRASS("dawn/footsteps_grass.mp3"),
-    DAWN_HIT_SOUND("dawn/hit.mp3"),
-    DAWN_BASH_SOUND("dawn/bash.mp3"),
-    DAWN_DEATH_SOUND("dawn/death.mp3"),
-    DAWN_JUMP_SOUND("dawn/jump.mp3"),
+    DAWN_ATTACK_1_SOUND(listOf("dawn/sword/sword_1.mp3")),
+    DAWN_ATTACK_2_SOUND(listOf("dawn/sword/sword_2.mp3")),
+    DAWN_ATTACK_3_SOUND(listOf("dawn/sword/sword_3.mp3")),
+    DAWN_FOOTSTEPS_STONE(
+        listOf(
+            "dawn/footsteps/stone/footsteps_stone_1.mp3",
+            "dawn/footsteps/stone/footsteps_stone_2.mp3",
+            "dawn/footsteps/stone/footsteps_stone_3.mp3",
+            "dawn/footsteps/stone/footsteps_stone_4.mp3",
+        ),
+    ),
+    DAWN_FOOTSTEPS_GRASS(
+        listOf(
+            "dawn/footsteps/grass/footsteps_grass_1.mp3",
+            "dawn/footsteps/grass/footsteps_grass_2.mp3",
+            "dawn/footsteps/grass/footsteps_grass_3.mp3",
+            "dawn/footsteps/grass/footsteps_grass_4.mp3",
+            "dawn/footsteps/grass/footsteps_grass_5.mp3",
+        ),
+    ),
+    DAWN_HIT_SOUND(
+        listOf(
+            "dawn/hit/hit_1.mp3",
+            "dawn/hit/hit_2.mp3",
+            "dawn/hit/hit_3.mp3",
+        ),
+    ),
+    DAWN_BASH_SOUND(listOf("dawn/bash.mp3")),
+    DAWN_DEATH_SOUND(listOf("dawn/death.mp3")),
+    DAWN_JUMP_SOUND(listOf("dawn/jump.mp3")),
 
     // Mushroom
-    MUSHROOM_FOOTSTEPS_GRASS("mushroom/footsteps_grass.mp3"),
-    MUSHROOM_FOOTSTEPS_WOOD("mushroom/footsteps_wood.mp3"),
-    MUSHROOM_FOOTSTEPS_STONE("mushroom/footsteps_stone.mp3"),
-    MUSHROOM_HIT_SOUND("mushroom/hit.mp3"),
+    MUSHROOM_FOOTSTEPS_GRASS(
+        listOf(
+            "mushroom/footsteps/grass/footsteps_grass_1.mp3",
+            "mushroom/footsteps/grass/footsteps_grass_2.mp3",
+            "mushroom/footsteps/grass/footsteps_grass_3.mp3",
+            "mushroom/footsteps/grass/footsteps_grass_4.mp3",
+            "mushroom/footsteps/grass/footsteps_grass_5.mp3",
+            "mushroom/footsteps/grass/footsteps_grass_6.mp3",
+        ),
+    ),
+    MUSHROOM_FOOTSTEPS_STONE(
+        listOf(
+            "mushroom/footsteps/stone/footsteps_stone_1.mp3",
+            "mushroom/footsteps/stone/footsteps_stone_2.mp3",
+            "mushroom/footsteps/stone/footsteps_stone_3.mp3",
+            "mushroom/footsteps/stone/footsteps_stone_4.mp3",
+            "mushroom/footsteps/stone/footsteps_stone_5.mp3",
+            "mushroom/footsteps/stone/footsteps_stone_6.mp3",
+            "mushroom/footsteps/stone/footsteps_stone_7.mp3",
+        ),
+    ),
+    MUSHROOM_HIT_SOUND(listOf("mushroom/hit_1.mp3", "mushroom/hit_2.mp3")),
+    MUSHROOM_JUMP_SOUND(listOf("mushroom/jump.mp3")),
+    MUSHROOM_ALARMED_SOUND(listOf("mushroom/alarmed.mp3")),
+    MUSHROOM_DEATH_SOUND(listOf("mushroom/death.mp3")),
+    MUSHROOM_ATTACK_SOUND(listOf("mushroom/attack.mp3")),
 
     // Environment
-    CAMPFIRE("environment/campfire_01.mp3"),
+    CAMPFIRE(listOf("environment/campfire_01.mp3")),
 
     // Environment
-    LAUGH("trigger/laugh.mp3"),
+    LAUGH(listOf("trigger/laugh.mp3")),
 }

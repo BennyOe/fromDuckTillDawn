@@ -42,7 +42,7 @@ object GameConstants {
     const val SHOW_ONLY_DEBUG = false // disables the rendering of the game and only shows the shapes
 
     // ------------------------- Sound constants ------------------------------//
-    const val MUSIC_VOLUME = 1f
+    const val MUSIC_VOLUME = 0f
     const val AMBIENCE_VOLUME = 1f
     const val EFFECT_VOLUME = 1f
 

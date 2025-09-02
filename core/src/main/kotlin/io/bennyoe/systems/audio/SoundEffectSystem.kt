@@ -72,14 +72,16 @@ class SoundEffectSystem(
     private val reverb = world.system<ReverbSystem>()
     private var thunderTriggered = false
     private var thunderDelayCounter = 0f
-    private var buzzSound = StreamedSoundSource(Gdx.files.internal("sound/buzz.mp3"))
+    private var buzzSound = StreamedSoundSource(Gdx.files.internal("sound/faulty_lamp.mp3"))
+    private val thunderPathList = listOf<String>("sound/thunder_1.mp3", "sound/thunder_2.mp3")
 
     private var buzzSoundTimeout = 0f
 
     init {
         buzzSound.isRelative = false
         buzzSound.setLooping(true)
-        buzzSound.volume = 8f
+        buzzSound.volume = .1f
+        buzzSound.attenuationFactor = 3f
         buzzSound.playbackPosition = 3f
         LightEngineEventListener.subscribe(this)
     }
@@ -129,7 +131,7 @@ class SoundEffectSystem(
             }
 
             val soundAsset = SoundMappingService.getSoundAsset(soundCmp.soundType) ?: return
-            val source = audio.obtainSource(assets[soundAsset.descriptor])
+            val source = audio.obtainSource(assets[soundAsset.descriptor.random()])
             source.volume = soundCmp.soundVolume
             source.attenuationFactor = 1f
             source.attenuationMaxDistance = soundCmp.soundAttenuationMaxDistance
@@ -152,7 +154,7 @@ class SoundEffectSystem(
         }
 
         if (thunderTriggered) {
-            val triggeredSound = StreamedSoundSource(Gdx.files.internal("sound/thunder.mp3"))
+            val triggeredSound = StreamedSoundSource(Gdx.files.internal(thunderPathList.random()))
             triggeredSound.isRelative = true
             triggeredSound.setLooping(false)
             reverb.registerSource(triggeredSound)
@@ -198,7 +200,7 @@ class SoundEffectSystem(
 
                 val shouldVary = event.soundType.vary
                 val soundAsset = SoundMappingService.getSoundAsset(event.soundType, soundProfile, event.floorType) ?: return true
-                val soundBuffer = assets[soundAsset.descriptor]
+                val soundBuffer = assets[soundAsset.descriptor.random()]
                 val source = audio.obtainSource(soundBuffer)
 
                 source.isRelative = true
@@ -229,7 +231,7 @@ class SoundEffectSystem(
 
                 val soundAsset = SoundMappingService.getSoundAsset(event.soundType, soundProfile, event.floorType) ?: return true
 
-                val soundBuffer = assets[soundAsset.descriptor]
+                val soundBuffer = assets[soundAsset.descriptor.random()]
                 val source = audio.obtainSource(soundBuffer)
                 source.setLooping(true)
 

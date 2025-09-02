@@ -213,6 +213,7 @@ class GameScreen(
         mushroomAtlases.specularAtlas?.dispose()
         entityWorld.dispose()
         tiledMap.disposeSafely()
+        audio.dispose()
     }
 
     override fun resize(

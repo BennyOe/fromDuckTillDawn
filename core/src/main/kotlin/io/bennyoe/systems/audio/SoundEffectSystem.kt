@@ -181,7 +181,6 @@ class SoundEffectSystem(
         oneShotSoundSources.forEach { it.free() }
         oneShotSoundSources.clear()
         loopingSounds.clear()
-        audio.dispose()
         super.onDispose()
     }
 

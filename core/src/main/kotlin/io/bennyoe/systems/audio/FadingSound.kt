@@ -5,6 +5,9 @@ import com.badlogic.gdx.math.Interpolation
 import de.pottgames.tuningfork.StreamedSoundSource
 import io.bennyoe.config.GameConstants.AMBIENCE_VOLUME
 
+const val LOOP_START = 15f
+const val LOOP_END = 31f
+
 class FadingSound(
     soundPath: String,
     private val targetVolume: Float,
@@ -24,6 +27,7 @@ class FadingSound(
     init {
         source.isRelative = true
         source.setLooping(true)
+        source.setLoopPoints(LOOP_START, LOOP_END)
         reverbSystem.registerSource(source)
         source.volume = 0f
         source.play()
@@ -77,7 +81,6 @@ class FadingSound(
 
     fun stop() {
         if (state != State.STOPPED) {
-            source.stop()
             reverbSystem.unregisterSource(source)
             source.dispose()
             state = State.STOPPED

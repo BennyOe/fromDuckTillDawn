@@ -96,7 +96,7 @@ enum class SoundAssets(
     MUSHROOM_ATTACK_SOUND(listOf("mushroom/attack.mp3")),
 
     // Environment
-    CAMPFIRE(listOf("environment/campfire_01.mp3")),
+    CAMPFIRE(listOf("environment/campfire_3.mp3")),
 
     // Environment
     LAUGH(listOf("trigger/laugh.mp3")),

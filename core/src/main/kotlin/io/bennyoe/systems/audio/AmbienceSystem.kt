@@ -171,8 +171,8 @@ class AmbienceSystem :
             }
 
         val isRealRain = current.weather == Weather.RAIN
-        // if it is actually raining fade with 2sec. If it is a rain tail fade with 0.35sec
-        val fadeInForWeather = kotlin.math.min(0.35f, tailRemaining)
+        // if it is actually raining fade with 22sec. If it is a rain tail fade with 0.35sec
+        val fadeInForWeather = if (weatherChanged) 22f else kotlin.math.min(0.35f, tailRemaining)
         val fadeOutForWeather = if (isRealRain) 12f else tailRemaining
         val startDelayForRain = if (weatherChanged && isRealRain) RAIN_DELAY else 0f
 

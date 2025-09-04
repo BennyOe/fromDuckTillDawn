@@ -211,7 +211,7 @@
      <property name="base" value="sound/ambience/forest/forest_base.mp3"/>
      <property name="day" value="sound/ambience/forest/forest_day.mp3"/>
      <property name="night" value="sound/ambience/forest/forest_night.mp3"/>
-     <property name="rain" value="sound/ambience/forest/forest_rain_1.mp3"/>
+     <property name="rain" value="sound/ambience/forest/forest_rain_2.mp3"/>
      <property name="type" value="forest"/>
      <property name="volume" type="float" value="0.5"/>
     </properties>

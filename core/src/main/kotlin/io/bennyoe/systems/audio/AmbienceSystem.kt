@@ -24,6 +24,11 @@ class AmbienceSystem :
     private var timeSound: FadingSound? = null
     private var weatherSound: FadingSound? = null
 
+    private var timeSec: Float = 0f
+    private var rainTailUntilSec: Float = 0f
+    private val rainTailSec: Float = 12f
+    private var isRainingNow: Boolean = false
+
     private val soundsFadingOut = mutableListOf<FadingSound>()
 
     private data class AmbienceSignature(
@@ -61,9 +66,22 @@ class AmbienceSystem :
         }
 
     override fun onTick() {
+        timeSec += deltaTime
         baseSound?.update(deltaTime)
         timeSound?.update(deltaTime)
         weatherSound?.update(deltaTime)
+
+        if (!isRainingNow && rainTailUntilSec > 0f && timeSec >= rainTailUntilSec) {
+            weatherSound?.let { ws ->
+                if (!ws.isStopped()) {
+                    ws.fadeOut() // idempotent if already fading
+                } else {
+                    weatherSound = null
+                }
+            }
+            // Reset so this block runs only once per tail
+            rainTailUntilSec = 0f
+        }
 
         // Update and clean up sounds that are fading out.
         soundsFadingOut.iterator().let { iterator ->
@@ -76,16 +94,16 @@ class AmbienceSystem :
             }
         }
 
-        val sig =
+        val signature =
             AmbienceSignature(
                 zoneId = currentAmbienceCmp?.type?.name,
                 timeOfDay = gameStateCmp.getTimeOfDay(),
                 weather = gameStateCmp.weather,
             )
 
-        if (sig != lastSig) {
-            applySignatureChange(previous = lastSig, current = sig)
-            lastSig = sig
+        if (signature != lastSig) {
+            applySignatureChange(previous = lastSig, current = signature)
+            lastSig = signature
         }
     }
 
@@ -93,6 +111,7 @@ class AmbienceSystem :
         previous: AmbienceSignature?,
         current: AmbienceSignature,
     ) {
+        isRainingNow = (current.weather == Weather.RAIN)
         val variations = currentAmbienceCmp?.variations
         val volume = currentAmbienceCmp?.volume ?: 1f
 
@@ -110,6 +129,7 @@ class AmbienceSystem :
                 volume = volume,
                 currentSound = baseSound,
                 fadeInSec = 2.0f,
+                fadeOutSec = 6f,
                 startDelaySec = 0f,
             )
 
@@ -122,20 +142,47 @@ class AmbienceSystem :
                 volume = volume,
                 currentSound = timeSound,
                 fadeInSec = 2.0f,
+                fadeOutSec = 6f,
                 startDelaySec = 0f,
             )
 
-        // Weather layer (special handling for rain)
-        val newWeatherPath = if (current.weather == Weather.RAIN) variations[SoundVariation.RAIN] else null
+        // Weather layer (tail-aware retargeting for rain)
         val weatherChanged = previous?.weather != current.weather
-        val startDelayForRain = if (weatherChanged && current.weather == Weather.RAIN) RAIN_DELAY else 0f
+        val rainStopped = previous?.weather == Weather.RAIN && current.weather != Weather.RAIN
+
+        if (rainStopped) {
+            // Start tail window and let current rain instance fade out
+            rainTailUntilSec = timeSec + rainTailSec
+            weatherSound?.let {
+                it.fadeOut()
+                if (!soundsFadingOut.contains(it)) soundsFadingOut.add(it)
+            }
+        }
+
+        val tailActive = timeSec < rainTailUntilSec
+        val tailRemaining = (rainTailUntilSec - timeSec).coerceAtLeast(0f)
+
+        // During tail, still target the zone's RAIN path so zone switches can retarget the rain
+        val desiredWeatherPath =
+            when {
+                current.weather == Weather.RAIN -> variations[SoundVariation.RAIN]
+                tailActive -> variations[SoundVariation.RAIN]
+                else -> null
+            }
+
+        val isRealRain = current.weather == Weather.RAIN
+        // if it is actually raining fade with 2sec. If it is a rain tail fade with 0.35sec
+        val fadeInForWeather = kotlin.math.min(0.35f, tailRemaining)
+        val fadeOutForWeather = if (isRealRain) 12f else tailRemaining
+        val startDelayForRain = if (weatherChanged && isRealRain) RAIN_DELAY else 0f
 
         weatherSound =
             updateSource(
-                soundPath = newWeatherPath,
+                soundPath = desiredWeatherPath,
                 volume = volume,
                 currentSound = weatherSound,
-                fadeInSec = 2.0f,
+                fadeInSec = fadeInForWeather,
+                fadeOutSec = fadeOutForWeather,
                 startDelaySec = startDelayForRain,
             )
     }
@@ -145,6 +192,7 @@ class AmbienceSystem :
         volume: Float,
         currentSound: FadingSound?,
         fadeInSec: Float,
+        fadeOutSec: Float,
         startDelaySec: Float,
     ): FadingSound? {
         val isPlaying = currentSound != null
@@ -155,7 +203,7 @@ class AmbienceSystem :
                 it.fadeOut()
                 soundsFadingOut.add(it)
             }
-            return FadingSound(soundPath, volume, fadeInSec, reverb, startDelaySec)
+            return FadingSound(soundPath, volume, fadeInSec, fadeOutSec, reverb, startDelaySec)
         }
 
         // Should stop but is playing → fade out

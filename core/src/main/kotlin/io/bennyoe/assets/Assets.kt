@@ -63,7 +63,7 @@ enum class SoundAssets(
             "dawn/hit/hit_3.mp3",
         ),
     ),
-    DAWN_BASH_SOUND(listOf("dawn/bash.mp3")),
+    DAWN_BASH_SOUND(listOf("dawn/bash_2.mp3")),
     DAWN_DEATH_SOUND(listOf("dawn/death.mp3")),
     DAWN_JUMP_SOUND(listOf("dawn/jump.mp3")),
 

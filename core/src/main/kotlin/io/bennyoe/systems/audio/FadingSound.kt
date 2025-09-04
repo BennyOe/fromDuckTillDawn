@@ -8,7 +8,8 @@ import io.bennyoe.config.GameConstants.AMBIENCE_VOLUME
 class FadingSound(
     soundPath: String,
     private val targetVolume: Float,
-    private val fadeDuration: Float,
+    private val fadeInDuration: Float,
+    private val fadeOutDuration: Float,
     private val reverbSystem: ReverbSystem,
     private val delayDuration: Float = 0f,
 ) {
@@ -37,20 +38,21 @@ class FadingSound(
         }
 
         fadeTime += deltaTime
-        val alpha = (fadeTime / fadeDuration).coerceIn(0f, 1f)
+        val alphaFadeIn = (fadeTime / fadeInDuration).coerceIn(0f, 1f)
+        val alphaFadeOut = (fadeTime / fadeOutDuration).coerceIn(0f, 1f)
 
         when (state) {
             State.FADING_IN -> {
-                source.volume = Interpolation.fade.apply(0f, targetVolume * AMBIENCE_VOLUME, alpha)
-                if (alpha >= 1f) {
+                source.volume = Interpolation.fade.apply(0f, targetVolume * AMBIENCE_VOLUME, alphaFadeIn)
+                if (alphaFadeIn >= 1f) {
                     state = State.PLAYING
                     fadeTime = 0f
                 }
             }
 
             State.FADING_OUT -> {
-                source.volume = Interpolation.fade.apply(targetVolume * AMBIENCE_VOLUME, 0f, alpha)
-                if (alpha >= 1f) {
+                source.volume = Interpolation.fade.apply(targetVolume * AMBIENCE_VOLUME, 0f, alphaFadeOut)
+                if (alphaFadeOut >= 1f) {
                     stop()
                 }
             }

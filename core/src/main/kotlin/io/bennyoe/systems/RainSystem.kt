@@ -23,7 +23,7 @@ class RainSystem : IteratingSystem(family { all(RainComponent, ParticleComponent
     private var lastLightningOn: Boolean? = null
 
     companion object {
-        const val FADE_DURATION = 22f
+        const val FADE_DURATION = 20f
         const val MAX_EMISSION = 1200f
     }
 

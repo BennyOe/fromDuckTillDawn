@@ -11,7 +11,10 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
+import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.math.Vector4
 import com.badlogic.gdx.physics.box2d.Filter
 import com.badlogic.gdx.utils.GdxRuntimeException
 import com.badlogic.gdx.utils.viewport.Viewport
@@ -110,6 +113,60 @@ abstract class AbstractLightEngine(
      */
     fun setShaderToCustomShader(customShader: ShaderProgram) {
         batch.shader = customShader
+    }
+
+    /**
+     * Sets a uniform value on the current shader used by the SpriteBatch.
+     *
+     * This function supports various types:
+     * - Float, Int, Boolean
+     * - Vector2, Vector3, Vector4
+     * - Matrix4
+     * - Pair\<Texture, Int\> for sampler2D uniforms (binds the texture to the given unit)
+     *
+     * If the uniform is not found, a debug message is logged and the call is skipped.
+     *
+     * **Warning:** This method calls `batch.flush()` before setting the uniform, which will immediately render all currently batched draw calls.
+     * This can affect batching performance and may have side effects if called between draw operations.
+     *
+     * @param name The name of the uniform variable in the shader.
+     * @param value The value to set. Supported types: Float, Int, Boolean, Vector2, Vector3, Vector4, Matrix4, Pair\<Texture, Int\>.
+     * @throws IllegalArgumentException if the value type is not supported.
+     */
+    fun applyShaderUniform(
+        name: String,
+        value: Any,
+    ) {
+        val loc = batch.shader.fetchUniformLocation(name, false)
+        if (loc < 0) {
+            Gdx.app.debug("LightEngine", "Uniform '$name' missing (skipped)")
+        }
+
+        batch.flush()
+        when (value) {
+            is Float -> batch.shader.setUniformf(loc, value)
+            is Int -> batch.shader.setUniformi(loc, value)
+            is Boolean -> batch.shader.setUniformi(loc, if (value) 1 else 0)
+
+            is Vector2 -> batch.shader.setUniformf(loc, value)
+            is Vector3 -> batch.shader.setUniformf(loc, value)
+            is Vector4 -> batch.shader.setUniformf(loc, value)
+
+            is Matrix4 -> batch.shader.setUniformMatrix(loc, value)
+
+            is Color -> batch.shader.setUniformf(loc, value)
+
+            // Sampler2D: (texture, unit)
+            is Pair<*, *> -> {
+                val tex = value.first as? Texture
+                val unit = value.second as? Int
+                require(tex != null && unit != null) { "Pair<Texture, Int> expected for sampler uniform '$name'." }
+                tex.bind(unit)
+                batch.shader.setUniformi(loc, unit)
+            }
+
+            else -> throw IllegalArgumentException("Unsupported uniform type for '$name': ${value::class.qualifiedName}")
+        }
     }
 
     /**
@@ -630,6 +687,9 @@ abstract class AbstractLightEngine(
         shader.setUniformf("u_specularIntensity", specularIntensityValue)
         shader.setUniformf("u_specularRemapMin", specularRemapMin)
         shader.setUniformf("u_specularRemapMax", specularRemapMax)
+
+        // reset the color overlay
+        shader.setUniformf("u_overlayStrength", 0f)
 
         // Scale the viewport uniforms to match the physical pixel space of gl_FragCoord.
         val screenX = viewport.screenX * density

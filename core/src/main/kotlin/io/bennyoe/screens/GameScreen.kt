@@ -35,6 +35,7 @@ import io.bennyoe.systems.DamageSystem
 import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.GameMoodSystem
 import io.bennyoe.systems.GameStateSystem
+import io.bennyoe.systems.HitStopSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
@@ -145,6 +146,7 @@ class GameScreen(
                 add(AttackSystem())
                 add(GameStateSystem())
                 add(DamageSystem())
+                add(HitStopSystem())
                 add(DamageTextSystem())
                 add(JumpSystem())
                 add(ContactHandlerSystem())

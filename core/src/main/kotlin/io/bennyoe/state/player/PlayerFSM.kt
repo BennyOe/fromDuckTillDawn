@@ -4,6 +4,7 @@ import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.BashComponent
+import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.LANDING_VELOCITY_EPS
@@ -330,6 +331,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object HIT : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering HIT" }
+            ctx.add(HitEffectComponent())
             ctx.moveComponent.throwBack = true
             ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
             ctx.attackComponent.applyAttack = false

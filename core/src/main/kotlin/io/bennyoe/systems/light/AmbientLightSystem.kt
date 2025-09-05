@@ -43,7 +43,7 @@ class AmbientLightSystem(
         lightEngine.setBox2dAmbientLight(initialData.ambientColor.cpy())
         lightEngine.setDiffuseLight(true)
         lightEngine.setNormalInfluence(initialData.normalInfluence)
-        lightEngine.setSpecularIntensity(.4f)
+        lightEngine.setSpecularIntensity(3f)
         lightEngine.setSpecularRemap(0.0f, 0.7f)
 
         sunLight =

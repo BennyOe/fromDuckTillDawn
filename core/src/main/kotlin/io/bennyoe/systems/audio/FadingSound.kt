@@ -5,8 +5,8 @@ import com.badlogic.gdx.math.Interpolation
 import de.pottgames.tuningfork.StreamedSoundSource
 import io.bennyoe.config.GameConstants.AMBIENCE_VOLUME
 
-const val LOOP_START = 15f
-const val LOOP_END = 31f
+const val LOOP_START = 5f
+const val LOOP_END = 25f
 
 class FadingSound(
     soundPath: String,

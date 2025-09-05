@@ -231,3 +231,12 @@ class AnimationSystem(
         private val logger = logger<AnimationSystem>()
     }
 }
+
+/*
+TODO divided animations
+1. create spritesheet with half images (other half transparent)
+2. decide which state has which top and bottom animation
+3. separate animations code wise into the half animations
+4. give every state a top and a bottom animation
+5. animationSystem must handle 2 animations for characters at the same time
+ */

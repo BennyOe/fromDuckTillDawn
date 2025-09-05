@@ -57,6 +57,7 @@ class SimpleRenderer(
                     }
 
                     is RenderableElement.EntityWithParticle -> {
+                        if (!renderable.particleCmp.enabled) return@forEach
                         renderable.particleCmp.actor.draw(it, 1f)
                     }
                 }

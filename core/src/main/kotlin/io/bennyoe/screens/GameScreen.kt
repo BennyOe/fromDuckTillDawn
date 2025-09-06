@@ -17,6 +17,7 @@ import io.bennyoe.assets.TextureAssets
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
+import io.bennyoe.components.TimeScaleComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
@@ -184,6 +185,7 @@ class GameScreen(
             if (ENABLE_DEBUG) it += DebugComponent()
             it += GameStateComponent()
             it += CameraComponent()
+            it += TimeScaleComponent()
         }
 
         // this adds all EventListenerSystems also to Scene2D
@@ -201,8 +203,13 @@ class GameScreen(
 
     override fun render(delta: Float) {
         profiler.reset()
-        GdxAI.getTimepiece().update(delta * TIME_SCALE)
-        entityWorld.update(delta.coerceAtMost(0.25f) * TIME_SCALE)
+        val timeScaleCmp = with(entityWorld) { entityWorld.family { all(TimeScaleComponent) }.first()[TimeScaleComponent] }
+        val capped = delta.coerceAtMost(0.25f)
+        val scale = timeScaleCmp.current
+        val scaledDelta = capped * scale * TIME_SCALE
+
+        GdxAI.getTimepiece().update(scaledDelta)
+        entityWorld.update(scaledDelta)
     }
 
     override fun dispose() {

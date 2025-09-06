@@ -374,7 +374,7 @@
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="105" name="playerStart" type="playerStart" x="336.963" y="209.749">
+  <object id="105" name="playerStart" type="playerStart" x="446.296" y="55.0823">
    <point/>
   </object>
  </objectgroup>

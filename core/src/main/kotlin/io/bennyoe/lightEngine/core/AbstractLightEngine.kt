@@ -11,10 +11,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
-import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.math.Vector4
 import com.badlogic.gdx.physics.box2d.Filter
 import com.badlogic.gdx.utils.GdxRuntimeException
 import com.badlogic.gdx.utils.viewport.Viewport
@@ -22,7 +19,6 @@ import io.bennyoe.lightEngine.core.utils.worldToScreenSpace
 import ktx.assets.disposeSafely
 import ktx.math.vec3
 import ktx.math.vec4
-import kotlin.apply
 import kotlin.math.cos
 import kotlin.math.sin
 

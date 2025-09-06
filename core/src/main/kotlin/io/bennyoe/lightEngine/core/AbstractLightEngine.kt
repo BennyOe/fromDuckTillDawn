@@ -116,57 +116,38 @@ abstract class AbstractLightEngine(
     }
 
     /**
-     * Sets a uniform value on the current shader used by the SpriteBatch.
+     * Sets an overlay color and its strength for the current batch shader.
      *
-     * This function supports various types:
-     * - Float, Int, Boolean
-     * - Vector2, Vector3, Vector4
-     * - Matrix4
-     * - Pair\<Texture, Int\> for sampler2D uniforms (binds the texture to the given unit)
-     *
-     * If the uniform is not found, a debug message is logged and the call is skipped.
+     * This method flushes the current batch, then updates the shader uniforms
+     * `u_overlayColor` and `u_overlayStrength` to apply a color overlay effect.
      *
      * **Warning:** This method calls `batch.flush()` before setting the uniform, which will immediately render all currently batched draw calls.
      * This can affect batching performance and may have side effects if called between draw operations.
      *
-     * @param name The name of the uniform variable in the shader.
-     * @param value The value to set. Supported types: Float, Int, Boolean, Vector2, Vector3, Vector4, Matrix4, Pair\<Texture, Int\>.
-     * @throws IllegalArgumentException if the value type is not supported.
+     * @param color The overlay color to apply.
+     * @param strength The strength of the overlay, clamped between 0.0 and 1.0.
      */
-    fun applyShaderUniform(
-        name: String,
-        value: Any,
+    fun setOverlayColor(
+        color: Color,
+        strength: Float,
     ) {
-        val loc = batch.shader.fetchUniformLocation(name, false)
-        if (loc < 0) {
-            Gdx.app.debug("LightEngine", "Uniform '$name' missing (skipped)")
-        }
-
         batch.flush()
-        when (value) {
-            is Float -> batch.shader.setUniformf(loc, value)
-            is Int -> batch.shader.setUniformi(loc, value)
-            is Boolean -> batch.shader.setUniformi(loc, if (value) 1 else 0)
+        batch.shader.setUniformf("u_overlayColor", color)
+        batch.shader.setUniformf("u_overlayStrength", strength.coerceIn(0f, 1f))
+    }
 
-            is Vector2 -> batch.shader.setUniformf(loc, value)
-            is Vector3 -> batch.shader.setUniformf(loc, value)
-            is Vector4 -> batch.shader.setUniformf(loc, value)
-
-            is Matrix4 -> batch.shader.setUniformMatrix(loc, value)
-
-            is Color -> batch.shader.setUniformf(loc, value)
-
-            // Sampler2D: (texture, unit)
-            is Pair<*, *> -> {
-                val tex = value.first as? Texture
-                val unit = value.second as? Int
-                require(tex != null && unit != null) { "Pair<Texture, Int> expected for sampler uniform '$name'." }
-                tex.bind(unit)
-                batch.shader.setUniformi(loc, unit)
-            }
-
-            else -> throw IllegalArgumentException("Unsupported uniform type for '$name': ${value::class.qualifiedName}")
-        }
+    /**
+     * Resets the overlay color effect in the current batch shader.
+     *
+     * This method flushes the current batch and sets the overlay strength uniform (`u_overlayStrength`) to 0,
+     * effectively disabling any overlay color previously applied.
+     *
+     * **Warning:** This method calls `batch.flush()`, which immediately renders all currently batched draw calls.
+     * Use with care between draw operations to avoid unintended batching side effects.
+     */
+    fun resetOverlayColor() {
+        batch.flush()
+        batch.shader.setUniformf("u_overlayStrength", 0f)
     }
 
     /**

@@ -149,15 +149,13 @@ class LightingRenderer(
                 if (hadHit) {
                     val it = renderable.hitEffectComponent
                     val strength = 1f - (it.timer / it.duration)
-                    engine.applyShaderUniform("u_overlayColor", it.color)
-                    engine.applyShaderUniform("u_overlayStrength", strength.coerceIn(0f, 1f))
+                    engine.setOverlayColor(it.color, strength)
                 }
 
                 renderWithNormalMapping(engine, renderable.imageCmp, renderable.shaderRenderingCmp)
 
-                // reset hitStop color overlay
                 if (hadHit) {
-                    engine.applyShaderUniform("u_overlayStrength", 0f)
+                    engine.resetOverlayColor()
                 }
                 updatedShader
             } else if (renderable.shaderRenderingCmp?.shader != null) {

@@ -36,7 +36,6 @@ dependencies {
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
   api "io.github.quillraven.fleks:Fleks-jvm:$fleksVersion"
-  implementation("io.github.bennyoe:gdx-normal-light:1.0.3")
 
 // Test Setup
   testImplementation "org.jetbrains.kotlin:kotlin-test-junit5"

@@ -5,23 +5,23 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.github.bennyOe.gdxNormalLight.core.GameLight
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
-import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.GameConstants.DOUBLE_JUMP_GRACE_TIME
 import io.bennyoe.config.GameConstants.JUMP_MAX_HEIGHT
+import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
@@ -40,7 +40,8 @@ class JumpSystemIntegrationTest {
     private lateinit var entity: Entity
     private lateinit var phyWorld: Box2DWorld
     private lateinit var mockAnimationCmp: AnimationComponent
-    private lateinit var gameLight: GameLight
+    private lateinit var spotLight: GameLight.Spot
+    private lateinit var pointLight: GameLight.Point
     private lateinit var mockBody: Body
     private lateinit var stage: Stage
 
@@ -48,7 +49,8 @@ class JumpSystemIntegrationTest {
     fun setup() {
         Gdx.app = mockk<Application>(relaxed = true)
         mockAnimationCmp = mockk<AnimationComponent>(relaxed = true)
-        gameLight = mockk<GameLight>(relaxed = true)
+        spotLight = mockk<GameLight.Spot>(relaxed = true)
+        pointLight = mockk<GameLight.Point>(relaxed = true)
         mockBody = mockk<Body>(relaxed = true)
         stage = mockk<Stage>(relaxed = true)
 
@@ -74,7 +76,7 @@ class JumpSystemIntegrationTest {
                 it += AttackComponent()
                 it += MoveComponent()
                 it += IntentionComponent()
-                it += LightComponent(gameLight)
+                it += FlashlightComponent(spotLight, pointLight)
                 it += HealthComponent()
                 it += InputComponent()
                 it += JumpComponent()
@@ -258,7 +260,7 @@ class JumpSystemIntegrationTest {
             physicCmp.body = mockBody
             it += physicCmp
             it += MoveComponent()
-            it += LightComponent(gameLight)
+            it += FlashlightComponent(spotLight, pointLight)
             it += IntentionComponent()
             it += InputComponent()
             it += JumpComponent(maxHeight = jumpHeight)

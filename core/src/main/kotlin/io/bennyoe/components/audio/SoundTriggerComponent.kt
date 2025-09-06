@@ -2,7 +2,7 @@ package io.bennyoe.components.audio
 
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
-import io.bennyoe.service.SoundType
+import io.bennyoe.systems.audio.SoundType
 
 class SoundTriggerComponent(
     val sound: String?,

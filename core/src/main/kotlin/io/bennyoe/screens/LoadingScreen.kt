@@ -24,7 +24,7 @@ class LoadingScreen(
             gdxArrayOf(
                 TextureAssets.entries.map { assets.loadAsync(it.descriptor) },
                 MapAssets.entries.map { assets.loadAsync(it.descriptor) },
-                SoundAssets.entries.map { assets.loadAsync(it.descriptor) },
+                SoundAssets.entries.flatMap { it.descriptor }.map { desc -> assets.loadAsync(desc) },
             ).flatten()
 
         KtxAsync.launch {

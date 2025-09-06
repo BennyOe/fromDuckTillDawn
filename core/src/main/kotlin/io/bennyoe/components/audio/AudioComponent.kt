@@ -5,7 +5,7 @@ import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import de.pottgames.tuningfork.BufferedSoundSource
-import io.bennyoe.service.SoundType
+import io.bennyoe.systems.audio.SoundType
 import ktx.log.logger
 
 class AudioComponent(

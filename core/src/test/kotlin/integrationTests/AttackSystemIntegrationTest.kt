@@ -9,23 +9,22 @@ import com.badlogic.gdx.physics.box2d.FixtureDef
 import com.badlogic.gdx.physics.box2d.PolygonShape
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
-import com.github.bennyOe.gdxNormalLight.core.GameLight
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
-import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.service.DebugRenderService
+import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
 import io.bennyoe.state.mushroom.MushroomStateContext
@@ -34,6 +33,7 @@ import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.InputSystem
+import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.FixtureData
 import io.bennyoe.utility.SensorType
@@ -54,8 +54,9 @@ class AttackSystemIntegrationTest {
         // --------------- Setup World ----------------
         Gdx.app = mockk<Application>(relaxed = true)
         val stageMock = mockk<Stage>(relaxed = true)
-        val gameLight = mockk<GameLight>(relaxed = true)
-        val debugRenderServiceMock = mockk<DebugRenderService>(relaxed = true)
+        val spotLight = mockk<GameLight.Spot>(relaxed = true)
+        val pointLight = mockk<GameLight.Point>(relaxed = true)
+        val debugRendererMock = mockk<DebugRenderer>(relaxed = true)
         val animationCmpMock = mockk<AnimationComponent>(relaxed = true)
 
         stage = mockk<Stage>(relaxed = true)
@@ -66,7 +67,7 @@ class AttackSystemIntegrationTest {
             configureWorld {
                 injectables {
                     add("phyWorld", phyWorld)
-                    add("debugRenderService", debugRenderServiceMock)
+                    add("debugRenderService", debugRendererMock)
                 }
                 systems {
                     add(AttackSystem())
@@ -97,7 +98,7 @@ class AttackSystemIntegrationTest {
                 it += MoveComponent()
                 it += IntentionComponent()
                 it += HealthComponent()
-                it += LightComponent(gameLight)
+                it += FlashlightComponent(spotLight, pointLight)
                 it += playerImageCmp
                 it += InputComponent()
                 it += JumpComponent()
@@ -133,7 +134,7 @@ class AttackSystemIntegrationTest {
                 it += MoveComponent()
                 it += IntentionComponent()
                 it += HealthComponent()
-                it += LightComponent(gameLight)
+                it += FlashlightComponent(spotLight, pointLight)
                 it += JumpComponent()
                 it +=
                     StateComponent(

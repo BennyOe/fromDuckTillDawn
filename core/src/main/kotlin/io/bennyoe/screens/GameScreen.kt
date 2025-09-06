@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
-import com.github.bennyOe.gdxNormalLight.core.Scene2dLightEngine
 import com.github.quillraven.fleks.configureWorld
 import de.pottgames.tuningfork.Audio
 import io.bennyoe.Stages
@@ -25,29 +24,24 @@ import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.config.GameConstants.TIME_SCALE
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
-import io.bennyoe.service.DefaultDebugRenderService
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
-import io.bennyoe.systems.CollisionSpawnSystem
+import io.bennyoe.systems.CloudSystem
 import io.bennyoe.systems.DamageSystem
-import io.bennyoe.systems.EntitySpawnSystem
 import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.GameMoodSystem
 import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
-import io.bennyoe.systems.LightSystem
 import io.bennyoe.systems.MoveSystem
-import io.bennyoe.systems.PhysicTransformSyncSystem
-import io.bennyoe.systems.PhysicsSystem
-import io.bennyoe.systems.PlayerLightSystem
-import io.bennyoe.systems.RenderMapSystem
-import io.bennyoe.systems.RenderSystem
+import io.bennyoe.systems.RainSystem
+import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
-import io.bennyoe.systems.UiRenderSystem
+import io.bennyoe.systems.TimeSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem
@@ -55,7 +49,19 @@ import io.bennyoe.systems.audio.SoundEffectSystem
 import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
+import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.StateBubbleSystem
+import io.bennyoe.systems.entitySpawn.CollisionSpawnSystem
+import io.bennyoe.systems.entitySpawn.EntitySpawnSystem
+import io.bennyoe.systems.light.AmbientLightSystem
+import io.bennyoe.systems.light.EntityLightSystem
+import io.bennyoe.systems.light.FlashlightSystem
+import io.bennyoe.systems.physic.ContactHandlerSystem
+import io.bennyoe.systems.physic.PhysicsSystem
+import io.bennyoe.systems.render.PhysicTransformSyncSystem
+import io.bennyoe.systems.render.RenderSystem
+import io.bennyoe.systems.render.TransformVisualSyncSystem
+import io.bennyoe.systems.render.UiRenderSystem
 import ktx.assets.async.AssetStorage
 import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
@@ -69,6 +75,9 @@ class GameScreen(
 ) : AbstractScreen(context) {
     private val assets = context.inject<AssetStorage>()
     private val audio = context.inject<Audio>()
+    private val worldObjectsAtlas = assets[TextureAssets.WORLD_OBJECTS_ATLAS.descriptor]
+    private val cloudsAtlas = assets[TextureAssets.CLOUDS_ATLAS.descriptor]
+    private val rainCloudsAtlas = assets[TextureAssets.RAIN_CLOUDS_ATLAS.descriptor]
     private val dawnAtlases =
         TextureAtlases(
             assets[TextureAssets.DAWN_ATLAS.descriptor],
@@ -101,7 +110,7 @@ class GameScreen(
             stage = stage,
             entityCategory = EntityCategory.LIGHT.bit,
             entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv() and EntityCategory.SENSOR.bit.inv()),
-            lightActivationRadius = 18f,
+            lightActivationRadius = 25f,
             lightViewportScale = 4f,
         )
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
@@ -111,6 +120,9 @@ class GameScreen(
                 add("audio", audio)
                 add("assetManager", assets)
                 add("phyWorld", phyWorld)
+                add("worldObjectsAtlas", worldObjectsAtlas)
+                add("cloudsAtlas", cloudsAtlas)
+                add("rainCloudsAtlas", rainCloudsAtlas)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
                 add("particlesAtlas", particleAtlas)
@@ -125,8 +137,9 @@ class GameScreen(
             systems {
                 add(AnimationSystem())
                 add(EntitySpawnSystem())
-                add(LightSystem())
-                add(PlayerLightSystem())
+                add(AmbientLightSystem())
+                add(EntityLightSystem())
+                add(FlashlightSystem())
                 add(CollisionSpawnSystem())
                 add(InputSystem())
                 add(AttackSystem())
@@ -134,19 +147,24 @@ class GameScreen(
                 add(DamageSystem())
                 add(DamageTextSystem())
                 add(JumpSystem())
+                add(ContactHandlerSystem())
                 add(PhysicsSystem())
                 add(AmbienceSystem())
                 add(ReverbSystem())
+                add(CloudSystem())
+                add(RainSystem())
                 add(SoundEffectSystem())
                 add(MusicSystem())
                 add(BasicSensorsSystem())
                 add(StateSystem())
                 add(BehaviorTreeSystem())
                 add(GameMoodSystem())
+                add(TimeSystem())
+                add(SkySystem())
                 add(MoveSystem())
                 add(PhysicTransformSyncSystem())
+                add(TransformVisualSyncSystem())
                 add(CameraSystem())
-                add(RenderMapSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())
                 add(ExpireSystem())
@@ -168,8 +186,9 @@ class GameScreen(
 
         // this adds all EventListenerSystems also to Scene2D
         entityWorld.systems.forEach { system ->
-            if (system is EventListener) {
-                stage.addListener(system)
+            when (system) {
+                is EventListener -> stage.addListener(system)
+                is CloudSystem -> system.initializeCloudPool()
             }
         }
 
@@ -185,6 +204,7 @@ class GameScreen(
     }
 
     override fun dispose() {
+        worldObjectsAtlas.dispose()
         dawnAtlases.diffuseAtlas.dispose()
         dawnAtlases.normalAtlas?.dispose()
         dawnAtlases.specularAtlas?.dispose()
@@ -193,6 +213,7 @@ class GameScreen(
         mushroomAtlases.specularAtlas?.dispose()
         entityWorld.dispose()
         tiledMap.disposeSafely()
+        audio.dispose()
     }
 
     override fun resize(

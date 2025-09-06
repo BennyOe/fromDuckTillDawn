@@ -28,13 +28,13 @@ import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.service.NoOpDebugRenderService
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
 import io.bennyoe.state.mushroom.MushroomStateContext
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
+import io.bennyoe.systems.debug.NoOpDebugRenderService
 import io.bennyoe.utility.BodyData
 import io.mockk.every
 import io.mockk.mockk

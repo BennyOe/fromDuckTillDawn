@@ -18,8 +18,8 @@ import de.pottgames.tuningfork.SoundBufferLoader
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.WORLD_HEIGHT
 import io.bennyoe.config.GameConstants.WORLD_WIDTH
-import io.bennyoe.service.DefaultDebugRenderService
-import io.bennyoe.service.NoOpDebugRenderService
+import io.bennyoe.systems.debug.DefaultDebugRenderService
+import io.bennyoe.systems.debug.NoOpDebugRenderService
 import ktx.assets.async.AssetStorage
 import ktx.async.KtxAsync
 import ktx.inject.Context

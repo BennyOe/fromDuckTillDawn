@@ -16,11 +16,15 @@
             "scaleInEditor": 1
         },
         "testMap.tmx": {
-            "scale": 1.71,
-            "selectedLayer": 11,
+            "expandedGroupLayers": [
+                19,
+                23
+            ],
+            "scale": 0.75,
+            "selectedLayer": 10,
             "viewCenter": {
-                "x": 446.4912280701754,
-                "y": 367.5438596491228
+                "x": 406.6666666666667,
+                "y": 299.33333333333337
             }
         }
     },
@@ -34,7 +38,7 @@
         "groundTiles1.tsx"
     ],
     "project": "testMap.tiled-project",
-    "property.type": "float",
+    "property.type": "string",
     "recentFiles": [
         "groundTiles1.tsx",
         "fire.tsx",

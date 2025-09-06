@@ -6,8 +6,8 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
 import io.bennyoe.ai.blackboards.MushroomContext
-import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
+import io.bennyoe.systems.debug.addToDebugView
 
 abstract class AbstractAction : LeafTask<MushroomContext>() {
     val ctx: MushroomContext
@@ -45,7 +45,7 @@ abstract class AbstractAction : LeafTask<MushroomContext>() {
         targetPos: Vector2,
     ) {
         Polyline(floatArrayOf(startPos.x, startPos.y, targetPos.x, targetPos.y)).addToDebugView(
-            ctx.debugRenderService,
+            ctx.debugRenderer,
             Color.RED,
             "walk",
             debugType = DebugType.ENEMY,

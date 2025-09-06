@@ -17,6 +17,7 @@ import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.BasicSensorsSystem
+import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.utility.BodyData
 import io.mockk.every
 import io.mockk.mockk
@@ -42,7 +43,7 @@ class BasicSensorsSystemUnitTest {
                 it.image = imageMock
             }
 
-        val debugRenderService = mockk<io.bennyoe.service.DefaultDebugRenderService>(relaxed = true)
+        val debugRenderService = mockk<DefaultDebugRenderService>(relaxed = true)
 
         ecsWorld =
             configureWorld {

@@ -8,8 +8,8 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.config.GameConstants.CHASE_SPEED
 import io.bennyoe.config.GameConstants.NORMAL_DETECTION_RADIUS
-import io.bennyoe.service.SoundProfile
-import io.bennyoe.service.SoundType
+import io.bennyoe.systems.audio.SoundProfile
+import io.bennyoe.systems.audio.SoundType
 import io.bennyoe.utility.FloorType
 import ktx.app.gdxError
 import ktx.math.vec2
@@ -37,6 +37,7 @@ data class SpawnCfg(
     val nearbyEnemiesExtendedSensorRadius: Float = 7f,
     val nearbyEnemiesSensorOffset: Vector2 = vec2(0f, 0f),
     val chaseSpeed: Float = 0f,
+    // the soundTrigger is a map of <AnimationType, <FrameWhereSoundIsTriggered, SoundType>>
     val soundTrigger: Map<AnimationType, Map<Int, SoundType>> = emptyMap(),
     val soundProfile: SoundProfile = SoundProfile(),
 ) {
@@ -85,13 +86,21 @@ data class SpawnCfg(
                                         mapOf(
                                             1 to SoundType.DAWN_ATTACK_3,
                                         ),
-                                    AnimationType.JUMP to
-                                        mapOf(
-                                            1 to SoundType.DAWN_JUMP,
-                                        ),
+//                                    AnimationType.JUMP to
+//                                        mapOf(
+//                                            1 to SoundType.DAWN_JUMP,
+//                                        ),
                                     AnimationType.BASH to
                                         mapOf(
                                             2 to SoundType.DAWN_BASH,
+                                        ),
+                                    AnimationType.HIT to
+                                        mapOf(
+                                            2 to SoundType.DAWN_HIT,
+                                        ),
+                                    AnimationType.DYING to
+                                        mapOf(
+                                            2 to SoundType.DAWN_DEATH,
                                         ),
                                 ),
                             soundProfile =
@@ -104,11 +113,11 @@ data class SpawnCfg(
                                             SoundType.DAWN_JUMP to listOf(SoundAssets.DAWN_JUMP_SOUND),
                                             SoundType.DAWN_HIT to listOf(SoundAssets.DAWN_HIT_SOUND),
                                             SoundType.DAWN_BASH to listOf(SoundAssets.DAWN_BASH_SOUND),
+                                            SoundType.DAWN_DEATH to listOf(SoundAssets.DAWN_DEATH_SOUND),
                                         ),
                                     // Define the player's footstep sounds for each surface
                                     footstepsSounds =
                                         mapOf(
-                                            FloorType.WOOD to listOf(SoundAssets.DAWN_FOOTSTEPS_WOOD),
                                             FloorType.STONE to listOf(SoundAssets.DAWN_FOOTSTEPS_STONE),
                                             FloorType.GRASS to listOf(SoundAssets.DAWN_FOOTSTEPS_GRASS),
                                         ),
@@ -144,25 +153,39 @@ data class SpawnCfg(
                                 mapOf(
                                     AnimationType.WALK to
                                         mapOf(
-                                            0 to SoundType.FOOTSTEPS,
-                                            2 to SoundType.FOOTSTEPS,
-                                            4 to SoundType.FOOTSTEPS,
-                                            6 to SoundType.FOOTSTEPS,
+                                            0 to SoundType.MUSHROOM_FOOTSTEPS,
+                                            2 to SoundType.MUSHROOM_FOOTSTEPS,
+                                            4 to SoundType.MUSHROOM_FOOTSTEPS,
+                                            6 to SoundType.MUSHROOM_FOOTSTEPS,
                                         ),
                                     AnimationType.HIT to
                                         mapOf(
-                                            1 to SoundType.HIT,
+                                            1 to SoundType.MUSHROOM_HIT,
+                                        ),
+                                    AnimationType.ATTACK_1 to
+                                        mapOf(
+                                            1 to SoundType.MUSHROOM_ATTACK,
+                                        ),
+                                    AnimationType.DYING to
+                                        mapOf(
+                                            1 to SoundType.MUSHROOM_DEATH,
+                                        ),
+                                    AnimationType.JUMP to
+                                        mapOf(
+                                            1 to SoundType.MUSHROOM_JUMP,
                                         ),
                                 ),
                             soundProfile =
                                 SoundProfile(
                                     simpleSounds =
                                         mapOf(
-                                            SoundType.HIT to listOf(SoundAssets.MUSHROOM_HIT_SOUND),
+                                            SoundType.MUSHROOM_HIT to listOf(SoundAssets.MUSHROOM_HIT_SOUND),
+                                            SoundType.MUSHROOM_ATTACK to listOf(SoundAssets.MUSHROOM_ATTACK_SOUND),
+                                            SoundType.MUSHROOM_DEATH to listOf(SoundAssets.MUSHROOM_DEATH_SOUND),
+                                            SoundType.MUSHROOM_JUMP to listOf(SoundAssets.MUSHROOM_JUMP_SOUND),
                                         ),
                                     footstepsSounds =
                                         mapOf(
-                                            FloorType.WOOD to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_WOOD),
                                             FloorType.STONE to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_STONE),
                                             FloorType.GRASS to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_GRASS),
                                         ),

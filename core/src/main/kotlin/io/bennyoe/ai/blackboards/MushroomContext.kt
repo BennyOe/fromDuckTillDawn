@@ -20,8 +20,8 @@ import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.service.DebugRenderService
-import io.bennyoe.service.addToDebugView
+import io.bennyoe.systems.debug.DebugRenderer
+import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.BodyData
 import ktx.collections.GdxArray
 import ktx.collections.isNotEmpty
@@ -36,7 +36,7 @@ class MushroomContext(
     entity: Entity,
     world: World,
     stage: Stage,
-    val debugRenderService: DebugRenderService,
+    val debugRenderer: DebugRenderer,
 ) : AbstractBlackboard(entity, world, stage) {
     val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent
@@ -92,7 +92,7 @@ class MushroomContext(
                 phyCmp.body.position.y,
                 basicSensorsCmp.chaseRange,
             )
-        TMP_CIRC.addToDebugView(debugRenderService, Color.GREEN, "chaseRange")
+        TMP_CIRC.addToDebugView(debugRenderer, Color.GREEN, "chaseRange")
 
         // calculate the distance to the player and return true if it is < chaseRange
         val player = world.family { all(PlayerComponent, PhysicComponent) }.firstOrNull() ?: return false

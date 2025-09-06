@@ -1,0 +1,15 @@
+world_objects.png
+size:2048,1024
+repeat:none
+moon2
+bounds:1576,161,320,320
+noise
+bounds:1028,382,546,501
+noiseTexture
+bounds:804,124,256,256
+sky
+bounds:2,537,1024,346
+stars
+bounds:2,2,800,533
+sun2
+bounds:1576,483,400,400

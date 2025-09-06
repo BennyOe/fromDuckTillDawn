@@ -12,9 +12,9 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.service.DebugRenderService
-import io.bennyoe.service.addToDebugView
+import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.DebugType
+import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.BodyData
 import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.fixtureData
@@ -24,7 +24,7 @@ import ktx.math.component1
 import ktx.math.component2
 
 class AttackSystem(
-    private val debugRenderService: DebugRenderService = inject("debugRenderService"),
+    private val debugRenderer: DebugRenderer = inject("debugRenderService"),
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(family { all(AttackComponent) }),
     PausableSystem {
@@ -58,7 +58,7 @@ class AttackSystem(
                 y - halfH,
                 attackCmp.extraRange,
                 h,
-            ).addToDebugView(debugRenderService, Color.GOLD, "attack box", ShapeRenderer.ShapeType.Filled, 0.4f, 1f, DebugType.ATTACK)
+            ).addToDebugView(debugRenderer, Color.GOLD, "attack box", ShapeRenderer.ShapeType.Filled, 0.4f, 1f, DebugType.ATTACK)
 
         // queries the AABB rect if there are any fixtures inside
         phyWorld.query(

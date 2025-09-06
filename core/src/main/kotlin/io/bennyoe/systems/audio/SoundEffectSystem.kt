@@ -16,12 +16,16 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.config.GameConstants.EFFECT_VOLUME
 import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StopLoopingSoundEvent
 import io.bennyoe.event.StreamSoundEvent
-import io.bennyoe.service.SoundMappingService
-import io.bennyoe.service.SoundType
+import io.bennyoe.lightEngine.core.FaultyLightEvent
+import io.bennyoe.lightEngine.core.LightEngineEvent
+import io.bennyoe.lightEngine.core.LightEngineEventConsumer
+import io.bennyoe.lightEngine.core.LightEngineEventListener
+import io.bennyoe.lightEngine.core.LightningEvent
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
 import ktx.math.vec3
@@ -29,6 +33,8 @@ import kotlin.collections.set
 
 private const val MIN_PITCH = 0.8f
 private const val MAX_PITCH = 1.3f
+private const val THUNDER_DELAY = 1f
+private const val BUZZ_SOUND_LIFETIME = 0.1f
 
 /**
  * A Fleks [IteratingSystem] responsible for managing spatialized sound effects in the game.
@@ -58,14 +64,57 @@ class SoundEffectSystem(
     private val assets: AssetStorage = inject("assetManager"),
     private val audio: Audio = inject("audio"),
 ) : IteratingSystem(family { all(AudioComponent, TransformComponent) }),
-    EventListener {
+    EventListener,
+    LightEngineEventConsumer {
     private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
     private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
     private val reverb = world.system<ReverbSystem>()
+    private var thunderTriggered = false
+    private var thunderDelayCounter = 0f
+    private var buzzSound = StreamedSoundSource(Gdx.files.internal("sound/faulty_lamp.mp3"))
+    private val thunderPathList = listOf<String>("sound/thunder_1.mp3", "sound/thunder_2.mp3")
+
+    private var buzzSoundTimeout = 0f
+
+    init {
+        buzzSound.isRelative = false
+        buzzSound.setLooping(true)
+        buzzSound.volume = .1f
+        buzzSound.attenuationFactor = 3f
+        buzzSound.playbackPosition = 3f
+        LightEngineEventListener.subscribe(this)
+    }
+
+    override fun onEvent(event: LightEngineEvent) {
+        when (event) {
+            is LightningEvent -> thunderTriggered = true
+            is FaultyLightEvent -> {
+                if (event.lightIsOn) {
+                    reverb.registerSource(buzzSound)
+                    buzzSound.setPosition(vec3(event.position.x, event.position.y, 0f))
+                    if (!buzzSound.isPlaying) {
+                        buzzSound.play()
+                    }
+                    buzzSoundTimeout = BUZZ_SOUND_LIFETIME
+                }
+            }
+
+            else -> Unit
+        }
+    }
 
     override fun onTick() {
         val playerPos = playerEntity[TransformComponent].position
+        triggerThunder()
+
+        if (buzzSound.isPlaying) {
+            if (buzzSoundTimeout > 0f) {
+                buzzSoundTimeout -= deltaTime
+            } else {
+                buzzSound.stop()
+            }
+        }
 
         audio.listener.setPosition(playerPos.x, playerPos.y, 0f)
         cleanUpOneShotSounds()
@@ -82,7 +131,7 @@ class SoundEffectSystem(
             }
 
             val soundAsset = SoundMappingService.getSoundAsset(soundCmp.soundType) ?: return
-            val source = audio.obtainSource(assets[soundAsset.descriptor])
+            val source = audio.obtainSource(assets[soundAsset.descriptor.random()])
             source.volume = soundCmp.soundVolume
             source.attenuationFactor = 1f
             source.attenuationMaxDistance = soundCmp.soundAttenuationMaxDistance
@@ -98,6 +147,24 @@ class SoundEffectSystem(
         soundCmp.bufferedSoundSource?.setPosition(transformCmp.position.x + transformCmp.width * 0.5f, transformCmp.position.y, 0f)
     }
 
+    private fun triggerThunder() {
+        if (thunderTriggered && thunderDelayCounter < THUNDER_DELAY) {
+            thunderDelayCounter += deltaTime
+            return
+        }
+
+        if (thunderTriggered) {
+            val triggeredSound = StreamedSoundSource(Gdx.files.internal(thunderPathList.random()))
+            triggeredSound.isRelative = true
+            triggeredSound.setLooping(false)
+            reverb.registerSource(triggeredSound)
+            triggeredSound.volume = EFFECT_VOLUME
+            triggeredSound.play()
+            thunderDelayCounter = 0f
+            thunderTriggered = false
+        }
+    }
+
     private fun cleanUpOneShotSounds() {
         val iterator = oneShotSoundSources.iterator()
         while (iterator.hasNext()) {
@@ -111,11 +178,11 @@ class SoundEffectSystem(
     }
 
     override fun onDispose() {
+        LightEngineEventListener.unsubscribe(this)
         loopingSounds.forEach { (_, source) -> source.free() }
         oneShotSoundSources.forEach { it.free() }
         oneShotSoundSources.clear()
         loopingSounds.clear()
-        audio.dispose()
         super.onDispose()
     }
 
@@ -133,7 +200,7 @@ class SoundEffectSystem(
 
                 val shouldVary = event.soundType.vary
                 val soundAsset = SoundMappingService.getSoundAsset(event.soundType, soundProfile, event.floorType) ?: return true
-                val soundBuffer = assets[soundAsset.descriptor]
+                val soundBuffer = assets[soundAsset.descriptor.random()]
                 val source = audio.obtainSource(soundBuffer)
 
                 source.isRelative = true
@@ -144,7 +211,7 @@ class SoundEffectSystem(
                 }
 
                 reverb.registerSource(source)
-                source.volume = event.volume
+                source.volume = event.volume * EFFECT_VOLUME
                 if (shouldVary) {
                     source.pitch = MathUtils.random(MIN_PITCH, MAX_PITCH)
                 }
@@ -164,13 +231,13 @@ class SoundEffectSystem(
 
                 val soundAsset = SoundMappingService.getSoundAsset(event.soundType, soundProfile, event.floorType) ?: return true
 
-                val soundBuffer = assets[soundAsset.descriptor]
+                val soundBuffer = assets[soundAsset.descriptor.random()]
                 val source = audio.obtainSource(soundBuffer)
                 source.setLooping(true)
 
                 reverb.registerSource(source)
 
-                source.volume = event.volume
+                source.volume = event.volume * EFFECT_VOLUME
                 source.attenuationFactor = 1f
                 source.play()
                 loopingSounds[event.soundType] = source
@@ -194,7 +261,7 @@ class SoundEffectSystem(
                 }
                 triggeredSound.setLooping(false)
                 reverb.registerSource(triggeredSound)
-                triggeredSound.volume = event.volume
+                triggeredSound.volume = event.volume * EFFECT_VOLUME
                 triggeredSound.play()
                 true
             }

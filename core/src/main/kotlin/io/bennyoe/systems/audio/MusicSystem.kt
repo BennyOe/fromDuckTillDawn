@@ -14,6 +14,7 @@ import de.pottgames.tuningfork.jukebox.song.SongMeta
 import de.pottgames.tuningfork.jukebox.song.SongSettings
 import io.bennyoe.components.GameMood
 import io.bennyoe.components.GameStateComponent
+import io.bennyoe.config.GameConstants.MUSIC_VOLUME
 import io.bennyoe.event.MapChangedEvent
 import ktx.tiled.propertyOrNull
 
@@ -93,7 +94,7 @@ class MusicSystem :
                     deadMusicPlaylist.addSong(deadSong)
                 }
                 if (!musicJukebox.isPlaying) {
-                    musicJukebox.volume = 0.3f
+                    musicJukebox.volume = MUSIC_VOLUME
                     musicJukebox.play()
                 }
             }

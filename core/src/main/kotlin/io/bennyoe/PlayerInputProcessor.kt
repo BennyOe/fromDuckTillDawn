@@ -21,7 +21,7 @@ class PlayerInputProcessor(
     private val debugEntities = world.family { all(DebugComponent) }
     private val gameStateEntities = world.family { all(GameStateComponent) }
     private val cameraEntities = world.family { all(CameraComponent) }
-    val playerEntity = world.family { all(PlayerComponent) }.first()
+    private val playerEntity = world.family { all(PlayerComponent) }.first()
     private val messageDispatcher = MessageManager.getInstance()
 
     // map that explicitly allows certain actions in specific states
@@ -60,6 +60,9 @@ class PlayerInputProcessor(
             Keys.DOWN to Action.ZOOM_OUT,
             Keys.L to Action.TOGGLE_LIGHTING,
             Keys.F to Action.TOGGLE_FLASHLIGHT,
+            Keys.X to Action.TOGGLE_DAY_NIGHT,
+            Keys.Z to Action.TOGGLE_WEATHER,
+            Keys.SHIFT_LEFT to Action.FIRE_LIGHTNING,
         )
 
     init {
@@ -92,14 +95,25 @@ class PlayerInputProcessor(
             when (action) {
                 Action.PAUSE -> gameStateCmp.togglePause(pressed)
                 Action.TOGGLE_LIGHTING -> gameStateCmp.toggleLighting(pressed)
+                Action.TOGGLE_DAY_NIGHT -> gameStateCmp.toggleTimeOfDayChange(pressed)
+                Action.TOGGLE_WEATHER -> gameStateCmp.toggleWeatherChange(pressed)
+                Action.FIRE_LIGHTNING -> gameStateCmp.fireLightning(pressed)
                 else -> Unit
             }
         }
         cameraEntities.forEach { cameraEntity ->
             val cameraCmp = cameraEntity[CameraComponent]
             when (action) {
-                Action.ZOOM_IN -> cameraCmp.zoomFactor -= 0.05f
-                Action.ZOOM_OUT -> cameraCmp.zoomFactor += 0.05f
+                Action.ZOOM_IN -> {
+                    cameraCmp.zoomFactor -= 0.05f
+                    logger.debug { "Camera zoom: ${cameraCmp.zoomFactor}" }
+                }
+
+                Action.ZOOM_OUT -> {
+                    cameraCmp.zoomFactor += 0.05f
+                    logger.debug { "Camera zoom: ${cameraCmp.zoomFactor}" }
+                }
+
                 else -> Unit
             }
         }
@@ -174,5 +188,8 @@ class PlayerInputProcessor(
         ZOOM_OUT,
         TOGGLE_LIGHTING,
         TOGGLE_FLASHLIGHT,
+        TOGGLE_DAY_NIGHT,
+        TOGGLE_WEATHER,
+        FIRE_LIGHTNING,
     }
 }

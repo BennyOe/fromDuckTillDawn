@@ -17,9 +17,9 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.event.MapChangedEvent
-import io.bennyoe.service.DefaultDebugRenderService
-import io.bennyoe.service.addToDebugView
 import io.bennyoe.systems.debug.DebugType
+import io.bennyoe.systems.debug.DefaultDebugRenderService
+import io.bennyoe.systems.debug.addToDebugView
 import ktx.log.logger
 import ktx.tiled.height
 import ktx.tiled.width
@@ -37,6 +37,7 @@ class CameraSystem(
     private var cameraTargetX = 0f
     val deadzone = Rectangle(0f, 0f, 1f, 1f)
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
+    private val cameraEntity by lazy { world.family { all(CameraComponent) }.first() }
 
     override fun onTickEntity(entity: Entity) {
         val imageCmps = entity[ImageComponent]
@@ -53,7 +54,7 @@ class CameraSystem(
     }
 
     override fun onTick() {
-        val cameraComponent = world.family { any(CameraComponent) }.firstOrNull()?.getOrNull(CameraComponent)
+        val cameraComponent = cameraEntity.getOrNull(CameraComponent)
         cameraComponent?.let { camera.zoom = it.zoomFactor }
         super.onTick()
         camera.update()
@@ -78,10 +79,10 @@ class CameraSystem(
         val viewH = camera.viewportHeight * 0.5f
 
         // set map boundaries for the camera
-        val camMinW = min(viewW, maxW - viewW)
-        val camMaxW = max(viewW, maxW - viewW)
-        val camMinH = min(viewH, maxH - viewH)
-        val camMaxH = max(viewH, maxH - viewH)
+        val camMinW = min(viewW * camera.zoom, maxW - viewW * camera.zoom)
+        val camMaxW = max(viewW * camera.zoom, maxW - viewW * camera.zoom)
+        val camMinH = min(viewH * camera.zoom, maxH - viewH * camera.zoom)
+        val camMaxH = max(viewH * camera.zoom, maxH - viewH * camera.zoom)
 
         // this is needed as long as the lighting engine can switched off. TODO remove else when not having switch
         val desiredX =

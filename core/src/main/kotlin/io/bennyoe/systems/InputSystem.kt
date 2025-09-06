@@ -3,9 +3,9 @@ package io.bennyoe.systems
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
+import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
-import io.bennyoe.components.LightComponent
 import io.bennyoe.components.WalkDirection
 import ktx.log.logger
 
@@ -13,7 +13,7 @@ class InputSystem : IteratingSystem(family { all(InputComponent, IntentionCompon
     override fun onTickEntity(entity: Entity) {
         val inputCmp = entity[InputComponent]
         val intentionCmp = entity[IntentionComponent]
-        val lightCmp = entity[LightComponent]
+        val flashlightComponent = entity[FlashlightComponent]
 
         with(inputCmp) {
             when {
@@ -39,7 +39,8 @@ class InputSystem : IteratingSystem(family { all(InputComponent, IntentionCompon
             }
 
             if (flashlightToggleJustPressed) {
-                lightCmp.gameLight.toggle()
+                flashlightComponent.spotlight.toggle()
+                flashlightComponent.pointLight.toggle()
                 flashlightToggleJustPressed = false
             }
 

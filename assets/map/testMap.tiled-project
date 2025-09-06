@@ -32,7 +32,7 @@
             "type": "enum",
             "values": [
                 "POINT_LIGHT",
-                "SPOTLIGHT"
+                "SPOT_LIGHT"
             ],
             "valuesAsFlags": false
         },

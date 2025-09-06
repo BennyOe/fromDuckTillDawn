@@ -19,12 +19,10 @@ import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.fire
-import io.bennyoe.service.SoundType
+import io.bennyoe.systems.audio.SoundType
 import ktx.app.gdxError
 import ktx.collections.map
 import ktx.log.logger
-import ktx.math.minus
-import ktx.math.plus
 
 /**
  * System responsible for updating entity animations in the ECS.
@@ -233,3 +231,12 @@ class AnimationSystem(
         private val logger = logger<AnimationSystem>()
     }
 }
+
+/*
+TODO divided animations
+1. create spritesheet with half images (other half transparent)
+2. decide which state has which top and bottom animation
+3. separate animations code wise into the half animations
+4. give every state a top and a bottom animation
+5. animationSystem must handle 2 animations for characters at the same time
+ */

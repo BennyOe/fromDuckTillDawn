@@ -11,6 +11,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.GameStateComponent
+import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PlayerComponent
@@ -112,6 +113,7 @@ class RenderSystem(
         world.family { any(ImageComponent, ParticleComponent) }.forEach { entity ->
             val shaderRenderingCmp = entity.getOrNull(ShaderRenderingComponent)
             val particleCmp = entity.getOrNull(ParticleComponent)
+            val hitEffectCmp = entity.getOrNull(HitEffectComponent)
             entity.getOrNull(ImageComponent)?.let { imageCmp ->
                 renderQueue.add(
                     RenderableElement.EntityWithImage(
@@ -119,6 +121,7 @@ class RenderSystem(
                         imageCmp = imageCmp,
                         shaderRenderingCmp = shaderRenderingCmp,
                         particleCmp = particleCmp,
+                        hitEffectComponent = hitEffectCmp,
                         zIndex = imageCmp.zIndex,
                     ),
                 )
@@ -172,6 +175,7 @@ sealed class RenderableElement {
         val imageCmp: ImageComponent,
         val shaderRenderingCmp: ShaderRenderingComponent?,
         val particleCmp: ParticleComponent?,
+        val hitEffectComponent: HitEffectComponent?,
         override val zIndex: Int,
     ) : RenderableElement()
 

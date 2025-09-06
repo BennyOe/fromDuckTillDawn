@@ -19,7 +19,6 @@ import io.bennyoe.lightEngine.core.utils.worldToScreenSpace
 import ktx.assets.disposeSafely
 import ktx.math.vec3
 import ktx.math.vec4
-import kotlin.apply
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -110,6 +109,41 @@ abstract class AbstractLightEngine(
      */
     fun setShaderToCustomShader(customShader: ShaderProgram) {
         batch.shader = customShader
+    }
+
+    /**
+     * Sets an overlay color and its strength for the current batch shader.
+     *
+     * This method flushes the current batch, then updates the shader uniforms
+     * `u_overlayColor` and `u_overlayStrength` to apply a color overlay effect.
+     *
+     * **Warning:** This method calls `batch.flush()` before setting the uniform, which will immediately render all currently batched draw calls.
+     * This can affect batching performance and may have side effects if called between draw operations.
+     *
+     * @param color The overlay color to apply.
+     * @param strength The strength of the overlay, clamped between 0.0 and 1.0.
+     */
+    fun setOverlayColor(
+        color: Color,
+        strength: Float,
+    ) {
+        batch.flush()
+        batch.shader.setUniformf("u_overlayColor", color)
+        batch.shader.setUniformf("u_overlayStrength", strength.coerceIn(0f, 1f))
+    }
+
+    /**
+     * Resets the overlay color effect in the current batch shader.
+     *
+     * This method flushes the current batch and sets the overlay strength uniform (`u_overlayStrength`) to 0,
+     * effectively disabling any overlay color previously applied.
+     *
+     * **Warning:** This method calls `batch.flush()`, which immediately renders all currently batched draw calls.
+     * Use with care between draw operations to avoid unintended batching side effects.
+     */
+    fun resetOverlayColor() {
+        batch.flush()
+        batch.shader.setUniformf("u_overlayStrength", 0f)
     }
 
     /**
@@ -630,6 +664,9 @@ abstract class AbstractLightEngine(
         shader.setUniformf("u_specularIntensity", specularIntensityValue)
         shader.setUniformf("u_specularRemapMin", specularRemapMin)
         shader.setUniformf("u_specularRemapMax", specularRemapMax)
+
+        // reset the color overlay
+        shader.setUniformf("u_overlayStrength", 0f)
 
         // Scale the viewport uniforms to match the physical pixel space of gl_FragCoord.
         val screenX = viewport.screenX * density

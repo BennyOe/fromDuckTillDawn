@@ -143,9 +143,23 @@ class LightingRenderer(
             if (renderable.shaderRenderingCmp?.normal != null) {
                 // Entity needs lighting shader
                 val updatedShader = shaderService.switchToLightingIfNeeded(engine, currentShader)
+
+                // if entity is hit -> apply hitStop color overlay
+                val hadHit = renderable.hitEffectComponent != null
+                if (hadHit) {
+                    val it = renderable.hitEffectComponent
+                    val strength = 1f - (it.timer / it.duration)
+                    engine.setOverlayColor(it.color, strength)
+                }
+
                 renderWithNormalMapping(engine, renderable.imageCmp, renderable.shaderRenderingCmp)
+
+                if (hadHit) {
+                    engine.resetOverlayColor()
+                }
                 updatedShader
             } else if (renderable.shaderRenderingCmp?.shader != null) {
+                // entity needs no lighting-shader but has custom shader (sun, moon etc.)
                 val desiredShader = renderable.shaderRenderingCmp.shader!!
                 if (currentShader != ShaderType.CUSTOM || engine.batch.shader != desiredShader) {
                     shaderService.switchToCustom(engine, desiredShader)

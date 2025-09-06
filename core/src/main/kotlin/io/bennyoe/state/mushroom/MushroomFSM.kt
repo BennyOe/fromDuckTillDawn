@@ -3,6 +3,7 @@ package io.bennyoe.state.mushroom
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
 import io.bennyoe.components.AnimationType
+import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.LANDING_VELOCITY_EPS
@@ -98,6 +99,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
 
     data object HIT : MushroomFSM() {
         override fun enter(ctx: MushroomStateContext) {
+            ctx.add(HitEffectComponent())
             ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
             ctx.attackCmp.applyAttack = false
             ctx.moveComponent.lockMovement = true

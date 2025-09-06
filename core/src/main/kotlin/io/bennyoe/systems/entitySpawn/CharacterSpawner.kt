@@ -100,6 +100,7 @@ class CharacterSpawner(
                                 setSize(relativeSize.x, relativeSize.y)
                             }
                     }
+                image.image.name = cfg.entityCategory.name
                 it += image
 
                 val animation = AnimationComponent()

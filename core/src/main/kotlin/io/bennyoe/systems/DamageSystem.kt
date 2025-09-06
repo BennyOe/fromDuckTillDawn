@@ -35,6 +35,9 @@ class DamageSystem(
             logger.debug { "takenDamage: ${healthCmp.takenDamage}" }
             healthCmp.current -= healthCmp.takenDamage
             healthCmp.takenDamage = 0f
+
+            world.system<TimeSystem>().startHitStop()
+
             if (entity hasNo PlayerComponent) {
                 animationCmp.nextAnimation(AnimationType.HIT)
             }

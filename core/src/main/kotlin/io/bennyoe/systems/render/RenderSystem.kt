@@ -47,7 +47,6 @@ class RenderSystem(
     private val renderQueue = mutableListOf<RenderableElement>()
 
     private val shaderService = ShaderService()
-    private val simpleRenderer = SimpleRenderer(stage, mapRenderer, shaderService)
     private val lightingRenderer = LightingRenderer(stage, lightEngine, mapRenderer, shaderService)
 
     override fun handle(event: Event?): Boolean {
@@ -86,10 +85,31 @@ class RenderSystem(
         lightEngine.update()
 
         // 5. Render everything in the correct order
-        if (!gameStateCmp.isLightingEnabled) {
-            simpleRenderer.render(renderQueue, gameStateCmp.timeOfDay, continuousTime, orthoCam)
-        } else {
-            lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime, rainMaskFamily)
+        lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime, rainMaskFamily)
+
+        renderTargets.fbo.end()
+
+        stage.batch.use {
+            val tex = renderTargets.fbo.colorBufferTexture
+
+            val w = orthoCam.viewportWidth * orthoCam.zoom
+            val h = orthoCam.viewportHeight * orthoCam.zoom
+            val x = orthoCam.position.x - w * 0.5f
+            val y = orthoCam.position.y - h * 0.5f
+
+            it.draw(
+                tex,
+                x,
+                y,
+                w,
+                h,
+                0,
+                0,
+                tex.width,
+                tex.height,
+                false,
+                true,
+            )
         }
     }
 

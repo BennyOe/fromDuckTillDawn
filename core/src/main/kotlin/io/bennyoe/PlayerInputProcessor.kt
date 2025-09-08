@@ -58,7 +58,6 @@ class PlayerInputProcessor(
             Keys.P to Action.PAUSE,
             Keys.UP to Action.ZOOM_IN,
             Keys.DOWN to Action.ZOOM_OUT,
-            Keys.L to Action.TOGGLE_LIGHTING,
             Keys.F to Action.TOGGLE_FLASHLIGHT,
             Keys.X to Action.TOGGLE_DAY_NIGHT,
             Keys.Z to Action.TOGGLE_WEATHER,
@@ -94,7 +93,6 @@ class PlayerInputProcessor(
             val gameStateCmp = gameStateEntity[GameStateComponent]
             when (action) {
                 Action.PAUSE -> gameStateCmp.togglePause(pressed)
-                Action.TOGGLE_LIGHTING -> gameStateCmp.toggleLighting(pressed)
                 Action.TOGGLE_DAY_NIGHT -> gameStateCmp.toggleTimeOfDayChange(pressed)
                 Action.TOGGLE_WEATHER -> gameStateCmp.toggleWeatherChange(pressed)
                 Action.FIRE_LIGHTNING -> gameStateCmp.fireLightning(pressed)
@@ -186,7 +184,6 @@ class PlayerInputProcessor(
         PAUSE,
         ZOOM_IN,
         ZOOM_OUT,
-        TOGGLE_LIGHTING,
         TOGGLE_FLASHLIGHT,
         TOGGLE_DAY_NIGHT,
         TOGGLE_WEATHER,

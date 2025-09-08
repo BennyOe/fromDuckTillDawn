@@ -45,7 +45,7 @@ class CameraSystem(
         // we center on the image because it has an
         // interpolated position for rendering which makes
         // the game smoother
-        val (xPos, yPos) = calculateCameraPosition(imageCmps, gameStateCmp.isLightingEnabled)
+        val (xPos, yPos) = calculateCameraPosition(imageCmps)
 
         camera.position.set(xPos, yPos, camera.position.z)
 
@@ -71,10 +71,7 @@ class CameraSystem(
         return false
     }
 
-    private fun calculateCameraPosition(
-        imageCmp: ImageComponent,
-        isLightingEnabled: Boolean,
-    ): Pair<Float, Float> {
+    private fun calculateCameraPosition(imageCmp: ImageComponent): Pair<Float, Float> {
         val viewW = camera.viewportWidth * 0.5f
         val viewH = camera.viewportHeight * 0.5f
 
@@ -84,13 +81,7 @@ class CameraSystem(
         val camMinH = min(viewH * camera.zoom, maxH - viewH * camera.zoom)
         val camMaxH = max(viewH * camera.zoom, maxH - viewH * camera.zoom)
 
-        // this is needed as long as the lighting engine can switched off. TODO remove else when not having switch
-        val desiredX =
-            if (imageCmp.flipImage && isLightingEnabled) {
-                imageCmp.image.x
-            } else {
-                imageCmp.image.x + imageCmp.image.width
-            }
+        val desiredX = imageCmp.image.x + imageCmp.image.width
 
 //        Circle(desiredX, 3.8f, 0.2f).addToDebugView(debugRenderService, Color.RED, "player")
         cameraTargetX = lerp(cameraTargetX, desiredX, CAMERA_SMOOTHING_FACTOR)

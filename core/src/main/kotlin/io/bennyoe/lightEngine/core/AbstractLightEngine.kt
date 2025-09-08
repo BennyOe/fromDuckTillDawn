@@ -79,6 +79,18 @@ abstract class AbstractLightEngine(
     }
 
     /**
+     * Renders all Box2D lights managed by the engine.
+     *
+     * This method updates the Box2D light system's combined matrix using the current camera,
+     * then renders all active Box2D lights (shadows, lightmaps) to the screen.
+     * Call this after updating and activating lights, and before drawing the final scene.
+     */
+    fun renderBox2dLights() {
+        rayHandler.setCombinedMatrix(cam)
+        rayHandler.updateAndRender()
+    }
+
+    /**
      * Sets the batch's shader to the engine's custom lighting shader.
      *
      * This method assigns the engine's lighting shader to the SpriteBatch, enabling

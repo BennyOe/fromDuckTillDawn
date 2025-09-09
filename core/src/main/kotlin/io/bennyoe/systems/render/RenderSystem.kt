@@ -1,5 +1,6 @@
 package io.bennyoe.systems.render
 
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.maps.tiled.TiledMapImageLayer
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
@@ -52,6 +53,7 @@ class RenderSystem(
     private val renderQueue = mutableListOf<RenderableElement>()
 
     private val shaderService = ShaderService()
+    private val waterRenderer = WaterRenderer(stage)
     private val lightingRenderer = LightingRenderer(stage, lightEngine, mapRenderer, shaderService)
 
     override fun handle(event: Event?): Boolean {
@@ -78,99 +80,36 @@ class RenderSystem(
     override fun onTick() {
         continuousTime += deltaTime
 
-        // 1. Update camera and stage
+        // --- 1. PREPARATION ---
         orthoCam.update()
         stage.viewport.apply()
         stage.act(deltaTime)
-
-        // 3. Build the render queue with everything sorted by zIndex
         buildRenderQueue()
-
-        // 4. start the fbo to draw in multiple passes
-        renderTargets.fbo.begin()
-
-        // 5. Update lighting system
         lightEngine.update()
 
-        // 6. Render everything in the correct order
-        lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime, rainMaskFamily)
+        // --- 2. SCENE PASS (into sceneFbo) ---
+        renderTargets.fbo.use {
+            lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime, rainMaskFamily)
+        }
 
-        renderTargets.fbo.end()
-
-        // 7. render the fbo texture to the screen
+        // --- 3. RENDER TO SCREEN (render the fbo texture to the screen) ---
         val tex = renderTargets.fbo.colorBufferTexture
-        val waterFamily = world.family { all(WaterComponent, TransformComponent) }
-
-        // 8. draw the fbo to the screen
-        stage.batch.projectionMatrix = orthoCam.combined
         stage.batch.use {
-            it.shader = null // Ensure default shader
+            stage.batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA)
+
             val w = orthoCam.viewportWidth * orthoCam.zoom
             val h = orthoCam.viewportHeight * orthoCam.zoom
             val x = orthoCam.position.x - w * 0.5f
             val y = orthoCam.position.y - h * 0.5f
-
-            it.draw(
-                tex,
-                x,
-                y,
-                w,
-                h,
-                0,
-                0,
-                tex.width,
-                tex.height,
-                false,
-                true,
-            )
+            stage.batch.draw(tex, x, y, w, h, 0, 0, tex.width, tex.height, false, true)
+            stage.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         }
 
-        // 9. draw the water effect over the already rendered scene
-        stage.batch.begin()
-        waterFamily.forEach { e ->
-            val water = e[WaterComponent]
-            val tr = e[TransformComponent]
+        // --- 4. RENDER WATER SHADER (on top of the final image) ---
+        val waterFamily = world.family { all(WaterComponent, TransformComponent) }
+        waterRenderer.render(waterFamily, continuousTime, tex, orthoCam)
 
-            // Activate and configure the water shader
-            stage.batch.shader = water.shader
-            water.shader?.bind()
-
-            shaderService.updateUniformsPerFrame(
-                shader = water.shader!!,
-                uniforms = water.uniforms,
-                continuousTime = continuousTime,
-            )
-
-            val (sx, sy, sw, sh) =
-                worldRectToTexRegion(
-                    tr.position.x,
-                    tr.position.y,
-                    tr.width,
-                    tr.height,
-                    orthoCam,
-                    tex.width,
-                    tex.height,
-                )
-
-            // Draw the specific region of the FBO texture with the water shader
-            stage.batch.draw(
-                tex,
-                tr.position.x,
-                tr.position.y,
-                tr.width,
-                tr.height,
-                sx,
-                sy,
-                sw,
-                sh,
-                false,
-                true,
-            )
-        }
-        stage.batch.shader = null
-        stage.batch.end()
-
-        // 10. draw the final box2dLights
+        // --- 5. RENDER LIGHTS (draw the final box2dLights) ---
         lightEngine.renderBox2dLights()
     }
 
@@ -224,36 +163,6 @@ class RenderSystem(
 
         // 4. Sort everything by zIndex
         renderQueue.sortBy { it.zIndex }
-    }
-
-    private fun worldRectToTexRegion(
-        rectX: Float,
-        rectY: Float,
-        rectW: Float,
-        rectH: Float,
-        cam: OrthographicCamera,
-        texW: Int,
-        texH: Int,
-    ): IntArray {
-        // visible world-area of FBO to world coordinates
-        val viewW = cam.viewportWidth * cam.zoom
-        val viewH = cam.viewportHeight * cam.zoom
-        val viewX = cam.position.x - viewW * 0.5f
-        val viewY = cam.position.y - viewH * 0.5f
-
-        // normalized u,v in [0..1] relative to FBO
-        val u0 = ((rectX - viewX) / viewW).coerceIn(0f, 1f)
-        val v0 = ((rectY - viewY) / viewH).coerceIn(0f, 1f)
-        val u1 = (((rectX + rectW) - viewX) / viewW).coerceIn(0f, 1f)
-        val v1 = (((rectY + rectH) - viewY) / viewH).coerceIn(0f, 1f)
-
-        // convert to texel
-        val sx = (u0 * texW).toInt()
-        val sy = (v0 * texH).toInt()
-        val sw = ((u1 - u0) * texW).toInt().coerceAtLeast(1)
-        val sh = ((v1 - v0) * texH).toInt().coerceAtLeast(1)
-
-        return intArrayOf(sx, sy, sw, sh)
     }
 
     companion object {

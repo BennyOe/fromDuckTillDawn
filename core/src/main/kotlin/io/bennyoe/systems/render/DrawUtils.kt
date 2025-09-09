@@ -1,6 +1,5 @@
 package io.bennyoe.systems.render
 
-import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.lightEngine.core.Scene2dLightEngine

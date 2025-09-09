@@ -3,8 +3,13 @@ package io.bennyoe.screens
 import box2dLight.RayHandler
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.GdxAI
+import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.GL30
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.FrameBuffer
+import com.badlogic.gdx.graphics.glutils.GLFrameBuffer
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
@@ -102,6 +107,13 @@ class GameScreen(
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
             autoClearForces = false
         }
+
+    // Framebuffer
+    private var fbo: FrameBuffer? = null
+
+    // container (provider) for the fbo, so that systems are getting a updated fbo every frame
+    private lateinit var targets: RenderTargets
+
     private val rayHandler = RayHandler(phyWorld)
     private val lightEngine =
         Scene2dLightEngine(
@@ -116,7 +128,7 @@ class GameScreen(
             lightViewportScale = 4f,
         )
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
-    private val entityWorld =
+    private val entityWorld by lazy {
         configureWorld {
             injectables {
                 add("audio", audio)
@@ -135,6 +147,7 @@ class GameScreen(
                 add("spriteBatch", spriteBatch)
                 add("profiler", profiler)
                 add("lightEngine", lightEngine)
+                add("renderTargets", targets)
             }
             systems {
                 add(AnimationSystem())
@@ -176,8 +189,12 @@ class GameScreen(
                 add(UiRenderSystem())
             }
         }
+    }
 
     override fun show() {
+        createFbo(Gdx.graphics.width, Gdx.graphics.height)
+        targets = RenderTargets(requireNotNull(fbo))
+
         rayHandler.setBlurNum(2)
         profiler.enable()
         // add a gameState Entity to the screen
@@ -221,6 +238,7 @@ class GameScreen(
         mushroomAtlases.normalAtlas?.dispose()
         mushroomAtlases.specularAtlas?.dispose()
         entityWorld.dispose()
+        fbo?.dispose()
         tiledMap.disposeSafely()
         audio.dispose()
     }
@@ -232,9 +250,34 @@ class GameScreen(
         super.resize(width, height)
         lightEngine.resize(width, height)
         rayHandler.resizeFBO(width / 2, height / 2)
+        createFbo(width, height)
+        targets.fbo = requireNotNull(fbo)
+    }
+
+    private fun createFbo(
+        width: Int,
+        height: Int,
+    ) {
+        if (Gdx.graphics.width == 0 || Gdx.graphics.height == 0) return
+        if (fbo != null) fbo!!.dispose()
+        val frameBufferBuilder = GLFrameBuffer.FrameBufferBuilder(width, height)
+        frameBufferBuilder.addBasicColorTextureAttachment(Pixmap.Format.RGBA8888)
+
+        // add stencil-buffer to the fbo for masking the rain
+        frameBufferBuilder.addStencilRenderBuffer(GL20.GL_STENCIL_INDEX8)
+        fbo = frameBufferBuilder.build()
     }
 
     companion object {
         private val logger = logger<GameScreen>()
     }
 }
+
+/**
+ * Container class for render targets used in the rendering pipeline.
+ *
+ * @property fbo The main [FrameBuffer] used for off-screen rendering.
+ */
+class RenderTargets(
+    var fbo: FrameBuffer,
+)

@@ -16,14 +16,14 @@ uniform float u_halo_strength;
 uniform vec2 u_texCoord_min;
 uniform vec2 u_texCoord_max;
 // Sunset tint uniforms
-uniform float u_time;
+uniform float u_timeOfDay;
 uniform float u_sunsetCenter;
 uniform float u_halfWidth;
 uniform float u_tintStrength;
 uniform vec3  u_sunsetTint;
 // MODIFIED: Added heat shimmer uniforms
 uniform sampler2D u_noiseTexture;
-uniform float u_continuousTime;
+uniform float u_time;
 uniform float u_shimmer_strength;
 uniform float u_shimmer_speed;
 uniform float u_shimmer_scale;
@@ -51,7 +51,7 @@ void main() {
     vec2 proceduralCoord = normalizedTexCoord;
 
     // --- Noise texture coordinates (for heat shimmer) ---
-    vec2 noiseUV01 = mod(proceduralCoord * u_shimmer_scale + vec2(0.0, u_continuousTime * u_shimmer_speed), 1.0);
+    vec2 noiseUV01 = mod(proceduralCoord * u_shimmer_scale + vec2(0.0, u_time * u_shimmer_speed), 1.0);
 
 
     // 2. --- Heat shimmer effect ---
@@ -72,7 +72,7 @@ void main() {
 
     // 4. --- Sunset tint ---
     // Apply the tint to the (now shimmering) sun color
-    float t = bell(u_time, u_sunsetCenter, u_halfWidth);
+    float t = bell(u_timeOfDay, u_sunsetCenter, u_halfWidth);
     float k = t * clamp(u_tintStrength, 0.0, 1.0);
     vec3 tintedSunRgb = mix(baseColor.rgb, u_sunsetTint, k);
 

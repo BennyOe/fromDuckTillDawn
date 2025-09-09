@@ -1,18 +1,15 @@
 package io.bennyoe.systems.entitySpawn
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
-import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.maps.MapLayer
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
-import com.badlogic.gdx.utils.GdxRuntimeException
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.LightComponent
@@ -29,6 +26,7 @@ import io.bennyoe.config.GameConstants.WORLD_HEIGHT
 import io.bennyoe.config.GameConstants.WORLD_WIDTH
 import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
+import io.bennyoe.utility.setupShader
 import ktx.math.vec2
 import ktx.tiled.type
 import ktx.tiled.x
@@ -221,21 +219,5 @@ class SkySpawner(
                 else -> Unit
             }
         }
-    }
-
-    private fun setupShader(name: String): ShaderProgram {
-        val vertShader: FileHandle = Gdx.files.internal("shader/$name.vert")
-        val fragShader: FileHandle = Gdx.files.internal("shader/$name.frag")
-        ShaderProgram.pedantic = false
-        val shader = ShaderProgram(vertShader, fragShader)
-
-        if (!shader.isCompiled) {
-            throw GdxRuntimeException("Could not compile shader: ${shader.log}")
-        }
-
-        shader.bind()
-        shader.setUniformi("u_texture", 0)
-
-        return shader
     }
 }

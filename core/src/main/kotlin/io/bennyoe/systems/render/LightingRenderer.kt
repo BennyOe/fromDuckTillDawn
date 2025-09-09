@@ -164,7 +164,12 @@ class LightingRenderer(
                 if (currentShader != ShaderType.CUSTOM || engine.batch.shader != desiredShader) {
                     shaderService.switchToCustom(engine, desiredShader)
                 }
-                shaderService.updateUniformsPerFrame(renderable.shaderRenderingCmp, timeOfDay, continuousTime)
+                shaderService.updateUniformsPerFrame(
+                    renderable.shaderRenderingCmp.shader!!,
+                    renderable.shaderRenderingCmp.uniforms,
+                    timeOfDay,
+                    continuousTime,
+                )
 
                 // if shaderCmp has a noise texture, use it
                 shaderService.configureNoiseIfPresent(renderable.shaderRenderingCmp)

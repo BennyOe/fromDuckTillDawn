@@ -35,7 +35,7 @@ class CameraSystem(
     private var maxW = 0f
     private var maxH = 0f
     private var cameraTargetX = 0f
-    val deadzone = Rectangle(0f, 0f, 1f, 1f)
+    val deadZone = Rectangle(0f, 0f, 1f, 1f)
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
     private val cameraEntity by lazy { world.family { all(CameraComponent) }.first() }
 
@@ -49,8 +49,8 @@ class CameraSystem(
 
         camera.position.set(xPos, yPos, camera.position.z)
 
-        deadzone.set(camera.position.x - 1f, camera.position.y - 1f, 2f, 4f)
-        deadzone.addToDebugView(debugRenderService, Color.CYAN, "camera deadzone", debugType = DebugType.CAMERA)
+        deadZone.set(camera.position.x - 1f, camera.position.y - 1f, 2f, 4f)
+        deadZone.addToDebugView(debugRenderService, Color.CYAN, "camera deadzone", debugType = DebugType.CAMERA)
     }
 
     override fun onTick() {

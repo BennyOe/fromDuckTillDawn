@@ -15,7 +15,7 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.audio.AudioComponent
-import io.bennyoe.config.GameConstants
+import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.systems.audio.SoundType
 import ktx.math.vec2
 import ktx.tiled.type
@@ -36,10 +36,10 @@ class MapObjectSpawner(
                 image.image = Image(mapObject.tile.textureRegion)
                 val width =
                     mapObject.tile.textureRegion.regionWidth
-                        .toFloat() * GameConstants.UNIT_SCALE
+                        .toFloat() * UNIT_SCALE
                 val height =
                     mapObject.tile.textureRegion.regionHeight
-                        .toFloat() * GameConstants.UNIT_SCALE
+                        .toFloat() * UNIT_SCALE
                 it += image
 
                 if (mapObject.properties.get("sound") != null) {
@@ -67,7 +67,7 @@ class MapObjectSpawner(
 
                 it +=
                     TransformComponent(
-                        vec2(mapObject.x * GameConstants.UNIT_SCALE, mapObject.y * GameConstants.UNIT_SCALE),
+                        vec2(mapObject.x * UNIT_SCALE, mapObject.y * UNIT_SCALE),
                         width,
                         height,
                     )

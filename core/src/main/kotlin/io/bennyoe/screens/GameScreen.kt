@@ -191,7 +191,7 @@ class GameScreen(
     }
 
     override fun show() {
-        createFbo(Gdx.graphics.width, Gdx.graphics.height)
+        createFbo(Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
         targets = RenderTargets(requireNotNull(fbo))
 
         rayHandler.setBlurNum(2)
@@ -248,8 +248,8 @@ class GameScreen(
     ) {
         super.resize(width, height)
         lightEngine.resize(width, height)
-        rayHandler.resizeFBO(width / 2, height / 2)
-        createFbo(width, height)
+        rayHandler.resizeFBO(Gdx.graphics.backBufferWidth / 2, Gdx.graphics.backBufferHeight / 2)
+        createFbo(Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
         targets.fbo = requireNotNull(fbo)
     }
 

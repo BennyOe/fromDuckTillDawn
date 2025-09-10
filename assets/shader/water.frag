@@ -1,5 +1,3 @@
-// water.frag
-
 #ifdef GL_ES
 precision mediump float;
 #endif
@@ -17,7 +15,7 @@ uniform float u_emboss;
 uniform float u_intensity;
 uniform float u_frequency;
 uniform float u_delta;
-uniform float u_distortion_scale; // MODIFIED: New uniform to control distortion strength
+uniform float u_distortion_scale;
 
 const int STEPS = 8;
 const int ANGLE = 7;
@@ -47,7 +45,6 @@ void main() {
     float dx = u_emboss * (cc1 - waveField(uv01 + vec2(step01, 0.0), t)) / step01;
     float dy = u_emboss * (cc1 - waveField(uv01 + vec2(0.0, step01), t)) / step01;
 
-    // MODIFIED: Scale the distortion vector down to a small, local effect
     vec2 distortion = vec2(dx, dy) * u_distortion_scale;
     vec2 distortedCoord = uv01 + distortion;
 

@@ -35,7 +35,7 @@ import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.debug.NoOpDebugRenderService
-import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.EntityBodyData
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
@@ -94,7 +94,7 @@ class MushroomContextUnitTest {
                     body =
                         mockk(relaxed = true) {
                             every { position } returns Vector2(4.5f, 0f)
-                            every { userData } returns BodyData(EntityCategory.PLAYER, it)
+                            every { userData } returns EntityBodyData(it, EntityCategory.PLAYER)
                         }
                 }
                 it += animCmp

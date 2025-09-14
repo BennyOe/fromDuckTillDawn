@@ -12,8 +12,8 @@ import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
-import io.bennyoe.utility.BodyData
-import io.bennyoe.utility.FixtureData
+import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.FixtureSensorData
 import io.bennyoe.utility.FloorType
 import io.bennyoe.utility.SensorType
 import ktx.app.gdxError
@@ -43,11 +43,12 @@ class PhysicComponent : Component<PhysicComponent> {
     companion object : ComponentType<PhysicComponent>() {
         fun physicsComponentFromShape2D(
             phyWorld: World,
+            entity: Entity,
             shape: Shape2D,
             x: Int = 0,
             y: Int = 0,
             myFriction: Float = 0f,
-            setUserData: BodyData? = null,
+            setUserData: EntityBodyData? = null,
             isSensor: Boolean = false,
             sensorType: SensorType = SensorType.NONE,
             categoryBit: Short = EntityCategory.GROUND.bit,
@@ -71,7 +72,7 @@ class PhysicComponent : Component<PhysicComponent> {
                                 if (isSensor) {
                                     box(bodyW, bodyH) {
                                         this.isSensor = true
-                                        this.userData = FixtureData(sensorType)
+                                        this.userData = FixtureSensorData(entity, sensorType)
                                         filter.categoryBits = categoryBit
                                         filter.maskBits = maskBit
                                         density = 1f
@@ -87,7 +88,7 @@ class PhysicComponent : Component<PhysicComponent> {
                                         vec2(-halfW, halfH),
                                     ) {
                                         this.isSensor = false
-                                        this.userData = FixtureData(sensorType)
+                                        this.userData = FixtureSensorData(entity, sensorType)
                                         filter.categoryBits = categoryBit
                                         filter.maskBits = maskBit
                                         density = 1f
@@ -104,6 +105,7 @@ class PhysicComponent : Component<PhysicComponent> {
 
         fun physicsComponentFromImage(
             phyWorld: World,
+            entity: Entity,
             image: Image,
             bodyType: BodyDef.BodyType = BodyDef.BodyType.DynamicBody,
             scalePhysicX: Float = 1f,
@@ -115,7 +117,7 @@ class PhysicComponent : Component<PhysicComponent> {
             fixedRotation: Boolean = true,
             allowSleep: Boolean = true,
             isSensor: Boolean = false,
-            setUserdata: BodyData? = null,
+            setUserdata: EntityBodyData? = null,
             myFriction: Float = 1f,
             sensorType: SensorType = SensorType.NONE,
         ): PhysicComponent {
@@ -136,7 +138,7 @@ class PhysicComponent : Component<PhysicComponent> {
             // fixture as box
             body.box(width, height, Vector2(offsetX, offsetY)) {
                 this.isSensor = isSensor
-                this.userData = FixtureData(sensorType)
+                this.userData = FixtureSensorData(entity, sensorType)
                 this.filter.categoryBits = categoryBit
                 this.filter.maskBits = maskBit
                 density = 1f

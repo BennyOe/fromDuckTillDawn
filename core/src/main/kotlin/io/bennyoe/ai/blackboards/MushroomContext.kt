@@ -22,7 +22,7 @@ import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.addToDebugView
-import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.EntityBodyData
 import ktx.collections.GdxArray
 import ktx.collections.isNotEmpty
 import ktx.collections.lastIndex
@@ -75,8 +75,8 @@ class MushroomContext(
         with(world) {
             nearbyEnemiesCmp.target = nearbyEnemiesCmp.nearbyEntities
                 .firstOrNull {
-                    val bodyData = it[PhysicComponent].body.userData as BodyData
-                    bodyData.type == EntityCategory.PLAYER
+                    val bodyData = it[PhysicComponent].body.userData as EntityBodyData
+                    bodyData.entityCategory == EntityCategory.PLAYER
                 } ?: BehaviorTreeComponent.NO_TARGET
         }
         return nearbyEnemiesCmp.target != BehaviorTreeComponent.NO_TARGET

@@ -13,7 +13,7 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.systems.PausableSystem
-import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.FloorType
 import ktx.box2d.body
 import ktx.box2d.loop
@@ -55,10 +55,11 @@ class CollisionSpawnSystem(
                     world.entity {
                         PhysicComponent.physicsComponentFromShape2D(
                             phyWorld,
+                            it,
                             mapObject.shape,
                             x,
                             y,
-                            setUserData = BodyData(EntityCategory.GROUND, it),
+                            setUserData = EntityBodyData(it, EntityCategory.GROUND),
                         )
                     }
                 }
@@ -79,8 +80,9 @@ class CollisionSpawnSystem(
                     val floorType: FloorType? = mapFloorType?.let { value -> FloorType.valueOf(value) }
                     PhysicComponent.physicsComponentFromShape2D(
                         phyWorld = phyWorld,
+                        it,
                         shape = mapObject.shape,
-                        setUserData = BodyData(EntityCategory.GROUND, it, floorType),
+                        setUserData = EntityBodyData(it, EntityCategory.GROUND, floorType),
                     )
                 }
             }
@@ -106,7 +108,7 @@ class CollisionSpawnSystem(
                             friction = 0f
                             filter.categoryBits = EntityCategory.WORLD_BOUNDARY.bit
                         }
-                        userData = BodyData(EntityCategory.WORLD_BOUNDARY, it)
+                        userData = EntityBodyData(it, EntityCategory.WORLD_BOUNDARY)
                     }
             }
         }

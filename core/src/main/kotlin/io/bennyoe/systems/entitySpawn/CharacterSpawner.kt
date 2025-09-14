@@ -51,8 +51,8 @@ import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.debug.DebugRenderer
-import io.bennyoe.utility.BodyData
-import io.bennyoe.utility.FixtureData
+import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.FixtureSensorData
 import io.bennyoe.utility.SensorType
 import ktx.app.gdxError
 import ktx.box2d.box
@@ -88,7 +88,7 @@ class CharacterSpawner(
         characterObjectsLayer.objects.forEach { characterObj ->
             val cfg = SpawnCfg.createSpawnCfg(characterObj.type ?: throw IllegalArgumentException("Type must not be null"))
             val relativeSize = size(cfg.animationModel, cfg.animationType)
-            world.entity {
+            world.entity { entity ->
                 // Add general components
                 val image =
                     // scale sets the image size
@@ -101,17 +101,18 @@ class CharacterSpawner(
                             }
                     }
                 image.image.name = cfg.entityCategory.name
-                it += image
+                entity += image
 
                 val animation = AnimationComponent()
                 animation.animationModel = cfg.animationModel
                 animation.nextAnimation(cfg.animationType)
                 animation.animationSoundTriggers = cfg.soundTrigger
-                it += animation
+                entity += animation
 
                 val physics =
                     PhysicComponent.physicsComponentFromImage(
                         phyWorld,
+                        entity,
                         image.image,
                         cfg.bodyType,
                         categoryBit = cfg.entityCategory.bit,
@@ -120,7 +121,7 @@ class CharacterSpawner(
                         scalePhysicY = cfg.scalePhysic.y,
                         myFriction = 0f,
                         offsetY = cfg.offsetPhysic.y,
-                        setUserdata = BodyData(cfg.entityCategory, it),
+                        setUserdata = EntityBodyData(entity, cfg.entityCategory),
                         sensorType = SensorType.HITBOX_SENSOR,
                     )
                 physics.categoryBits = cfg.entityCategory.bit
@@ -131,23 +132,23 @@ class CharacterSpawner(
                     Vector2(0f, 0f - physics.size.y * 0.5f) + cfg.offsetPhysic.y,
                 ) {
                     isSensor = true
-                    userData = FixtureData(SensorType.GROUND_TYPE_SENSOR)
+                    userData = FixtureSensorData(entity, SensorType.GROUND_TYPE_SENSOR)
                     filter.categoryBits = EntityCategory.SENSOR.bit
                     filter.maskBits = EntityCategory.GROUND.bit
                 }
 
-                it += physics
+                entity += physics
 
-                it += GroundTypeSensorComponent
+                entity += GroundTypeSensorComponent
 
-                it +=
+                entity +=
                     TransformComponent(
                         vec2(physics.body.position.x, physics.body.position.y),
                         physics.size.x,
                         physics.size.y,
                     )
-                it += HealthComponent()
-                it +=
+                entity += HealthComponent()
+                entity +=
                     DeadComponent(
                         cfg.keepCorpse,
                         cfg.removeDelay,
@@ -157,26 +158,26 @@ class CharacterSpawner(
                 val move = MoveComponent()
                 move.maxSpeed *= cfg.scaleSpeed
                 move.chaseSpeed = cfg.chaseSpeed
-                it += move
+                entity += move
 
                 if (cfg.canAttack) {
                     val attackCmp = AttackComponent()
                     attackCmp.extraRange *= cfg.attackExtraRange
                     attackCmp.maxDamage *= cfg.scaleAttackDamage
                     attackCmp.attackDelay = cfg.attackDelay
-                    it += attackCmp
+                    entity += attackCmp
                 }
 
-                it += ShaderRenderingComponent()
+                entity += ShaderRenderingComponent()
 
-                it += JumpComponent()
+                entity += JumpComponent()
 
-                it += SoundProfileComponent(cfg.soundProfile)
+                entity += SoundProfileComponent(cfg.soundProfile)
 
                 when (cfg.entityCategory) {
-                    EntityCategory.PLAYER -> spawnPlayerSpecifics(it, physics)
+                    EntityCategory.PLAYER -> spawnPlayerSpecifics(entity, physics)
 
-                    EntityCategory.ENEMY -> spawnEnemySpecifics(it, cfg)
+                    EntityCategory.ENEMY -> spawnEnemySpecifics(entity, cfg)
 
                     else -> throw IllegalArgumentException("Unsupported character type for 'EntityCategory': ${cfg.entityCategory}")
                 }
@@ -223,7 +224,7 @@ class CharacterSpawner(
             cfg.nearbyEnemiesSensorOffset,
         ) {
             isSensor = true
-            userData = FixtureData(SensorType.NEARBY_ENEMY_SENSOR)
+            userData = FixtureSensorData(entity, SensorType.NEARBY_ENEMY_SENSOR)
             filter.categoryBits = EntityCategory.SENSOR.bit
             filter.maskBits = EntityCategory.PLAYER.bit
         }
@@ -256,7 +257,7 @@ class CharacterSpawner(
             Vector2(0f, 0f - physics.size.y * 0.5f),
         ) {
             isSensor = true
-            userData = FixtureData(SensorType.GROUND_DETECT_SENSOR)
+            userData = FixtureSensorData(entity, SensorType.GROUND_DETECT_SENSOR)
             filter.categoryBits = EntityCategory.SENSOR.bit
             filter.maskBits = EntityCategory.GROUND.bit
         }

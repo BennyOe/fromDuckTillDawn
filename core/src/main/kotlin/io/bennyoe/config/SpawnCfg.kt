@@ -54,7 +54,8 @@ data class SpawnCfg(
                                 EntityCategory.GROUND.bit or
                                     EntityCategory.WORLD_BOUNDARY.bit or
                                     EntityCategory.SENSOR.bit or
-                                    EntityCategory.ENEMY.bit
+                                    EntityCategory.ENEMY.bit or
+                                    EntityCategory.WATER.bit
                             ),
                             animationModel = AnimationModel.PLAYER_DAWN,
                             animationType = AnimationType.IDLE,
@@ -130,7 +131,8 @@ data class SpawnCfg(
                             physicMaskCategory = (
                                 EntityCategory.GROUND.bit or
                                     EntityCategory.WORLD_BOUNDARY.bit or
-                                    EntityCategory.PLAYER.bit
+                                    EntityCategory.PLAYER.bit or
+                                    EntityCategory.WATER.bit
                             ),
                             animationModel = AnimationModel.ENEMY_MUSHROOM,
                             animationType = AnimationType.IDLE,

@@ -7,10 +7,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Family
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.component3
-import kotlin.collections.component4
 
 class WaterRenderer(
     val stage: Stage,
@@ -24,6 +20,8 @@ class WaterRenderer(
         orthoCam: OrthographicCamera,
     ) {
         stage.batch.begin()
+        stage.viewport.apply()
+
         stage.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         waterFamily.forEach { e ->
             val water = e[WaterComponent]
@@ -69,33 +67,77 @@ class WaterRenderer(
         stage.batch.end()
     }
 
+    /**
+     * Computes the sub-region of the FBO texture (in texel coordinates) that corresponds
+     * to a given rectangle in world space.
+     *
+     * The function takes into account:
+     * - the current camera world rect
+     * - the viewport content box inside the FBO (in case of letterboxing)
+     * - proper rounding (floor/ceil) to avoid off-by-one gaps
+     *
+     * @param rectWorldX the x-coordinate of the world-space rectangle (bottom-left corner)
+     * @param rectWorldY the y-coordinate of the world-space rectangle (bottom-left corner)
+     * @param rectWorldWidth the width of the rectangle in world units
+     * @param rectWorldHeight the height of the rectangle in world units
+     * @param camera the orthographic camera currently rendering the scene
+     * @param textureWidth the full width of the FBO texture in pixels
+     * @param textureHeight the full height of the FBO texture in pixels
+     *
+     * @return [TextureRegionRect] describing the subregion inside the FBO texture
+     *         (texel coordinates, bottom-origin). When drawing this region with a Batch,
+     *         set `flipY = true` to account for the FBO texture inversion.
+     */
     private fun worldRectToTexRegion(
-        rectX: Float,
-        rectY: Float,
-        rectW: Float,
-        rectH: Float,
-        cam: OrthographicCamera,
-        texW: Int,
-        texH: Int,
-    ): IntArray {
-        // visible world-area of FBO to world coordinates
-        val viewW = cam.viewportWidth * cam.zoom
-        val viewH = cam.viewportHeight * cam.zoom
-        val viewX = cam.position.x - viewW * 0.5f
-        val viewY = cam.position.y - viewH * 0.5f
+        rectWorldX: Float,
+        rectWorldY: Float,
+        rectWorldWidth: Float,
+        rectWorldHeight: Float,
+        camera: OrthographicCamera,
+        textureWidth: Int,
+        textureHeight: Int,
+    ): TextureRegionRect {
+        // 1. Camera world rect
+        val cameraWorldWidth = camera.viewportWidth * camera.zoom
+        val cameraWorldHeight = camera.viewportHeight * camera.zoom
+        val cameraWorldX = camera.position.x - cameraWorldWidth * 0.5f
+        val cameraWorldY = camera.position.y - cameraWorldHeight * 0.5f
 
-        // normalized u,v in [0..1] relative to FBO
-        val u0 = ((rectX - viewX) / viewW).coerceIn(0f, 1f)
-        val v0 = ((rectY - viewY) / viewH).coerceIn(0f, 1f)
-        val u1 = (((rectX + rectW) - viewX) / viewW).coerceIn(0f, 1f)
-        val v1 = (((rectY + rectH) - viewY) / viewH).coerceIn(0f, 1f)
+        // 2. Normalize world rect to [0..1] within the camera world rect
+        val normalizedU0 = ((rectWorldX - cameraWorldX) / cameraWorldWidth).coerceIn(0f, 1f)
+        val normalizedV0 = ((rectWorldY - cameraWorldY) / cameraWorldHeight).coerceIn(0f, 1f)
+        val normalizedU1 = (((rectWorldX + rectWorldWidth) - cameraWorldX) / cameraWorldWidth).coerceIn(0f, 1f)
+        val normalizedV1 = (((rectWorldY + rectWorldHeight) - cameraWorldY) / cameraWorldHeight).coerceIn(0f, 1f)
 
-        // convert to texel
-        val sx = (u0 * texW).toInt()
-        val sy = (v0 * texH).toInt()
-        val sw = ((u1 - u0) * texW).toInt().coerceAtLeast(1)
-        val sh = ((v1 - v0) * texH).toInt().coerceAtLeast(1)
+        // 3. Map normalized coordinates into the viewport's content box inside the FBO
+        val viewport = stage.viewport
+        val contentWidthInPixels = viewport.screenWidth
+        val contentHeightInPixels = viewport.screenHeight
+        val contentOffsetX = (textureWidth - contentWidthInPixels) * 0.5f
+        val contentOffsetY = (textureHeight - contentHeightInPixels) * 0.5f
 
-        return intArrayOf(sx, sy, sw, sh)
+        // 4. Convert to texel coordinates (bottom-origin)
+        val sourceX0 = kotlin.math.floor(contentOffsetX + normalizedU0 * contentWidthInPixels).toInt()
+        val sourceY0 = kotlin.math.floor(contentOffsetY + normalizedV0 * contentHeightInPixels).toInt()
+        val sourceX1 = kotlin.math.ceil(contentOffsetX + normalizedU1 * contentWidthInPixels).toInt()
+        val sourceY1 = kotlin.math.ceil(contentOffsetY + normalizedV1 * contentHeightInPixels).toInt()
+
+        // 5. Compute width and height of the region
+        val sourceWidth = (sourceX1 - sourceX0).coerceAtLeast(1)
+        val sourceHeight = (sourceY1 - sourceY0).coerceAtLeast(1)
+
+        return TextureRegionRect(
+            sourceX = sourceX0.coerceAtLeast(0),
+            sourceY = sourceY0.coerceAtLeast(0),
+            sourceWidth = sourceWidth,
+            sourceHeight = sourceHeight,
+        )
     }
+
+    private data class TextureRegionRect(
+        val sourceX: Int,
+        val sourceY: Int,
+        val sourceWidth: Int,
+        val sourceHeight: Int,
+    )
 }

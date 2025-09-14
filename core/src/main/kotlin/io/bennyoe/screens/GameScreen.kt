@@ -48,6 +48,7 @@ import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.TimeSystem
+import io.bennyoe.systems.WaterSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem
@@ -179,6 +180,7 @@ class GameScreen(
                 add(MoveSystem())
                 add(PhysicTransformSyncSystem())
                 add(TransformVisualSyncSystem())
+                add(WaterSystem())
                 add(CameraSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())

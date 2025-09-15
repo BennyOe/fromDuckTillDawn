@@ -89,37 +89,27 @@ class ContactHandlerSystem(
     // --- Handlers ------------------------------------------------------------
 
     private fun handleWaterBegin(p: Parts) {
-        // WATER <-> PLAYER (keep track of fixture pairs)
-        when {
-            p.aCategory == EntityCategory.WATER && p.bCategory == EntityCategory.PLAYER -> {
-                p.aBody.entity[WaterComponent]
-                    .fixturePairs
-                    .add(p.aFixture to p.bFixture)
-                logger.debug { "water contact" }
-            }
+        val (waterFixture, objectFixture) = p.waterAndObjectFixturesOrNull() ?: return
 
-            p.bCategory == EntityCategory.WATER && p.aCategory == EntityCategory.PLAYER -> {
-                p.bBody.entity[WaterComponent]
-                    .fixturePairs
-                    .add(p.bFixture to p.aFixture)
-                logger.debug { "water contact" }
-            }
+        val waterBodyData = waterFixture.bodyData ?: return
+        with(world) {
+            waterBodyData.entity[WaterComponent]
+                .fixturePairs
+                .add(waterFixture to objectFixture)
         }
+        logger.debug { "Correct water contact established." }
     }
 
     private fun handleWaterEnd(p: Parts) {
-        // clear pairs only when sensor matches and dynamic body leaves
-        when {
-            p.aFixture.hasSensorType(SensorType.WATER_SENSOR) && p.bFixture.body.type == BodyDef.BodyType.DynamicBody -> {
-                p.aBody.entity[WaterComponent]
-                    .fixturePairs
-                    .remove(p.aFixture to p.bFixture)
-            }
+        val (waterFixture, objectFixture) = p.waterAndObjectFixturesOrNull() ?: return
 
-            p.bFixture.hasSensorType(SensorType.WATER_SENSOR) && p.aFixture.body.type == BodyDef.BodyType.DynamicBody -> {
-                p.bBody.entity[WaterComponent]
+        val waterBodyData = waterFixture.bodyData ?: return
+        with(world) {
+            if (waterBodyData.entity has WaterComponent) {
+                waterBodyData.entity[WaterComponent]
                     .fixturePairs
-                    .remove(p.bFixture to p.aFixture)
+                    .remove(waterFixture to objectFixture)
+                logger.debug { "Water contact ended." }
             }
         }
     }
@@ -341,6 +331,21 @@ class ContactHandlerSystem(
 
                 else -> null
             }
+
+        fun waterAndObjectFixturesOrNull(): Pair<Fixture, Fixture>? {
+            val aIsWaterSensor = aFixture.hasSensorType(SensorType.WATER_SENSOR)
+            val bIsWaterSensor = bFixture.hasSensorType(SensorType.WATER_SENSOR)
+
+            // The player's main fixture has the HITBOX_SENSOR type
+            val aIsObjectHitbox = aFixture.hasSensorType(SensorType.HITBOX_SENSOR) && aFixture.body.type == BodyDef.BodyType.DynamicBody
+            val bIsObjectHitbox = bFixture.hasSensorType(SensorType.HITBOX_SENSOR) && bFixture.body.type == BodyDef.BodyType.DynamicBody
+
+            return when {
+                aIsWaterSensor && bIsObjectHitbox -> aFixture to bFixture
+                bIsWaterSensor && aIsObjectHitbox -> bFixture to aFixture
+                else -> null
+            }
+        }
     }
 
     private fun Contact.partsOrNull(): Parts? {

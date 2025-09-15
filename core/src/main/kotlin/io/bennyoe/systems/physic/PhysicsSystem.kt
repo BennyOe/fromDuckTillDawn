@@ -36,12 +36,12 @@ class PhysicsSystem(
             phyWorld.autoClearForces = false
         }
         super.onUpdate()
-        phyWorld.clearForces()
     }
 
     override fun onTick() {
         super.onTick()
         phyWorld.step(deltaTime, 6, 2)
+        phyWorld.clearForces()
     }
 
     override fun onTickEntity(entity: Entity) {

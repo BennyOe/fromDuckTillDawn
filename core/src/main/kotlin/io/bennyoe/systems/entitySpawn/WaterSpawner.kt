@@ -4,9 +4,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapLayer
 import com.badlogic.gdx.physics.box2d.BodyDef
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WATER_DETAIL
@@ -17,8 +15,7 @@ import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.FixtureSensorData
 import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.setupShader
-import io.bennyoe.water.WaterColumn
-import ktx.actors.alpha
+import io.bennyoe.systems.physic.WaterColumn
 import ktx.box2d.body
 import ktx.box2d.box
 import ktx.log.logger

@@ -1,4 +1,4 @@
-package io.bennyoe.water
+package io.bennyoe.systems.physic
 
 import com.badlogic.gdx.physics.box2d.Body
 

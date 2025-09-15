@@ -14,6 +14,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Family
 import io.bennyoe.components.WaterComponent
 
+private const val WATER_TRANSPARENCY = 0.35f
+
 /**
  * Handles the rendering of water entities.
  *
@@ -184,7 +186,7 @@ class WaterRenderer(
 
             // Set the desired base transparency of the water.
             // The shader uses this alpha value to mix the water texture and the distorted background.
-            sprite.setColor(1f, 1f, 1f, 0.25f)
+            sprite.setColor(1f, 1f, 1f, WATER_TRANSPARENCY)
 
             sprite.draw(polygonSpriteBatch)
         }

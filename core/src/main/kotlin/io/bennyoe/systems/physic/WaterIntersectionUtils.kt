@@ -1,4 +1,4 @@
-package io.bennyoe.water
+package io.bennyoe.systems.physic
 
 import com.badlogic.gdx.math.Polygon
 import com.badlogic.gdx.math.Vector2
@@ -11,7 +11,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-object IntersectionUtils {
+object WaterIntersectionUtils {
     /**
      * Returns the point where two (infinite) lines intersect, or null if they are parallel/overlapping.
      * @param cp1 Polygon side point 1

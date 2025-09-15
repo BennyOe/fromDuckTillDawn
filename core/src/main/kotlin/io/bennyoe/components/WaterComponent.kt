@@ -1,13 +1,12 @@
 package io.bennyoe.components
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.physics.box2d.Fixture
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.water.WaterColumn
+import io.bennyoe.systems.physic.WaterColumn
 
 const val WATER_DETAIL = 0.02f
 const val MIN_SPLASH_AREA: Float = 0.1f

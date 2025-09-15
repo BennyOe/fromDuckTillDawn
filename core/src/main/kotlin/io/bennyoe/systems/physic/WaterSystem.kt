@@ -5,7 +5,6 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
-import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.DRAG_MOD
 import io.bennyoe.components.LIFT_MOD
@@ -16,7 +15,6 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.TORQUE_DAMPING
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.GameConstants
-import io.bennyoe.water.IntersectionUtils
 import kotlin.math.min
 
 class WaterSystem : IteratingSystem(family { all(WaterComponent, PhysicComponent) }) {
@@ -28,11 +26,11 @@ class WaterSystem : IteratingSystem(family { all(WaterComponent, PhysicComponent
             val clipped: MutableList<Vector2> = ArrayList()
 
             // Compute intersection polygon (object ∩ fluid); skip if there is no overlap
-            if (!IntersectionUtils.findIntersectionOfFixtures(fluidFix, objectFix, clipped)) continue
+            if (!WaterIntersectionUtils.findIntersectionOfFixtures(fluidFix, objectFix, clipped)) continue
 
             // --- Buoyancy (Archimedes) ------------------------------------------------------------
             // Build a Polygon from the clipped points to obtain area and centroid
-            val intersectionPoly = IntersectionUtils.getIntersectionPolygon(clipped)
+            val intersectionPoly = WaterIntersectionUtils.getIntersectionPolygon(clipped)
 
             val centroid = Vector2()
             GeometryUtils.polygonCentroid(
@@ -123,7 +121,7 @@ class WaterSystem : IteratingSystem(family { all(WaterComponent, PhysicComponent
                 val col2 = Vector2(column.x, column.y)
 
                 intersectionPoints.zipWithNext().forEach { (p1, p2) ->
-                    val intersection = IntersectionUtils.intersection(col1, col2, p1, p2)
+                    val intersection = WaterIntersectionUtils.intersection(col1, col2, p1, p2)
                     if (intersection != null && intersection.y < column.height) {
                         if (body.linearVelocity.y < 0 && column.actualBody == null) {
                             column.actualBody = body

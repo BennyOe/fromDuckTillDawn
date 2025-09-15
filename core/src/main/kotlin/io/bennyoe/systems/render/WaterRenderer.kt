@@ -48,6 +48,9 @@ class WaterRenderer(
                     tex.height,
                 )
 
+            // Use additive blending for the water effect (GL\_ONE, GL\_ZERO) to overwrite destination with source color
+            stage.batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ZERO)
+
             // Draw the specific region of the FBO texture with the water shader
             stage.batch.draw(
                 tex,
@@ -62,6 +65,10 @@ class WaterRenderer(
                 false,
                 true,
             )
+
+            // The blend function is reset to standard alpha blending after drawing the water region, ensuring subsequent draw calls use normal
+            // transparency instead of the additive blend mode used for water effects.
+            stage.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         }
         stage.batch.shader = null
         stage.batch.end()

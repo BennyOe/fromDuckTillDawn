@@ -28,6 +28,7 @@ class WaterSystem(
     private val stage: Stage = inject("stage"),
 ) : IteratingSystem(family { all(WaterComponent) }) {
     private var spawnedThisTick = false
+    private val impulsedBodiesThisTick = hashSetOf<Body>()
 
     override fun onTickEntity(entity: Entity) {
         val waterCmp = entity[WaterComponent]
@@ -122,6 +123,7 @@ class WaterSystem(
 
     override fun onTick() {
         spawnedThisTick = false
+        impulsedBodiesThisTick.clear()
         super.onTick()
     }
 
@@ -143,16 +145,27 @@ class WaterSystem(
                     val intersection = WaterIntersectionUtils.intersection(col1, col2, p1, p2)
                     if (intersection != null && intersection.y < column.height) {
                         val falling = body.linearVelocity.y < 0f
-                        val notMarked = body !in waterCmp.enteredBodies
-                        if (falling && notMarked) {
-                            waterCmp.enteredBodies += body
-                            column.actualBody = body
-                            column.speed = body.linearVelocity.y * 3f / 100f
-                            if (!spawnedThisTick) {
+                        if (falling) {
+                            // 1) Always excite the column when a falling body crosses it
+                            //    Use additive impulse so multiple crossings accumulate naturally
+                            column.speed += body.linearVelocity.y * .06f / 100f
+
+                            // 2) First-ever contact bookkeeping & actualBody
+                            val firstContactEver = body !in waterCmp.enteredBodies
+                            if (firstContactEver) {
+                                waterCmp.enteredBodies += body
+                                column.actualBody = body
+                            }
+
+                            // 3) At most one particle spawn per tick, regardless of how many columns are excited
+                            if ((body !in impulsedBodiesThisTick) && !spawnedThisTick) {
                                 spawnedThisTick = true
                                 createSplashParticles(column)
                             }
-                            return
+                            impulsedBodiesThisTick += body
+
+                            // 4) For this column, one impulse this tick is enough
+                            return@forEach
                         }
                     } else if (body === column.actualBody) {
                         column.actualBody = null
@@ -179,11 +192,16 @@ class WaterSystem(
         if (bodyVel <= 3f) return
 
         world.entity {
-            it += TransformComponent(vec2(column.x, column.y), stage.camera.viewportWidth, stage.camera.viewportHeight)
+            it +=
+                TransformComponent(
+                    vec2(column.x, column.y + column.height * 0.3f),
+                    stage.camera.viewportWidth,
+                    stage.camera.viewportHeight,
+                )
             val particle =
                 ParticleComponent(
                     particleFile = Gdx.files.internal("particles/splash.p"),
-                    scaleFactor = 0.01f,
+                    scaleFactor = 0.15f,
                     motionScaleFactor = 0.2f,
                     looping = false,
                     stage = stage,

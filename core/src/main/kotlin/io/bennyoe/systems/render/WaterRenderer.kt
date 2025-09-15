@@ -170,13 +170,17 @@ class WaterRenderer(
             val vertices =
                 floatArrayOf(
                     c1.x,
-                    c1.y, // Bottom-left
+                    // Bottom-left
+                    c1.y,
                     c1.x,
-                    c1.height, // Top-left
+                    // Top-left
+                    c1.height,
                     c2.x,
-                    c2.height, // Top-right
+                    // Top-right
+                    c2.height,
                     c2.x,
-                    c2.y, // Bottom-right
+                    // Bottom-right
+                    c2.y,
                 )
 
             // A quad is not a simple triangle, so we need to triangulate it.

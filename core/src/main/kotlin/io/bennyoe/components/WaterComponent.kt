@@ -1,6 +1,7 @@
 package io.bennyoe.components
 
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
+import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.physics.box2d.Fixture
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
@@ -21,7 +22,7 @@ class WaterComponent(
     var dampening: Float = 0.025f,
     var spread: Float = 0.25f,
     var density: Float = 1f,
-    val columnSeparation: Float = WATER_DETAIL,
+    val enteredBodies: MutableSet<Body> = hashSetOf(),
 ) : Component<WaterComponent> {
     var shader: ShaderProgram? = null
     val uniforms: MutableMap<String, Any> = mutableMapOf()

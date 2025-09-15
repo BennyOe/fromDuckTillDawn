@@ -45,11 +45,11 @@ import io.bennyoe.systems.HitStopSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.ParticleRemoveSystem
 import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.TimeSystem
-import io.bennyoe.systems.physic.WaterSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem
@@ -66,6 +66,7 @@ import io.bennyoe.systems.light.EntityLightSystem
 import io.bennyoe.systems.light.FlashlightSystem
 import io.bennyoe.systems.physic.ContactHandlerSystem
 import io.bennyoe.systems.physic.PhysicsSystem
+import io.bennyoe.systems.physic.WaterSystem
 import io.bennyoe.systems.render.PhysicTransformSyncSystem
 import io.bennyoe.systems.render.RenderSystem
 import io.bennyoe.systems.render.TransformVisualSyncSystem
@@ -184,6 +185,7 @@ class GameScreen(
                 add(MoveSystem())
                 add(PhysicTransformSyncSystem())
                 add(TransformVisualSyncSystem())
+                add(ParticleRemoveSystem())
                 add(CameraSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())

@@ -33,7 +33,7 @@ class EntitySpawnSystem(
     private val mapObjectSpawner = MapObjectSpawner(world, stage)
     private val characterSpawner = CharacterSpawner(world, phyWorld, lightEngine, stage, debugRenderService, dawnAtlases, mushroomAtlases)
     private val rainMaskSpawner = RainMaskSpawner(world, stage)
-    private val waterSpawner = WaterSpawner(world, stage, phyWorld, worldObjectsAtlas)
+    private val waterSpawner = WaterSpawner(world, phyWorld)
 
     override fun onTickEntity(entity: Entity) {
     }

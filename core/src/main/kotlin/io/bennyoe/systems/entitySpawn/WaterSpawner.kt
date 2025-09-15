@@ -1,9 +1,7 @@
 package io.bennyoe.systems.entitySpawn
 
-import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapLayer
 import com.badlogic.gdx.physics.box2d.BodyDef
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.TransformComponent
@@ -11,11 +9,11 @@ import io.bennyoe.components.WATER_DETAIL
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
+import io.bennyoe.systems.physic.WaterColumn
 import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.FixtureSensorData
 import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.setupShader
-import io.bennyoe.systems.physic.WaterColumn
 import ktx.box2d.body
 import ktx.box2d.box
 import ktx.log.logger
@@ -29,12 +27,9 @@ import kotlin.math.max
 
 class WaterSpawner(
     private val world: World,
-    private val stage: Stage,
     private val phyWorld: com.badlogic.gdx.physics.box2d.World,
-    private val worldObjectsAtlas: TextureAtlas,
 ) {
     fun spawnWater(mapObject: MapLayer) {
-        val zIndex = mapObject.properties.get("zIndex", Int::class.java) ?: 0
         mapObject.objects.forEach { waterObject ->
 
             logger.debug {

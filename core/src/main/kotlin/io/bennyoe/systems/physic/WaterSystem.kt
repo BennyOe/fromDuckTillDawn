@@ -1,26 +1,39 @@
 package io.bennyoe.systems.physic
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.math.GeometryUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
+import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.DRAG_MOD
 import io.bennyoe.components.LIFT_MOD
 import io.bennyoe.components.MAX_DRAG
 import io.bennyoe.components.MAX_LIFT
 import io.bennyoe.components.MIN_SPLASH_AREA
-import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.ParticleComponent
+import io.bennyoe.components.ParticleType
 import io.bennyoe.components.TORQUE_DAMPING
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.GameConstants
+import ktx.math.vec2
+import kotlin.math.absoluteValue
 import kotlin.math.min
 
-class WaterSystem : IteratingSystem(family { all(WaterComponent, PhysicComponent) }) {
+class WaterSystem(
+    private val stage: Stage = inject("stage"),
+) : IteratingSystem(family { all(WaterComponent) }) {
+    private var spawnedThisTick = false
+
     override fun onTickEntity(entity: Entity) {
         val waterCmp = entity[WaterComponent]
-        val physicCmp = entity[PhysicComponent]
+
+        val bodiesInContact = waterCmp.fixturePairs.mapTo(hashSetOf()) { it.second.body }
+
         // Iterate over all current contact pairs between water (fixtureA) and an object (fixtureB)
         for ((fluidFix, objectFix) in waterCmp.fixturePairs) {
             val clipped: MutableList<Vector2> = ArrayList()
@@ -104,6 +117,12 @@ class WaterSystem : IteratingSystem(family { all(WaterComponent, PhysicComponent
                 updateColumns(objectBody, clipped, waterCmp)
             }
         }
+        waterCmp.enteredBodies.retainAll(bodiesInContact)
+    }
+
+    override fun onTick() {
+        spawnedThisTick = false
+        super.onTick()
     }
 
     private fun updateColumns(
@@ -123,16 +142,22 @@ class WaterSystem : IteratingSystem(family { all(WaterComponent, PhysicComponent
                 intersectionPoints.zipWithNext().forEach { (p1, p2) ->
                     val intersection = WaterIntersectionUtils.intersection(col1, col2, p1, p2)
                     if (intersection != null && intersection.y < column.height) {
-                        if (body.linearVelocity.y < 0 && column.actualBody == null) {
+                        val falling = body.linearVelocity.y < 0f
+                        val notMarked = body !in waterCmp.enteredBodies
+                        if (falling && notMarked) {
+                            waterCmp.enteredBodies += body
                             column.actualBody = body
                             column.speed = body.linearVelocity.y * 3f / 100f
-                            // TODO create splash particles
-//                            if (splashParticles) createSplashParticles(column)
+                            if (!spawnedThisTick) {
+                                spawnedThisTick = true
+                                createSplashParticles(column)
+                            }
+                            return
                         }
+                    } else if (body === column.actualBody) {
+                        column.actualBody = null
                     }
                 }
-            } else if (body === column.actualBody) {
-                column.actualBody = null
             }
 
             val bodyBelow = body.position.y < column.y
@@ -142,6 +167,30 @@ class WaterSystem : IteratingSystem(family { all(WaterComponent, PhysicComponent
                     ?.y
                     ?.let { it < column.y } ?: false
             if (bodyBelow || actualBelow) column.actualBody = null
+        }
+    }
+
+    private fun createSplashParticles(column: WaterColumn) {
+        val body = column.actualBody ?: return
+
+        val bodyVel = body.linearVelocity.y.absoluteValue
+
+        // Ignore very slow movements (no splash effect)
+        if (bodyVel <= 3f) return
+
+        world.entity {
+            it += TransformComponent(vec2(column.x, column.y), stage.camera.viewportWidth, stage.camera.viewportHeight)
+            val particle =
+                ParticleComponent(
+                    particleFile = Gdx.files.internal("particles/splash.p"),
+                    scaleFactor = 0.01f,
+                    motionScaleFactor = 0.2f,
+                    looping = false,
+                    stage = stage,
+                    zIndex = 90000,
+                    type = ParticleType.WATER_SPLASH,
+                )
+            it += particle
         }
     }
 }

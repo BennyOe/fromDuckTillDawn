@@ -396,6 +396,6 @@
   <properties>
    <property name="zIndex" type="int" value="20000"/>
   </properties>
-  <object id="133" x="381.334" y="157.333" width="229.333" height="69.3333"/>
+  <object id="133" x="388" y="182.667" width="99.9997" height="69.3333"/>
  </objectgroup>
 </map>

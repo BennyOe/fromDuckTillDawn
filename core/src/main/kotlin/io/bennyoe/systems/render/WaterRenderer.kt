@@ -64,54 +64,86 @@ class WaterRenderer(
             val waterCmp = e[WaterComponent]
             updateWaves(waterCmp)
 
-            // --- Combined Render Pass ---
-
-            // Step 1: Bind the FBO texture (the scene) to texture unit 1.
-            // The shader will use this as the background to be distorted.
+            // Bind the offscreen scene (FBO) texture to texture unit 1.
+            // The shader will sample this as the "background" that gets refracted.
             fboTexture.bind(1)
-            // Step 2: Reactivate texture unit 0. The PolygonSpriteBatch will automatically
-            // bind the water's own texture to this unit when `sprite.draw()` is called.
+
+            // Switch the active unit back to 0 so the PolygonSpriteBatch can bind the water texture
             Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0)
 
-            // Step 3: Set the custom shader on the batch and configure its uniforms.
+            // Install and bind the custom shader that mixes water + background with distortion.
             polygonSpriteBatch.shader = waterCmp.shader
             waterCmp.shader?.bind()
 
-            // Pass texture unit indices to the shader.
+            // Tell the shader which texture unit each sampler corresponds to:
+            //  - unit 0: water texture (atlas region)
+            //  - unit 1: FBO texture (offscreen-rendered scene)
             waterCmp.shader?.setUniformi("u_texture", 0)
             waterCmp.shader?.setUniformi("u_fbo_texture", 1)
 
-            val vp = stage.viewport
-            val texW = fboTexture.width
-            val texH = fboTexture.height
-            val contentW = vp.screenWidth
-            val contentH = vp.screenHeight
-            val offX = (texW - contentW) * 0.5f
-            val offY = (texH - contentH) * 0.5f
+            letterBoxAndHiDpiMapping(fboTexture, waterCmp)
 
-            waterCmp.shader!!.setUniformf("u_fboSize", texW.toFloat(), texH.toFloat())
-            waterCmp.shader!!.setUniformf("u_contentOffset", offX, offY)
-            waterCmp.shader!!.setUniformf("u_contentSize", contentW.toFloat(), contentH.toFloat())
-
-            // Update time-dependent and other custom uniforms for the distortion effect.
+            // Per-frame uniforms for the distortion (time, speeds, intensity, etc.)
             shaderService.updateUniformsPerFrame(
                 shader = waterCmp.shader!!,
                 uniforms = waterCmp.uniforms,
                 continuousTime = continuousTime,
             )
 
-            // Step 4: Ensure standard alpha blending is active. The shader will use the sprite's
-            // alpha to mix the water and background colors.
+            // Ensure standard compositing: background (FBO) mixed with water texture by sprite alpha.
             polygonSpriteBatch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
-            // Step 5: Draw the wave geometry. The batch will send the vertices, texture coordinates,
+            // Draw the wave geometry. The batch will send the vertices, texture coordinates,
             // and color (including alpha) to the shader, which handles the final composition.
             drawWaves(waterCmp, orthoCam)
 
-            // Step 6: Reset the shader on the batch to `null` to prevent it from affecting
+            // Reset the shader on the batch to `null` to prevent it from affecting
             // subsequent, unrelated draw calls in the main render loop.
             polygonSpriteBatch.shader = null
         }
+    }
+
+    /**
+     * Calculates and sets shader uniforms for letterboxing and HiDPI-aware mapping.
+     *
+     * This method determines the position and size of the actual viewport content within the FBO texture,
+     * accounting for HiDPI displays and letterboxing (e.g., black bars from Fit/ExtendViewport).
+     * It computes the content offset and size in FBO texels and passes them as uniforms to the shader.
+     *
+     * @param fboTexture The Framebuffer Object texture containing the rendered scene.
+     * @param waterCmp The WaterComponent whose shader will receive the uniforms.
+     */
+    private fun letterBoxAndHiDpiMapping(
+        fboTexture: Texture,
+        waterCmp: WaterComponent,
+    ) {
+        val vp = stage.viewport
+        val fboTexW = fboTexture.width.toFloat() // FBO size in *texels* (physical pixels)
+        val fboTexH = fboTexture.height.toFloat()
+
+        // Logical window size (maybe half the FBO on HiDPI / Retina)
+        val winLogicalW = Gdx.graphics.width.toFloat()
+        val winLogicalH = Gdx.graphics.height.toFloat()
+
+        // Content box as fractions of the logical window (0..1)
+        val contentRelX = vp.screenX / winLogicalW
+        val contentRelY = vp.screenY / winLogicalH
+        val contentRelW = vp.screenWidth / winLogicalW
+        val contentRelH = vp.screenHeight / winLogicalH
+
+        // Convert those fractions to *FBO texels* (works for both FBO=Backbuffer and FBO=Viewport)
+        val contentOffsetXInFbo = contentRelX * fboTexW
+        val contentOffsetYInFbo = contentRelY * fboTexH
+        val contentWidthInFbo = contentRelW * fboTexW
+        val contentHeightInFbo = contentRelH * fboTexH
+
+        // Pass letterbox info to the shader:
+        //  - u_fboSize:            full FBO texture size (texels)
+        //  - u_contentOffset:      bottom-left of the viewport content inside the FBO (texels)
+        //  - u_contentSize:        size of the viewport content inside the FBO (texels)
+        waterCmp.shader!!.setUniformf("u_fboSize", fboTexW, fboTexH)
+        waterCmp.shader!!.setUniformf("u_contentOffset", contentOffsetXInFbo, contentOffsetYInFbo)
+        waterCmp.shader!!.setUniformf("u_contentSize", contentWidthInFbo, contentHeightInFbo)
     }
 
     /**

@@ -1,10 +1,11 @@
-package io.bennyoe.systems
+package io.bennyoe.systems.physic
 
 import com.badlogic.gdx.math.GeometryUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
+import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.DRAG_MOD
 import io.bennyoe.components.LIFT_MOD
@@ -14,7 +15,7 @@ import io.bennyoe.components.MIN_SPLASH_AREA
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.TORQUE_DAMPING
 import io.bennyoe.components.WaterComponent
-import io.bennyoe.config.GameConstants.GRAVITY
+import io.bennyoe.config.GameConstants
 import io.bennyoe.water.IntersectionUtils
 import kotlin.math.min
 
@@ -47,7 +48,7 @@ class WaterSystem : IteratingSystem(family { all(WaterComponent, PhysicComponent
             val objectBody = objectFix.body
             val fluidBody = fluidFix.body
 
-            val gravity = GRAVITY // Vector2(gx, gy)
+            val gravity = GameConstants.GRAVITY // Vector2(gx, gy)
             val buoyancyForce = Vector2(-0f, -gravity).scl(displacedMass)
             objectBody.applyForce(buoyancyForce, centroid, true)
 
@@ -127,6 +128,7 @@ class WaterSystem : IteratingSystem(family { all(WaterComponent, PhysicComponent
                         if (body.linearVelocity.y < 0 && column.actualBody == null) {
                             column.actualBody = body
                             column.speed = body.linearVelocity.y * 3f / 100f
+                            // TODO create splash particles
 //                            if (splashParticles) createSplashParticles(column)
                         }
                     }

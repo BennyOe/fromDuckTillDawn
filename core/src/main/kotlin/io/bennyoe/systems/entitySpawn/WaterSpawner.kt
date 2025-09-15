@@ -27,6 +27,7 @@ import ktx.tiled.height
 import ktx.tiled.width
 import ktx.tiled.x
 import ktx.tiled.y
+import kotlin.experimental.or
 import kotlin.math.max
 
 class WaterSpawner(
@@ -48,10 +49,6 @@ class WaterSpawner(
                 val height = waterObject.height * UNIT_SCALE
                 val centerX = position.x + width * 0.5f
                 val centerY = position.y + height * 0.5f
-                val imageCmp = ImageComponent(stage, zIndex = zIndex)
-                imageCmp.image = Image(worldObjectsAtlas.findRegion("water"))
-                imageCmp.image.alpha = 0.15f
-                entity += imageCmp
                 val transformCmp =
                     TransformComponent(
                         position.cpy(),
@@ -93,11 +90,12 @@ class WaterSpawner(
                             this.isSensor = true
                             this.userData = FixtureSensorData(entity, SensorType.WATER_SENSOR)
                             filter.categoryBits = EntityCategory.WATER.bit
-                            filter.maskBits = EntityCategory.PLAYER.bit
+                            filter.maskBits = EntityCategory.PLAYER.bit or EntityCategory.ENEMY.bit
                             density = waterCmp.density
                             friction = 0.2f
                         }
                     }
+                entity += physicCmp
 
                 initializeWaveColumns(centerX, width, centerY, height, waterCmp)
             }

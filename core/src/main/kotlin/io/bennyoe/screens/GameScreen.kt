@@ -6,6 +6,7 @@ import com.badlogic.gdx.ai.GdxAI
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.FrameBuffer
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer
@@ -48,7 +49,7 @@ import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.TimeSystem
-import io.bennyoe.systems.WaterSystem
+import io.bennyoe.systems.physic.WaterSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem
@@ -103,6 +104,7 @@ class GameScreen(
     private val stage = stages.stage
     private val uiStage = stages.uiStage
     private val spriteBatch = context.inject<SpriteBatch>()
+    private val polygonSpriteBatch = context.inject<PolygonSpriteBatch>()
     private val phyWorld =
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
             autoClearForces = false
@@ -145,6 +147,7 @@ class GameScreen(
                 add("shapeRenderer", ShapeRenderer())
                 add("debugRenderService", DefaultDebugRenderService())
                 add("spriteBatch", spriteBatch)
+                add("polygonSpriteBatch", polygonSpriteBatch)
                 add("profiler", profiler)
                 add("lightEngine", lightEngine)
                 add("renderTargets", targets)
@@ -164,6 +167,7 @@ class GameScreen(
                 add(DamageTextSystem())
                 add(JumpSystem())
                 add(ContactHandlerSystem())
+                add(WaterSystem())
                 add(PhysicsSystem())
                 add(AmbienceSystem())
                 add(ReverbSystem())
@@ -180,7 +184,6 @@ class GameScreen(
                 add(MoveSystem())
                 add(PhysicTransformSyncSystem())
                 add(TransformVisualSyncSystem())
-                add(WaterSystem())
                 add(CameraSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())

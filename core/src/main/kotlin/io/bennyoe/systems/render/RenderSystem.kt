@@ -2,6 +2,8 @@ package io.bennyoe.systems.render
 
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.tiled.TiledMapImageLayer
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
@@ -34,6 +36,8 @@ class RenderSystem(
     private val stage: Stage = inject("stage"),
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
     private val renderTargets: RenderTargets = inject("renderTargets"),
+    polygonSpriteBatch: PolygonSpriteBatch = inject("polygonSpriteBatch"),
+    worldObjectsAtlas: TextureAtlas = inject("worldObjectsAtlas"),
 ) : IntervalSystem(
         enabled = !SHOW_ONLY_DEBUG,
     ),
@@ -53,7 +57,7 @@ class RenderSystem(
     private val renderQueue = mutableListOf<RenderableElement>()
 
     private val shaderService = ShaderService()
-    private val waterRenderer = WaterRenderer(stage)
+    private val waterRenderer = WaterRenderer(stage, polygonSpriteBatch, worldObjectsAtlas)
     private val lightingRenderer = LightingRenderer(stage, lightEngine, mapRenderer, shaderService)
 
     override fun handle(event: Event?): Boolean {

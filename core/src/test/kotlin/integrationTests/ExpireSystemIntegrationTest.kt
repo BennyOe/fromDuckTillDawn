@@ -84,7 +84,7 @@ class ExpireSystemIntegrationTest {
             world.entity {
                 it += AttackComponent()
                 it += PhysicComponent().apply { body = bodyMock }
-                it += MoveComponent(maxSpeed = 10f)
+                it += MoveComponent(maxWalkSpeed = 10f)
                 it += HealthComponent(current = -1f)
                 it += FlashlightComponent(spotLight, pointLight)
                 it += IntentionComponent()

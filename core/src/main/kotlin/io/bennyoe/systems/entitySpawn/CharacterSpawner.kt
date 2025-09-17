@@ -126,6 +126,7 @@ class CharacterSpawner(
                     )
                 physics.categoryBits = cfg.entityCategory.bit
 
+                // Ground type sensor
                 physics.body.box(
                     physics.size.x * 0.99f,
                     0.01f,
@@ -135,6 +136,18 @@ class CharacterSpawner(
                     userData = FixtureSensorData(entity, SensorType.GROUND_TYPE_SENSOR)
                     filter.categoryBits = EntityCategory.SENSOR.bit
                     filter.maskBits = EntityCategory.GROUND.bit
+                }
+
+                // Underwater sensor
+                physics.body.box(
+                    physics.size.x * 0.99f,
+                    0.01f,
+                    Vector2(0f, 0f + physics.size.y * 0.5f) + cfg.offsetPhysic.y,
+                ) {
+                    isSensor = true
+                    userData = FixtureSensorData(entity, SensorType.UNDER_WATER_SENSOR)
+                    filter.categoryBits = EntityCategory.SENSOR.bit
+                    filter.maskBits = EntityCategory.WATER.bit
                 }
 
                 entity += physics
@@ -156,7 +169,7 @@ class CharacterSpawner(
                     )
 
                 val move = MoveComponent()
-                move.maxSpeed *= cfg.scaleSpeed
+                move.maxWalkSpeed *= cfg.scaleSpeed
                 move.chaseSpeed = cfg.chaseSpeed
                 entity += move
 

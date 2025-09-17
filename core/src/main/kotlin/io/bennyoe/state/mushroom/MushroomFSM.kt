@@ -21,6 +21,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
                 ctx.wantsToWalk -> ctx.changeState(WALK)
                 ctx.wantsToAttack -> ctx.changeState(ATTACK)
                 ctx.wantsToJump -> ctx.changeState(JUMP)
+                hasWaterContact(ctx) -> ctx.changeState(DEATH)
             }
         }
 
@@ -40,6 +41,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
                 ctx.wantsToAttack -> ctx.changeState(ATTACK)
                 ctx.wantsToIdle -> ctx.changeState(IDLE)
                 ctx.wantsToJump -> ctx.changeState(JUMP)
+                hasWaterContact(ctx) -> ctx.changeState(DEATH)
             }
         }
 
@@ -103,7 +105,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
             ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
             ctx.attackCmp.applyAttack = false
             ctx.moveComponent.lockMovement = true
-            ctx.moveComponent.moveVelocity = 0f
+            ctx.moveComponent.moveVelocity.x = 0f
             ctx.healthComponent.takenDamage = 0f
         }
 
@@ -117,6 +119,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
 
     data object DEATH : MushroomFSM() {
         override fun enter(ctx: MushroomStateContext) {
+            ctx.healthComponent.current = 0f
             ctx.setAnimation(
                 AnimationType.DYING,
                 Animation.PlayMode.NORMAL,

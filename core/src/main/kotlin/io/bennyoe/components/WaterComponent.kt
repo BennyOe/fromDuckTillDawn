@@ -9,14 +9,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.systems.physic.WaterColumn
 
-const val WATER_DETAIL = 0.02f
-const val MIN_SPLASH_AREA: Float = 0.1f
-const val DRAG_MOD: Float = 0.25f
-const val LIFT_MOD: Float = 0.25f
-const val MAX_DRAG: Float = 2000f
-const val MAX_LIFT: Float = 500f
-const val TORQUE_DAMPING = 100f
-
 class WaterComponent(
     var tension: Float = 0.025f,
     var dampening: Float = 0.025f,

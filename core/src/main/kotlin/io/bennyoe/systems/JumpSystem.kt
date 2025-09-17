@@ -7,6 +7,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.HasGroundContact
+import io.bennyoe.components.HasWaterContact
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
@@ -46,7 +47,7 @@ class JumpSystem(
         calculateJumpBuffer(intentionCmp, entity, jumpCmp)
 
         // get extra fall speed
-        physicCmp.body.gravityScale = if (vel.y < 0f) FALL_GRAVITY_SCALE else 1f
+        physicCmp.body.gravityScale = if (entity hasNo HasWaterContact && vel.y < 0f) FALL_GRAVITY_SCALE else 1f
 
         when (stateCmp.stateMachine.currentState) {
             PlayerFSM.FALL -> jumpCmp.doubleJumpGraceTimer -= deltaTime

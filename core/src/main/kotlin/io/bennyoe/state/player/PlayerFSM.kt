@@ -26,6 +26,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering IDLE" }
             ctx.setAnimation(AnimationType.IDLE)
+            ctx.intentionCmp.wantsToBash = false
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -39,6 +40,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToAttack -> ctx.changeState(ATTACK_1)
                 ctx.wantsToBash -> ctx.changeState(BASH)
                 isFalling(ctx) -> ctx.changeState(FALL)
+                hasWaterContact(ctx) -> ctx.changeState(SWIM)
             }
         }
 
@@ -73,6 +75,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToJump && hasGroundContact(ctx) -> ctx.changeState(JUMP)
                 ctx.wantsToCrouch -> ctx.changeState(CROUCH_WALK)
                 isFalling(ctx) -> ctx.changeState(FALL)
+                hasWaterContact(ctx) -> ctx.changeState(SWIM)
             }
         }
 
@@ -152,6 +155,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToBash -> ctx.changeState(BASH)
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
+                hasWaterContact(ctx) -> ctx.changeState(SWIM)
                 // otherwise remain in FALL
                 else -> ctx.intentionCmp.wantsToJump = false
             }
@@ -303,6 +307,23 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx: PlayerStateContext,
             telegram: Telegram,
         ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    data object SWIM : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            ctx.setAnimation(AnimationType.SWIM)
+            logger.debug { "Entering SWIM" }
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            if (!hasWaterContact(ctx)) {
+                ctx.changeState(IDLE)
+                return
+            }
+            if (ctx.wantsToJump && !ctx.physicComponent.isUnderWater) {
+                ctx.changeState(JUMP)
+            }
+        }
     }
 
     data object BASH : PlayerFSM() {

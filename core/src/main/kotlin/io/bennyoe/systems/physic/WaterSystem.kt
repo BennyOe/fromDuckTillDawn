@@ -9,20 +9,21 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.components.DRAG_MOD
-import io.bennyoe.components.LIFT_MOD
-import io.bennyoe.components.MAX_DRAG
-import io.bennyoe.components.MAX_LIFT
-import io.bennyoe.components.MIN_SPLASH_AREA
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.ParticleType
-import io.bennyoe.components.TORQUE_DAMPING
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.GameConstants
 import ktx.math.vec2
 import kotlin.math.absoluteValue
 import kotlin.math.min
+
+const val MIN_SPLASH_AREA: Float = 0.1f
+const val DRAG_MOD: Float = 0.35f
+const val LIFT_MOD: Float = 0.85f
+const val MAX_DRAG: Float = 2000f
+const val MAX_LIFT: Float = 500f
+const val TORQUE_DAMPING = 100f
 
 class WaterSystem(
     private val stage: Stage = inject("stage"),
@@ -148,7 +149,7 @@ class WaterSystem(
                         if (falling) {
                             // 1) Always excite the column when a falling body crosses it
                             //    Use additive impulse so multiple crossings accumulate naturally
-                            column.speed += body.linearVelocity.y * .06f / 100f
+                            column.speed += body.linearVelocity.y * .26f / 100f
 
                             // 2) First-ever contact bookkeeping & actualBody
                             val firstContactEver = body !in waterCmp.enteredBodies

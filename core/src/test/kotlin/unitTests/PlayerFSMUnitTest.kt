@@ -92,7 +92,7 @@ class PlayerFSMUnitTest {
                 it += physicCmp
                 it += HealthComponent()
                 it += IntentionComponent()
-                it += MoveComponent(maxSpeed = 10f)
+                it += MoveComponent(maxWalkSpeed = 10f)
                 it += imgCmp
                 it += InputComponent()
                 it += animationCmp

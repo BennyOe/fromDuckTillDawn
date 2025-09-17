@@ -31,6 +31,8 @@ class PhysicComponent : Component<PhysicComponent> {
     var impulse: Vector2 = Vector2()
     var categoryBits = EntityCategory.GROUND.bit
     var activeGroundContacts: Int = 0
+    var activeWaterContacts: Int = 0
+    var isUnderWater: Boolean = false
     var floorType: FloorType? = null
     lateinit var body: Body
 

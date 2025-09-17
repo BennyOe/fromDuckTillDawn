@@ -5,7 +5,6 @@ import com.badlogic.gdx.physics.box2d.BodyDef
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.TransformComponent
-import io.bennyoe.components.WATER_DETAIL
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
@@ -24,6 +23,8 @@ import ktx.tiled.x
 import ktx.tiled.y
 import kotlin.experimental.or
 import kotlin.math.max
+
+const val WATER_DETAIL = 0.02f
 
 class WaterSpawner(
     private val world: World,
@@ -80,9 +81,12 @@ class WaterSpawner(
                             position = vec2(centerX, centerY),
                         ) {
                             this.isSensor = true
-                            this.userData = FixtureSensorData(entity, SensorType.WATER_SENSOR)
+                            this.userData = FixtureSensorData(entity, SensorType.IN_WATER_SENSOR)
                             filter.categoryBits = EntityCategory.WATER.bit
-                            filter.maskBits = EntityCategory.PLAYER.bit or EntityCategory.ENEMY.bit
+                            filter.maskBits =
+                                EntityCategory.PLAYER.bit or
+                                EntityCategory.ENEMY.bit or
+                                EntityCategory.SENSOR.bit
                             density = waterCmp.density
                             friction = 0.2f
                         }

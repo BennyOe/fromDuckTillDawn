@@ -9,12 +9,15 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
+import io.bennyoe.components.HasWaterContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.config.GameConstants
+import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.systems.PausableSystem
 import ktx.log.logger
 import ktx.math.component1
@@ -49,13 +52,15 @@ class PhysicsSystem(
         val moveCmp = entity.getOrNull(MoveComponent)
         val jumpCmp = entity.getOrNull(JumpComponent)
         val bashCmp = entity.getOrNull(BashComponent)
+        val stateCmp = entity.getOrNull(StateComponent)
         val imageCmp = entity[ImageComponent]
         val healthCmp = entity[HealthComponent]
 
         setJumpImpulse(jumpCmp, physicCmp)
-        setWalkImpulse(moveCmp, physicCmp)
+        setWalkImpulse(moveCmp, physicCmp, stateCmp)
         setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
         setGroundContact(entity)
+        setWaterContact(entity)
         if (moveCmp != null && (moveCmp.throwBack || moveCmp.throwBackCooldown > 0)) {
             setThrowBackImpulse(moveCmp, physicCmp, healthCmp)
         }
@@ -118,7 +123,7 @@ class PhysicsSystem(
             }
             if (it.throwBackCooldown > 0) {
                 it.throwBackCooldown -= deltaTime
-                moveCmp.moveVelocity = 0f
+                moveCmp.moveVelocity.x = 0f
             }
         }
     }
@@ -126,10 +131,14 @@ class PhysicsSystem(
     private fun setWalkImpulse(
         moveCmp: MoveComponent?,
         physicCmp: PhysicComponent,
+        stateCmp: StateComponent<*, *>?,
     ) {
         moveCmp?.let {
             if (it.throwBackCooldown > 0) return
-            physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity - physicCmp.body.linearVelocity.x)
+            physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity.x - physicCmp.body.linearVelocity.x)
+            if (stateCmp?.stateMachine?.currentState == PlayerFSM.SWIM) {
+                physicCmp.impulse.y = physicCmp.body.mass * (moveCmp.moveVelocity.y - physicCmp.body.linearVelocity.y)
+            }
         }
     }
 
@@ -145,15 +154,28 @@ class PhysicsSystem(
         }
     }
 
-    private fun setGroundContact(playerEntity: Entity) {
-        val physicCmp = playerEntity[PhysicComponent]
+    private fun setGroundContact(entity: Entity) {
+        val physicCmp = entity[PhysicComponent]
         if (physicCmp.activeGroundContacts > 0) {
-            playerEntity.configure {
+            entity.configure {
                 it += HasGroundContact
             }
         } else {
-            playerEntity.configure {
+            entity.configure {
                 it -= HasGroundContact
+            }
+        }
+    }
+
+    private fun setWaterContact(entity: Entity) {
+        val physicCmp = entity[PhysicComponent]
+        if (physicCmp.activeWaterContacts > 0) {
+            entity.configure {
+                it += HasWaterContact
+            }
+        } else {
+            entity.configure {
+                it -= HasWaterContact
             }
         }
     }

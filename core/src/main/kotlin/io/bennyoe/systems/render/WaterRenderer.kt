@@ -216,7 +216,7 @@ class WaterRenderer(
         val s = waterCmp.spread
 
         // Run multiple passes for a more stable and fluid simulation.
-        repeat(8) {
+        repeat(26) {
             // Calculate how much height/speed to transfer between neighbors.
             waterCmp.columns.zipWithNext().forEachIndexed { idx, (left, right) ->
                 val d = s * (right.height - left.height)

@@ -26,6 +26,8 @@ class InputSystem : IteratingSystem(family { all(InputComponent, IntentionCompon
             intentionCmp.wantsToAttack2 = attack2JustPressed
             intentionCmp.wantsToAttack3 = attack3JustPressed
             intentionCmp.wantsToCrouch = crouchJustPressed
+            intentionCmp.wantsToSwimUp = swimUpJustPressed
+            intentionCmp.wantsToSwimDown = swimDownJustPressed
 
             // ----- Events that gets triggered only once -----------
             if (jumpJustPressed) {

@@ -65,6 +65,10 @@ enum class AnimationType(
         atlasKey = "jump01",
         playMode = PlayMode.LOOP,
     ),
+    SWIM(
+        atlasKey = "swim01",
+        playMode = PlayMode.LOOP,
+    ),
     ATTACK_1(
         atlasKey = "attack01",
         PlayMode.NORMAL,

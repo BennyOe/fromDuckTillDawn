@@ -58,7 +58,8 @@ class ContactHandlerSystem(
         handleNearbyEnemiesBegin(parts)
         handlePlayerEnemyHitboxCollision(parts)
         handleGroundTypeBegin(parts)
-        handleWaterBegin(parts)
+        handleInWaterBegin(parts)
+        handleUnderWaterBegin(parts)
     }
 
     override fun endContact(contact: Contact) {
@@ -67,7 +68,8 @@ class ContactHandlerSystem(
         handleReverbZoneEnd(parts)
         handleGroundEnd(parts)
         handleNearbyEnemiesEnd(parts)
-        handleWaterEnd(parts)
+        handleInWaterEnd(parts)
+        handleUnderWaterEnd(parts)
     }
 
     override fun preSolve(
@@ -88,28 +90,38 @@ class ContactHandlerSystem(
 
     // --- Handlers ------------------------------------------------------------
 
-    private fun handleWaterBegin(p: Parts) {
+    private fun handleInWaterBegin(p: Parts) {
         val (waterFixture, objectFixture) = p.waterAndObjectFixturesOrNull() ?: return
 
         val waterBodyData = waterFixture.bodyData ?: return
+        val objectPhysicCmp = objectFixture.bodyData?.entity?.getOrNull(PhysicComponent)
+
         with(world) {
             waterBodyData.entity[WaterComponent]
                 .fixturePairs
                 .add(waterFixture to objectFixture)
+            if (objectPhysicCmp != null) {
+                objectPhysicCmp.activeWaterContacts++
+            }
         }
         logger.debug { "Correct water contact established." }
     }
 
-    private fun handleWaterEnd(p: Parts) {
+    private fun handleInWaterEnd(p: Parts) {
         val (waterFixture, objectFixture) = p.waterAndObjectFixturesOrNull() ?: return
 
         val waterBodyData = waterFixture.bodyData ?: return
+        val objectPhysicCmp = objectFixture.bodyData?.entity?.getOrNull(PhysicComponent)
+
         with(world) {
             if (waterBodyData.entity has WaterComponent) {
                 waterBodyData.entity[WaterComponent]
                     .fixturePairs
                     .remove(waterFixture to objectFixture)
                 logger.debug { "Water contact ended." }
+                if (objectPhysicCmp != null) {
+                    objectPhysicCmp.activeWaterContacts--
+                }
             }
         }
     }
@@ -190,6 +202,24 @@ class ContactHandlerSystem(
                 val contact = player.entity[ReverbZoneContactComponent]
                 contact.decreaseContact(zone)
             }
+        }
+    }
+
+    private fun handleUnderWaterBegin(p: Parts) {
+        // UNDER_WATER_SENSOR overlaps WATER
+        val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
+        with(world) {
+            logger.debug { "Under Water" }
+            entityWithSensor.entity.getOrNull(PhysicComponent)?.isUnderWater = true
+        }
+    }
+
+    private fun handleUnderWaterEnd(p: Parts) {
+        // UNDER_WATER_SENSOR overlaps WATER
+        val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
+        with(world) {
+            logger.debug { "NOT under Water" }
+            entityWithSensor.entity.getOrNull(PhysicComponent)?.isUnderWater = false
         }
     }
 
@@ -316,6 +346,13 @@ class ContactHandlerSystem(
                 else -> null
             }
 
+        fun entityAndUnderWaterWhenSensor(sensor: SensorType): Pair<EntityBodyData, EntityBodyData>? =
+            when {
+                aFixture.hasSensorType(sensor) && bCategory == EntityCategory.WATER -> aBody to bBody
+                bFixture.hasSensorType(sensor) && aCategory == EntityCategory.WATER -> bBody to aBody
+                else -> null
+            }
+
         fun entityWithSensorWhenTouchingGround(sensor: SensorType): EntityBodyData? = entityAndGroundWhenSensor(sensor)?.first
 
         fun playerAndSensorOwnerOnEnd(
@@ -333,8 +370,8 @@ class ContactHandlerSystem(
             }
 
         fun waterAndObjectFixturesOrNull(): Pair<Fixture, Fixture>? {
-            val aIsWaterSensor = aFixture.hasSensorType(SensorType.WATER_SENSOR)
-            val bIsWaterSensor = bFixture.hasSensorType(SensorType.WATER_SENSOR)
+            val aIsWaterSensor = aFixture.hasSensorType(SensorType.IN_WATER_SENSOR)
+            val bIsWaterSensor = bFixture.hasSensorType(SensorType.IN_WATER_SENSOR)
 
             // The player's main fixture has the HITBOX_SENSOR type
             val aIsObjectHitbox = aFixture.hasSensorType(SensorType.HITBOX_SENSOR) && aFixture.body.type == BodyDef.BodyType.DynamicBody

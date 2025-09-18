@@ -3,12 +3,14 @@ package io.bennyoe.systems.render
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
+import com.github.quillraven.fleks.EntityTag
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.RainComponent
 import io.bennyoe.components.SkyComponent
 import io.bennyoe.components.SkyComponentType
 import io.bennyoe.components.TransformComponent
@@ -63,13 +65,13 @@ class TransformVisualSyncSystem(
             imageCmp.image.setSize(targetWidth, targetHeight)
         }
 
-        // Update position for ParticleComponent
+        // Update position for ParticleComponents that can (must) appear on the whole viewport like shooting-star and rain
         entity.getOrNull(ParticleComponent)?.let { particleCmp ->
-            if (skyCmp != null) {
+            if (skyCmp != null || entity has RainComponent) {
                 val vw = orthoCam.viewportWidth * orthoCam.zoom
                 val vh = orthoCam.viewportHeight * orthoCam.zoom
-                val camX = orthoCam.position.x - vw * 0.5f
-                val camY = orthoCam.position.y + vh * 0.5f
+                val camX = orthoCam.position.x - vw * 0.5f - 15f
+                val camY = orthoCam.position.y + vh * 0.5f + 10f
                 particleCmp.actor.setPosition(camX + particleCmp.offsetX, camY + particleCmp.offsetY)
             } else {
                 particleCmp.actor.setPosition(

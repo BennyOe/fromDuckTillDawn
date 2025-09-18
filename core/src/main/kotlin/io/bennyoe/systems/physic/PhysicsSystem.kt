@@ -16,6 +16,7 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.WATER_CONTACT_GRACE_PERIOD
 import io.bennyoe.config.GameConstants
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.systems.PausableSystem
@@ -55,12 +56,14 @@ class PhysicsSystem(
         val stateCmp = entity.getOrNull(StateComponent)
         val imageCmp = entity[ImageComponent]
         val healthCmp = entity[HealthComponent]
-
+        logger.debug { "waterCnt=${physicCmp.activeWaterContacts}, waterGrace=${physicCmp.waterContactGraceTimer}" }
+//        logger.debug { "underCnt=${physicCmp.activeUnderWaterContacts}, underGrace=${physicCmp.underWaterGraceTimer}" }
         setJumpImpulse(jumpCmp, physicCmp)
         setWalkImpulse(moveCmp, physicCmp, stateCmp)
         setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
         setGroundContact(entity)
         setWaterContact(entity)
+        setUnderWaterContact(entity)
         if (moveCmp != null && (moveCmp.throwBack || moveCmp.throwBackCooldown > 0)) {
             setThrowBackImpulse(moveCmp, physicCmp, healthCmp)
         }
@@ -173,9 +176,30 @@ class PhysicsSystem(
             entity.configure {
                 it += HasWaterContact
             }
+            physicCmp.waterContactGraceTimer = WATER_CONTACT_GRACE_PERIOD
         } else {
-            entity.configure {
-                it -= HasWaterContact
+            if (physicCmp.waterContactGraceTimer > 0f) {
+                physicCmp.waterContactGraceTimer -= deltaTime
+            } else {
+                entity.configure {
+                    logger.debug { "Water contact ended." }
+                    it -= HasWaterContact
+                }
+            }
+        }
+    }
+
+    private fun setUnderWaterContact(entity: Entity) {
+        val physicCmp = entity[PhysicComponent]
+        if (physicCmp.activeUnderWaterContacts > 0) {
+            physicCmp.isUnderWater = true
+            physicCmp.underWaterGraceTimer = WATER_CONTACT_GRACE_PERIOD
+        } else {
+            if (physicCmp.underWaterGraceTimer > 0f) {
+                physicCmp.underWaterGraceTimer -= deltaTime
+            } else {
+                logger.debug { "NOT under Water" }
+                physicCmp.isUnderWater = false
             }
         }
     }

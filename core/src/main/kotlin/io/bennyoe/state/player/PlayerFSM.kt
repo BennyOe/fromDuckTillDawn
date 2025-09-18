@@ -317,10 +317,12 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
         override fun update(ctx: PlayerStateContext) {
             if (!hasWaterContact(ctx)) {
+                ctx.intentionCmp.wantsToBash = false
                 ctx.changeState(IDLE)
                 return
             }
             if (ctx.wantsToJump && !ctx.physicComponent.isUnderWater) {
+                ctx.intentionCmp.wantsToBash = false
                 ctx.changeState(JUMP)
             }
         }

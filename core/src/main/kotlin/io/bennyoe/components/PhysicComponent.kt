@@ -11,6 +11,7 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import io.bennyoe.config.EntityCategory
+import io.bennyoe.config.GameConstants
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.FixtureSensorData
@@ -24,6 +25,8 @@ import ktx.log.logger
 import ktx.math.vec2
 import com.github.quillraven.fleks.World as entityWorld
 
+const val WATER_CONTACT_GRACE_PERIOD = 3f * GameConstants.PHYSIC_TIME_STEP
+
 class PhysicComponent : Component<PhysicComponent> {
     val offset: Vector2 = Vector2()
     val size: Vector2 = Vector2()
@@ -32,6 +35,9 @@ class PhysicComponent : Component<PhysicComponent> {
     var categoryBits = EntityCategory.GROUND.bit
     var activeGroundContacts: Int = 0
     var activeWaterContacts: Int = 0
+    var activeUnderWaterContacts: Int = 0
+    var waterContactGraceTimer: Float = 0f
+    var underWaterGraceTimer: Float = 0f
     var isUnderWater: Boolean = false
     var floorType: FloorType? = null
     lateinit var body: Body

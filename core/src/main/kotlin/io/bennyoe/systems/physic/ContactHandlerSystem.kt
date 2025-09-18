@@ -118,9 +118,29 @@ class ContactHandlerSystem(
                 waterBodyData.entity[WaterComponent]
                     .fixturePairs
                     .remove(waterFixture to objectFixture)
-                logger.debug { "Water contact ended." }
-                if (objectPhysicCmp != null) {
+                if (objectPhysicCmp != null && objectPhysicCmp.activeWaterContacts > 0) {
                     objectPhysicCmp.activeWaterContacts--
+                }
+            }
+        }
+    }
+
+    private fun handleUnderWaterBegin(p: Parts) {
+        val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
+        with(world) {
+            logger.debug { "Under Water" }
+            entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
+                it.activeUnderWaterContacts++
+            }
+        }
+    }
+
+    private fun handleUnderWaterEnd(p: Parts) {
+        val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
+        with(world) {
+            entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
+                if (it.activeUnderWaterContacts > 0) {
+                    it.activeUnderWaterContacts--
                 }
             }
         }
@@ -202,24 +222,6 @@ class ContactHandlerSystem(
                 val contact = player.entity[ReverbZoneContactComponent]
                 contact.decreaseContact(zone)
             }
-        }
-    }
-
-    private fun handleUnderWaterBegin(p: Parts) {
-        // UNDER_WATER_SENSOR overlaps WATER
-        val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
-        with(world) {
-            logger.debug { "Under Water" }
-            entityWithSensor.entity.getOrNull(PhysicComponent)?.isUnderWater = true
-        }
-    }
-
-    private fun handleUnderWaterEnd(p: Parts) {
-        // UNDER_WATER_SENSOR overlaps WATER
-        val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
-        with(world) {
-            logger.debug { "NOT under Water" }
-            entityWithSensor.entity.getOrNull(PhysicComponent)?.isUnderWater = false
         }
     }
 

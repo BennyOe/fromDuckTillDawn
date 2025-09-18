@@ -45,7 +45,7 @@ class SkySystem :
 
     companion object {
         private const val VERTICAL_CIRCLE_SCALE = 1f
-        private const val HORIZONTAL_CIRCLE_SCALE = 1f
+        private const val HORIZONTAL_CIRCLE_SCALE = .9f
         private const val CELESTIAL_BODY_SIZE_MULTIPLIER = 3f
         private const val MOON_PHASE_SHIFT_RADIANS = PI.toFloat()
         private const val SIZE_SCALING_THRESHOLD_DEGREES = 45.0

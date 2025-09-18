@@ -89,7 +89,7 @@ class WaterSpawner(
                                 EntityCategory.SENSOR.bit
                             density = waterCmp.density
                             friction = 0.2f
-                        }
+                        }.disposeOfShape
                     }
                 entity += physicCmp
 

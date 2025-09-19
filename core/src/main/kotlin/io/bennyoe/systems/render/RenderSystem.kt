@@ -136,7 +136,6 @@ class RenderSystem(
         // 3. Add all entities
         world.family { any(ImageComponent, ParticleComponent) }.forEach { entity ->
             val shaderRenderingCmp = entity.getOrNull(ShaderRenderingComponent)
-            val particleCmp = entity.getOrNull(ParticleComponent)
             val hitEffectCmp = entity.getOrNull(HitEffectComponent)
             val transformCmp = entity[TransformComponent]
             entity.getOrNull(ImageComponent)?.let { imageCmp ->
@@ -146,7 +145,6 @@ class RenderSystem(
                         imageCmp = imageCmp,
                         transformCmp = transformCmp,
                         shaderRenderingCmp = shaderRenderingCmp,
-                        particleCmp = particleCmp,
                         hitEffectComponent = hitEffectCmp,
                         zIndex = imageCmp.zIndex,
                     ),
@@ -154,7 +152,6 @@ class RenderSystem(
             }
 
             entity.getOrNull(ParticleComponent)?.let { particleCmp ->
-                // Only add particle if entity doesn't have image (to avoid duplicates)
                 renderQueue.add(
                     RenderableElement.EntityWithParticle(
                         entity = entity,
@@ -200,7 +197,6 @@ sealed class RenderableElement {
         val imageCmp: ImageComponent,
         val transformCmp: TransformComponent,
         val shaderRenderingCmp: ShaderRenderingComponent?,
-        val particleCmp: ParticleComponent?,
         val hitEffectComponent: HitEffectComponent?,
         override val zIndex: Int,
     ) : RenderableElement()

@@ -79,6 +79,7 @@ class MapObjectSpawner(
                             scaleFactor = 1f / 82f,
                             motionScaleFactor = 1f / 50f,
                             looping = true,
+                            zIndex = layerZIndex + zIndex,
                             offsetX = width * 0.5f,
                             offsetY = 0.2f,
                             stage = stage,

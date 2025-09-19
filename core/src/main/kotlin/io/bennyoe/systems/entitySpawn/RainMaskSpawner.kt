@@ -4,7 +4,9 @@ import com.badlogic.gdx.maps.MapLayer
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.RainMaskComponent
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.config.GameConstants.UNIT_SCALE
+import ktx.math.vec2
 import ktx.tiled.height
 import ktx.tiled.width
 import ktx.tiled.x
@@ -19,12 +21,12 @@ class RainMaskSpawner(
             println("Shape: ${rainMask.javaClass}")
             world.entity {
                 it +=
-                    RainMaskComponent(
-                        rainMask.x * UNIT_SCALE,
-                        rainMask.y * UNIT_SCALE,
+                    TransformComponent(
+                        vec2(rainMask.x * UNIT_SCALE, rainMask.y * UNIT_SCALE),
                         rainMask.width * UNIT_SCALE,
                         rainMask.height * UNIT_SCALE,
                     )
+                it += RainMaskComponent
             }
         }
     }

@@ -3,7 +3,6 @@ package io.bennyoe.systems.render
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
-import com.github.quillraven.fleks.EntityTag
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject

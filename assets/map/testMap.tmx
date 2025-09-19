@@ -458,11 +458,11 @@
    <point/>
   </object>
  </objectgroup>
- <objectgroup id="4" name="playerStart" visible="0">
+ <objectgroup id="4" name="playerStart">
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="105" name="playerStart" type="playerStart" x="994.296" y="232.416">
+  <object id="105" name="playerStart" type="playerStart" x="1422.3" y="231.416">
    <point/>
   </object>
  </objectgroup>

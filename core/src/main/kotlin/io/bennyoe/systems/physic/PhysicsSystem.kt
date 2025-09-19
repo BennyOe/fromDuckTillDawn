@@ -56,8 +56,6 @@ class PhysicsSystem(
         val stateCmp = entity.getOrNull(StateComponent)
         val imageCmp = entity[ImageComponent]
         val healthCmp = entity[HealthComponent]
-        logger.debug { "waterCnt=${physicCmp.activeWaterContacts}, waterGrace=${physicCmp.waterContactGraceTimer}" }
-//        logger.debug { "underCnt=${physicCmp.activeUnderWaterContacts}, underGrace=${physicCmp.underWaterGraceTimer}" }
         setJumpImpulse(jumpCmp, physicCmp)
         setWalkImpulse(moveCmp, physicCmp, stateCmp)
         setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
@@ -171,36 +169,54 @@ class PhysicsSystem(
     }
 
     private fun setWaterContact(entity: Entity) {
-        val physicCmp = entity[PhysicComponent]
-        if (physicCmp.activeWaterContacts > 0) {
-            entity.configure {
-                it += HasWaterContact
+        val physic = entity[PhysicComponent]
+
+        val hadContact = entity.has(HasWaterContact)
+        val inContactNow = physic.activeWaterContacts > 0
+
+        if (inContactNow) {
+            if (!hadContact) {
+                entity.configure { it += HasWaterContact }
+                logger.debug { "Water contact." }
             }
-            physicCmp.waterContactGraceTimer = WATER_CONTACT_GRACE_PERIOD
-        } else {
-            if (physicCmp.waterContactGraceTimer > 0f) {
-                physicCmp.waterContactGraceTimer -= deltaTime
-            } else {
-                entity.configure {
-                    logger.debug { "Water contact ended." }
-                    it -= HasWaterContact
-                }
-            }
+            physic.waterContactGraceTimer = WATER_CONTACT_GRACE_PERIOD
+            return
+        }
+
+        if (physic.waterContactGraceTimer > 0f) {
+            physic.waterContactGraceTimer -= deltaTime
+            return
+        }
+
+        if (hadContact) {
+            entity.configure { it -= HasWaterContact }
+            logger.debug { "Water contact ended." }
         }
     }
 
     private fun setUnderWaterContact(entity: Entity) {
-        val physicCmp = entity[PhysicComponent]
-        if (physicCmp.activeUnderWaterContacts > 0) {
-            physicCmp.isUnderWater = true
-            physicCmp.underWaterGraceTimer = WATER_CONTACT_GRACE_PERIOD
-        } else {
-            if (physicCmp.underWaterGraceTimer > 0f) {
-                physicCmp.underWaterGraceTimer -= deltaTime
-            } else {
-                logger.debug { "NOT under Water" }
-                physicCmp.isUnderWater = false
+        val physic = entity[PhysicComponent]
+
+        val wasUnder = physic.isUnderWater
+        val nowUnder = physic.activeUnderWaterContacts > 0
+
+        if (nowUnder) {
+            if (!wasUnder) {
+                physic.isUnderWater = true
+                logger.debug { "Underwater." }
             }
+            physic.underWaterGraceTimer = WATER_CONTACT_GRACE_PERIOD
+            return
+        }
+
+        if (physic.underWaterGraceTimer > 0f) {
+            physic.underWaterGraceTimer -= deltaTime
+            return
+        }
+
+        if (wasUnder) {
+            physic.isUnderWater = false
+            logger.debug { "Left underwater." }
         }
     }
 

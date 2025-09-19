@@ -38,10 +38,10 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
 
         override fun update(ctx: MushroomStateContext) {
             when {
+                hasWaterContact(ctx) -> ctx.changeState(DEATH)
                 ctx.wantsToAttack -> ctx.changeState(ATTACK)
                 ctx.wantsToIdle -> ctx.changeState(IDLE)
                 ctx.wantsToJump -> ctx.changeState(JUMP)
-                hasWaterContact(ctx) -> ctx.changeState(DEATH)
             }
         }
 
@@ -73,6 +73,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
         override fun update(ctx: MushroomStateContext) {
             val velY = ctx.physicComponent.body.linearVelocity.y
             when {
+                hasWaterContact(ctx) -> ctx.changeState(DEATH)
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
                 // otherwise remain in FALL
@@ -88,6 +89,7 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
         }
 
         override fun update(ctx: MushroomStateContext) {
+            if (hasWaterContact(ctx)) ctx.changeState(DEATH)
             if (ctx.animationComponent.isAnimationFinished()) {
                 ctx.changeState(IDLE)
             }

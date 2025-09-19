@@ -96,15 +96,12 @@ class ContactHandlerSystem(
         val waterBodyData = waterFixture.bodyData ?: return
         val objectPhysicCmp = objectFixture.bodyData?.entity?.getOrNull(PhysicComponent)
 
-        with(world) {
-            waterBodyData.entity[WaterComponent]
-                .fixturePairs
-                .add(waterFixture to objectFixture)
-            if (objectPhysicCmp != null) {
-                objectPhysicCmp.activeWaterContacts++
-            }
+        val waterCmp = waterBodyData.entity[WaterComponent]
+        val added = waterCmp.fixturePairs.add(waterFixture to objectFixture)
+
+        if (added && objectPhysicCmp != null) {
+            objectPhysicCmp.activeWaterContacts++
         }
-        logger.debug { "Correct water contact established." }
     }
 
     private fun handleInWaterEnd(p: Parts) {
@@ -113,12 +110,12 @@ class ContactHandlerSystem(
         val waterBodyData = waterFixture.bodyData ?: return
         val objectPhysicCmp = objectFixture.bodyData?.entity?.getOrNull(PhysicComponent)
 
+        val waterCmp = waterBodyData.entity[WaterComponent]
+
         with(world) {
             if (waterBodyData.entity has WaterComponent) {
-                waterBodyData.entity[WaterComponent]
-                    .fixturePairs
-                    .remove(waterFixture to objectFixture)
-                if (objectPhysicCmp != null && objectPhysicCmp.activeWaterContacts > 0) {
+                val removed = waterCmp.fixturePairs.remove(waterFixture to objectFixture)
+                if (removed && objectPhysicCmp != null && objectPhysicCmp.activeWaterContacts > 0) {
                     objectPhysicCmp.activeWaterContacts--
                 }
             }
@@ -128,7 +125,6 @@ class ContactHandlerSystem(
     private fun handleUnderWaterBegin(p: Parts) {
         val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
         with(world) {
-            logger.debug { "Under Water" }
             entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
                 it.activeUnderWaterContacts++
             }

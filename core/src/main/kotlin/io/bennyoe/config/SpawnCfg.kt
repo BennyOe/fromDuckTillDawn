@@ -145,7 +145,7 @@ data class SpawnCfg(
                             aiTreePath = "ai/mushroom.tree",
                             scaleSpeed = 0.5f,
                             keepCorpse = true,
-                            removeDelay = .2f,
+                            removeDelay = 2f,
                             nearbyEnemiesDefaultSensorRadius = NORMAL_DETECTION_RADIUS,
                             nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS,
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),

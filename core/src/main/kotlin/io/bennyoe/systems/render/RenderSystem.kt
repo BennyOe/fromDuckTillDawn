@@ -139,10 +139,12 @@ class RenderSystem(
             val particleCmp = entity.getOrNull(ParticleComponent)
             val hitEffectCmp = entity.getOrNull(HitEffectComponent)
             entity.getOrNull(ImageComponent)?.let { imageCmp ->
+                val transformCmp = entity[TransformComponent]
                 renderQueue.add(
                     RenderableElement.EntityWithImage(
                         entity = entity,
                         imageCmp = imageCmp,
+                        transformCmp = transformCmp,
                         shaderRenderingCmp = shaderRenderingCmp,
                         particleCmp = particleCmp,
                         hitEffectComponent = hitEffectCmp,
@@ -197,6 +199,7 @@ sealed class RenderableElement {
     data class EntityWithImage(
         val entity: Entity,
         val imageCmp: ImageComponent,
+        val transformCmp: TransformComponent,
         val shaderRenderingCmp: ShaderRenderingComponent?,
         val particleCmp: ParticleComponent?,
         val hitEffectComponent: HitEffectComponent?,

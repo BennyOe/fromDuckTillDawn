@@ -7,6 +7,7 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.AIR_BUBBLES_START_DELAY
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HasWaterContact
@@ -14,6 +15,7 @@ import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WATER_CONTACT_GRACE_PERIOD
@@ -195,27 +197,39 @@ class PhysicsSystem(
     }
 
     private fun setUnderWaterContact(entity: Entity) {
-        val physic = entity[PhysicComponent]
+        val physicCmp = entity[PhysicComponent]
+        val particleCmp = entity.getOrNull(ParticleComponent)
 
-        val wasUnder = physic.isUnderWater
-        val nowUnder = physic.activeUnderWaterContacts > 0
+        val wasUnder = physicCmp.isUnderWater
+        val nowUnder = physicCmp.activeUnderWaterContacts > 0
 
         if (nowUnder) {
             if (!wasUnder) {
-                physic.isUnderWater = true
+                physicCmp.isUnderWater = true
                 logger.debug { "Underwater." }
+                physicCmp.airBubblesDelayTimer = AIR_BUBBLES_START_DELAY
+            } else {
+                if (physicCmp.airBubblesDelayTimer > 0f) {
+                    physicCmp.airBubblesDelayTimer -= deltaTime
+                } else {
+                    particleCmp?.let { p ->
+                        p.enabled = true
+                    }
+                }
             }
-            physic.underWaterGraceTimer = WATER_CONTACT_GRACE_PERIOD
+            physicCmp.underWaterGraceTimer = WATER_CONTACT_GRACE_PERIOD
             return
         }
 
-        if (physic.underWaterGraceTimer > 0f) {
-            physic.underWaterGraceTimer -= deltaTime
+        if (physicCmp.underWaterGraceTimer > 0f) {
+            physicCmp.underWaterGraceTimer -= deltaTime
             return
         }
 
         if (wasUnder) {
-            physic.isUnderWater = false
+            physicCmp.isUnderWater = false
+            particleCmp?.enabled = false
+            logger.debug { "air bubbles are ${particleCmp?.enabled}" }
             logger.debug { "Left underwater." }
         }
     }

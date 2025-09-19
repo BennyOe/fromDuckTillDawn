@@ -1,5 +1,6 @@
 package io.bennyoe.systems.entitySpawn
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
@@ -27,6 +28,8 @@ import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.ParticleComponent
+import io.bennyoe.components.ParticleType
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ShaderRenderingComponent
@@ -322,6 +325,20 @@ class CharacterSpawner(
                 globalState = PlayerCheckAliveState,
             )
         entity += state
+
+        // spawn air bubbles
+        val particle =
+            ParticleComponent(
+                particleFile = Gdx.files.internal("particles/air.p"),
+                scaleFactor = .2f,
+                motionScaleFactor = .05f,
+                looping = true,
+                stage = stage,
+                zIndex = -3000,
+                enabled = false,
+                type = ParticleType.AIR_BUBBLES,
+            )
+        entity += particle
 
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)

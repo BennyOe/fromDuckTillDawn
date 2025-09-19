@@ -56,4 +56,5 @@ enum class ParticleType {
     FIRE,
     SHOOTING_STAR,
     WATER_SPLASH,
+    AIR_BUBBLES,
 }

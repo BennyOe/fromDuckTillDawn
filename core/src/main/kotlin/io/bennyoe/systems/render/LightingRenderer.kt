@@ -191,8 +191,16 @@ class LightingRenderer(
                 updatedShader
             }
 
+        // sync the particle position
+        renderable.particleCmp
+            ?.actor
+            ?.effect
+            ?.setPosition(renderable.transformCmp.position.x, renderable.transformCmp.position.y)
+
         // Draw particles if present (use current shader)
-        renderable.particleCmp?.actor?.draw(engine.batch, 1f)
+        if (renderable.particleCmp != null && renderable.particleCmp.enabled) {
+            renderable.particleCmp.actor.draw(engine.batch, 1f)
+        }
 
         return newShaderType
     }

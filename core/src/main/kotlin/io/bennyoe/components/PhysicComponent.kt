@@ -26,6 +26,7 @@ import ktx.math.vec2
 import com.github.quillraven.fleks.World as entityWorld
 
 const val WATER_CONTACT_GRACE_PERIOD = 3f * GameConstants.PHYSIC_TIME_STEP
+const val AIR_BUBBLES_START_DELAY = 3f
 
 class PhysicComponent : Component<PhysicComponent> {
     val offset: Vector2 = Vector2()
@@ -38,6 +39,7 @@ class PhysicComponent : Component<PhysicComponent> {
     var activeUnderWaterContacts: Int = 0
     var waterContactGraceTimer: Float = 0f
     var underWaterGraceTimer: Float = 0f
+    var airBubblesDelayTimer: Float = 0f
     var isUnderWater: Boolean = false
     var floorType: FloorType? = null
     lateinit var body: Body

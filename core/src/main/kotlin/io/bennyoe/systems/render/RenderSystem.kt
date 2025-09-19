@@ -58,7 +58,7 @@ class RenderSystem(
 
     private val shaderService = ShaderService()
     private val waterRenderer = WaterRenderer(stage, polygonSpriteBatch, worldObjectsAtlas)
-    private val lightingRenderer = LightingRenderer(stage, lightEngine, mapRenderer, shaderService)
+    private val lightingRenderer = LightingRenderer(stage, world, lightEngine, mapRenderer, shaderService)
 
     override fun handle(event: Event?): Boolean {
         when (event) {
@@ -138,8 +138,8 @@ class RenderSystem(
             val shaderRenderingCmp = entity.getOrNull(ShaderRenderingComponent)
             val particleCmp = entity.getOrNull(ParticleComponent)
             val hitEffectCmp = entity.getOrNull(HitEffectComponent)
+            val transformCmp = entity[TransformComponent]
             entity.getOrNull(ImageComponent)?.let { imageCmp ->
-                val transformCmp = entity[TransformComponent]
                 renderQueue.add(
                     RenderableElement.EntityWithImage(
                         entity = entity,
@@ -155,15 +155,14 @@ class RenderSystem(
 
             entity.getOrNull(ParticleComponent)?.let { particleCmp ->
                 // Only add particle if entity doesn't have image (to avoid duplicates)
-                if (!entity.has(ImageComponent)) {
-                    renderQueue.add(
-                        RenderableElement.EntityWithParticle(
-                            entity = entity,
-                            particleCmp = particleCmp,
-                            zIndex = particleCmp.zIndex,
-                        ),
-                    )
-                }
+                renderQueue.add(
+                    RenderableElement.EntityWithParticle(
+                        entity = entity,
+                        particleCmp = particleCmp,
+                        transformCmp = transformCmp,
+                        zIndex = particleCmp.zIndex,
+                    ),
+                )
             }
         }
 
@@ -209,6 +208,7 @@ sealed class RenderableElement {
     data class EntityWithParticle(
         val entity: Entity,
         val particleCmp: ParticleComponent,
+        val transformCmp: TransformComponent,
         override val zIndex: Int,
     ) : RenderableElement()
 }

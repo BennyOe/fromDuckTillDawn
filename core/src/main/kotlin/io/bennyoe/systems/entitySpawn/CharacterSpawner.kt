@@ -334,7 +334,7 @@ class CharacterSpawner(
                 motionScaleFactor = .05f,
                 looping = true,
                 stage = stage,
-                zIndex = -3000,
+                zIndex = 60000,
                 enabled = false,
                 type = ParticleType.AIR_BUBBLES,
             )

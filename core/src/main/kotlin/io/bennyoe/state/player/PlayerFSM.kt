@@ -159,7 +159,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToBash -> ctx.changeState(BASH)
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
-                hasWaterContact(ctx) -> ctx.changeState(SWIM)
+                hasWaterContact(ctx) && velY <= 0 -> ctx.changeState(SWIM)
                 // otherwise remain in FALL
                 else -> ctx.intentionCmp.wantsToJump = false
             }
@@ -316,7 +316,9 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object SWIM : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             ctx.setAnimation(AnimationType.SWIM)
-            ctx.stage.fire(PlaySoundEvent(ctx.entity, SoundType.DAWN_WATER_SPLASH, 1f))
+            if (ctx.previousState() != DIVING) {
+                ctx.stage.fire(PlaySoundEvent(ctx.entity, SoundType.DAWN_WATER_SPLASH, 1f))
+            }
             logger.debug { "Entering SWIM" }
         }
 
@@ -326,9 +328,33 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.changeState(IDLE)
                 return
             }
+
+            if (isDiving(ctx) && ctx.intentionCmp.wantsToSwimDown) {
+                ctx.changeState(DIVING)
+                return
+            }
+
             if (ctx.wantsToJump && !isDiving(ctx)) {
                 ctx.intentionCmp.wantsToBash = false
+                ctx.intentionCmp.wantsToAttack = false
                 ctx.changeState(JUMP)
+            }
+        }
+    }
+
+    data object DIVING : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            logger.debug { "Entering DIVING" }
+            ctx.setAnimation(AnimationType.SWIM)
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            if (!isDiving(ctx) && !ctx.intentionCmp.wantsToSwimDown) {
+                ctx.changeState(SWIM)
+                return
+            }
+            if (!hasWaterContact(ctx)) {
+                ctx.changeState(FALL)
             }
         }
     }

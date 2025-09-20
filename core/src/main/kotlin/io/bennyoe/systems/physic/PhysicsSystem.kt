@@ -60,7 +60,7 @@ class PhysicsSystem(
         val imageCmp = entity[ImageComponent]
         val healthCmp = entity[HealthComponent]
         setJumpImpulse(jumpCmp, physicCmp)
-        setWalkImpulse(moveCmp, physicCmp, stateCmp)
+        setWalkAndSwimImpulse(moveCmp, physicCmp, stateCmp)
         setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
         setGroundContact(entity)
         setWaterContact(entity)
@@ -132,7 +132,7 @@ class PhysicsSystem(
         }
     }
 
-    private fun setWalkImpulse(
+    private fun setWalkAndSwimImpulse(
         moveCmp: MoveComponent?,
         physicCmp: PhysicComponent,
         stateCmp: StateComponent<*, *>?,
@@ -140,7 +140,7 @@ class PhysicsSystem(
         moveCmp?.let {
             if (it.throwBackCooldown > 0) return
             physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity.x - physicCmp.body.linearVelocity.x)
-            if (stateCmp?.stateMachine?.currentState == PlayerFSM.SWIM) {
+            if (stateCmp?.stateMachine?.currentState == PlayerFSM.SWIM || stateCmp?.stateMachine?.currentState == PlayerFSM.DIVING) {
                 physicCmp.impulse.y = physicCmp.body.mass * (moveCmp.moveVelocity.y - physicCmp.body.linearVelocity.y)
             }
         }

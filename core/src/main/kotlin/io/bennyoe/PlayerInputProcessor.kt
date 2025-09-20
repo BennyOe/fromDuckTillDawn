@@ -7,7 +7,6 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.InputComponent
-import io.bennyoe.components.IsDiving
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.debug.DebugComponent
@@ -35,6 +34,7 @@ class PlayerInputProcessor(
             "DOUBLE_JUMP" to Action.entries.toSet(),
             "FALL" to setOf(Action.MOVE_UP, Action.MOVE_LEFT, Action.MOVE_RIGHT),
             "SWIM" to Action.entries.toSet(),
+            "DIVING" to Action.entries.toSet(),
             "CROUCH_IDLE" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.MOVE_DOWN),
             "CROUCH_WALK" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.MOVE_DOWN),
             "ATTACK_1" to Action.entries.toSet(),
@@ -121,15 +121,16 @@ class PlayerInputProcessor(
         inputEntities.forEach { input ->
             val playerState = playerEntity[StateComponent].stateMachine.currentState
             val inputCmp = input[InputComponent]
-            val isDiving = input.has(IsDiving)
             val allowed = allowedActionsPerState[playerState.toString()] ?: emptySet()
             logger.debug { "playerState $playerState" }
             if (pressed && action != Action.KILL && action !in allowed) return@forEach
 
             when (action) {
                 Action.MOVE_UP -> {
-                    if (playerState == PlayerFSM.SWIM && isDiving) {
+                    if (playerState == PlayerFSM.DIVING) {
                         inputCmp.swimUpJustPressed = pressed
+                        inputCmp.jumpJustPressed = false
+                        inputCmp.jumpIsPressed = false
                     } else {
                         inputCmp.swimUpJustPressed = false
                         inputCmp.jumpJustPressed = pressed
@@ -138,7 +139,7 @@ class PlayerInputProcessor(
                 }
 
                 Action.MOVE_DOWN -> {
-                    if (playerState == PlayerFSM.SWIM) {
+                    if (playerState == PlayerFSM.SWIM || playerState == PlayerFSM.DIVING) {
                         inputCmp.swimDownJustPressed = pressed
                     } else {
                         inputCmp.swimDownJustPressed = false

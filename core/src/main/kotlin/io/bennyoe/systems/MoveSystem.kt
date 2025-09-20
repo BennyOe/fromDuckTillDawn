@@ -6,7 +6,6 @@ import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
-import io.bennyoe.components.IsDiving
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
@@ -22,13 +21,12 @@ class MoveSystem :
         val intentionCmp = entity[IntentionComponent]
         val imageCmp = entity[ImageComponent]
         val stateCmp = entity[StateComponent]
-        val physicCmp = entity[PhysicComponent]
 
         if (moveCmp.lockMovement) {
             return
         }
 
-        if (stateCmp.stateMachine.currentState == PlayerFSM.SWIM) {
+        if (stateCmp.stateMachine.currentState == PlayerFSM.SWIM || stateCmp.stateMachine.currentState == PlayerFSM.DIVING) {
             when (intentionCmp.walkDirection) {
                 WalkDirection.NONE -> moveCmp.moveVelocity.x = 0f
                 WalkDirection.LEFT -> {
@@ -42,7 +40,7 @@ class MoveSystem :
                 }
             }
 
-            if (intentionCmp.wantsToSwimUp && entity has IsDiving) {
+            if (intentionCmp.wantsToSwimUp && stateCmp.stateMachine.currentState == PlayerFSM.DIVING) {
                 moveCmp.moveVelocity.y = moveCmp.maxSwimSpeed
             } else if (intentionCmp.wantsToSwimDown) {
                 moveCmp.moveVelocity.y = -moveCmp.maxSwimSpeed

@@ -278,8 +278,8 @@
    </properties>
   </object>
  </objectgroup>
- <group id="19" name="audio" visible="0">
-  <objectgroup id="15" name="reverbZones" visible="0">
+ <group id="19" name="audio">
+  <objectgroup id="15" name="reverbZones">
    <object id="89" x="1225.49" y="108.366" width="281.841" height="150.262">
     <properties>
      <property name="effectIntensity" type="float" value="0.8"/>
@@ -293,7 +293,7 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="18" name="ambienceZones" visible="0">
+  <objectgroup id="18" name="ambienceZones">
    <object id="109" x="480.585" y="0.584795" width="642.69" height="256.14">
     <properties>
      <property name="base" value="sound/ambience/forest/forest_base.mp3"/>
@@ -313,8 +313,8 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="17" name="soundTriggers" visible="0">
-   <object id="108" x="1278.25" y="193.567" width="23.9766" height="61.9883">
+  <objectgroup id="17" name="soundTriggers">
+   <object id="108" x="1452.25" y="327.567" width="23.9766" height="61.9883">
     <properties>
      <property name="sound" value="sound/trigger/laugh.mp3"/>
      <property name="streamed" type="bool" value="true"/>

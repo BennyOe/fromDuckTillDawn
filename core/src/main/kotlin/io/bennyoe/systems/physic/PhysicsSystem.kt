@@ -140,7 +140,7 @@ class PhysicsSystem(
         moveCmp?.let {
             if (it.throwBackCooldown > 0) return
             physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity.x - physicCmp.body.linearVelocity.x)
-            if (stateCmp?.stateMachine?.currentState == PlayerFSM.SWIM || stateCmp?.stateMachine?.currentState == PlayerFSM.DIVING) {
+            if (stateCmp?.stateMachine?.currentState == PlayerFSM.SWIM || stateCmp?.stateMachine?.currentState == PlayerFSM.DIVE) {
                 physicCmp.impulse.y = physicCmp.body.mass * (moveCmp.moveVelocity.y - physicCmp.body.linearVelocity.y)
             }
         }

@@ -34,7 +34,7 @@ class PlayerInputProcessor(
             "DOUBLE_JUMP" to Action.entries.toSet(),
             "FALL" to setOf(Action.MOVE_UP, Action.MOVE_LEFT, Action.MOVE_RIGHT),
             "SWIM" to Action.entries.toSet(),
-            "DIVING" to Action.entries.toSet(),
+            "DIVE" to Action.entries.toSet(),
             "CROUCH_IDLE" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.MOVE_DOWN),
             "CROUCH_WALK" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.MOVE_DOWN),
             "ATTACK_1" to Action.entries.toSet(),
@@ -127,7 +127,7 @@ class PlayerInputProcessor(
 
             when (action) {
                 Action.MOVE_UP -> {
-                    if (playerState == PlayerFSM.DIVING) {
+                    if (playerState == PlayerFSM.DIVE) {
                         inputCmp.swimUpJustPressed = pressed
                         inputCmp.jumpJustPressed = false
                         inputCmp.jumpIsPressed = false
@@ -139,7 +139,7 @@ class PlayerInputProcessor(
                 }
 
                 Action.MOVE_DOWN -> {
-                    if (playerState == PlayerFSM.SWIM || playerState == PlayerFSM.DIVING) {
+                    if (playerState == PlayerFSM.SWIM || playerState == PlayerFSM.DIVE) {
                         inputCmp.swimDownJustPressed = pressed
                     } else {
                         inputCmp.swimDownJustPressed = false

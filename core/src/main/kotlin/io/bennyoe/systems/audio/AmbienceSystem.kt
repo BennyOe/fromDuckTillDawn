@@ -7,6 +7,7 @@ import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.TimeOfDay
 import io.bennyoe.components.Weather
 import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.components.audio.AmbienceType
 import io.bennyoe.components.audio.SoundVariation
 import io.bennyoe.config.GameConstants.RAIN_DELAY
 import io.bennyoe.event.AmbienceChangeEvent
@@ -48,16 +49,20 @@ class AmbienceSystem :
             }
 
             is AmbienceChangeEvent -> {
-                val newAmbienceCmp =
-                    world
-                        .family { all(AmbienceSoundComponent) }
-                        .firstOrNull { it[AmbienceSoundComponent].type == event.type }
-                        ?.get(AmbienceSoundComponent)
+                if (event.type == AmbienceType.NONE) {
+                    stopAllSources()
+                } else {
+                    val newAmbienceCmp =
+                        world
+                            .family { all(AmbienceSoundComponent) }
+                            .firstOrNull { it[AmbienceSoundComponent].type == event.type }
+                            ?.get(AmbienceSoundComponent)
 
-                // Only change if we entered a new, different zone
-                if (newAmbienceCmp != currentAmbienceCmp) {
-                    logger.debug { "Ambience changed to ${newAmbienceCmp?.type}" }
-                    currentAmbienceCmp = newAmbienceCmp
+                    // Only change if we entered a new, different zone
+                    if (newAmbienceCmp != currentAmbienceCmp) {
+                        logger.debug { "Ambience changed to ${newAmbienceCmp?.type}" }
+                        currentAmbienceCmp = newAmbienceCmp
+                    }
                 }
                 true
             }

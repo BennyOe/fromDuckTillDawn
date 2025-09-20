@@ -60,7 +60,7 @@ data class StreamSoundEvent(
 
 data class AmbienceChangeEvent(
     val type: AmbienceType,
-    val variations: Map<SoundVariation, String>,
-    val volume: Float,
+    val variations: Map<SoundVariation, String>?,
+    val volume: Float?,
 ) : Event(),
     AudioEvent

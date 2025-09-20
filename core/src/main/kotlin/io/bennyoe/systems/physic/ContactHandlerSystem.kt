@@ -138,6 +138,7 @@ class ContactHandlerSystem(
         with(world) {
             entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
                 if (it.activeUnderWaterContacts > 0) {
+                    stage.fire(AmbienceChangeEvent(AmbienceType.NONE, null, null))
                     it.activeUnderWaterContacts--
                 }
             }

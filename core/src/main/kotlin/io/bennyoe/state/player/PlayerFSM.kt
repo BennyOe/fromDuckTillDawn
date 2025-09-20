@@ -316,7 +316,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object SWIM : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             ctx.setAnimation(AnimationType.SWIM)
-            if (ctx.previousState() != DIVING) {
+            if (ctx.previousState() != DIVE) {
                 ctx.stage.fire(PlaySoundEvent(ctx.entity, SoundType.DAWN_WATER_SPLASH, 1f))
             }
             logger.debug { "Entering SWIM" }
@@ -330,7 +330,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             }
 
             if (isDiving(ctx) && ctx.intentionCmp.wantsToSwimDown) {
-                ctx.changeState(DIVING)
+                ctx.changeState(DIVE)
                 return
             }
 
@@ -342,9 +342,9 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         }
     }
 
-    data object DIVING : PlayerFSM() {
+    data object DIVE : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
-            logger.debug { "Entering DIVING" }
+            logger.debug { "Entering DIVE" }
             ctx.setAnimation(AnimationType.SWIM)
         }
 

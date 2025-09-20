@@ -26,7 +26,7 @@ class MoveSystem :
             return
         }
 
-        if (stateCmp.stateMachine.currentState == PlayerFSM.SWIM || stateCmp.stateMachine.currentState == PlayerFSM.DIVING) {
+        if (stateCmp.stateMachine.currentState == PlayerFSM.SWIM || stateCmp.stateMachine.currentState == PlayerFSM.DIVE) {
             when (intentionCmp.walkDirection) {
                 WalkDirection.NONE -> moveCmp.moveVelocity.x = 0f
                 WalkDirection.LEFT -> {
@@ -40,7 +40,7 @@ class MoveSystem :
                 }
             }
 
-            if (intentionCmp.wantsToSwimUp && stateCmp.stateMachine.currentState == PlayerFSM.DIVING) {
+            if (intentionCmp.wantsToSwimUp && stateCmp.stateMachine.currentState == PlayerFSM.DIVE) {
                 moveCmp.moveVelocity.y = moveCmp.maxSwimSpeed
             } else if (intentionCmp.wantsToSwimDown) {
                 moveCmp.moveVelocity.y = -moveCmp.maxSwimSpeed

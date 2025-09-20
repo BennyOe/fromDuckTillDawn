@@ -46,6 +46,8 @@ class ReverbSystem : IntervalSystem() {
     private var currentWet = 1f
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
     private val activeSources = mutableSetOf<SoundSource>()
+    private var globalLowGain: Float = 1f
+    private var globalHighGain: Float = 1f
 
     private data class TailReverb(
         val effect: SoundEffect,
@@ -54,11 +56,30 @@ class ReverbSystem : IntervalSystem() {
 
     fun registerSource(src: SoundSource) {
         activeSources += src
+        src.setFilter(globalLowGain, globalHighGain)
         applyReverbToNewSource(src)
     }
 
     fun unregisterSource(src: SoundSource) {
         activeSources -= src
+    }
+
+    /**
+     * Sets global per-source filters (applied to all current & future sources).
+     * @param low Low-pass gain [0..1] (lower -> more highs get cut)
+     * @param high High-pass gain [0..1] (lower -> more lows get cut)
+     */
+    fun setGlobalFilters(
+        low: Float,
+        high: Float,
+    ) {
+        val clLow = low.coerceIn(0f, 1f)
+        val clHigh = high.coerceIn(0f, 1f)
+        val changed = !MathUtils.isEqual(clLow, globalLowGain) || !MathUtils.isEqual(clHigh, globalHighGain)
+        if (!changed) return
+        globalLowGain = clLow
+        globalHighGain = clHigh
+        applyGlobalFiltersToAllSources()
     }
 
     override fun onTick() {
@@ -84,7 +105,6 @@ class ReverbSystem : IntervalSystem() {
         activePreset = null
         attachEffectToNewSources = false
         currentWet = 1f
-        resetFiltersToDry()
     }
 
     private fun handleZoneChange(zone: ReverbZoneComponent) {
@@ -102,22 +122,16 @@ class ReverbSystem : IntervalSystem() {
         }
     }
 
-    private fun resetFiltersToDry() {
-        val dry = 1f
-        activeSources.forEach { it.setFilter(dry, dry) }
+    private fun applyGlobalFiltersToAllSources() {
+        activeSources.forEach { it.setFilter(globalLowGain, globalHighGain) }
         world.family { all(AudioComponent) }.forEach { e ->
-            e[AudioComponent].bufferedSoundSource?.setFilter(dry, dry)
+            e[AudioComponent].bufferedSoundSource?.setFilter(globalLowGain, globalHighGain)
         }
     }
 
     private fun updateWetDryMix(newWet: Float) {
         if (!MathUtils.isEqual(newWet, currentWet)) {
             currentWet = newWet
-            val dry = 1f - newWet
-            activeSources.forEach { it.setFilter(dry, dry) }
-            world.family { all(AudioComponent) }.forEach { e ->
-                e[AudioComponent].bufferedSoundSource?.setFilter(dry, dry)
-            }
         }
     }
 
@@ -125,21 +139,16 @@ class ReverbSystem : IntervalSystem() {
         effect: SoundEffect,
         wet: Float,
     ) {
-        val dry = 1f - wet
         activeSources.forEach {
-            it.setFilter(dry, dry)
             it.attachEffect(effect, wet, wet)
         }
         world.family { all(AudioComponent) }.forEach { e ->
             e[AudioComponent].bufferedSoundSource?.attachEffect(effect, wet, wet)
-            e[AudioComponent].bufferedSoundSource?.setFilter(dry, dry)
         }
     }
 
     fun applyReverbToNewSource(src: SoundSource) {
         if (!attachEffectToNewSources || activeEffect == null) return
-        val dry = 1f - currentWet
-        src.setFilter(dry, dry)
         src.attachEffect(activeEffect!!, currentWet, currentWet)
     }
 
@@ -169,9 +178,21 @@ class ReverbSystem : IntervalSystem() {
 
     private fun getReverb(presetName: String): SoundEffect? {
         return when (presetName.uppercase()) {
-            "CAVE" -> SoundEffect(EaxReverb.cave())
+            "CAVE" ->
+                SoundEffect(
+                    EaxReverb.cave().apply {
+                        gainLf = .8f
+                    },
+                )
+
             "FOREST" -> SoundEffect(EaxReverb.forest())
-            "ARENA" -> SoundEffect(EaxReverb.arena())
+            "ARENA" ->
+                SoundEffect(
+                    EaxReverb.arena().apply {
+                        gainLf = .8f
+                    },
+                )
+
             "HANGER" -> SoundEffect(EaxReverb.hangar())
             "STONEROOM" -> SoundEffect(EaxReverb.stoneRoom())
             else -> {

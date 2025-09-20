@@ -115,6 +115,7 @@ data class SpawnCfg(
                                             SoundType.DAWN_HIT to listOf(SoundAssets.DAWN_HIT_SOUND),
                                             SoundType.DAWN_BASH to listOf(SoundAssets.DAWN_BASH_SOUND),
                                             SoundType.DAWN_DEATH to listOf(SoundAssets.DAWN_DEATH_SOUND),
+                                            SoundType.DAWN_WATER_SPLASH to listOf(SoundAssets.DAWN_WATER_SPLASH_SOUND),
                                         ),
                                     // Define the player's footstep sounds for each surface
                                     footstepsSounds =

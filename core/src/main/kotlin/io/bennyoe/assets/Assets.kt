@@ -66,6 +66,7 @@ enum class SoundAssets(
     DAWN_BASH_SOUND(listOf("dawn/bash_2.mp3")),
     DAWN_DEATH_SOUND(listOf("dawn/death.mp3")),
     DAWN_JUMP_SOUND(listOf("dawn/jump.mp3")),
+    DAWN_WATER_SPLASH_SOUND(listOf("dawn/water_splash.mp3")),
 
     // Mushroom
     MUSHROOM_FOOTSTEPS_GRASS(

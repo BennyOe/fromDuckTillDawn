@@ -54,6 +54,7 @@ data class StreamSoundEvent(
     val sound: String,
     val volume: Float,
     val position: Vector2? = null,
+    val looping: Boolean = false,
 ) : Event(),
     AudioEvent
 

@@ -54,6 +54,7 @@ import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem
 import io.bennyoe.systems.audio.SoundEffectSystem
+import io.bennyoe.systems.audio.UnderWaterFilterSystem
 import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
@@ -174,6 +175,7 @@ class GameScreen(
                 add(ReverbSystem())
                 add(CloudSystem())
                 add(RainSystem())
+                add(UnderWaterFilterSystem())
                 add(SoundEffectSystem())
                 add(MusicSystem())
                 add(BasicSensorsSystem())

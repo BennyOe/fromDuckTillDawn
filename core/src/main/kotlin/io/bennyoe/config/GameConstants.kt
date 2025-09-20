@@ -20,7 +20,7 @@ object GameConstants {
     const val JUMP_BUFFER = .2f // time you can press jump before hitting the ground and still jump
     const val JUMP_MAX_HEIGHT = 5f
     const val WALK_MAX_SPEED = 5f
-    const val SWIM_MAX_SPEED = 2f
+    const val SWIM_MAX_SPEED = 4f
     const val BASH_COOLDOWN = .2f
     const val BASH_POWER = 5f
 

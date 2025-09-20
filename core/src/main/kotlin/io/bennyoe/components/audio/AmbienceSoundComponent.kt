@@ -16,6 +16,7 @@ class AmbienceSoundComponent(
 enum class AmbienceType {
     FOREST,
     CAVE,
+    UNDER_WATER,
 }
 
 enum class SoundVariation {

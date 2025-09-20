@@ -5,9 +5,12 @@ import com.badlogic.gdx.graphics.g2d.Animation
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HitEffectComponent
+import io.bennyoe.event.PlaySoundEvent
+import io.bennyoe.event.fire
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.LANDING_VELOCITY_EPS
+import io.bennyoe.systems.audio.SoundType
 import ktx.log.logger
 import kotlin.math.abs
 
@@ -91,6 +94,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.jumpComponent.wantsToJump = true
             ctx.intentionCmp.wantsToJump = false
             ctx.jumpComponent.jumpFromBuffer = false
+            ctx.stage.fire(PlaySoundEvent(ctx.entity, SoundType.DAWN_JUMP, .5f))
             ctx.setAnimation(AnimationType.JUMP)
         }
 
@@ -312,6 +316,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object SWIM : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             ctx.setAnimation(AnimationType.SWIM)
+            ctx.stage.fire(PlaySoundEvent(ctx.entity, SoundType.DAWN_WATER_SPLASH, 1f))
             logger.debug { "Entering SWIM" }
         }
 

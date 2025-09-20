@@ -259,7 +259,7 @@ class SoundEffectSystem(
                 } else {
                     triggeredSound.isRelative = true
                 }
-                triggeredSound.setLooping(false)
+                triggeredSound.setLooping(event.looping)
                 reverb.registerSource(triggeredSound)
                 triggeredSound.volume = event.volume * EFFECT_VOLUME
                 triggeredSound.play()

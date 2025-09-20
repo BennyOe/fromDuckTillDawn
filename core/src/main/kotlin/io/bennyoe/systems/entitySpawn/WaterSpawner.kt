@@ -6,6 +6,9 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
+import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.components.audio.AmbienceType
+import io.bennyoe.components.audio.SoundVariation
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.systems.physic.WaterColumn
@@ -92,6 +95,8 @@ class WaterSpawner(
                         }.disposeOfShape
                     }
                 entity += physicCmp
+                entity +=
+                    AmbienceSoundComponent(AmbienceType.UNDER_WATER, mutableMapOf(SoundVariation.BASE to "sound/ambience/underwater.mp3"))
 
                 initializeWaveColumns(centerX, width, centerY, height, waterCmp)
             }

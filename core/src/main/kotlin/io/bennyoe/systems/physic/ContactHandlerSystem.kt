@@ -17,6 +17,7 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.components.audio.AmbienceType
 import io.bennyoe.components.audio.ReverbZoneComponent
 import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundTriggerComponent
@@ -123,9 +124,10 @@ class ContactHandlerSystem(
     }
 
     private fun handleUnderWaterBegin(p: Parts) {
-        val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
+        val (entityWithSensor, waterEntity) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
         with(world) {
             entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
+                stage.fire(AmbienceChangeEvent(AmbienceType.UNDER_WATER, waterEntity.entity[AmbienceSoundComponent].variations, 1f))
                 it.activeUnderWaterContacts++
             }
         }

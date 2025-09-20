@@ -40,7 +40,6 @@ class PhysicComponent : Component<PhysicComponent> {
     var waterContactGraceTimer: Float = 0f
     var underWaterGraceTimer: Float = 0f
     var airBubblesDelayTimer: Float = 0f
-    var isUnderWater: Boolean = false
     var floorType: FloorType? = null
     lateinit var body: Body
 

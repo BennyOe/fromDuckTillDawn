@@ -6,6 +6,7 @@ import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
+import io.bennyoe.components.IsDiving
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
@@ -41,7 +42,7 @@ class MoveSystem :
                 }
             }
 
-            if (intentionCmp.wantsToSwimUp && physicCmp.isUnderWater) {
+            if (intentionCmp.wantsToSwimUp && entity has IsDiving) {
                 moveCmp.moveVelocity.y = moveCmp.maxSwimSpeed
             } else if (intentionCmp.wantsToSwimDown) {
                 moveCmp.moveVelocity.y = -moveCmp.maxSwimSpeed

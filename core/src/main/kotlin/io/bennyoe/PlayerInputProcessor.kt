@@ -7,7 +7,7 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.InputComponent
-import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.IsDiving
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.debug.DebugComponent
@@ -121,14 +121,14 @@ class PlayerInputProcessor(
         inputEntities.forEach { input ->
             val playerState = playerEntity[StateComponent].stateMachine.currentState
             val inputCmp = input[InputComponent]
-            val physicCmp = input[PhysicComponent]
+            val isDiving = input.has(IsDiving)
             val allowed = allowedActionsPerState[playerState.toString()] ?: emptySet()
             logger.debug { "playerState $playerState" }
             if (pressed && action != Action.KILL && action !in allowed) return@forEach
 
             when (action) {
                 Action.MOVE_UP -> {
-                    if (playerState == PlayerFSM.SWIM && physicCmp.isUnderWater) {
+                    if (playerState == PlayerFSM.SWIM && isDiving) {
                         inputCmp.swimUpJustPressed = pressed
                     } else {
                         inputCmp.swimUpJustPressed = false

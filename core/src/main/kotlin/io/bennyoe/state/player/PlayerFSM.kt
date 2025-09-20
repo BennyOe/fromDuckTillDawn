@@ -326,7 +326,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.changeState(IDLE)
                 return
             }
-            if (ctx.wantsToJump && !ctx.physicComponent.isUnderWater) {
+            if (ctx.wantsToJump && !isDiving(ctx)) {
                 ctx.intentionCmp.wantsToBash = false
                 ctx.changeState(JUMP)
             }

@@ -127,7 +127,6 @@ class ContactHandlerSystem(
         val (entityWithSensor, waterEntity) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
         with(world) {
             entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
-                stage.fire(AmbienceChangeEvent(AmbienceType.UNDER_WATER, waterEntity.entity[AmbienceSoundComponent].variations, 1f))
                 it.activeUnderWaterContacts++
             }
         }
@@ -138,7 +137,6 @@ class ContactHandlerSystem(
         with(world) {
             entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
                 if (it.activeUnderWaterContacts > 0) {
-                    stage.fire(AmbienceChangeEvent(AmbienceType.NONE, null, null))
                     it.activeUnderWaterContacts--
                 }
             }

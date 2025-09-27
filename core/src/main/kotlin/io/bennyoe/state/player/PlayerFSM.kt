@@ -6,6 +6,7 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.event.PlaySoundEvent
+import io.bennyoe.event.StreamSoundEvent
 import io.bennyoe.event.fire
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
@@ -344,6 +345,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
     data object DIVE : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
+            ctx.stage.fire(StreamSoundEvent(ctx.entity, "sound/ambience/underwater.mp3", 1f, looping = true))
             logger.debug { "Entering DIVE" }
             ctx.setAnimation(AnimationType.SWIM)
         }

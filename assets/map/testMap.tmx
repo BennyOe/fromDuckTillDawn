@@ -314,7 +314,7 @@
    </object>
   </objectgroup>
   <objectgroup id="17" name="soundTriggers">
-   <object id="108" x="1452.25" y="327.567" width="23.9766" height="61.9883">
+   <object id="108" x="1282.25" y="193.567" width="23.9766" height="61.9883">
     <properties>
      <property name="sound" value="sound/trigger/laugh.mp3"/>
      <property name="streamed" type="bool" value="true"/>
@@ -480,7 +480,7 @@
  <objectgroup id="24" name="rainMask" visible="0">
   <object id="130" x="1124.08" y="0.93" width="474.836" height="319.14"/>
  </objectgroup>
- <objectgroup id="25" name="water">
+ <objectgroup id="25" name="water" visible="0">
   <properties>
    <property name="zIndex" type="int" value="20000"/>
   </properties>

@@ -86,6 +86,7 @@ class GameScreen(
     private val assets = context.inject<AssetStorage>()
     private val audio = context.inject<Audio>()
     private val worldObjectsAtlas = assets[TextureAssets.WORLD_OBJECTS_ATLAS.descriptor]
+    private val waterAtlas = assets[TextureAssets.WATER_ATLAS.descriptor]
     private val cloudsAtlas = assets[TextureAssets.CLOUDS_ATLAS.descriptor]
     private val rainCloudsAtlas = assets[TextureAssets.RAIN_CLOUDS_ATLAS.descriptor]
     private val dawnAtlases =
@@ -139,6 +140,7 @@ class GameScreen(
                 add("assetManager", assets)
                 add("phyWorld", phyWorld)
                 add("worldObjectsAtlas", worldObjectsAtlas)
+                add("waterAtlas", waterAtlas)
                 add("cloudsAtlas", cloudsAtlas)
                 add("rainCloudsAtlas", rainCloudsAtlas)
                 add("dawnAtlases", dawnAtlases)

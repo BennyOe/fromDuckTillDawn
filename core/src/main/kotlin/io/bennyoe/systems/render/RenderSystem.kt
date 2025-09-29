@@ -37,7 +37,7 @@ class RenderSystem(
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
     private val renderTargets: RenderTargets = inject("renderTargets"),
     polygonSpriteBatch: PolygonSpriteBatch = inject("polygonSpriteBatch"),
-    worldObjectsAtlas: TextureAtlas = inject("worldObjectsAtlas"),
+    waterAtlas: TextureAtlas = inject("waterAtlas"),
 ) : IntervalSystem(
         enabled = !SHOW_ONLY_DEBUG,
     ),
@@ -57,7 +57,7 @@ class RenderSystem(
     private val renderQueue = mutableListOf<RenderableElement>()
 
     private val shaderService = ShaderService()
-    private val waterRenderer = WaterRenderer(stage, polygonSpriteBatch, worldObjectsAtlas)
+    private val waterRenderer = WaterRenderer(stage, polygonSpriteBatch, waterAtlas)
     private val lightingRenderer = LightingRenderer(stage, world, lightEngine, mapRenderer, shaderService)
 
     override fun handle(event: Event?): Boolean {

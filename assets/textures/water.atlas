@@ -1,0 +1,5 @@
+water.png
+size:1024,512
+repeat:xy
+water
+bounds:0,0,600,400

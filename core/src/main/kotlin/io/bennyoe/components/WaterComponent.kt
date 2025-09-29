@@ -1,5 +1,6 @@
 package io.bennyoe.components
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.PolygonRegion
 import com.badlogic.gdx.graphics.g2d.PolygonSprite
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
@@ -10,6 +11,8 @@ import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.systems.physic.WaterColumn
+
+const val WATER_TRANSPARENCY = 0.65f
 
 class WaterComponent(
     var tension: Float = 0.02f,
@@ -22,6 +25,7 @@ class WaterComponent(
     val uniforms: MutableMap<String, Any> = mutableMapOf()
     var columns: MutableList<WaterColumn> = mutableListOf() // represent the height of the waves
     var fixturePairs: MutableSet<Pair<Fixture, Fixture>> = LinkedHashSet() // contacts between this object and other dynamic bodies
+    var waterColor: Color = Color(1f, 1f, 1f, WATER_TRANSPARENCY)
 
     // ------------------ for optimization ---------------
     // Reusable render buffers (created once)

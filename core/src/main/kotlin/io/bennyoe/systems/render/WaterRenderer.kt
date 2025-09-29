@@ -15,8 +15,6 @@ import com.github.quillraven.fleks.Family
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.systems.physic.spreadWaves
 
-private const val WATER_TRANSPARENCY = 0.65f
-
 /**
  * Handles the rendering of water entities.
  *
@@ -236,7 +234,7 @@ class WaterRenderer(
         waterCmp.waterVertices = region.vertices
         waterCmp.waterSprite =
             PolygonSprite(region).apply {
-                setColor(1f, 1f, 1f, WATER_TRANSPARENCY)
+                setColor(waterCmp.waterColor)
             }
         waterCmp.meshCapacity = n
     }

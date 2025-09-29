@@ -94,7 +94,8 @@ void main() {
     vec4 backgroundColor = texture2D(u_fbo_texture, fboUV);
 
     // Composite
-    vec4 outCol = mix(backgroundColor, waterColor, v_color.a);
+    vec4 tintedWater = waterColor * v_color;
+    vec4 outCol = mix(backgroundColor, tintedWater, v_color.a);
     outCol.a = 1.0;
     gl_FragColor = outCol;
 }

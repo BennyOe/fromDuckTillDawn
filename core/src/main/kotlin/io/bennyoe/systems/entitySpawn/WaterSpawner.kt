@@ -1,10 +1,12 @@
 package io.bennyoe.systems.entitySpawn
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.maps.MapLayer
 import com.badlogic.gdx.physics.box2d.BodyDef
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.WATER_TRANSPARENCY
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
@@ -51,6 +53,7 @@ class WaterSpawner(
                 entity += transformCmp
 
                 val waterCmp = WaterComponent()
+                waterCmp.waterColor = Color(0.3f, 0.6f, 1f, WATER_TRANSPARENCY)
                 waterCmp.shader = setupShader("water")
                 waterCmp.uniforms.putAll(
                     mapOf(

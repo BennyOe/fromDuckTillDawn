@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
+import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
@@ -14,6 +15,7 @@ import io.bennyoe.components.ParticleType
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.GameConstants
+import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import ktx.math.vec2
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -27,7 +29,10 @@ const val TORQUE_DAMPING = 100f
 
 class WaterSystem(
     private val stage: Stage = inject("stage"),
-) : IteratingSystem(family { all(WaterComponent) }) {
+) : IteratingSystem(
+        family { all(WaterComponent) },
+        interval = Fixed(PHYSIC_TIME_STEP),
+    ) {
     private var spawnedThisTick = false
     private val impulsedBodiesThisTick = hashSetOf<Body>()
 

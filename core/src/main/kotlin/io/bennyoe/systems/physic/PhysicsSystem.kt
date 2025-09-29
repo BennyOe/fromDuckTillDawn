@@ -21,6 +21,7 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WATER_CONTACT_GRACE_PERIOD
 import io.bennyoe.config.GameConstants
+import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.systems.PausableSystem
 import ktx.log.logger
@@ -31,10 +32,7 @@ class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(
         family { all(PhysicComponent, ImageComponent) },
-        interval =
-            Fixed(
-                GameConstants.PHYSIC_TIME_STEP,
-            ),
+        interval = Fixed(PHYSIC_TIME_STEP),
     ),
     PausableSystem {
     override fun onUpdate() {

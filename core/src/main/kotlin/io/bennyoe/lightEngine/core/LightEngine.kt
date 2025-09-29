@@ -34,7 +34,7 @@ class LightEngine(
     cam: OrthographicCamera,
     batch: SpriteBatch,
     viewport: Viewport,
-    private val lightViewportScale: Float = 2f,
+    lightViewportScale: Float = 2f,
     useDiffuseLight: Boolean = true,
     maxShaderLights: Int = 32,
     entityCategory: Short = 0x0001,
@@ -50,8 +50,8 @@ class LightEngine(
         entityCategory,
         entityMask,
         lightActivationRadius,
+        lightViewportScale,
     ) {
-    private val lightCam = OrthographicCamera()
 
     /**
      * Performs the complete lighting render pass using normal mapping and Box2D shadows.

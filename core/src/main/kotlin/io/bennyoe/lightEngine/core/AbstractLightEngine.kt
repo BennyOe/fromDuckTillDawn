@@ -55,6 +55,7 @@ abstract class AbstractLightEngine(
     val entityCategory: Short = 0x0001.toShort(),
     val entityMask: Short = -1,
     val lightActivationRadius: Float = -1f,
+    val lightViewportScale: Float = 2f,
 ) {
     protected val vertShader: FileHandle = Gdx.files.internal("shader/light.vert")
     protected val fragShader: FileHandle = Gdx.files.internal("shader/light.frag")
@@ -70,6 +71,7 @@ abstract class AbstractLightEngine(
     protected var specularRemapMin = 0.1f
     protected var specularRemapMax = 0.5f
     private val density = Gdx.graphics.backBufferScale
+    private val lightCam = OrthographicCamera()
 
     init {
         setupShader()
@@ -86,7 +88,19 @@ abstract class AbstractLightEngine(
      * Call this after updating and activating lights, and before drawing the final scene.
      */
     fun renderBox2dLights() {
-        rayHandler.setCombinedMatrix(cam)
+        lightCam.setToOrtho(false, viewport.worldWidth, viewport.worldHeight)
+
+        lightCam.position.set(cam.position)
+        lightCam.zoom = cam.zoom
+        lightCam.update()
+
+        rayHandler.setCombinedMatrix(
+            lightCam.combined,
+            cam.position.x,
+            cam.position.y,
+            viewport.worldWidth * lightViewportScale,
+            viewport.worldHeight * lightViewportScale,
+        )
         rayHandler.updateAndRender()
     }
 

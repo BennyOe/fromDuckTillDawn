@@ -39,7 +39,7 @@ class Scene2dLightEngine(
     batch: SpriteBatch,
     viewport: Viewport,
     val stage: Stage?,
-    private val lightViewportScale: Float = 2f,
+    lightViewportScale: Float = 2f,
     useDiffuseLight: Boolean = true,
     maxShaderLights: Int = 32,
     entityCategory: Short = 0x0001,
@@ -55,9 +55,8 @@ class Scene2dLightEngine(
         entityCategory,
         entityMask,
         lightActivationRadius,
+        lightViewportScale,
     ) {
-    private val lightCam = OrthographicCamera()
-
     /**
      * Performs the complete lighting render pass using normal mapping and Box2D shadows.
      *

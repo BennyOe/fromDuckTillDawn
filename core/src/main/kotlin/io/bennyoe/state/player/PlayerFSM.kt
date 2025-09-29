@@ -6,7 +6,6 @@ import io.bennyoe.components.AnimationType
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.event.PlaySoundEvent
-import io.bennyoe.event.StreamSoundEvent
 import io.bennyoe.event.fire
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes

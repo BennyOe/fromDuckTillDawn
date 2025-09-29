@@ -17,7 +17,6 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.audio.AmbienceSoundComponent
-import io.bennyoe.components.audio.AmbienceType
 import io.bennyoe.components.audio.ReverbZoneComponent
 import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundTriggerComponent

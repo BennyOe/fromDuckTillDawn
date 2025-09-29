@@ -161,22 +161,21 @@ class WaterSystem(
         // --- Part 2: simple traveling sine waves (lightweight) ---
         val t = continuousTime
 
-        // Amplitudes (height), spatial frequencies (k), and angular speeds (w)
-        // Keep values small; they add to column speed (velocity)
-        val A1 = 0.008f
-        val A2 = 0.003f
-        val K1 = 6.55f // longer wave (bigger crests)
-        val W1 = 7.10f // moves to the right
-        val K2 = 2.10f // shorter wave (details)
-        val W2 = 6.70f // moves to the left (counter-phase)
+        val longWaveAmplitude = 0.008f
+        val longWaveSpatialFrequency = 6.55f
+        val longWaveMovingSpeedRight = 7.10f
+
+        val shortWaveAmplitude = 0.003f
+        val shortWaveSpatialFrequency = 2.10f
+        val shortWaveMovingSpeedLeft = 6.70f
 
         for (i in 0 until n) {
             val c = cols[i]
             val x = c.x
             // Two simple traveling sines; add more if you want richer motion
             val s =
-                sin(x * K1 + t * W1) * A1 +
-                    sin(x * K2 - t * W2) * A2
+                sin(x * longWaveSpatialFrequency + t * longWaveMovingSpeedRight) * longWaveAmplitude +
+                    sin(x * shortWaveSpatialFrequency - t * shortWaveMovingSpeedLeft) * shortWaveAmplitude
             c.speed += s
         }
 

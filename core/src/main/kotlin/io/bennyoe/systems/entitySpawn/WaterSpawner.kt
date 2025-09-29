@@ -6,9 +6,6 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
-import io.bennyoe.components.audio.AmbienceSoundComponent
-import io.bennyoe.components.audio.AmbienceType
-import io.bennyoe.components.audio.SoundVariation
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.systems.physic.WaterColumn
@@ -57,17 +54,24 @@ class WaterSpawner(
                 waterCmp.shader = setupShader("water")
                 waterCmp.uniforms.putAll(
                     mapOf(
-                        "u_flowSpeed" to 0.006f, // Slow horizontal movement of the water texture
-                        "u_waveSpeed" to 0.2f, // Speed of large waves
-                        "u_waveFrequency" to 8.0f, // How many large waves are on screen
-                        "u_waveHeight" to 0.005f, // Amplitude/height of large waves
-                        "u_rippleSpeed" to 0.8f, // Speed of small ripples
-                        "u_rippleFrequency" to 25.0f, // How many small ripples are on screen
-                        "u_rippleHeight" to 0.003f, // Amplitude/height of small ripples
+                        // Slow horizontal movement of the water texture
+                        "u_flowSpeed" to 0.006f,
+                        // Speed of large waves
+                        "u_waveSpeed" to 0.2f,
+                        // How many large waves are on screen
+                        "u_waveFrequency" to 8.0f,
+                        // Amplitude/height of large waves
+                        "u_waveHeight" to 0.005f,
+                        // Speed of small ripples
+                        "u_rippleSpeed" to 0.8f,
+                        // How many small ripples are on screen
+                        "u_rippleFrequency" to 25.0f,
+                        // Amplitude/height of small ripples
+                        "u_rippleHeight" to 0.003f,
                         // chaos tuning
                         "u_chaosAmount" to 0.28f,
-                        "u_chaosScale"  to 3.5f,
-                        "u_flowJitter"  to 0.6f,
+                        "u_chaosScale" to 3.5f,
+                        "u_flowJitter" to 0.6f,
                     ),
                 )
                 entity += waterCmp

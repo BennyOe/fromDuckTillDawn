@@ -19,8 +19,11 @@ import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import ktx.math.vec2
 import kotlin.math.absoluteValue
 import kotlin.math.min
+import kotlin.math.sin
 
-const val MIN_SPLASH_AREA: Float = 0.1f
+private const val SPLASH_WAVES_MULTIPLIER = .2f
+
+const val MIN_SPLASH_AREA: Float = SPLASH_WAVES_MULTIPLIER
 const val DRAG_MOD: Float = 0.35f
 const val LIFT_MOD: Float = 0.85f
 const val MAX_DRAG: Float = 2000f
@@ -35,6 +38,18 @@ class WaterSystem(
     ) {
     private var spawnedThisTick = false
     private val impulsedBodiesThisTick = hashSetOf<Body>()
+    private var continuousTime = 0f
+
+    private val particleCmp =
+        ParticleComponent(
+            particleFile = Gdx.files.internal("particles/splash.p"),
+            scaleFactor = 0.15f,
+            motionScaleFactor = 0.2f,
+            looping = false,
+            stage = stage,
+            zIndex = 90000,
+            type = ParticleType.WATER_SPLASH,
+        )
 
     override fun onTickEntity(entity: Entity) {
         val waterCmp = entity[WaterComponent]
@@ -125,11 +140,54 @@ class WaterSystem(
             }
         }
         waterCmp.enteredBodies.retainAll(bodiesInContact)
+        updateWaterSurface(waterCmp)
+    }
+
+    private fun updateWaterSurface(waterCmp: WaterComponent) {
+        val cols = waterCmp.columns
+        val n = cols.size
+        if (n <= 1) return
+
+        waterCmp.ensureDeltaCapacity(n)
+        val l = waterCmp.lDeltas
+        val r = waterCmp.rDeltas
+
+        // --- Part 1: per-column spring update ---
+        for (i in 0 until n) {
+            val c = cols[i]
+            c.update(waterCmp.dampening, waterCmp.tension)
+        }
+
+        // --- Part 2: simple traveling sine waves (lightweight) ---
+        val t = continuousTime
+
+        // Amplitudes (height), spatial frequencies (k), and angular speeds (w)
+        // Keep values small; they add to column speed (velocity)
+        val A1 = 0.008f
+        val A2 = 0.003f
+        val K1 = 6.55f // longer wave (bigger crests)
+        val W1 = 7.10f // moves to the right
+        val K2 = 2.10f // shorter wave (details)
+        val W2 = 6.70f // moves to the left (counter-phase)
+
+        for (i in 0 until n) {
+            val c = cols[i]
+            val x = c.x
+            // Two simple traveling sines; add more if you want richer motion
+            val s =
+                sin(x * K1 + t * W1) * A1 +
+                    sin(x * K2 - t * W2) * A2
+            c.speed += s
+        }
+
+        // --- Part 3: wave spreading ---
+        spreadWaves(waterCmp, n, cols, l, r)
     }
 
     override fun onTick() {
         spawnedThisTick = false
         impulsedBodiesThisTick.clear()
+        continuousTime += deltaTime
         super.onTick()
     }
 
@@ -154,7 +212,7 @@ class WaterSystem(
                         if (falling) {
                             // 1) Always excite the column when a falling body crosses it
                             //    Use additive impulse so multiple crossings accumulate naturally
-                            column.speed += body.linearVelocity.y * .26f / 100f
+                            column.speed += body.linearVelocity.y * SPLASH_WAVES_MULTIPLIER / 100f
 
                             // 2) First-ever contact bookkeeping & actualBody
                             val firstContactEver = body !in waterCmp.enteredBodies
@@ -204,17 +262,7 @@ class WaterSystem(
                     stage.camera.viewportWidth,
                     stage.camera.viewportHeight,
                 )
-            val particle =
-                ParticleComponent(
-                    particleFile = Gdx.files.internal("particles/splash.p"),
-                    scaleFactor = 0.15f,
-                    motionScaleFactor = 0.2f,
-                    looping = false,
-                    stage = stage,
-                    zIndex = 90000,
-                    type = ParticleType.WATER_SPLASH,
-                )
-            it += particle
+            it += particleCmp
         }
     }
 }

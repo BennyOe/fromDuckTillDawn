@@ -57,14 +57,17 @@ class WaterSpawner(
                 waterCmp.shader = setupShader("water")
                 waterCmp.uniforms.putAll(
                     mapOf(
-                        "u_speed" to 0.1f,
-                        "u_speed_x" to 0.15f,
-                        "u_speed_y" to 0.15f,
-                        "u_emboss" to 0.08f,
-                        "u_intensity" to .5f,
-                        "u_frequency" to 8.0f,
-                        "u_delta" to 200.0f,
-                        "u_distortion_scale" to 0.02f,
+                        "u_flowSpeed" to 0.006f, // Slow horizontal movement of the water texture
+                        "u_waveSpeed" to 0.2f, // Speed of large waves
+                        "u_waveFrequency" to 8.0f, // How many large waves are on screen
+                        "u_waveHeight" to 0.005f, // Amplitude/height of large waves
+                        "u_rippleSpeed" to 0.8f, // Speed of small ripples
+                        "u_rippleFrequency" to 25.0f, // How many small ripples are on screen
+                        "u_rippleHeight" to 0.003f, // Amplitude/height of small ripples
+                        // chaos tuning
+                        "u_chaosAmount" to 0.28f,
+                        "u_chaosScale"  to 3.5f,
+                        "u_flowJitter"  to 0.6f,
                     ),
                 )
                 entity += waterCmp
@@ -95,9 +98,6 @@ class WaterSpawner(
                         }.disposeOfShape
                     }
                 entity += physicCmp
-                entity +=
-                    AmbienceSoundComponent(AmbienceType.UNDER_WATER, mutableMapOf(SoundVariation.BASE to "sound/ambience/underwater.mp3"))
-
                 initializeWaveColumns(centerX, width, centerY, height, waterCmp)
             }
         }

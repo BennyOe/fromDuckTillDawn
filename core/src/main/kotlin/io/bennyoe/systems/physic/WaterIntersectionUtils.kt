@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Fixture
 import com.badlogic.gdx.physics.box2d.PolygonShape
 import com.badlogic.gdx.physics.box2d.Shape
+import io.bennyoe.components.WaterComponent
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -178,5 +179,36 @@ object WaterIntersectionUtils {
         val c = cos(angle)
         val s = sin(angle)
         return Vector2((c * magnitude), (s * magnitude))
+    }
+}
+
+fun spreadWaves(
+    waterCmp: WaterComponent,
+    n: Int,
+    cols: MutableList<WaterColumn>,
+    l: FloatArray,
+    r: FloatArray,
+) {
+    val s = waterCmp.spread
+    val passes = waterCmp.spreadPasses
+
+    repeat(passes) {
+        val last = n - 1
+        for (i in 0 until last) {
+            val left = cols[i]
+            val right = cols[i + 1]
+            val d = s * (right.height - left.height)
+            l[i + 1] = d
+            r[i] = -d
+            left.speed += d
+            right.speed -= d
+        }
+
+        for (i in 0 until last) {
+            val dl = l[i + 1]
+            val dr = r[i]
+            cols[i].height += dl
+            cols[i + 1].height += dr
+        }
     }
 }

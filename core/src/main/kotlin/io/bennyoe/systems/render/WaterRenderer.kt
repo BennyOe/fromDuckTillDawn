@@ -13,6 +13,7 @@ import com.badlogic.gdx.math.EarClippingTriangulator
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Family
 import io.bennyoe.components.WaterComponent
+import io.bennyoe.systems.physic.spreadWaves
 
 private const val WATER_TRANSPARENCY = 0.35f
 
@@ -197,28 +198,7 @@ class WaterRenderer(
         }
 
         // --- Part 2: wave spreading ---
-        val s = waterCmp.spread
-        val passes = waterCmp.spreadPasses
-
-        repeat(passes) {
-            val last = n - 1
-            for (i in 0 until last) {
-                val left = cols[i]
-                val right = cols[i + 1]
-                val d = s * (right.height - left.height)
-                l[i + 1] = d
-                r[i] = -d
-                left.speed += d
-                right.speed -= d
-            }
-
-            for (i in 0 until last) {
-                val dl = l[i + 1]
-                val dr = r[i]
-                cols[i].height += dl
-                cols[i + 1].height += dr
-            }
-        }
+        spreadWaves(waterCmp, n, cols, l, r)
     }
 
     // initialization

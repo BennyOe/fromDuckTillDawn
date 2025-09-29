@@ -1,5 +1,7 @@
 package io.bennyoe.components
 
+import com.badlogic.gdx.graphics.g2d.PolygonRegion
+import com.badlogic.gdx.graphics.g2d.PolygonSprite
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.physics.box2d.Fixture
@@ -20,6 +22,25 @@ class WaterComponent(
     val uniforms: MutableMap<String, Any> = mutableMapOf()
     var columns: MutableList<WaterColumn> = mutableListOf() // represent the height of the waves
     var fixturePairs: MutableSet<Pair<Fixture, Fixture>> = LinkedHashSet() // contacts between this object and other dynamic bodies
+
+    // ------------------ for optimization ---------------
+    // Reusable render buffers (created once)
+    var waterVertices: FloatArray? = null
+    var waterRegion: PolygonRegion? = null
+    var waterSprite: PolygonSprite? = null
+    var meshCapacity: Int = 0 // number of columns this mesh was built for
+
+    var lDeltas: FloatArray = FloatArray(0)
+    var rDeltas: FloatArray = FloatArray(0)
+    var spreadPasses: Int = 10
+
+    fun ensureDeltaCapacity(n: Int) {
+        if (lDeltas.size < n) {
+            lDeltas = FloatArray(n)
+            rDeltas = FloatArray(n)
+        }
+    }
+    // -----------------------------------------------
 
     override fun type() = WaterComponent
 

@@ -30,8 +30,7 @@ class WaterColumn(
         dampening: Float,
         tension: Float,
     ) {
-        val delta = targetHeight - height
-        speed += tension * delta - speed * dampening
+        speed += tension * (targetHeight - height) - speed * dampening
         height += speed
     }
 

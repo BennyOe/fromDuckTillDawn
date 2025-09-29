@@ -164,36 +164,11 @@ class WaterRenderer(
         polygonSpriteBatch.projectionMatrix = camera.combined
         polygonSpriteBatch.begin()
 
-        waterCmp.columns.zipWithNext().forEach { (c1, c2) ->
-            // Define the four corners of the quad for this water segment.
-            // The top vertices (c1.height, c2.height) are dynamic.
-            val vertices =
-                floatArrayOf(
-                    c1.x,
-                    // Bottom-left
-                    c1.y,
-                    c1.x,
-                    // Top-left
-                    c1.height,
-                    c2.x,
-                    // Top-right
-                    c2.height,
-                    c2.x,
-                    // Bottom-right
-                    c2.y,
-                )
+        ensureStripMesh(waterCmp) // build once or when column count changed
+        updateStripTopY(waterCmp) // just mutate the top y's
+        waterCmp.waterSprite!!.setRegion(waterCmp.waterRegion)
+        waterCmp.waterSprite!!.draw(polygonSpriteBatch)
 
-            // A quad is not a simple triangle, so we need to triangulate it.
-            val triangles = triangulator.computeTriangles(vertices).toArray()
-            val region = PolygonRegion(waterTextureRegion, vertices, triangles)
-            val sprite = PolygonSprite(region)
-
-            // Set the desired base transparency of the water.
-            // The shader uses this alpha value to mix the water texture and the distorted background.
-            sprite.setColor(1f, 1f, 1f, WATER_TRANSPARENCY)
-
-            sprite.draw(polygonSpriteBatch)
-        }
         polygonSpriteBatch.end()
     }
 
@@ -207,30 +182,94 @@ class WaterRenderer(
      * @param waterCmp The `WaterComponent` holding the state of the water columns.
      */
     private fun updateWaves(waterCmp: WaterComponent) {
-        // Part 1: Apply spring physics to each individual column.
-        waterCmp.columns.forEach { it.update(waterCmp.dampening, waterCmp.tension) }
+        val cols = waterCmp.columns
+        val n = cols.size
+        if (n <= 1) return
 
-        // Part 2: Spread the wave energy between neighboring columns.
-        val lDeltas = FloatArray(waterCmp.columns.size)
-        val rDeltas = FloatArray(waterCmp.columns.size)
+        waterCmp.ensureDeltaCapacity(n)
+        val l = waterCmp.lDeltas
+        val r = waterCmp.rDeltas
+
+        // --- Part 1: per-column spring update ---
+        for (i in 0 until n) {
+            val c = cols[i]
+            c.update(waterCmp.dampening, waterCmp.tension)
+        }
+
+        // --- Part 2: wave spreading ---
         val s = waterCmp.spread
+        val passes = waterCmp.spreadPasses
 
-        // Run multiple passes for a more stable and fluid simulation.
-        repeat(26) {
-            // Calculate how much height/speed to transfer between neighbors.
-            waterCmp.columns.zipWithNext().forEachIndexed { idx, (left, right) ->
+        repeat(passes) {
+            val last = n - 1
+            for (i in 0 until last) {
+                val left = cols[i]
+                val right = cols[i + 1]
                 val d = s * (right.height - left.height)
-                lDeltas[idx + 1] = d
-                rDeltas[idx] = -d
+                l[i + 1] = d
+                r[i] = -d
                 left.speed += d
                 right.speed -= d
             }
 
-            // Apply the calculated changes.
-            waterCmp.columns.zipWithNext().forEachIndexed { idx, (left, right) ->
-                left.height += lDeltas[idx + 1]
-                right.height += rDeltas[idx]
+            for (i in 0 until last) {
+                val dl = l[i + 1]
+                val dr = r[i]
+                cols[i].height += dl
+                cols[i + 1].height += dr
             }
+        }
+    }
+
+    // initialization
+    private fun ensureStripMesh(waterCmp: WaterComponent) {
+        val cols = waterCmp.columns
+        val n = cols.size
+        if (n < 2) return
+
+        if (waterCmp.waterVertices != null && waterCmp.meshCapacity == n) return
+
+        // Build vertex loop: top edge (0..n-1), then bottom edge (n-1..0)
+        // Each vertex: (x, y) -> 2 floats
+        val vertexCount = n * 2 // top + bottom
+        val vertices = FloatArray(vertexCount * 2)
+
+        // Fill top edge (x, height)
+        var vi = 0
+        for (i in 0 until n) {
+            val c = cols[i]
+            vertices[vi++] = c.x
+            vertices[vi++] = c.height
+        }
+        // Fill bottom edge reversed (x, y)
+        for (i in n - 1 downTo 0) {
+            val c = cols[i]
+            vertices[vi++] = c.x
+            vertices[vi++] = c.y
+        }
+
+        // Triangulate once for the closed polygon
+        val tris = triangulator.computeTriangles(vertices).toArray()
+
+        val region = PolygonRegion(waterTextureRegion, vertices, tris)
+        waterCmp.waterRegion = region
+        waterCmp.waterVertices = region.vertices
+        waterCmp.waterSprite =
+            PolygonSprite(region).apply {
+                setColor(1f, 1f, 1f, WATER_TRANSPARENCY)
+            }
+        waterCmp.meshCapacity = n
+    }
+
+    private fun updateStripTopY(waterCmp: WaterComponent) {
+        val cols = waterCmp.columns
+        val n = cols.size
+        val vertices = waterCmp.waterRegion?.vertices ?: return
+
+        var vi = 1
+        for (i in 0 until n) {
+            vertices[vi] = cols[i].height
+            vi += 2
         }
     }
 }

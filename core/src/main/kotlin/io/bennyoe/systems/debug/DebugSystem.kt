@@ -54,6 +54,7 @@ class DebugSystem(
     profiler: GLProfiler =
         inject("profiler"),
 ) : IntervalSystem(enabled = ENABLE_DEBUG) {
+    private val tmpVec = Vector3()
     private val physicsRenderer by lazy { Box2DDebugRenderer() }
     private val mainLabelStyle = Scene2DSkin.defaultSkin.get<LabelStyle>("default")
     private val secondaryLabelStyle = LabelStyle(mainLabelStyle.font, Color.RED)
@@ -254,7 +255,7 @@ class DebugSystem(
         y: Float,
         dbgShape: DebugShape,
     ) {
-        val tmpVec = Vector3(x, y, 0f)
+        tmpVec.set(x, y, 0f)
         // converts tmpVec worldUnits -> pixel
         stage.viewport.project(tmpVec)
         uiStage.viewport.unproject(tmpVec)

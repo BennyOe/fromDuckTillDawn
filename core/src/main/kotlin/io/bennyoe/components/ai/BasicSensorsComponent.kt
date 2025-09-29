@@ -14,6 +14,8 @@ import ktx.math.vec2
 class BasicSensorsComponent(
     val chaseRange: Float,
 ) : Component<BasicSensorsComponent> {
+    var from = Vector2()
+    var to = Vector2()
     val upperLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
     val lowerLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
 
@@ -117,25 +119,17 @@ data class SensorDef(
     ) {
         if (isHorizontal) {
             if (type == SensorType.ATTACK_SENSOR) {
-                from =
-                    if (flipImage) {
-                        vec2(bodyPos.x + fromRelative.x + 0.5f, bodyPos.y + fromRelative.y)
-                    } else {
-                        vec2(bodyPos.x + fromRelative.x - 0.5f, bodyPos.y + fromRelative.y)
-                    }
+                val newFromX = if (flipImage) bodyPos.x + fromRelative.x + 0.5f else bodyPos.x + fromRelative.x - 0.5f
+                from.set(newFromX, bodyPos.y + fromRelative.y)
             } else {
                 from.set(bodyPos).add(fromRelative)
             }
 
-            to =
-                if (flipImage) {
-                    vec2(from.x - toRelative.x, from.y + toRelative.y)
-                } else {
-                    vec2(from.x + toRelative.x, from.y + toRelative.y)
-                }
+            val newToX = if (flipImage) from.x - toRelative.x else from.x + toRelative.x
+            to.set(newToX, from.y + toRelative.y)
         } else {
             val locationOffsetX = if (flipImage) -fromRelative.x else fromRelative.x
-            from.set(bodyPos + vec2(locationOffsetX, fromRelative.y))
+            from.set(bodyPos).add(locationOffsetX, fromRelative.y)
             to.set(from.x + toRelative.x, from.y + toRelative.y)
         }
     }

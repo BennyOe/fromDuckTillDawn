@@ -15,7 +15,7 @@ import com.github.quillraven.fleks.Family
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.systems.physic.spreadWaves
 
-private const val WATER_TRANSPARENCY = 0.35f
+private const val WATER_TRANSPARENCY = 0.65f
 
 /**
  * Handles the rendering of water entities.
@@ -27,20 +27,20 @@ private const val WATER_TRANSPARENCY = 0.35f
  *
  * @param stage The main game stage, used for viewport calculations.
  * @param polygonSpriteBatch The batch used to render polygon-based geometry like the water surface.
- * @param worldObjectsAtlas The texture atlas containing the 'water' texture region.
+ * @param waterAtlas The texture atlas containing the 'water' texture region.
  */
 class WaterRenderer(
     val stage: Stage,
     val polygonSpriteBatch: PolygonSpriteBatch,
-    val worldObjectsAtlas: TextureAtlas,
+    val waterAtlas: TextureAtlas,
 ) {
     private val shaderService = ShaderService()
     private val triangulator = EarClippingTriangulator()
-    private val waterTextureRegion: TextureRegion by lazy { worldObjectsAtlas.findRegion("water") }
+    private val waterTextureRegion: TextureRegion by lazy { waterAtlas.findRegion("water") }
 
     init {
         // Ensure linear filtering for the water texture to avoid pixelated waves.
-        worldObjectsAtlas.apply { textures.forEach { it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear) } }
+        waterAtlas.apply { textures.forEach { it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear) } }
     }
 
     /**

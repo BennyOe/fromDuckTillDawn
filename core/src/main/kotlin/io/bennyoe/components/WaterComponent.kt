@@ -12,9 +12,9 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.systems.physic.WaterColumn
 
 class WaterComponent(
-    var tension: Float = 0.025f,
-    var dampening: Float = 0.025f,
-    var spread: Float = 0.25f,
+    var tension: Float = 0.02f,
+    var dampening: Float = 0.005f,
+    var spread: Float = 0.35f,
     var density: Float = 1f,
     val enteredBodies: MutableSet<Body> = hashSetOf(),
 ) : Component<WaterComponent> {

@@ -1,7 +1,10 @@
 package io.bennyoe.systems.render
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.tiled.TiledMapImageLayer
@@ -10,6 +13,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
@@ -55,6 +59,9 @@ class RenderSystem(
 
     // The unified render queue - rebuilt each frame
     private val renderQueue = mutableListOf<RenderableElement>()
+
+    // The unified render queue that gets rendered on top of the water - rebuilt each frame
+    private val renderQueueOnTopOfWater = mutableListOf<RenderableElement>()
 
     private val shaderService = ShaderService()
     private val waterRenderer = WaterRenderer(stage, polygonSpriteBatch, waterAtlas)
@@ -113,24 +120,40 @@ class RenderSystem(
         val waterFamily = world.family { all(WaterComponent, TransformComponent) }
         waterRenderer.render(waterFamily, continuousTime, tex, orthoCam)
 
-        // --- 5. RENDER LIGHTS (draw the final box2dLights) ---
+        // --- 5. RENDER FOREGROUND TILES (on top of the water) ---
+        renderForegroundPlain(stage.batch, orthoCam, renderQueueOnTopOfWater, mapRenderer)
+
+        // --- 6. RENDER LIGHTS (draw the final box2dLights) ---
         lightEngine.renderBox2dLights()
     }
 
     private fun buildRenderQueue() {
         renderQueue.clear()
+        renderQueueOnTopOfWater.clear()
 
         // 1. Add all map image layers
         mapImageLayers.forEach { layer ->
             if (layer.textureRegion == null) return
             val zIndex = layer.properties.get("zIndex", Int::class.java) ?: 0
-            renderQueue.add(RenderableElement.ImageLayer(layer, zIndex))
+            val renderedOnTopOfWater = layer.properties.get("renderedOnTopOfWater", Boolean::class.java) ?: false
+
+            if (renderedOnTopOfWater) {
+                renderQueueOnTopOfWater.add(RenderableElement.ImageLayer(layer, zIndex))
+            } else {
+                renderQueue.add(RenderableElement.ImageLayer(layer, zIndex))
+            }
         }
 
         // 2. Add all map tile layers
         mapTileLayers.forEach { layer ->
             val zIndex = layer.properties.get("zIndex", Int::class.java) ?: 7000
-            renderQueue.add(RenderableElement.TileLayer(layer, zIndex))
+            val renderedOnTopOfWater = layer.properties.get("renderedOnTopOfWater", Boolean::class.java) ?: false
+
+            if (renderedOnTopOfWater) {
+                renderQueueOnTopOfWater.add(RenderableElement.TileLayer(layer, zIndex))
+            } else {
+                renderQueue.add(RenderableElement.TileLayer(layer, zIndex))
+            }
         }
 
         // 3. Add all entities
@@ -165,6 +188,77 @@ class RenderSystem(
 
         // 4. Sort everything by zIndex
         renderQueue.sortBy { it.zIndex }
+    }
+
+    /**
+     * Renders foreground elements (tile layers, image layers, entities) using the provided batch and camera.
+     *
+     * This function draws all elements in the given list on top of the water layer, using the default shader.
+     * It handles tile layers, image layers, entities with images, and entities with particles.
+     *
+     * @param batch The batch used for rendering.
+     * @param orthoCam The camera providing the projection matrix.
+     * @param elements The list of renderable elements to draw.
+     * @param mapRenderer The tiled map renderer for tile and image layers.
+     */
+    private fun renderForegroundPlain(
+        batch: Batch,
+        orthoCam: OrthographicCamera,
+        elements: List<RenderableElement>,
+        mapRenderer: OrthogonalTiledMapRenderer,
+    ) {
+        mapRenderer.setView(orthoCam)
+        batch.projectionMatrix = orthoCam.combined
+
+        batch.begin()
+
+        var currentTileset: Texture? = null
+        elements.forEach { e ->
+            when (e) {
+                is RenderableElement.TileLayer -> {
+                    mapRenderer.batch.color = Color.WHITE
+                    mapRenderer.renderTileLayer(e.layer)
+                }
+
+                is RenderableElement.ImageLayer -> {
+                    mapRenderer.batch.color = Color.WHITE
+                    mapRenderer.renderImageLayer(e.layer)
+                }
+
+                is RenderableElement.EntityWithImage -> {
+                    val img = e.imageCmp.image
+                    val drw = img.drawable as? TextureRegionDrawable ?: return@forEach
+                    val region = drw.region
+
+                    val tex = region.texture
+                    if (currentTileset !== tex) {
+                        currentTileset = tex
+                    }
+
+                    batch.draw(
+                        region,
+                        img.x,
+                        img.y,
+                        img.originX,
+                        img.originY,
+                        img.width,
+                        img.height,
+                        img.scaleX,
+                        img.scaleY,
+                        img.rotation,
+                    )
+                }
+
+                is RenderableElement.EntityWithParticle -> {
+                    if (e.particleCmp.enabled) {
+                        e.particleCmp.actor.setPosition(e.transformCmp.position.x, e.transformCmp.position.y)
+                        e.particleCmp.actor.draw(batch, 1f)
+                    }
+                }
+            }
+        }
+
+        batch.end()
     }
 
     companion object {

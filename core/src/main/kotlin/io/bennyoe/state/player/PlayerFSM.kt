@@ -162,7 +162,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
                 hasWaterContact(ctx) && velY <= 0 -> ctx.changeState(SWIM)
-                hasWaterContact(ctx) && velY <= 0 && isDiving(ctx) -> ctx.changeState(DIVE)
+                isDiving(ctx) -> ctx.changeState(DIVE)
                 // otherwise remain in FALL
                 else -> ctx.intentionCmp.wantsToJump = false
             }
@@ -332,7 +332,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 return
             }
 
-            if (isDiving(ctx) && ctx.intentionCmp.wantsToSwimDown) {
+            if (isDiving(ctx)) {
                 ctx.changeState(DIVE)
                 return
             }

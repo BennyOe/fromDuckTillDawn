@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="26" nextobjectid="143">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="26" nextobjectid="174">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
@@ -462,7 +462,7 @@
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="105" name="playerStart" type="playerStart" x="1422.3" y="231.416">
+  <object id="105" name="playerStart" type="playerStart" x="931.633" y="52.7493">
    <point/>
   </object>
  </objectgroup>
@@ -480,12 +480,13 @@
  <objectgroup id="24" name="rainMask" visible="0">
   <object id="130" x="1124.08" y="0.93" width="474.836" height="319.14"/>
  </objectgroup>
- <objectgroup id="25" name="water" visible="0">
+ <objectgroup id="25" name="water">
   <properties>
    <property name="zIndex" type="int" value="20000"/>
   </properties>
   <object id="133" x="1439" y="268.417" width="54.9997" height="179.583"/>
   <object id="138" x="1772.5" y="335.833" width="54.9997" height="114.333"/>
-  <object id="139" x="1494.01" y="395.833" width="294.492" height="53.333"/>
+  <object id="139" x="1486.43" y="395.833" width="302.07" height="53.333"/>
+  <object id="173" x="826.087" y="137.334" width="294.492" height="53.333"/>
  </objectgroup>
 </map>

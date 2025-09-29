@@ -27,7 +27,9 @@ import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.GRAVITY
+import io.bennyoe.config.GameConstants.MAX_FPS
 import io.bennyoe.config.GameConstants.TIME_SCALE
+import io.bennyoe.config.GameConstants.VSYNC
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
@@ -207,6 +209,11 @@ class GameScreen(
 
         rayHandler.setBlurNum(2)
         profiler.enable()
+
+        // setting basic graphic modes (can cause stutter on HiDPI displays)
+        Gdx.graphics.setVSync(VSYNC)
+        Gdx.graphics.setForegroundFPS(MAX_FPS)
+
         // add a gameState Entity to the screen
         entityWorld.entity {
             if (ENABLE_DEBUG) it += DebugComponent()

@@ -105,6 +105,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToAttack -> ctx.changeState(ATTACK_1)
                 isFalling(ctx) -> ctx.changeState(FALL)
                 ctx.wantsToJump -> ctx.changeState(DOUBLE_JUMP)
+                isDiving(ctx) -> ctx.changeState(DIVE)
             }
         }
 
@@ -161,6 +162,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
                 hasWaterContact(ctx) && velY <= 0 -> ctx.changeState(SWIM)
+                hasWaterContact(ctx) && velY <= 0 && isDiving(ctx) -> ctx.changeState(DIVE)
                 // otherwise remain in FALL
                 else -> ctx.intentionCmp.wantsToJump = false
             }
@@ -345,7 +347,6 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
     data object DIVE : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
-            ctx.stage.fire(StreamSoundEvent(ctx.entity, "sound/ambience/underwater.mp3", 1f, looping = true))
             logger.debug { "Entering DIVE" }
             ctx.setAnimation(AnimationType.SWIM)
         }

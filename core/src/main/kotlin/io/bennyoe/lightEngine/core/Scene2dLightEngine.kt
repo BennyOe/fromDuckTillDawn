@@ -45,6 +45,7 @@ class Scene2dLightEngine(
     entityCategory: Short = 0x0001,
     entityMask: Short = -1,
     lightActivationRadius: Float = -1f,
+    refreshRateHz: Float? = null,
 ) : AbstractLightEngine(
         rayHandler,
         cam,
@@ -56,6 +57,7 @@ class Scene2dLightEngine(
         entityMask,
         lightActivationRadius,
         lightViewportScale,
+        refreshRateHz,
     ) {
     /**
      * Performs the complete lighting render pass using normal mapping and Box2D shadows.

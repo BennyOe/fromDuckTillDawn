@@ -133,6 +133,7 @@ class GameScreen(
             entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv() and EntityCategory.SENSOR.bit.inv()),
             lightActivationRadius = 25f,
             lightViewportScale = 4f,
+            refreshRateHz = 75f,
         )
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val entityWorld by lazy {

@@ -56,6 +56,7 @@ abstract class AbstractLightEngine(
     val entityMask: Short = -1,
     val lightActivationRadius: Float = -1f,
     val lightViewportScale: Float = 2f,
+    refreshRateHz: Float? = null,
 ) {
     protected val vertShader: FileHandle = Gdx.files.internal("shader/light.vert")
     protected val fragShader: FileHandle = Gdx.files.internal("shader/light.frag")
@@ -72,6 +73,8 @@ abstract class AbstractLightEngine(
     protected var specularRemapMax = 0.5f
     private val density = Gdx.graphics.backBufferScale
     private val lightCam = OrthographicCamera()
+    private var lightAcc = 0f
+    private var refreshStep: Float? = refreshRateHz?.let { 1f / it }
 
     init {
         setupShader()
@@ -101,7 +104,20 @@ abstract class AbstractLightEngine(
             viewport.worldWidth * lightViewportScale,
             viewport.worldHeight * lightViewportScale,
         )
-        rayHandler.updateAndRender()
+
+        val step = refreshStep
+        if (step == null) {
+            // Uncapped: do the full update every frame
+            rayHandler.update()
+        } else {
+            // Capped: fixed update cadence (e.g. 60 Hz)
+            lightAcc += Gdx.graphics.deltaTime
+            while (lightAcc >= step) {
+                rayHandler.update()
+                lightAcc -= step
+            }
+        }
+        rayHandler.render()
     }
 
     /**
@@ -170,6 +186,12 @@ abstract class AbstractLightEngine(
     fun resetOverlayColor() {
         batch.flush()
         batch.shader.setUniformf("u_overlayStrength", 0f)
+    }
+
+    /** Change refresh rate at runtime; pass null to disable capping. */
+    fun setRefreshRate(hz: Float?) {
+        refreshStep = hz?.takeIf { it > 0f }?.let { 1f / it }
+        lightAcc = 0f // reset accumulator for clean phase
     }
 
     /**

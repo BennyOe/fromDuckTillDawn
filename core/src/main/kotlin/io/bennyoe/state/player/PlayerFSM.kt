@@ -201,6 +201,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
         override fun update(ctx: PlayerStateContext) {
             when {
+                isFalling(ctx) -> ctx.changeState(FALL)
                 !ctx.wantsToCrouch && ctx.wantsToIdle -> ctx.changeState(IDLE)
                 !ctx.wantsToCrouch && ctx.wantsToWalk -> ctx.changeState(WALK)
                 ctx.wantsToCrouch && ctx.wantsToIdle -> ctx.changeState(CROUCH_IDLE)

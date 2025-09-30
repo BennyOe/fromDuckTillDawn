@@ -141,6 +141,7 @@ class PlayerInputProcessor(
                 Action.MOVE_DOWN -> {
                     if (playerState == PlayerFSM.SWIM || playerState == PlayerFSM.DIVE) {
                         inputCmp.swimDownJustPressed = pressed
+                        inputCmp.crouchJustPressed = false
                     } else {
                         inputCmp.swimDownJustPressed = false
                         inputCmp.crouchJustPressed = pressed

@@ -74,11 +74,13 @@ import io.bennyoe.systems.render.PhysicTransformSyncSystem
 import io.bennyoe.systems.render.RenderSystem
 import io.bennyoe.systems.render.TransformVisualSyncSystem
 import io.bennyoe.systems.render.UiRenderSystem
+import io.bennyoe.ui.gameView
 import ktx.assets.async.AssetStorage
 import ktx.assets.disposeSafely
 import ktx.box2d.createWorld
 import ktx.inject.Context
 import ktx.log.logger
+import ktx.scene2d.actors
 import kotlin.experimental.and
 import kotlin.experimental.inv
 
@@ -210,6 +212,10 @@ class GameScreen(
 
         rayHandler.setBlurNum(2)
         profiler.enable()
+
+        uiStage.actors {
+            gameView()
+        }
 
         // setting basic graphic modes (can cause stutter on HiDPI displays)
         Gdx.graphics.setVSync(VSYNC)

@@ -80,7 +80,7 @@ class SoundEffectSystem(
     init {
         buzzSound.isRelative = false
         buzzSound.setLooping(true)
-        buzzSound.volume = .1f
+        buzzSound.volume = .1f * EFFECT_VOLUME
         buzzSound.attenuationFactor = 3f
         buzzSound.playbackPosition = 3f
         LightEngineEventListener.subscribe(this)
@@ -132,7 +132,7 @@ class SoundEffectSystem(
 
             val soundAsset = SoundMappingService.getSoundAsset(soundCmp.soundType) ?: return
             val source = audio.obtainSource(assets[soundAsset.descriptor.random()])
-            source.volume = soundCmp.soundVolume
+            source.volume = soundCmp.soundVolume * EFFECT_VOLUME
             source.attenuationFactor = 1f
             source.attenuationMaxDistance = soundCmp.soundAttenuationMaxDistance
             source.attenuationMinDistance = soundCmp.soundAttenuationMinDistance

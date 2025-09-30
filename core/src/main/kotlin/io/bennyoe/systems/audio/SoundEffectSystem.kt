@@ -132,7 +132,7 @@ class SoundEffectSystem(
 
             val soundAsset = SoundMappingService.getSoundAsset(soundCmp.soundType) ?: return
             val source = audio.obtainSource(assets[soundAsset.descriptor.random()])
-            source.volume = soundCmp.soundVolume
+            source.volume = soundCmp.soundVolume * EFFECT_VOLUME
             source.attenuationFactor = 1f
             source.attenuationMaxDistance = soundCmp.soundAttenuationMaxDistance
             source.attenuationMinDistance = soundCmp.soundAttenuationMinDistance

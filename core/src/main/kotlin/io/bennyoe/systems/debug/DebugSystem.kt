@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.math.Ellipse
 import com.badlogic.gdx.math.Polygon
@@ -13,7 +12,6 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
@@ -28,15 +26,11 @@ import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_ENEMY_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
-import io.bennyoe.ui.widgets.debug.DrawCallsCounterWidget
-import io.bennyoe.ui.widgets.debug.FpsCounterWidget
-import io.bennyoe.ui.widgets.debug.FpsMillis
+import io.bennyoe.ui.GameView
 import io.bennyoe.ui.widgets.debug.LabelWidget
 import ktx.assets.disposeSafely
 import ktx.graphics.use
 import ktx.log.logger
-import ktx.scene2d.Scene2DSkin
-import ktx.style.get
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
 
 class DebugSystem(
@@ -50,14 +44,14 @@ class DebugSystem(
         inject("debugRenderService"),
     val shapeRenderer: ShapeRenderer =
         inject("shapeRenderer"),
-    profiler: GLProfiler =
-        inject("profiler"),
 ) : IntervalSystem(enabled = ENABLE_DEBUG) {
     private val tmpVec = Vector3()
     private val physicsRenderer by lazy { Box2DDebugRenderer() }
-    private val mainLabelStyle = Scene2DSkin.defaultSkin.get<LabelStyle>("default")
-    private val secondaryLabelStyle = LabelStyle(mainLabelStyle.font, Color.RED)
     private val labels = hashMapOf<DebugShape, LabelWidget>()
+    private val gameView: GameView by lazy {
+        uiStage.actors.filterIsInstance<GameView>().first()
+    }
+    private var lastDebugState = false
     private val debugCfg =
         mapOf(
             DebugType.ATTACK to SHOW_ATTACK_DEBUG,
@@ -67,43 +61,20 @@ class DebugSystem(
             DebugType.NONE to true,
         )
 
-    private val fpsCounter =
-        FpsCounterWidget(mainLabelStyle).apply {
-            setPosition(10f, 20f)
-        }
-
-    private val fpsMillis =
-        FpsMillis(secondaryLabelStyle).apply {
-            setPosition(80f, 20f)
-        }
-    private val drawCallsCounter =
-        DrawCallsCounterWidget(mainLabelStyle, profiler).apply {
-        }
-
-    init {
-        uiStage.addActor(fpsCounter)
-        uiStage.addActor(fpsMillis)
-        uiStage.addActor(drawCallsCounter)
-    }
-
     override fun onTick() {
-        stage.viewport.apply()
         val debugEntity = world.family { all(DebugComponent) }.firstOrNull() ?: return
         val debugCmp = debugEntity.let { entity -> entity[DebugComponent] }
 
         val playerEntity = world.family { all(StateComponent) }.firstOrNull() ?: return
         val enemyEntities = world.family { all(BehaviorTreeComponent) }
 
-        drawCallsCounter.setPosition(uiStage.width - 140f, 20f)
-
-        fpsCounter.isVisible = debugCmp.enabled
-        fpsMillis.isVisible = debugCmp.enabled
-        drawCallsCounter.isVisible = debugCmp.enabled
+        if (debugCmp.enabled != lastDebugState) {
+            gameView.toggleDebugOverlay()
+            lastDebugState = debugCmp.enabled
+        }
 
         if (debugCmp.enabled) {
-            fpsCounter.act(deltaTime)
-            fpsMillis.act(deltaTime)
-            drawCallsCounter.act(deltaTime)
+            stage.viewport.apply()
             physicsRenderer.render(phyWorld, stage.camera.combined)
 
             enemyEntities.forEach { enemyEntity ->

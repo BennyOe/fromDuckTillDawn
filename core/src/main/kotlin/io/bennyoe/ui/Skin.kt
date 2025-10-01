@@ -8,8 +8,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
-import com.badlogic.gdx.scenes.scene2d.ui.Skin
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import ktx.assets.disposeSafely
 import ktx.graphics.color
@@ -25,23 +23,31 @@ enum class Drawables(
     BAR_BG("bg"),
     AIR_BAR("air"),
     LIFE_BAR("life"),
+    DEBUG_FRAME("debug-frame"),
 }
 
-operator fun Skin.get(drawable: Drawables): Drawable = this.getDrawable(drawable.atlasKey)
-
 fun createSkin() {
-    val generator = FreeTypeFontGenerator(Gdx.files.internal("fonts/Montserrat.ttf"))
-    val parameter =
+    val monserratGenerator = FreeTypeFontGenerator(Gdx.files.internal("fonts/Montserrat.ttf"))
+    val robotoGenerator = FreeTypeFontGenerator(Gdx.files.internal("fonts/RobotoMono-Regular.ttf"))
+    val mainParameter =
         FreeTypeFontGenerator.FreeTypeFontParameter().apply {
             size = 14
             color = Color.WHITE
         }
-    val mainFont = generator.generateFont(parameter)
-    generator.dispose()
+    val smallParameter =
+        FreeTypeFontGenerator.FreeTypeFontParameter().apply {
+            size = 11
+            color = Color.WHITE
+        }
+    val mainFont = monserratGenerator.generateFont(mainParameter).apply { data.markupEnabled = true }
+    val smallFont = robotoGenerator.generateFont(smallParameter).apply { data.markupEnabled = true }
+    monserratGenerator.dispose()
+    robotoGenerator.dispose()
 
     Scene2DSkin.defaultSkin =
         skin(TextureAtlas("ui/ui.atlas")) {
-            add("default-font", mainFont, BitmapFont::class.java) // Add the generated font to the skin for reuse
+            add("default-font", mainFont, BitmapFont::class.java)
+            add("small-font", smallFont, BitmapFont::class.java)
 
             progressBar("life-bar") {
                 background = this@skin.getDrawable(Drawables.BAR_BG.atlasKey)
@@ -68,10 +74,9 @@ fun createSkin() {
                 background = createColorDrawable(1f, 0f, 0f, 0.8f)
             }
 
-            label("ui") {
-                this.font = this@skin.getFont("default-font")
+            label("debug") {
+                this.font = this@skin.getFont("small-font")
                 fontColor = color(1f, 1f, 1f, 1f)
-                background = createColorDrawable(1f, 0f, 0f, 1f)
             }
         }
 }

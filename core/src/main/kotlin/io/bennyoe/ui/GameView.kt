@@ -1,46 +1,66 @@
 package io.bennyoe.ui
 
+import com.badlogic.gdx.graphics.profiling.GLProfiler
+import com.badlogic.gdx.scenes.scene2d.Touchable
+import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.Value
 import com.badlogic.gdx.utils.Align
 import io.bennyoe.ui.widgets.CharacterInfo
-import io.bennyoe.ui.widgets.characterInfo
+import io.bennyoe.ui.widgets.DebugView
 import ktx.scene2d.KTable
-import ktx.scene2d.KWidget
-import ktx.scene2d.Scene2DSkin
-import ktx.scene2d.Scene2dDsl
-import ktx.scene2d.actor
 
 class GameView(
     skin: Skin,
+    profiler: GLProfiler,
 ) : Table(skin),
     KTable {
-    private var characterInfo: CharacterInfo
+    private val debugView: DebugView =
+        DebugView(skin, profiler).apply {
+            touchable = Touchable.disabled
+        }
+
+    private val debugContainer: Container<DebugView> =
+        Container(debugView).apply {
+            align(Align.topLeft)
+            fill()
+            isVisible = false
+        }
+
+    private val characterInfo: CharacterInfo = CharacterInfo(skin)
 
     init {
         setFillParent(true)
-        align(Align.bottom)
-        characterInfo =
-            characterInfo(skin) {
-                // here you can place and align the widgets
-//            it.row()
-            }
+        defaults().pad(8f)
+
+        // --- Row 1: Main content area ---
+        // Left cell: the debug overlay container (fixed width), expands vertically and keeps its child centered.
+        add(debugContainer)
+            .width(Value.percentWidth(0.25f, this))
+            .height(Value.percentHeight(0.25f, this))
+            .top()
+            .left()
+
+        add().expand().fill()
+
+        row()
+
+        // --- Row 2: Bottom status bar ---
+        // The character info spans the entire width and sits bottom + centered.
+        add(characterInfo)
+            .colspan(2)
+            .bottom()
+            .center()
+            .expandX()
+            .padBottom(12f)
+    }
+
+    fun toggleDebugOverlay() {
+        debugContainer.isVisible = !debugContainer.isVisible
     }
 
     fun playerLife(value: Float) {
         characterInfo.lifeBar.value = value
     }
 }
-
-/**
- * Adds DSL that creates [GameView].
- * @param skin defines style of the widget.
- * @param init customization code.
- */
-@Scene2dDsl
-inline fun <S> KWidget<S>.gameView(
-    // This ensures a Skin is supplied by default:
-    skin: Skin = Scene2DSkin.defaultSkin,
-    // This supplies a default style name, making it optional:
-    init: GameView.(S) -> Unit = {},
-): GameView = actor(GameView(skin), init)

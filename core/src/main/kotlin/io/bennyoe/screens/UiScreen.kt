@@ -2,18 +2,19 @@ package io.bennyoe.screens
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.profiling.GLProfiler
 import io.bennyoe.Stages
 import io.bennyoe.ui.GameView
-import io.bennyoe.ui.gameView
 import ktx.inject.Context
-import ktx.scene2d.actors
+import ktx.scene2d.Scene2DSkin
 
 class UiScreen(
     context: Context,
 ) : AbstractScreen(context) {
+    private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val stages = context.inject<Stages>()
     private val uiStage = stages.uiStage
-    private lateinit var gameView: GameView
+    private val gameView: GameView = GameView(Scene2DSkin.defaultSkin, profiler)
 
     override fun resize(
         width: Int,
@@ -24,10 +25,8 @@ class UiScreen(
 
     override fun show() {
         uiStage.clear()
-//        uiStage.isDebugAll = true
-        uiStage.actors {
-            gameView = gameView()
-        }
+        uiStage.isDebugAll = true
+        uiStage.addActor(gameView)
     }
 
     override fun render(delta: Float) {
@@ -43,6 +42,9 @@ class UiScreen(
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
             gameView.playerLife(1f)
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+            gameView.toggleDebugOverlay()
         }
 
         uiStage.act()

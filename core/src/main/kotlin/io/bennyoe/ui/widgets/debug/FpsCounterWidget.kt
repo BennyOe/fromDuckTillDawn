@@ -17,7 +17,7 @@ class FpsCounterWidget(
         super.act(delta)
         timer += delta
         if (timer >= 0.5f) {
-            setText("${Gdx.graphics.framesPerSecond} fps")
+            setText("[#00FF00]FPS: ${Gdx.graphics.framesPerSecond} fps")
             timer = 0f
         }
     }

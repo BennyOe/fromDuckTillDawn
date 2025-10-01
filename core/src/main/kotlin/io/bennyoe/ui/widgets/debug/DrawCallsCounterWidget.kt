@@ -18,7 +18,7 @@ class DrawCallsCounterWidget(
         super.act(delta)
         timer += delta
         if (timer >= 0.5f) {
-            setText("${profiler.drawCalls} DrawCalls")
+            setText("DrawCalls: ${profiler.drawCalls}")
             timer = 0f
         }
     }

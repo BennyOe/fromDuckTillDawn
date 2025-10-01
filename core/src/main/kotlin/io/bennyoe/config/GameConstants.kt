@@ -48,8 +48,8 @@ object GameConstants {
 
     // ------------------------- Sound constants ------------------------------//
     const val MUSIC_VOLUME = 0f
-    const val AMBIENCE_VOLUME = 1f
-    const val EFFECT_VOLUME = 1f
+    const val AMBIENCE_VOLUME = 0f
+    const val EFFECT_VOLUME = 0f
 
     // ------------------------- Game constants ------------------------------//
     const val DYNAMIC_TIME_OF_DAY = false

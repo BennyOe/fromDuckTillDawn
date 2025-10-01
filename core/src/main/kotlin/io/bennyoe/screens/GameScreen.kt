@@ -2,6 +2,7 @@ package io.bennyoe.screens
 
 import box2dLight.RayHandler
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.ai.GdxAI
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
@@ -14,8 +15,10 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
+import com.badlogic.gdx.utils.Align
 import com.github.quillraven.fleks.configureWorld
 import de.pottgames.tuningfork.Audio
+import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.Stages
 import io.bennyoe.assets.MapAssets
 import io.bennyoe.assets.TextureAssets
@@ -89,6 +92,7 @@ import kotlin.experimental.inv
 class GameScreen(
     context: Context,
 ) : AbstractScreen(context) {
+    private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val assets = context.inject<AssetStorage>()
     private val audio = context.inject<Audio>()
     private val worldObjectsAtlas = assets[TextureAssets.WORLD_OBJECTS_ATLAS.descriptor]
@@ -112,8 +116,12 @@ class GameScreen(
     private val stages = context.inject<Stages>()
     private val stage = stages.stage
     private val uiStage = stages.uiStage
+    private val gameView = GameView(Scene2DSkin.defaultSkin, profiler)
     private val spriteBatch = context.inject<SpriteBatch>()
     private val polygonSpriteBatch = context.inject<PolygonSpriteBatch>()
+    private val timeScaleCmp by lazy {
+        with(entityWorld) { entityWorld.family { all(TimeScaleComponent) }.first()[TimeScaleComponent] }
+    }
     private val phyWorld =
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
             autoClearForces = false
@@ -139,7 +147,6 @@ class GameScreen(
             lightViewportScale = 4f,
             refreshRateHz = 75f,
         )
-    private val profiler by lazy { GLProfiler(Gdx.graphics) }
     private val entityWorld by lazy {
         configureWorld {
             injectables {
@@ -214,11 +221,20 @@ class GameScreen(
         createFbo(Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
         targets = RenderTargets(requireNotNull(fbo))
 
+        // input multiplexer
+        val inputMultiplexer = InputMultiplexer()
+        inputMultiplexer.addProcessor(uiStage)
+        inputMultiplexer.addProcessor(PlayerInputProcessor(world = entityWorld))
+        Gdx.input.inputProcessor = inputMultiplexer
+
         rayHandler.setBlurNum(2)
         profiler.enable()
 
         uiStage.isDebugAll = false
-        uiStage.addActor(GameView(Scene2DSkin.defaultSkin, profiler))
+
+        uiStage.addActor(gameView)
+        uiStage.addActor(gameView.debugWindow)
+        gameView.debugWindow.setPosition(18f, uiStage.height - 18f, Align.topLeft)
 
         // setting basic graphic modes (can cause stutter on HiDPI displays)
         Gdx.graphics.setVSync(VSYNC)
@@ -247,7 +263,6 @@ class GameScreen(
 
     override fun render(delta: Float) {
         profiler.reset()
-        val timeScaleCmp = with(entityWorld) { entityWorld.family { all(TimeScaleComponent) }.first()[TimeScaleComponent] }
         val capped = delta.coerceAtMost(0.25f)
         val scale = timeScaleCmp.current
         val scaledDelta = capped * scale * TIME_SCALE

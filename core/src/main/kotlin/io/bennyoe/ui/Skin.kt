@@ -16,6 +16,7 @@ import ktx.style.label
 import ktx.style.progressBar
 import ktx.style.skin
 import ktx.style.textField
+import ktx.style.window
 
 enum class Drawables(
     val atlasKey: String,
@@ -48,6 +49,11 @@ fun createSkin() {
         skin(TextureAtlas("ui/ui.atlas")) {
             add("default-font", mainFont, BitmapFont::class.java)
             add("small-font", smallFont, BitmapFont::class.java)
+
+            window("default") {
+                titleFont = this@skin.getFont("small-font")
+                titleFontColor = Color.RED
+            }
 
             progressBar("life-bar") {
                 background = this@skin.getDrawable(Drawables.BAR_BG.atlasKey)

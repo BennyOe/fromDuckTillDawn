@@ -1,6 +1,5 @@
 package io.bennyoe
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.ai.msg.MessageManager
 import com.github.quillraven.fleks.World
@@ -22,7 +21,7 @@ class PlayerInputProcessor(
     private val debugEntities = world.family { all(DebugComponent) }
     private val gameStateEntities = world.family { all(GameStateComponent) }
     private val cameraEntities = world.family { all(CameraComponent) }
-    private val playerEntity = world.family { all(PlayerComponent) }.first()
+    private val playerEntity by lazy { world.family { all(PlayerComponent) }.first() }
     private val messageDispatcher = MessageManager.getInstance()
 
     // map that explicitly allows certain actions in specific states
@@ -66,10 +65,6 @@ class PlayerInputProcessor(
             Keys.Z to Action.TOGGLE_WEATHER,
             Keys.SHIFT_LEFT to Action.FIRE_LIGHTNING,
         )
-
-    init {
-        Gdx.input.inputProcessor = this
-    }
 
     override fun keyDown(keycode: Int): Boolean {
         keyActions[keycode]?.let { handleAction(it, true) } ?: return false

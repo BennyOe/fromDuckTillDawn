@@ -40,6 +40,7 @@ import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CloudSystem
 import io.bennyoe.systems.DamageSystem
+import io.bennyoe.systems.DivingSystem
 import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.GameMoodSystem
 import io.bennyoe.systems.GameStateSystem
@@ -182,6 +183,7 @@ class GameScreen(
                 add(AmbienceSystem())
                 add(ReverbSystem())
                 add(CloudSystem())
+                add(DivingSystem())
                 add(RainSystem())
                 add(UnderWaterSoundSystem())
                 add(SoundEffectSystem())

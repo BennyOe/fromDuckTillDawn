@@ -13,7 +13,7 @@ import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HasWaterContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
-import io.bennyoe.components.IsDiving
+import io.bennyoe.components.IsDivingComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.ParticleComponent
@@ -198,12 +198,12 @@ class PhysicsSystem(
         val physicCmp = entity[PhysicComponent]
         val particleCmp = entity.getOrNull(ParticleComponent)
 
-        val wasUnder = entity.has(IsDiving)
+        val wasUnder = entity.has(IsDivingComponent)
         val nowUnder = physicCmp.activeUnderWaterContacts > 0
 
         if (nowUnder) {
             if (!wasUnder) {
-                entity.configure { it += IsDiving }
+                entity.configure { it += IsDivingComponent() }
                 logger.debug { "Underwater." }
                 physicCmp.airBubblesDelayTimer = AIR_BUBBLES_START_DELAY
             } else {
@@ -225,7 +225,7 @@ class PhysicsSystem(
         }
 
         if (wasUnder) {
-            entity.configure { it -= IsDiving }
+            entity.configure { it -= IsDivingComponent }
             particleCmp?.enabled = false
             logger.debug { "Left underwater." }
         }

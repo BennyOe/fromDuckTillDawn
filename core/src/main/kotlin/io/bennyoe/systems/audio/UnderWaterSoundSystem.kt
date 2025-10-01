@@ -3,7 +3,7 @@ package io.bennyoe.systems.audio
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
-import io.bennyoe.components.IsDiving
+import io.bennyoe.components.IsDivingComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 
@@ -12,7 +12,7 @@ class UnderWaterSoundSystem : IteratingSystem(family { all(PlayerComponent, Stat
     private var underwaterSound: FadingSound? = null
 
     override fun onTickEntity(entity: Entity) {
-        if (entity has IsDiving) {
+        if (entity has IsDivingComponent) {
             reverb.setGlobalFilters(1f, 0.002f)
             if (underwaterSound == null || underwaterSound!!.isStopped()) {
                 underwaterSound =

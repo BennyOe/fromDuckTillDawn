@@ -63,4 +63,8 @@ class GameView(
     fun playerLife(value: Float) {
         characterInfoWidget.lifeBar.value = value
     }
+
+    fun playerAir(value: Float) {
+        characterInfoWidget.airBar.value = value
+    }
 }

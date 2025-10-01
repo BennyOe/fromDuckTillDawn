@@ -110,7 +110,7 @@ class TimeOfDayManager {
             lightColor = Color(0.75f, 0.6f, 0.8f, 1f),
             ambientColor = Color(0.4f, 0.5f, 0.7f, 1f),
             direction = 90f,
-            shaderIntensity = 4.5f,
+            shaderIntensity = 0.8f,
             elevation = 60f,
             normalInfluence = 0.9f,
             tintColor = Color(0.95f, 0.95f, 0.9f, 0.8f),

@@ -28,10 +28,10 @@ import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_ENEMY_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
-import io.bennyoe.widgets.DrawCallsCounterWidget
-import io.bennyoe.widgets.FpsCounterWidget
-import io.bennyoe.widgets.FpsMillis
-import io.bennyoe.widgets.LabelWidget
+import io.bennyoe.ui.widgets.debug.DrawCallsCounterWidget
+import io.bennyoe.ui.widgets.debug.FpsCounterWidget
+import io.bennyoe.ui.widgets.debug.FpsMillis
+import io.bennyoe.ui.widgets.debug.LabelWidget
 import ktx.assets.disposeSafely
 import ktx.graphics.use
 import ktx.log.logger

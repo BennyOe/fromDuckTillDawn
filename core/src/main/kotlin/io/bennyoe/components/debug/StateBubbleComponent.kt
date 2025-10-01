@@ -5,7 +5,7 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.widgets.StateBubbleWidget
+import io.bennyoe.ui.widgets.debug.StateBubbleWidget
 import ktx.log.logger
 
 class StateBubbleComponent(

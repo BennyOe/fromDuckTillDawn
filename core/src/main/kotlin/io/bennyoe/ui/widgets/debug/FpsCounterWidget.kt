@@ -1,8 +1,7 @@
-package io.bennyoe.widgets
+package io.bennyoe.ui.widgets.debug
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle
 import ktx.log.logger
 
 class FpsCounterWidget(

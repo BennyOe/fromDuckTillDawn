@@ -1,4 +1,4 @@
-package io.bennyoe.widgets
+package io.bennyoe.ui
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -51,7 +51,6 @@ fun createSkin() {
             progressBar("air-bar") {
                 background = this@skin.getDrawable(Drawables.BAR_BG.atlasKey)
                 knobBefore = this@skin.getDrawable(Drawables.AIR_BAR.atlasKey)
-
             }
 
             textField("default") {

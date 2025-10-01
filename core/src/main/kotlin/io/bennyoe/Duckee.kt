@@ -2,8 +2,8 @@ package io.bennyoe
 
 import io.bennyoe.screens.LoadingScreen
 import io.bennyoe.screens.UiScreen
-import io.bennyoe.widgets.createSkin
-import io.bennyoe.widgets.disposeSkin
+import io.bennyoe.ui.createSkin
+import io.bennyoe.ui.disposeSkin
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
 import ktx.inject.Context
@@ -15,8 +15,8 @@ class Duckee : KtxGame<KtxScreen>() {
         createSkin()
         addScreen(LoadingScreen(context, this))
         addScreen(UiScreen(context))
-//        setScreen<LoadingScreen>()
-        setScreen<UiScreen>()
+        setScreen<LoadingScreen>()
+//        setScreen<UiScreen>()
     }
 
     override fun dispose() {

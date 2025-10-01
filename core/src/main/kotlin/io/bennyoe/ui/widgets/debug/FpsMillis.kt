@@ -1,4 +1,4 @@
-package io.bennyoe.widgets
+package io.bennyoe.ui.widgets.debug
 
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import ktx.log.logger

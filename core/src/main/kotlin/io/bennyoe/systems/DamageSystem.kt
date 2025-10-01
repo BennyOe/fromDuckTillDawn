@@ -46,16 +46,16 @@ class DamageSystem(
                 messageDispatcher.dispatchMessage(FsmMessageTypes.PLAYER_IS_HIT.ordinal)
             } else {
                 messageDispatcher.dispatchMessage(FsmMessageTypes.ENEMY_IS_HIT.ordinal)
+                // spawn the damage floating label
+                val damageTextCmp = DamageTextComponent(uiStage = uiStage)
+                damageTextCmp.txtLocation =
+                    vec2(
+                        physicCmp.body.position.x,
+                        physicCmp.body.position.y - physicCmp.size.y * 0.8f,
+                    )
+                damageTextCmp.label = Label("${attackCmp.damage.toInt()} / ${healthCmp.current.toInt()}", Scene2DSkin.defaultSkin)
+                entity.configure { it += damageTextCmp }
             }
-            // spawn the damage floating label
-            val damageTextCmp = DamageTextComponent(uiStage = uiStage)
-            damageTextCmp.txtLocation =
-                vec2(
-                    physicCmp.body.position.x,
-                    physicCmp.body.position.y - physicCmp.size.y * 0.8f,
-                )
-            damageTextCmp.label = Label("${attackCmp.damage.toInt()} / ${healthCmp.current.toInt()}", Scene2DSkin.defaultSkin)
-            entity.configure { it += damageTextCmp }
         }
     }
 

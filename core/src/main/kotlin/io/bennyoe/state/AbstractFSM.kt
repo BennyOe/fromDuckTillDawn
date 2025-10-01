@@ -4,7 +4,7 @@ import com.badlogic.gdx.ai.fsm.State
 import com.badlogic.gdx.ai.msg.Telegram
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HasWaterContact
-import io.bennyoe.components.IsDiving
+import io.bennyoe.components.IsDivingComponent
 
 // Constant defining the minimum vertical velocity threshold to detect landing
 const val LANDING_VELOCITY_EPS = 0.1f
@@ -14,7 +14,7 @@ abstract class AbstractFSM<C : AbstractStateContext<C>> : State<C> {
 
     protected fun hasWaterContact(ctx: AbstractStateContext<C>) = with(ctx.world) { ctx.entity has HasWaterContact }
 
-    protected fun isDiving(ctx: AbstractStateContext<C>) = with(ctx.world) { ctx.entity has IsDiving }
+    protected fun isDiving(ctx: AbstractStateContext<C>) = with(ctx.world) { ctx.entity has IsDivingComponent }
 
     protected fun isFalling(ctx: AbstractStateContext<C>): Boolean {
         val vy = ctx.physicComponent.body.linearVelocity.y

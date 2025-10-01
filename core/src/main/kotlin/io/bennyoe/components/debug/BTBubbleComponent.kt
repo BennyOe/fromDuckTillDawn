@@ -5,7 +5,7 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.widgets.BtBubbleWidget
+import io.bennyoe.ui.widgets.debug.BtBubbleWidget
 import ktx.log.logger
 
 class BTBubbleComponent(

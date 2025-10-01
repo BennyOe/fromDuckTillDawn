@@ -1,29 +1,29 @@
-package io.bennyoe.widgets
+package io.bennyoe.ui.widgets.debug
 
-import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle
 import ktx.log.logger
 
-class FpsCounterWidget(
+class DrawCallsCounterWidget(
     style: LabelStyle,
+    val profiler: GLProfiler,
 ) : Label("", style) {
     private var timer = 0f
 
     init {
-        setPosition(10f, 20f)
+        setPosition(40f, 20f)
     }
 
     override fun act(delta: Float) {
         super.act(delta)
         timer += delta
         if (timer >= 0.5f) {
-            setText("${Gdx.graphics.framesPerSecond} fps")
+            setText("DrawCalls: ${profiler.drawCalls}")
             timer = 0f
         }
     }
 
     companion object {
-        val logger = logger<FpsCounterWidget>()
+        val logger = logger<DrawCallsCounterWidget>()
     }
 }

@@ -1,4 +1,4 @@
-package io.bennyoe.widgets
+package io.bennyoe.ui.widgets.debug
 
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import ktx.log.logger
@@ -20,7 +20,7 @@ class FpsMillis(
         acc += delta
         frames++
         if (acc >= 1f) {
-            setText("Millis avg=%.2fms  max=%.2fms".format((acc / frames) * 1000f, maxDt * 1000f))
+            setText("Frame time: avg: %.2fms  max: %.2fms".format((acc / frames) * 1000f, maxDt * 1000f))
             acc = 0f
             frames = 0
             maxDt = 0f

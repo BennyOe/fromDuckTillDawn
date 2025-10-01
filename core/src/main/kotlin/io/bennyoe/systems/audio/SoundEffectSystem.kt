@@ -80,7 +80,7 @@ class SoundEffectSystem(
     init {
         buzzSound.isRelative = false
         buzzSound.setLooping(true)
-        buzzSound.volume = .1f
+        buzzSound.volume = .1f * EFFECT_VOLUME
         buzzSound.attenuationFactor = 3f
         buzzSound.playbackPosition = 3f
         LightEngineEventListener.subscribe(this)

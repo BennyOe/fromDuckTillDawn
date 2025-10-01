@@ -13,6 +13,8 @@ data class InputComponent(
     var crouchJustPressed: Boolean = false,
     var walkLeftJustPressed: Boolean = false,
     var walkRightJustPressed: Boolean = false,
+    var swimUpJustPressed: Boolean = false,
+    var swimDownJustPressed: Boolean = false,
     var pauseJustPressed: Boolean = false,
     var flashlightToggleJustPressed: Boolean = false,
 ) : Component<InputComponent> {

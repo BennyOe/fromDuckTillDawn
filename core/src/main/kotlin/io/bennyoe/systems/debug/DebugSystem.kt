@@ -3,7 +3,6 @@ package io.bennyoe.systems.debug
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Circle
@@ -31,10 +30,13 @@ import io.bennyoe.config.GameConstants.SHOW_ENEMY_DEBUG
 import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
 import io.bennyoe.widgets.DrawCallsCounterWidget
 import io.bennyoe.widgets.FpsCounterWidget
+import io.bennyoe.widgets.FpsMillis
 import io.bennyoe.widgets.LabelWidget
 import ktx.assets.disposeSafely
 import ktx.graphics.use
 import ktx.log.logger
+import ktx.scene2d.Scene2DSkin
+import ktx.style.get
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
 
 class DebugSystem(
@@ -51,8 +53,10 @@ class DebugSystem(
     profiler: GLProfiler =
         inject("profiler"),
 ) : IntervalSystem(enabled = ENABLE_DEBUG) {
+    private val tmpVec = Vector3()
     private val physicsRenderer by lazy { Box2DDebugRenderer() }
-    private val fpsLabelStyle = LabelStyle(BitmapFont().apply { data.setScale(1.5f) }, Color(0f, 1f, 0f, 1f))
+    private val mainLabelStyle = Scene2DSkin.defaultSkin.get<LabelStyle>("default")
+    private val secondaryLabelStyle = LabelStyle(mainLabelStyle.font, Color.RED)
     private val labels = hashMapOf<DebugShape, LabelWidget>()
     private val debugCfg =
         mapOf(
@@ -64,16 +68,21 @@ class DebugSystem(
         )
 
     private val fpsCounter =
-        FpsCounterWidget(fpsLabelStyle).apply {
+        FpsCounterWidget(mainLabelStyle).apply {
             setPosition(10f, 20f)
         }
+
+    private val fpsMillis =
+        FpsMillis(secondaryLabelStyle).apply {
+            setPosition(80f, 20f)
+        }
     private val drawCallsCounter =
-        DrawCallsCounterWidget(fpsLabelStyle, profiler).apply {
-            setPosition(Gdx.graphics.width - 140f, 20f)
+        DrawCallsCounterWidget(mainLabelStyle, profiler).apply {
         }
 
     init {
         uiStage.addActor(fpsCounter)
+        uiStage.addActor(fpsMillis)
         uiStage.addActor(drawCallsCounter)
     }
 
@@ -85,11 +94,15 @@ class DebugSystem(
         val playerEntity = world.family { all(StateComponent) }.firstOrNull() ?: return
         val enemyEntities = world.family { all(BehaviorTreeComponent) }
 
+        drawCallsCounter.setPosition(uiStage.width - 140f, 20f)
+
         fpsCounter.isVisible = debugCmp.enabled
+        fpsMillis.isVisible = debugCmp.enabled
         drawCallsCounter.isVisible = debugCmp.enabled
 
         if (debugCmp.enabled) {
             fpsCounter.act(deltaTime)
+            fpsMillis.act(deltaTime)
             drawCallsCounter.act(deltaTime)
             physicsRenderer.render(phyWorld, stage.camera.combined)
 
@@ -241,7 +254,7 @@ class DebugSystem(
         y: Float,
         dbgShape: DebugShape,
     ) {
-        val tmpVec = Vector3(x, y, 0f)
+        tmpVec.set(x, y, 0f)
         // converts tmpVec worldUnits -> pixel
         stage.viewport.project(tmpVec)
         uiStage.viewport.unproject(tmpVec)

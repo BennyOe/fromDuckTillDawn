@@ -10,7 +10,7 @@ import io.bennyoe.components.audio.SoundTriggerComponent
 import io.bennyoe.components.audio.SoundVariation
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.audio.SoundType
-import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.SensorType
 import ktx.tiled.shape
 
@@ -24,10 +24,11 @@ class AudioSpawner(
                 val physicCmp =
                     PhysicComponent.physicsComponentFromShape2D(
                         phyWorld,
+                        it,
                         soundTriggerObj.shape,
                         isSensor = true,
                         sensorType = SensorType.SOUND_TRIGGER_SENSOR,
-                        setUserData = BodyData(EntityCategory.SENSOR, it),
+                        setUserData = EntityBodyData(it, EntityCategory.SENSOR),
                         categoryBit = EntityCategory.SENSOR.bit,
                     )
                 it += physicCmp
@@ -48,10 +49,11 @@ class AudioSpawner(
                 val physicCmp =
                     PhysicComponent.physicsComponentFromShape2D(
                         phyWorld,
+                        it,
                         audioZoneObj.shape,
                         isSensor = true,
                         sensorType = SensorType.AUDIO_EFFECT_SENSOR,
-                        setUserData = BodyData(EntityCategory.SENSOR, it),
+                        setUserData = EntityBodyData(it, EntityCategory.SENSOR),
                         categoryBit = EntityCategory.SENSOR.bit,
                     )
                 it += physicCmp
@@ -70,10 +72,11 @@ class AudioSpawner(
                 val physicCmp =
                     PhysicComponent.physicsComponentFromShape2D(
                         phyWorld,
+                        entity,
                         ambienceSoundObj.shape,
                         isSensor = true,
                         sensorType = SensorType.SOUND_AMBIENCE_SENSOR,
-                        setUserData = BodyData(EntityCategory.SENSOR, entity),
+                        setUserData = EntityBodyData(entity, EntityCategory.SENSOR),
                         categoryBit = EntityCategory.SENSOR.bit,
                     )
                 entity += physicCmp

@@ -3,6 +3,7 @@ package io.bennyoe
 import com.badlogic.gdx.Application.LOG_DEBUG
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.TiledMap
@@ -29,6 +30,7 @@ class GameContext : Context() {
     init {
         Gdx.app.logLevel = LOG_DEBUG
         val spriteBatch: SpriteBatch by lazy { SpriteBatch() }
+        val polygonSpriteBatch: PolygonSpriteBatch by lazy { PolygonSpriteBatch() }
         val stages = Stages(spriteBatch)
         val shapeRenderer = ShapeRenderer()
         val debugRenderService = if (ENABLE_DEBUG) DefaultDebugRenderService() else NoOpDebugRenderService()
@@ -57,6 +59,7 @@ class GameContext : Context() {
         register { bindSingleton(stages) }
         register { bindSingleton(shapeRenderer) }
         register { bindSingleton(spriteBatch) }
+        register { bindSingleton(polygonSpriteBatch) }
         register { bindSingleton(debugRenderService) }
     }
 

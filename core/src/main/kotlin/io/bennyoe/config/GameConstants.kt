@@ -1,6 +1,10 @@
 package io.bennyoe.config
 
 object GameConstants {
+    // ------------------------- Graphic constants ------------------------------//
+    const val VSYNC = false // setting this to true can result in stutter on HiDPI displays
+    const val MAX_FPS = 120 // not setting this or setting it too high can result in stutter on HiDPI displays
+
     // ------------------------- World constants ------------------------------//
     const val TIME_SCALE = 1f // Game speed from 0% to 100%
     const val UNIT_SCALE = 1 / 16f // Scale from pixel to world units
@@ -20,6 +24,7 @@ object GameConstants {
     const val JUMP_BUFFER = .2f // time you can press jump before hitting the ground and still jump
     const val JUMP_MAX_HEIGHT = 5f
     const val WALK_MAX_SPEED = 5f
+    const val SWIM_MAX_SPEED = 4f
     const val BASH_COOLDOWN = .2f
     const val BASH_POWER = 5f
 

@@ -35,7 +35,7 @@ class CameraSystem(
     private var maxW = 0f
     private var maxH = 0f
     private var cameraTargetX = 0f
-    val deadzone = Rectangle(0f, 0f, 1f, 1f)
+    val deadZone = Rectangle(0f, 0f, 1f, 1f)
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
     private val cameraEntity by lazy { world.family { all(CameraComponent) }.first() }
 
@@ -45,12 +45,12 @@ class CameraSystem(
         // we center on the image because it has an
         // interpolated position for rendering which makes
         // the game smoother
-        val (xPos, yPos) = calculateCameraPosition(imageCmps, gameStateCmp.isLightingEnabled)
+        val (xPos, yPos) = calculateCameraPosition(imageCmps)
 
         camera.position.set(xPos, yPos, camera.position.z)
 
-        deadzone.set(camera.position.x - 1f, camera.position.y - 1f, 2f, 4f)
-        deadzone.addToDebugView(debugRenderService, Color.CYAN, "camera deadzone", debugType = DebugType.CAMERA)
+        deadZone.set(camera.position.x - 1f, camera.position.y - 1f, 2f, 4f)
+        deadZone.addToDebugView(debugRenderService, Color.CYAN, "camera deadzone", debugType = DebugType.CAMERA)
     }
 
     override fun onTick() {
@@ -71,10 +71,7 @@ class CameraSystem(
         return false
     }
 
-    private fun calculateCameraPosition(
-        imageCmp: ImageComponent,
-        isLightingEnabled: Boolean,
-    ): Pair<Float, Float> {
+    private fun calculateCameraPosition(imageCmp: ImageComponent): Pair<Float, Float> {
         val viewW = camera.viewportWidth * 0.5f
         val viewH = camera.viewportHeight * 0.5f
 
@@ -84,13 +81,7 @@ class CameraSystem(
         val camMinH = min(viewH * camera.zoom, maxH - viewH * camera.zoom)
         val camMaxH = max(viewH * camera.zoom, maxH - viewH * camera.zoom)
 
-        // this is needed as long as the lighting engine can switched off. TODO remove else when not having switch
-        val desiredX =
-            if (imageCmp.flipImage && isLightingEnabled) {
-                imageCmp.image.x
-            } else {
-                imageCmp.image.x + imageCmp.image.width
-            }
+        val desiredX = imageCmp.image.x + imageCmp.image.width
 
 //        Circle(desiredX, 3.8f, 0.2f).addToDebugView(debugRenderService, Color.RED, "player")
         cameraTargetX = lerp(cameraTargetX, desiredX, CAMERA_SMOOTHING_FACTOR)

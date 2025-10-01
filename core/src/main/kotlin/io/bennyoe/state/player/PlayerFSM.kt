@@ -5,9 +5,12 @@ import com.badlogic.gdx.graphics.g2d.Animation
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HitEffectComponent
+import io.bennyoe.event.PlaySoundEvent
+import io.bennyoe.event.fire
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.LANDING_VELOCITY_EPS
+import io.bennyoe.systems.audio.SoundType
 import ktx.log.logger
 import kotlin.math.abs
 
@@ -26,6 +29,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering IDLE" }
             ctx.setAnimation(AnimationType.IDLE)
+            ctx.intentionCmp.wantsToBash = false
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -39,6 +43,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToAttack -> ctx.changeState(ATTACK_1)
                 ctx.wantsToBash -> ctx.changeState(BASH)
                 isFalling(ctx) -> ctx.changeState(FALL)
+                hasWaterContact(ctx) -> ctx.changeState(SWIM)
             }
         }
 
@@ -73,6 +78,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToJump && hasGroundContact(ctx) -> ctx.changeState(JUMP)
                 ctx.wantsToCrouch -> ctx.changeState(CROUCH_WALK)
                 isFalling(ctx) -> ctx.changeState(FALL)
+                hasWaterContact(ctx) -> ctx.changeState(SWIM)
             }
         }
 
@@ -88,6 +94,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.jumpComponent.wantsToJump = true
             ctx.intentionCmp.wantsToJump = false
             ctx.jumpComponent.jumpFromBuffer = false
+            ctx.stage.fire(PlaySoundEvent(ctx.entity, SoundType.DAWN_JUMP, .5f))
             ctx.setAnimation(AnimationType.JUMP)
         }
 
@@ -97,6 +104,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToAttack -> ctx.changeState(ATTACK_1)
                 isFalling(ctx) -> ctx.changeState(FALL)
                 ctx.wantsToJump -> ctx.changeState(DOUBLE_JUMP)
+                isDiving(ctx) -> ctx.changeState(DIVE)
             }
         }
 
@@ -152,6 +160,8 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                 ctx.wantsToBash -> ctx.changeState(BASH)
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
+                hasWaterContact(ctx) && velY <= 0 -> ctx.changeState(SWIM)
+                isDiving(ctx) -> ctx.changeState(DIVE)
                 // otherwise remain in FALL
                 else -> ctx.intentionCmp.wantsToJump = false
             }
@@ -191,6 +201,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
         override fun update(ctx: PlayerStateContext) {
             when {
+                isFalling(ctx) -> ctx.changeState(FALL)
                 !ctx.wantsToCrouch && ctx.wantsToIdle -> ctx.changeState(IDLE)
                 !ctx.wantsToCrouch && ctx.wantsToWalk -> ctx.changeState(WALK)
                 ctx.wantsToCrouch && ctx.wantsToIdle -> ctx.changeState(CROUCH_IDLE)
@@ -303,6 +314,52 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx: PlayerStateContext,
             telegram: Telegram,
         ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    data object SWIM : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            ctx.setAnimation(AnimationType.SWIM)
+            if (ctx.previousState() != DIVE) {
+                ctx.stage.fire(PlaySoundEvent(ctx.entity, SoundType.DAWN_WATER_SPLASH, 1f))
+            }
+            logger.debug { "Entering SWIM" }
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            if (!hasWaterContact(ctx)) {
+                ctx.intentionCmp.wantsToBash = false
+                ctx.changeState(IDLE)
+                return
+            }
+
+            if (isDiving(ctx)) {
+                ctx.changeState(DIVE)
+                return
+            }
+
+            if (ctx.wantsToJump && !isDiving(ctx)) {
+                ctx.intentionCmp.wantsToBash = false
+                ctx.intentionCmp.wantsToAttack = false
+                ctx.changeState(JUMP)
+            }
+        }
+    }
+
+    data object DIVE : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            logger.debug { "Entering DIVE" }
+            ctx.setAnimation(AnimationType.SWIM)
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            if (!isDiving(ctx) && !ctx.intentionCmp.wantsToSwimDown) {
+                ctx.changeState(SWIM)
+                return
+            }
+            if (!hasWaterContact(ctx)) {
+                ctx.changeState(FALL)
+            }
+        }
     }
 
     data object BASH : PlayerFSM() {

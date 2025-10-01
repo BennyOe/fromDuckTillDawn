@@ -12,7 +12,10 @@ import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.StateComponent
 import io.bennyoe.lightEngine.core.GameLight
+import io.bennyoe.state.player.PlayerFSM
+import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.MoveSystem
 import io.mockk.mockk
@@ -31,6 +34,10 @@ class MoveSystemUnitTest {
         val spotLight = mockk<GameLight.Spot>(relaxed = true)
         val pointLight = mockk<GameLight.Point>(relaxed = true)
         val imageMock: Image = mockk(relaxed = true)
+        val owner = mockk<PlayerStateContext>(relaxed = true)
+        val initial = mockk<PlayerFSM>(relaxed = true)
+        val global = mockk<PlayerFSM>(relaxed = true)
+
         val imgCmp =
             ImageComponent(stageMock).also {
                 it.image = imageMock
@@ -43,11 +50,20 @@ class MoveSystemUnitTest {
                 }
             }
 
+        val stateCmp =
+            StateComponent(
+                world = world,
+                owner = owner,
+                initialState = initial,
+                globalState = global,
+            )
+
         entity =
             world.entity {
                 it += PhysicComponent()
                 it += IntentionComponent()
-                it += MoveComponent(maxSpeed = 10f)
+                it += stateCmp
+                it += MoveComponent(maxWalkSpeed = 10f)
                 it += FlashlightComponent(spotLight, pointLight)
                 it += imgCmp
                 it += InputComponent()
@@ -63,7 +79,7 @@ class MoveSystemUnitTest {
         inputCmp.walkRightJustPressed = true
         world.update(1f)
 
-        assertEquals(10f, moveCmp.moveVelocity)
+        assertEquals(10f, moveCmp.moveVelocity.x)
     }
 
     @Test
@@ -72,7 +88,7 @@ class MoveSystemUnitTest {
 
         world.update(1f)
 
-        assertEquals(0f, moveCmp.moveVelocity)
+        assertEquals(0f, moveCmp.moveVelocity.x)
     }
 
     @Test
@@ -83,7 +99,7 @@ class MoveSystemUnitTest {
         inputCmp.walkLeftJustPressed = true
         world.update(1f)
 
-        assertEquals(-10f, moveCmp.moveVelocity)
+        assertEquals(-10f, moveCmp.moveVelocity.x)
     }
 
     @Test
@@ -92,11 +108,11 @@ class MoveSystemUnitTest {
 
         // small Δt
         world.update(0.016f)
-        val smallDtVelocity = moveCmp.moveVelocity
+        val smallDtVelocity = moveCmp.moveVelocity.x
 
         // large Δt
         world.update(0.5f)
-        val largeDtVelocity = moveCmp.moveVelocity
+        val largeDtVelocity = moveCmp.moveVelocity.x
 
         assertEquals(
             smallDtVelocity,
@@ -112,7 +128,7 @@ class MoveSystemUnitTest {
 
         inputCmp.walkRightJustPressed = true
         repeat(10) { world.update(0.016f) }
-        val vel = moveCmp.moveVelocity
+        val vel = moveCmp.moveVelocity.x
         assertEquals(10f, vel)
     }
 
@@ -122,10 +138,10 @@ class MoveSystemUnitTest {
         val moveCmp = with(world) { entity[MoveComponent] }
 
         inputCmp.walkRightJustPressed = true
-        moveCmp.maxSpeed = 5f
+        moveCmp.maxWalkSpeed = 5f
 
         world.update(5f) // simulate a big lag spike
-        val vel = moveCmp.moveVelocity
+        val vel = moveCmp.moveVelocity.x
         assertEquals(5f, vel)
     }
 
@@ -142,7 +158,7 @@ class MoveSystemUnitTest {
         inputCmp.walkLeftJustPressed = true
         world.update(0.016f)
 
-        val vel = moveCmp.moveVelocity
+        val vel = moveCmp.moveVelocity.x
         assertEquals(-10f, vel)
     }
 }

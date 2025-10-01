@@ -14,6 +14,7 @@ class AmbienceSoundComponent(
 }
 
 enum class AmbienceType {
+    NONE,
     FOREST,
     CAVE,
 }

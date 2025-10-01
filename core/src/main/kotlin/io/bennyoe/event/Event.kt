@@ -54,12 +54,13 @@ data class StreamSoundEvent(
     val sound: String,
     val volume: Float,
     val position: Vector2? = null,
+    val looping: Boolean = false,
 ) : Event(),
     AudioEvent
 
 data class AmbienceChangeEvent(
     val type: AmbienceType,
-    val variations: Map<SoundVariation, String>,
-    val volume: Float,
+    val variations: Map<SoundVariation, String>?,
+    val volume: Float?,
 ) : Event(),
     AudioEvent

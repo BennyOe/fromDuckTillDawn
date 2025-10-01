@@ -15,7 +15,7 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.addToDebugView
-import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.fixtureData
 import ktx.box2d.query
@@ -67,12 +67,12 @@ class AttackSystem(
             AABB_Rect.x + AABB_Rect.width,
             AABB_Rect.y + AABB_Rect.height,
         ) { fixture ->
-            if (fixture.fixtureData?.type != SensorType.HITBOX_SENSOR) {
+            if (fixture.fixtureData?.sensorType != SensorType.HITBOX_SENSOR) {
                 return@query true
             }
 
             // not hitting me
-            val bodyData = fixture.body.userData as BodyData
+            val bodyData = fixture.body.userData as EntityBodyData
             if (bodyData.entity == entity) {
                 return@query true
             }

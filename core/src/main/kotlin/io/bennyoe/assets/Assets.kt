@@ -10,14 +10,15 @@ enum class TextureAssets(
     directory: String = "textures",
     val descriptor: AssetDescriptor<TextureAtlas> = AssetDescriptor("$directory/$filename", TextureAtlas::class.java),
 ) {
-    DAWN_ATLAS("dawn_new.atlas"),
-    DAWN_N_ATLAS("dawn_new_n.atlas"),
-    DAWN_S_ATLAS("dawn_new_s.atlas"),
+    DAWN_ATLAS("dawn.atlas"),
+    DAWN_N_ATLAS("dawn_n.atlas"),
+    DAWN_S_ATLAS("dawn_s.atlas"),
     MUSHROOM_ATLAS("mushroom.atlas"),
     MUSHROOM_N_ATLAS("mushroom_n.atlas"),
     MUSHROOM_S_ATLAS("mushroom_s.atlas"),
     PARTICLE_ATLAS("particles.atlas"),
     WORLD_OBJECTS_ATLAS("world_objects.atlas"),
+    WATER_ATLAS("water.atlas"),
     CLOUDS_ATLAS("clouds.atlas"),
     RAIN_CLOUDS_ATLAS("rain_clouds.atlas"),
 }
@@ -66,6 +67,7 @@ enum class SoundAssets(
     DAWN_BASH_SOUND(listOf("dawn/bash_2.mp3")),
     DAWN_DEATH_SOUND(listOf("dawn/death.mp3")),
     DAWN_JUMP_SOUND(listOf("dawn/jump.mp3")),
+    DAWN_WATER_SPLASH_SOUND(listOf("dawn/water_splash.mp3")),
 
     // Mushroom
     MUSHROOM_FOOTSTEPS_GRASS(

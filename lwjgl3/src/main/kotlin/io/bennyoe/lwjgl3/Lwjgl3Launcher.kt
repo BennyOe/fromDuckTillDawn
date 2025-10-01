@@ -20,7 +20,9 @@ fun main() {
             setTitle("FromDuckTillDawn")
             setWindowedMode(GAME_WIDTH.toInt(), GAME_HEIGHT.toInt())
             setWindowIcon(*(arrayOf(128, 64, 32, 16).map { "libgdx$it.png" }.toTypedArray()))
-            setBackBufferConfig(8, 8, 8, 8, 8, 1, 0)
+
+            // only needed when not drawing in an FBO but on the standard framebuffer
+//            setBackBufferConfig(8, 8, 8, 8, 8, 1, 0)
             disableAudio(true)
         },
     )

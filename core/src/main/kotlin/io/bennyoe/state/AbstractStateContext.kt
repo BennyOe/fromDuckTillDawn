@@ -56,7 +56,7 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     ) {
         moveComponent.lockMovement = true
         stateComponent.stateMachine.globalState = null
-        moveComponent.moveVelocity = 0f
+        moveComponent.moveVelocity.x = 0f
         deathAlreadyEnteredBefore = true
     }
 

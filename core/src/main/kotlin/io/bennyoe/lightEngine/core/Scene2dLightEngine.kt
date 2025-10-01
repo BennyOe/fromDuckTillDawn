@@ -39,12 +39,13 @@ class Scene2dLightEngine(
     batch: SpriteBatch,
     viewport: Viewport,
     val stage: Stage?,
-    private val lightViewportScale: Float = 2f,
+    lightViewportScale: Float = 2f,
     useDiffuseLight: Boolean = true,
     maxShaderLights: Int = 32,
     entityCategory: Short = 0x0001,
     entityMask: Short = -1,
     lightActivationRadius: Float = -1f,
+    refreshRateHz: Float? = null,
 ) : AbstractLightEngine(
         rayHandler,
         cam,
@@ -55,9 +56,9 @@ class Scene2dLightEngine(
         entityCategory,
         entityMask,
         lightActivationRadius,
+        lightViewportScale,
+        refreshRateHz,
     ) {
-    private val lightCam = OrthographicCamera()
-
     /**
      * Performs the complete lighting render pass using normal mapping and Box2D shadows.
      *
@@ -82,6 +83,24 @@ class Scene2dLightEngine(
         center: Actor = Actor(),
         drawScene: (Scene2dLightEngine) -> Unit,
     ) {
+        renderSceneWithShader(center, drawScene)
+        renderBox2dLights()
+    }
+
+    /**
+     * Renders the scene using the engine's lighting shader.
+     *
+     * Sets up the batch with the camera and viewport, updates active lights based on the given center actor,
+     * applies all lighting-related shader uniforms, and executes the provided [drawScene] lambda for custom drawing.
+     * This method should be called within the main render loop to ensure correct lighting and shader state.
+     *
+     * @param center The [Actor] used as the focus point for light culling and shader calculations.
+     * @param drawScene Lambda where the scene's objects should be drawn using the batch.
+     */
+    fun renderSceneWithShader(
+        center: Actor = Actor(),
+        drawScene: (Scene2dLightEngine) -> Unit,
+    ) {
         batch.projectionMatrix = cam.combined
         viewport.apply()
 
@@ -97,21 +116,6 @@ class Scene2dLightEngine(
         drawScene(this)
         batch.end()
         setShaderToDefaultShader()
-
-        lightCam.setToOrtho(false, viewport.worldWidth, viewport.worldHeight)
-
-        lightCam.position.set(cam.position)
-        lightCam.zoom = cam.zoom
-        lightCam.update()
-
-        rayHandler.setCombinedMatrix(
-            lightCam.combined,
-            cam.position.x,
-            cam.position.y,
-            viewport.worldWidth * lightViewportScale,
-            viewport.worldHeight * lightViewportScale,
-        )
-        rayHandler.updateAndRender()
     }
 
     /**

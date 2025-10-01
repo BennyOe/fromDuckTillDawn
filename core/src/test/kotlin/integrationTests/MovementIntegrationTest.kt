@@ -68,7 +68,7 @@ class MovementIntegrationTest {
             world.entity {
                 it += AttackComponent()
                 it += PhysicComponent().apply { body = bodyMock }
-                it += MoveComponent(maxSpeed = 10f)
+                it += MoveComponent(maxWalkSpeed = 10f)
                 it += HealthComponent()
                 it += FlashlightComponent(spotLight, pointLight)
                 it += IntentionComponent()
@@ -102,7 +102,7 @@ class MovementIntegrationTest {
         repeat(10) { world.update(0.016f) }
 
         assertEquals(PlayerFSM.WALK, stateCmp.stateMachine.currentState)
-        assertEquals(10f, moveCmp.moveVelocity)
+        assertEquals(10f, moveCmp.moveVelocity.x)
     }
 
     @Test
@@ -119,7 +119,7 @@ class MovementIntegrationTest {
         world.update(0.016f)
 
         assertEquals(PlayerFSM.IDLE, stateCmp.stateMachine.currentState)
-        assertEquals(0f, moveCmp.moveVelocity)
+        assertEquals(0f, moveCmp.moveVelocity.x)
     }
 
     @Test
@@ -137,6 +137,6 @@ class MovementIntegrationTest {
         repeat(10) { world.update(0.016f) }
 
         assertEquals(PlayerFSM.DEATH, stateCmp.stateMachine.currentState)
-        assertEquals(0f, moveCmp.moveVelocity)
+        assertEquals(0f, moveCmp.moveVelocity.x)
     }
 }

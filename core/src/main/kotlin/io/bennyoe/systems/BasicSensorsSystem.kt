@@ -22,7 +22,7 @@ import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.addToDebugView
-import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.EntityBodyData
 import ktx.collections.GdxArray
 import ktx.log.logger
 
@@ -84,7 +84,7 @@ class BasicSensorsSystem(
                         return@rayCast -1f
                     }
                     // if sensor has filter for specific type it gets filtered here
-                    val bodyData = fixture.body.userData as BodyData?
+                    val bodyData = fixture.body.userData as EntityBodyData?
                     if (sensor.hitFilter != null && bodyData != null && !sensor.hitFilter.invoke(bodyData)) {
                         return@rayCast 1f
                     }
@@ -127,8 +127,8 @@ class BasicSensorsSystem(
 
             phyWorld.rayCast(
                 { fixture, point, normal, fraction ->
-                    val bodyData = fixture.body.userData as BodyData?
-                    if (bodyData?.type == EntityCategory.GROUND) {
+                    val bodyData = fixture.body.userData as EntityBodyData?
+                    if (bodyData?.entityCategory == EntityCategory.GROUND) {
                         rayHitArray.add(LedgeHitData(true, sensor.from.x))
                         hitGroundThisTick = true
                         return@rayCast 1f

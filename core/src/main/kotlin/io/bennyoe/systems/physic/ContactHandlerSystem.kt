@@ -1,5 +1,6 @@
 package io.bennyoe.systems.physic
 
+import com.badlogic.gdx.physics.box2d.BodyDef
 import com.badlogic.gdx.physics.box2d.Contact
 import com.badlogic.gdx.physics.box2d.ContactImpulse
 import com.badlogic.gdx.physics.box2d.ContactListener
@@ -13,6 +14,7 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.WaterComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.audio.AmbienceSoundComponent
 import io.bennyoe.components.audio.ReverbZoneComponent
@@ -24,11 +26,13 @@ import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StreamSoundEvent
 import io.bennyoe.event.fire
 import io.bennyoe.systems.PausableSystem
-import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.bodyData
 import io.bennyoe.utility.fixtureData
 import ktx.log.logger
+
+fun Fixture.hasSensorType(type: SensorType): Boolean = this.fixtureData?.sensorType == type
 
 class ContactHandlerSystem(
     private val stage: Stage = inject("stage"),
@@ -40,42 +44,41 @@ class ContactHandlerSystem(
         phyWorld.setContactListener(this)
     }
 
-    override fun onTick() {}
+    override fun onTick() = Unit
+
+    // --- ContactListener -----------------------------------------------------
 
     override fun beginContact(contact: Contact) {
-        val bodyDataA = contact.fixtureA.bodyData ?: return
-        val bodyDataB = contact.fixtureB.bodyData ?: return
+        val parts = contact.partsOrNull() ?: return
 
-        handleReverbZoneContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handleSoundTriggerContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handleAmbienceSoundContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handleGroundContactBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handleNearbyEnemiesBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handlePlayerEnemyCollision(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handleGroundTypeBegin(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
+        handleReverbZoneBegin(parts)
+        handleSoundTriggerBegin(parts)
+        handleAmbienceBegin(parts)
+        handleGroundBegin(parts)
+        handleNearbyEnemiesBegin(parts)
+        handlePlayerEnemyHitboxCollision(parts)
+        handleGroundTypeBegin(parts)
+        handleInWaterBegin(parts)
+        handleUnderWaterBegin(parts)
     }
 
     override fun endContact(contact: Contact) {
-        val bodyDataA = contact.fixtureA.bodyData ?: return
-        val bodyDataB = contact.fixtureB.bodyData ?: return
+        val parts = contact.partsOrNull() ?: return
 
-        handleReverbZoneContactEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handleGroundContactEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
-        handleNearbyEnemiesEnd(bodyDataA, bodyDataB, contact.fixtureA, contact.fixtureB)
+        handleReverbZoneEnd(parts)
+        handleGroundEnd(parts)
+        handleNearbyEnemiesEnd(parts)
+        handleInWaterEnd(parts)
+        handleUnderWaterEnd(parts)
     }
 
     override fun preSolve(
         contact: Contact,
         oldManifold: Manifold,
     ) {
-        val bodyDataA = contact.fixtureA.bodyData ?: return
-        val bodyDataB = contact.fixtureB.bodyData ?: return
-
-        // Player and Enemy should not physically collide, only their sensors.
-        val isPlayerEnemyHitboxCollision =
-            (bodyDataA.type == EntityCategory.PLAYER && bodyDataB.type == EntityCategory.ENEMY) ||
-                (bodyDataA.type == EntityCategory.ENEMY && bodyDataB.type == EntityCategory.PLAYER)
-        if (isPlayerEnemyHitboxCollision) {
+        val parts = contact.partsOrNull() ?: return
+        if (parts.isPlayerEnemyCategories()) {
+            // Player and Enemy bodies should not physically collide (sensors still fine).
             contact.isEnabled = false
         }
     }
@@ -83,46 +86,86 @@ class ContactHandlerSystem(
     override fun postSolve(
         contact: Contact,
         impulse: ContactImpulse,
-    ) {
+    ) = Unit
+
+    // --- Handlers ------------------------------------------------------------
+
+    private fun handleInWaterBegin(p: Parts) {
+        val (waterFixture, objectFixture) = p.waterAndObjectFixturesOrNull() ?: return
+
+        val waterBodyData = waterFixture.bodyData ?: return
+        val objectPhysicCmp = objectFixture.bodyData?.entity?.getOrNull(PhysicComponent)
+
+        val waterCmp = waterBodyData.entity[WaterComponent]
+        val added = waterCmp.fixturePairs.add(waterFixture to objectFixture)
+
+        if (added && objectPhysicCmp != null) {
+            objectPhysicCmp.activeWaterContacts++
+        }
     }
 
-    private fun handleSoundTriggerContactBegin(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val (_, soundTriggerBodyData) =
-            when {
-                fixtureA.fixtureData?.type == SensorType.SOUND_TRIGGER_SENSOR && bodyDataB.type == EntityCategory.PLAYER ->
-                    bodyDataB to bodyDataA
+    private fun handleInWaterEnd(p: Parts) {
+        val (waterFixture, objectFixture) = p.waterAndObjectFixturesOrNull() ?: return
 
-                fixtureB.fixtureData?.type == SensorType.SOUND_TRIGGER_SENSOR && bodyDataA.type == EntityCategory.PLAYER ->
-                    bodyDataA to bodyDataB
+        val waterBodyData = waterFixture.bodyData ?: return
+        val objectPhysicCmp = objectFixture.bodyData?.entity?.getOrNull(PhysicComponent)
 
-                else -> return
+        val waterCmp = waterBodyData.entity[WaterComponent]
+
+        with(world) {
+            if (waterBodyData.entity has WaterComponent) {
+                val removed = waterCmp.fixturePairs.remove(waterFixture to objectFixture)
+                if (removed && objectPhysicCmp != null && objectPhysicCmp.activeWaterContacts > 0) {
+                    objectPhysicCmp.activeWaterContacts--
+                }
             }
+        }
+    }
 
-        val soundTriggerCmp = soundTriggerBodyData.entity[SoundTriggerComponent]
-        val physicCmp = soundTriggerBodyData.entity[PhysicComponent]
+    private fun handleUnderWaterBegin(p: Parts) {
+        val (entityWithSensor, waterEntity) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
+        with(world) {
+            entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
+                it.activeUnderWaterContacts++
+            }
+        }
+    }
+
+    private fun handleUnderWaterEnd(p: Parts) {
+        val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
+        with(world) {
+            entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
+                if (it.activeUnderWaterContacts > 0) {
+                    it.activeUnderWaterContacts--
+                }
+            }
+        }
+    }
+
+    private fun handleSoundTriggerBegin(p: Parts) {
+        // SOUND_TRIGGER_SENSOR touched by PLAYER
+        val sensorOwner =
+            p.sensorOwnerWhenPlayerTouches(SensorType.SOUND_TRIGGER_SENSOR) ?: return
+
+        val soundTriggerCmp = sensorOwner.entity[SoundTriggerComponent]
+        val physicCmp = sensorOwner.entity[PhysicComponent]
 
         if (soundTriggerCmp.streamed) {
             logger.debug { "SoundStream Event fired at position ${physicCmp.body.position}" }
             stage.fire(
                 StreamSoundEvent(
-                    soundTriggerBodyData.entity,
+                    sensorOwner.entity,
                     soundTriggerCmp.sound!!,
                     soundTriggerCmp.volume,
                     physicCmp.body.position,
                 ),
             )
         } else {
-            // TODO not usable atm. Have to think about how preloaded sounds should be handled since other sounds are managed with a
-            //  SoundProfileComponent.
+            // NOTE: preloaded sounds currently not wired via SoundProfileComponent
             logger.debug { "SoundType Event fired" }
             stage.fire(
                 PlaySoundEvent(
-                    soundTriggerBodyData.entity,
+                    sensorOwner.entity,
                     soundTriggerCmp.type!!,
                     soundTriggerCmp.volume,
                     physicCmp.body.position,
@@ -131,26 +174,14 @@ class ContactHandlerSystem(
         }
     }
 
-    private fun handleAmbienceSoundContactBegin(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val (_, ambienceSoundBodyData) =
-            when {
-                fixtureA.fixtureData?.type == SensorType.SOUND_AMBIENCE_SENSOR && bodyDataB.type == EntityCategory.PLAYER ->
-                    bodyDataB to bodyDataA
+    private fun handleAmbienceBegin(p: Parts) {
+        // SOUND_AMBIENCE_SENSOR touched by PLAYER
+        val sensorOwner =
+            p.sensorOwnerWhenPlayerTouches(SensorType.SOUND_AMBIENCE_SENSOR) ?: return
 
-                fixtureB.fixtureData?.type == SensorType.SOUND_AMBIENCE_SENSOR && bodyDataA.type == EntityCategory.PLAYER ->
-                    bodyDataA to bodyDataB
-
-                else -> return
-            }
-
-        val ambienceSoundCmp = ambienceSoundBodyData.entity[AmbienceSoundComponent]
-
+        val ambienceSoundCmp = sensorOwner.entity[AmbienceSoundComponent]
         logger.debug { "Ambience Event ${ambienceSoundCmp.type} played" }
+
         stage.fire(
             AmbienceChangeEvent(
                 ambienceSoundCmp.type,
@@ -160,207 +191,202 @@ class ContactHandlerSystem(
         )
     }
 
-    private fun handleReverbZoneContactBegin(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val (playerBodyData, reverbZoneBodyData) =
-            when {
-                fixtureA.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR && bodyDataB.type == EntityCategory.PLAYER ->
-                    bodyDataB to bodyDataA
+    private fun handleReverbZoneBegin(p: Parts) {
+        // AUDIO_EFFECT_SENSOR touched by PLAYER
+        val (player, reverbOwner) =
+            p.playerAndSensorOwner(SensorType.AUDIO_EFFECT_SENSOR) ?: return
 
-                fixtureB.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR && bodyDataA.type == EntityCategory.PLAYER ->
-                    bodyDataA to bodyDataB
-
-                else -> return
-            }
-
-        val reverbZoneCmp = reverbZoneBodyData.entity[ReverbZoneComponent]
-        val reverbZoneContactCmp = playerBodyData.entity[ReverbZoneContactComponent]
-
-        reverbZoneContactCmp.increaseContact(reverbZoneCmp)
+        val reverbZoneCmp = reverbOwner.entity[ReverbZoneComponent]
+        val contactCmp = player.entity[ReverbZoneContactComponent]
+        contactCmp.increaseContact(reverbZoneCmp)
     }
 
-    private fun handleReverbZoneContactEnd(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val (playerBodyData, reverbZoneBodyData) =
-            when {
-                fixtureA.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR &&
-                    bodyDataB.type == EntityCategory.PLAYER &&
-                    fixtureB.fixtureData?.type == SensorType.HITBOX_SENSOR -> {
-                    bodyDataB to bodyDataA
-                }
+    private fun handleReverbZoneEnd(p: Parts) {
+        // AUDIO_EFFECT_SENSOR no longer overlapping PLAYER (hitbox on player side)
+        val pair =
+            p.playerAndSensorOwnerOnEnd(
+                sensorType = SensorType.AUDIO_EFFECT_SENSOR,
+                playerSensor = SensorType.HITBOX_SENSOR,
+            ) ?: return
 
-                fixtureB.fixtureData?.type == SensorType.AUDIO_EFFECT_SENSOR &&
-                    bodyDataA.type == EntityCategory.PLAYER &&
-                    fixtureA.fixtureData?.type == SensorType.HITBOX_SENSOR -> {
-                    bodyDataA to bodyDataB
-                }
-
-                else -> return
-            }
-
+        val (player, reverbOwner) = pair
         with(world) {
-            if (playerBodyData.entity has ReverbZoneContactComponent.Companion &&
-                reverbZoneBodyData.entity has ReverbZoneComponent.Companion
+            if (player.entity has ReverbZoneContactComponent.Companion &&
+                reverbOwner.entity has ReverbZoneComponent.Companion
             ) {
-                val reverbZoneCmp = reverbZoneBodyData.entity[ReverbZoneComponent]
-                val reverbZoneContactCmp = playerBodyData.entity[ReverbZoneContactComponent]
-
-                reverbZoneContactCmp.decreaseContact(reverbZoneCmp)
+                val zone = reverbOwner.entity[ReverbZoneComponent]
+                val contact = player.entity[ReverbZoneContactComponent]
+                contact.decreaseContact(zone)
             }
         }
     }
 
-    private fun handleGroundTypeBegin(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val (entityBodyData, groundBodyData) =
-            when {
-                fixtureA.fixtureData?.type == SensorType.GROUND_TYPE_SENSOR && bodyDataB.type == EntityCategory.GROUND ->
-                    bodyDataA to
-                        bodyDataB
-
-                fixtureB.fixtureData?.type == SensorType.GROUND_TYPE_SENSOR && bodyDataA.type == EntityCategory.GROUND ->
-                    bodyDataB to
-                        bodyDataA
-
-                else -> return
-            }
-
+    private fun handleGroundTypeBegin(p: Parts) {
+        // GROUND_TYPE_SENSOR overlaps GROUND
+        val (entityWithSensor, ground) = p.entityAndGroundWhenSensor(SensorType.GROUND_TYPE_SENSOR) ?: return
         with(world) {
-            if (entityBodyData.entity has GroundTypeSensorComponent) {
-                entityBodyData.entity[PhysicComponent].floorType = groundBodyData.floorType
+            if (entityWithSensor.entity has GroundTypeSensorComponent) {
+                entityWithSensor.entity[PhysicComponent].floorType = ground.floorType
             }
         }
     }
 
-    private fun handleGroundContactBegin(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val playerBodyData =
-            when {
-                fixtureA.fixtureData?.type == SensorType.GROUND_DETECT_SENSOR && bodyDataB.type == EntityCategory.GROUND -> bodyDataA
-                fixtureB.fixtureData?.type == SensorType.GROUND_DETECT_SENSOR && bodyDataA.type == EntityCategory.GROUND -> bodyDataB
-                else -> return
-            }
-
-        if (playerBodyData.type == EntityCategory.PLAYER) {
-            with(world) {
-                playerBodyData.entity[PhysicComponent].activeGroundContacts++
-            }
+    private fun handleGroundBegin(p: Parts) {
+        // GROUND_DETECT_SENSOR overlaps GROUND -> increase ground contacts if PLAYER
+        val player = p.entityWithSensorWhenTouchingGround(SensorType.GROUND_DETECT_SENSOR) ?: return
+        if (player.entityCategory == EntityCategory.PLAYER) {
+            with(world) { player.entity[PhysicComponent].activeGroundContacts++ }
         }
     }
 
-    private fun handleGroundContactEnd(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val playerBodyData =
-            when {
-                fixtureA.fixtureData?.type == SensorType.GROUND_DETECT_SENSOR && bodyDataB.type == EntityCategory.GROUND -> bodyDataA
-                fixtureB.fixtureData?.type == SensorType.GROUND_DETECT_SENSOR && bodyDataA.type == EntityCategory.GROUND -> bodyDataB
-                else -> return
-            }
-
-        if (playerBodyData.type == EntityCategory.PLAYER) {
+    private fun handleGroundEnd(p: Parts) {
+        // GROUND_DETECT_SENSOR leaves GROUND -> decrease ground contacts if PLAYER
+        val player = p.entityWithSensorWhenTouchingGround(SensorType.GROUND_DETECT_SENSOR) ?: return
+        if (player.entityCategory == EntityCategory.PLAYER) {
             with(world) {
-                if (playerBodyData.entity has PhysicComponent) {
-                    playerBodyData.entity[PhysicComponent].activeGroundContacts--
+                if (player.entity has PhysicComponent) {
+                    player.entity[PhysicComponent].activeGroundContacts--
                 }
             }
         }
     }
 
-    private fun handleNearbyEnemiesBegin(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val (sensorBodyData, targetBodyData) =
-            when {
-                fixtureA.fixtureData?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataB.type == EntityCategory.PLAYER ->
-                    bodyDataA to
-                        bodyDataB
-
-                fixtureB.fixtureData?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataA.type == EntityCategory.PLAYER ->
-                    bodyDataB to
-                        bodyDataA
-
-                else -> return
-            }
+    private fun handleNearbyEnemiesBegin(p: Parts) {
+        // NEARBY_ENEMY_SENSOR on enemy detects PLAYER
+        val (sensorOwner, player) =
+            p.sensorOwnerAndPlayer(SensorType.NEARBY_ENEMY_SENSOR) ?: return
 
         with(world) {
-            sensorBodyData.entity[NearbyEnemiesComponent].nearbyEntities += targetBodyData.entity
+            sensorOwner.entity[NearbyEnemiesComponent].nearbyEntities += player.entity
         }
     }
 
-    private fun handleNearbyEnemiesEnd(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val (sensorBodyData, targetBodyData) =
-            when {
-                fixtureA.fixtureData?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataB.type == EntityCategory.PLAYER ->
-                    bodyDataA to
-                        bodyDataB
-
-                fixtureB.fixtureData?.type == SensorType.NEARBY_ENEMY_SENSOR && bodyDataA.type == EntityCategory.PLAYER ->
-                    bodyDataB to
-                        bodyDataA
-
-                else -> return
-            }
+    private fun handleNearbyEnemiesEnd(p: Parts) {
+        val (sensorOwner, player) =
+            p.sensorOwnerAndPlayer(SensorType.NEARBY_ENEMY_SENSOR) ?: return
 
         with(world) {
-            sensorBodyData.entity[NearbyEnemiesComponent].nearbyEntities -= targetBodyData.entity
+            sensorOwner.entity[NearbyEnemiesComponent].nearbyEntities -= player.entity
         }
     }
 
-    private fun handlePlayerEnemyCollision(
-        bodyDataA: BodyData,
-        bodyDataB: BodyData,
-        fixtureA: Fixture,
-        fixtureB: Fixture,
-    ) {
-        val isHitboxCollision =
-            fixtureA.fixtureData?.type == SensorType.HITBOX_SENSOR && fixtureB.fixtureData?.type == SensorType.HITBOX_SENSOR
-        if (!isHitboxCollision) return
+    private fun handlePlayerEnemyHitboxCollision(p: Parts) {
+        // Only when both fixtures are HITBOX_SENSOR and categories are PLAYER vs ENEMY
+        if (!p.bothHitboxes()) return
+        val pair = p.playerAndEnemyOrNull() ?: return
 
-        val (playerBodyData, enemyBodyData) =
-            when {
-                bodyDataA.type == EntityCategory.PLAYER && bodyDataB.type == EntityCategory.ENEMY -> bodyDataA to bodyDataB
-                bodyDataA.type == EntityCategory.ENEMY && bodyDataB.type == EntityCategory.PLAYER -> bodyDataB to bodyDataA
-                else -> return
-            }
-
+        val (player, enemy) = pair
         with(world) {
-            val attackCmp = enemyBodyData.entity[AttackComponent]
-            val healthCmp = playerBodyData.entity[HealthComponent]
-            healthCmp.attackedFromBehind =
-                playerBodyData.entity[PhysicComponent]
-                    .body.position.x >
-                enemyBodyData.entity[PhysicComponent]
+            val attack = enemy.entity[AttackComponent]
+            val health = player.entity[HealthComponent]
+
+            val playerX =
+                player.entity[PhysicComponent]
                     .body.position.x
-            healthCmp.takenDamage = attackCmp.maxDamage
+            val enemyX =
+                enemy.entity[PhysicComponent]
+                    .body.position.x
+
+            health.attackedFromBehind = playerX > enemyX
+            health.takenDamage = attack.maxDamage
         }
+    }
+
+    // --- Small helpers (reduce branching noise) ------------------------------
+
+    private data class Parts(
+        val aBody: EntityBodyData,
+        val bBody: EntityBodyData,
+        val aFixture: Fixture,
+        val bFixture: Fixture,
+    ) {
+        val aCategory: EntityCategory = aBody.entityCategory
+        val bCategory: EntityCategory = bBody.entityCategory
+
+        fun isPlayerEnemyCategories(): Boolean =
+            (aCategory == EntityCategory.PLAYER && bCategory == EntityCategory.ENEMY) ||
+                (aCategory == EntityCategory.ENEMY && bCategory == EntityCategory.PLAYER)
+
+        fun bothHitboxes(): Boolean = aFixture.hasSensorType(SensorType.HITBOX_SENSOR) && bFixture.hasSensorType(SensorType.HITBOX_SENSOR)
+
+        fun playerAndEnemyOrNull(): Pair<EntityBodyData, EntityBodyData>? =
+            when {
+                aCategory == EntityCategory.PLAYER && bCategory == EntityCategory.ENEMY -> aBody to bBody
+                aCategory == EntityCategory.ENEMY && bCategory == EntityCategory.PLAYER -> bBody to aBody
+                else -> null
+            }
+
+        fun sensorOwnerWhenPlayerTouches(sensor: SensorType): EntityBodyData? =
+            when {
+                aFixture.hasSensorType(sensor) && bCategory == EntityCategory.PLAYER -> aBody
+                bFixture.hasSensorType(sensor) && aCategory == EntityCategory.PLAYER -> bBody
+                else -> null
+            }
+
+        fun playerAndSensorOwner(sensor: SensorType): Pair<EntityBodyData, EntityBodyData>? =
+            when {
+                aFixture.hasSensorType(sensor) && bCategory == EntityCategory.PLAYER -> bBody to aBody
+                bFixture.hasSensorType(sensor) && aCategory == EntityCategory.PLAYER -> aBody to bBody
+                else -> null
+            }
+
+        fun sensorOwnerAndPlayer(sensor: SensorType): Pair<EntityBodyData, EntityBodyData>? =
+            when {
+                aFixture.hasSensorType(sensor) && bCategory == EntityCategory.PLAYER -> aBody to bBody
+                bFixture.hasSensorType(sensor) && aCategory == EntityCategory.PLAYER -> bBody to aBody
+                else -> null
+            }
+
+        fun entityAndGroundWhenSensor(sensor: SensorType): Pair<EntityBodyData, EntityBodyData>? =
+            when {
+                aFixture.hasSensorType(sensor) && bCategory == EntityCategory.GROUND -> aBody to bBody
+                bFixture.hasSensorType(sensor) && aCategory == EntityCategory.GROUND -> bBody to aBody
+                else -> null
+            }
+
+        fun entityAndUnderWaterWhenSensor(sensor: SensorType): Pair<EntityBodyData, EntityBodyData>? =
+            when {
+                aFixture.hasSensorType(sensor) && bCategory == EntityCategory.WATER -> aBody to bBody
+                bFixture.hasSensorType(sensor) && aCategory == EntityCategory.WATER -> bBody to aBody
+                else -> null
+            }
+
+        fun entityWithSensorWhenTouchingGround(sensor: SensorType): EntityBodyData? = entityAndGroundWhenSensor(sensor)?.first
+
+        fun playerAndSensorOwnerOnEnd(
+            sensorType: SensorType,
+            playerSensor: SensorType,
+        ): Pair<EntityBodyData, EntityBodyData>? =
+            when {
+                aFixture.hasSensorType(sensorType) && bCategory == EntityCategory.PLAYER && bFixture.hasSensorType(playerSensor) ->
+                    bBody to aBody
+
+                bFixture.hasSensorType(sensorType) && aCategory == EntityCategory.PLAYER && aFixture.hasSensorType(playerSensor) ->
+                    aBody to bBody
+
+                else -> null
+            }
+
+        fun waterAndObjectFixturesOrNull(): Pair<Fixture, Fixture>? {
+            val aIsWaterSensor = aFixture.hasSensorType(SensorType.IN_WATER_SENSOR)
+            val bIsWaterSensor = bFixture.hasSensorType(SensorType.IN_WATER_SENSOR)
+
+            // The player's main fixture has the HITBOX_SENSOR type
+            val aIsObjectHitbox = aFixture.hasSensorType(SensorType.HITBOX_SENSOR) && aFixture.body.type == BodyDef.BodyType.DynamicBody
+            val bIsObjectHitbox = bFixture.hasSensorType(SensorType.HITBOX_SENSOR) && bFixture.body.type == BodyDef.BodyType.DynamicBody
+
+            return when {
+                aIsWaterSensor && bIsObjectHitbox -> aFixture to bFixture
+                bIsWaterSensor && aIsObjectHitbox -> bFixture to aFixture
+                else -> null
+            }
+        }
+    }
+
+    private fun Contact.partsOrNull(): Parts? {
+        val aBody = fixtureA.bodyData ?: return null
+        val bBody = fixtureB.bodyData ?: return null
+        return Parts(aBody, bBody, fixtureA, fixtureB)
     }
 
     companion object {

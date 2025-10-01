@@ -8,7 +8,6 @@ import io.bennyoe.config.GameConstants.INITIAL_TIME_OF_DAY
 
 class GameStateComponent(
     var isPaused: Boolean = false,
-    var isLightingEnabled: Boolean = true,
     var gameMood: GameMood = GameMood.NORMAL,
     var isTriggerTimeOfDayJustPressed: Boolean = false,
     var timeOfDay: Float = INITIAL_TIME_OF_DAY,
@@ -30,17 +29,6 @@ class GameStateComponent(
             isPaused = !isPaused
             alreadyChanged = true
             logger.debug { "GAME IS ${if (isPaused) "PAUSED" else "RESUMED"}" }
-        }
-        if (!pressed) {
-            alreadyChanged = false
-        }
-    }
-
-    fun toggleLighting(pressed: Boolean) {
-        if (pressed && !alreadyChanged) {
-            isLightingEnabled = !isLightingEnabled
-            alreadyChanged = true
-            logger.debug { "LIGHTING IS ${if (isLightingEnabled) "ENABLED" else "DISABLED"}" }
         }
         if (!pressed) {
             alreadyChanged = false

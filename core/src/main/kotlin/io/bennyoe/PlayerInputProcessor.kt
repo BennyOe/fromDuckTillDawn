@@ -11,6 +11,7 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.state.player.PlayerFSM
 import ktx.app.KtxInputAdapter
 import ktx.log.logger
 
@@ -31,9 +32,11 @@ class PlayerInputProcessor(
             "WALK" to Action.entries.toSet(),
             "JUMP" to Action.entries.toSet(),
             "DOUBLE_JUMP" to Action.entries.toSet(),
-            "FALL" to setOf(Action.JUMP, Action.MOVE_LEFT, Action.MOVE_RIGHT),
-            "CROUCH_IDLE" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.CROUCH),
-            "CROUCH_WALK" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.CROUCH),
+            "FALL" to setOf(Action.MOVE_UP, Action.MOVE_LEFT, Action.MOVE_RIGHT),
+            "SWIM" to Action.entries.toSet(),
+            "DIVE" to Action.entries.toSet(),
+            "CROUCH_IDLE" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.MOVE_DOWN),
+            "CROUCH_WALK" to setOf(Action.MOVE_LEFT, Action.MOVE_RIGHT, Action.MOVE_DOWN),
             "ATTACK_1" to Action.entries.toSet(),
             "ATTACK_2" to Action.entries.toSet(),
             "ATTACK_3" to Action.entries.toSet(),
@@ -45,10 +48,10 @@ class PlayerInputProcessor(
     // Mapping der Steuerungstasten zu Aktionen
     private val keyActions =
         mapOf(
-            Keys.W to Action.JUMP,
+            Keys.W to Action.MOVE_UP,
             Keys.A to Action.MOVE_LEFT,
             Keys.D to Action.MOVE_RIGHT,
-            Keys.S to Action.CROUCH,
+            Keys.S to Action.MOVE_DOWN,
             Keys.SPACE to Action.ATTACK,
             Keys.J to Action.BASH,
             Keys.V to Action.MESSAGE,
@@ -58,7 +61,6 @@ class PlayerInputProcessor(
             Keys.P to Action.PAUSE,
             Keys.UP to Action.ZOOM_IN,
             Keys.DOWN to Action.ZOOM_OUT,
-            Keys.L to Action.TOGGLE_LIGHTING,
             Keys.F to Action.TOGGLE_FLASHLIGHT,
             Keys.X to Action.TOGGLE_DAY_NIGHT,
             Keys.Z to Action.TOGGLE_WEATHER,
@@ -94,7 +96,6 @@ class PlayerInputProcessor(
             val gameStateCmp = gameStateEntity[GameStateComponent]
             when (action) {
                 Action.PAUSE -> gameStateCmp.togglePause(pressed)
-                Action.TOGGLE_LIGHTING -> gameStateCmp.toggleLighting(pressed)
                 Action.TOGGLE_DAY_NIGHT -> gameStateCmp.toggleTimeOfDayChange(pressed)
                 Action.TOGGLE_WEATHER -> gameStateCmp.toggleWeatherChange(pressed)
                 Action.FIRE_LIGHTNING -> gameStateCmp.fireLightning(pressed)
@@ -118,20 +119,33 @@ class PlayerInputProcessor(
             }
         }
         inputEntities.forEach { input ->
-            val playerState = playerEntity[StateComponent].stateMachine.currentState.toString()
+            val playerState = playerEntity[StateComponent].stateMachine.currentState
             val inputCmp = input[InputComponent]
-            val allowed = allowedActionsPerState[playerState] ?: emptySet()
+            val allowed = allowedActionsPerState[playerState.toString()] ?: emptySet()
             logger.debug { "playerState $playerState" }
             if (pressed && action != Action.KILL && action !in allowed) return@forEach
 
             when (action) {
-                Action.JUMP -> {
-                    inputCmp.jumpJustPressed = pressed
-                    inputCmp.jumpIsPressed = pressed
+                Action.MOVE_UP -> {
+                    if (playerState == PlayerFSM.DIVE) {
+                        inputCmp.swimUpJustPressed = pressed
+                        inputCmp.jumpJustPressed = false
+                        inputCmp.jumpIsPressed = false
+                    } else {
+                        inputCmp.swimUpJustPressed = false
+                        inputCmp.jumpJustPressed = pressed
+                        inputCmp.jumpIsPressed = pressed
+                    }
                 }
 
-                Action.CROUCH -> {
-                    inputCmp.crouchJustPressed = pressed
+                Action.MOVE_DOWN -> {
+                    if (playerState == PlayerFSM.SWIM || playerState == PlayerFSM.DIVE) {
+                        inputCmp.swimDownJustPressed = pressed
+                        inputCmp.crouchJustPressed = false
+                    } else {
+                        inputCmp.swimDownJustPressed = false
+                        inputCmp.crouchJustPressed = pressed
+                    }
                 }
 
                 Action.ATTACK -> inputCmp.attackJustPressed = pressed
@@ -173,12 +187,12 @@ class PlayerInputProcessor(
     }
 
     enum class Action {
-        JUMP,
+        MOVE_UP,
         MOVE_LEFT,
         MOVE_RIGHT,
         ATTACK,
         BASH,
-        CROUCH,
+        MOVE_DOWN,
         MESSAGE,
         MESSAGE2,
         DEBUG,
@@ -186,7 +200,6 @@ class PlayerInputProcessor(
         PAUSE,
         ZOOM_IN,
         ZOOM_OUT,
-        TOGGLE_LIGHTING,
         TOGGLE_FLASHLIGHT,
         TOGGLE_DAY_NIGHT,
         TOGGLE_WEATHER,

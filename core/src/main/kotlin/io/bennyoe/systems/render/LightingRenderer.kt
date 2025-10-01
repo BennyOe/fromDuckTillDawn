@@ -11,22 +11,26 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Family
+import com.github.quillraven.fleks.World
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ParticleType
-import io.bennyoe.components.RainMaskComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.TimeOfDay
+import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.WaterComponent
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.render.DrawUtils.drawRegion
 
 class LightingRenderer(
     val stage: Stage,
+    val world: World,
     val lightEngine: Scene2dLightEngine,
     val mapRenderer: OrthogonalTiledMapRenderer,
     val shaderService: ShaderService,
 ) {
     private val shapeRenderer: ShapeRenderer = ShapeRenderer()
+    private val waterFamily by lazy { world.family { all(WaterComponent, TransformComponent) } }
 
     fun render(
         renderQueue: List<RenderableElement>,
@@ -74,10 +78,14 @@ class LightingRenderer(
                             shaderService.switchToDefaultIfNeeded(engine, currentShader)
                             if (!renderable.particleCmp.enabled) return@forEach
 
-                            if (renderable.particleCmp.type == ParticleType.RAIN) {
-                                drawParticleWithStencilMask(engine, renderable, rainMaskFamily)
-                            } else {
-                                renderable.particleCmp.actor.draw(engine.batch, 1f)
+                            renderable.particleCmp.actor.setPosition(
+                                renderable.transformCmp.position.x,
+                                renderable.transformCmp.position.y,
+                            )
+                            when (renderable.particleCmp.type) {
+                                ParticleType.RAIN -> drawParticleWithStencilMask(engine, renderable, rainMaskFamily, false)
+                                ParticleType.AIR_BUBBLES -> drawParticleWithStencilMask(engine, renderable, waterFamily, true)
+                                else -> renderable.particleCmp.actor.draw(engine.batch, 1f)
                             }
                             ShaderType.DEFAULT
                         }
@@ -89,7 +97,8 @@ class LightingRenderer(
     private fun drawParticleWithStencilMask(
         engine: Scene2dLightEngine,
         renderable: RenderableElement.EntityWithParticle,
-        rainMaskFamily: Family,
+        maskFamily: Family,
+        drawOnlyInsideMask: Boolean,
     ) {
         engine.batch.flush()
         engine.batch.end()
@@ -109,17 +118,22 @@ class LightingRenderer(
         // Now, use the ShapeRenderer to draw the shapes from Tiled
         shapeRenderer.projectionMatrix = stage.camera.combined
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        rainMaskFamily.forEach { rainMask ->
-            val rainMaskCmp = rainMask[RainMaskComponent]
-            shapeRenderer.rect(rainMaskCmp.x, rainMaskCmp.y, rainMaskCmp.width, rainMaskCmp.height)
+        maskFamily.forEach { mask ->
+            val transformCmp = mask[TransformComponent]
+            shapeRenderer.rect(transformCmp.position.x, transformCmp.position.y, transformCmp.width, transformCmp.height)
         }
         shapeRenderer.end()
 
         // Re-enable writing to the color buffer for the actual rain
         Gdx.gl.glColorMask(true, true, true, true)
 
-        // Now, change the rule: only draw where the stencil value is NOT 1
-        Gdx.gl.glStencilFunc(GL20.GL_NOTEQUAL, 1, 0xFF)
+        if (drawOnlyInsideMask) {
+            Gdx.gl.glStencilFunc(GL20.GL_EQUAL, 1, 0xFF)
+        } else {
+            // Now, change the rule: only draw where the stencil value is NOT 1
+            Gdx.gl.glStencilFunc(GL20.GL_NOTEQUAL, 1, 0xFF)
+        }
+
         // And make sure the rain itself doesn't change the stencil buffer
         Gdx.gl.glStencilOp(GL20.GL_KEEP, GL20.GL_KEEP, GL20.GL_KEEP)
 
@@ -164,7 +178,12 @@ class LightingRenderer(
                 if (currentShader != ShaderType.CUSTOM || engine.batch.shader != desiredShader) {
                     shaderService.switchToCustom(engine, desiredShader)
                 }
-                shaderService.updateUniformsPerFrame(renderable.shaderRenderingCmp, timeOfDay, continuousTime)
+                shaderService.updateUniformsPerFrame(
+                    renderable.shaderRenderingCmp.shader!!,
+                    renderable.shaderRenderingCmp.uniforms,
+                    timeOfDay,
+                    continuousTime,
+                )
 
                 // if shaderCmp has a noise texture, use it
                 shaderService.configureNoiseIfPresent(renderable.shaderRenderingCmp)
@@ -185,9 +204,6 @@ class LightingRenderer(
                 drawRegion(engine, renderable.imageCmp)
                 updatedShader
             }
-
-        // Draw particles if present (use current shader)
-        renderable.particleCmp?.actor?.draw(engine.batch, 1f)
 
         return newShaderType
     }

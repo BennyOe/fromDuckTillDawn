@@ -20,11 +20,11 @@
                 19,
                 23
             ],
-            "scale": 0.75,
-            "selectedLayer": 10,
+            "scale": 1,
+            "selectedLayer": 11,
             "viewCenter": {
-                "x": 406.6666666666667,
-                "y": 299.33333333333337
+                "x": 1439,
+                "y": 143
             }
         }
     },
@@ -38,7 +38,7 @@
         "groundTiles1.tsx"
     ],
     "project": "testMap.tiled-project",
-    "property.type": "string",
+    "property.type": "bool",
     "recentFiles": [
         "groundTiles1.tsx",
         "fire.tsx",

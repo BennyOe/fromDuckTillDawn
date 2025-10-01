@@ -18,7 +18,7 @@ import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.debug.DefaultDebugRenderService
-import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.EntityBodyData
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
@@ -82,7 +82,7 @@ class BasicSensorsSystemUnitTest {
         val fixture = mockk<Fixture>()
         val fixtureBody = mockk<Body>()
         every { fixture.body } returns fixtureBody
-        every { fixtureBody.userData } returns BodyData(type = EntityCategory.GROUND, entity = enemy)
+        every { fixtureBody.userData } returns EntityBodyData(entityCategory = EntityCategory.GROUND, entity = enemy)
 
         // stub rayCast to trigger hit
         every { phyWorld.rayCast(any(), any(), any()) } answers {
@@ -101,7 +101,7 @@ class BasicSensorsSystemUnitTest {
         val ledgeFixture = mockk<Fixture>()
         val ledgeBody = mockk<Body>()
         every { ledgeFixture.body } returns ledgeBody
-        every { ledgeBody.userData } returns BodyData(type = EntityCategory.GROUND, entity = enemy)
+        every { ledgeBody.userData } returns EntityBodyData(entityCategory = EntityCategory.GROUND, entity = enemy)
 
         every { phyWorld.rayCast(any(), any(), any()) } answers {
             val cb = firstArg<RayCastCallback>()
@@ -120,7 +120,7 @@ class BasicSensorsSystemUnitTest {
         val sightFixture = mockk<Fixture>()
         val sightBody = mockk<Body>()
         every { sightFixture.body } returns sightBody
-        every { sightBody.userData } returns BodyData(type = EntityCategory.GROUND, entity = enemy)
+        every { sightBody.userData } returns EntityBodyData(entityCategory = EntityCategory.GROUND, entity = enemy)
 
         every { phyWorld.rayCast(any(), any(), any()) } answers {
             val cb = firstArg<RayCastCallback>()

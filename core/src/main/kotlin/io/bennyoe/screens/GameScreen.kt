@@ -3,8 +3,13 @@ package io.bennyoe.screens
 import box2dLight.RayHandler
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.GdxAI
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.FrameBuffer
+import com.badlogic.gdx.graphics.glutils.GLFrameBuffer
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.math.Vector2
@@ -22,7 +27,9 @@ import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.config.GameConstants.GRAVITY
+import io.bennyoe.config.GameConstants.MAX_FPS
 import io.bennyoe.config.GameConstants.TIME_SCALE
+import io.bennyoe.config.GameConstants.VSYNC
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.event.fire
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
@@ -40,6 +47,7 @@ import io.bennyoe.systems.HitStopSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.ParticleRemoveSystem
 import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
@@ -48,6 +56,7 @@ import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem
 import io.bennyoe.systems.audio.SoundEffectSystem
+import io.bennyoe.systems.audio.UnderWaterSoundSystem
 import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
 import io.bennyoe.systems.debug.DebugSystem
@@ -60,6 +69,7 @@ import io.bennyoe.systems.light.EntityLightSystem
 import io.bennyoe.systems.light.FlashlightSystem
 import io.bennyoe.systems.physic.ContactHandlerSystem
 import io.bennyoe.systems.physic.PhysicsSystem
+import io.bennyoe.systems.physic.WaterSystem
 import io.bennyoe.systems.render.PhysicTransformSyncSystem
 import io.bennyoe.systems.render.RenderSystem
 import io.bennyoe.systems.render.TransformVisualSyncSystem
@@ -78,6 +88,7 @@ class GameScreen(
     private val assets = context.inject<AssetStorage>()
     private val audio = context.inject<Audio>()
     private val worldObjectsAtlas = assets[TextureAssets.WORLD_OBJECTS_ATLAS.descriptor]
+    private val waterAtlas = assets[TextureAssets.WATER_ATLAS.descriptor]
     private val cloudsAtlas = assets[TextureAssets.CLOUDS_ATLAS.descriptor]
     private val rainCloudsAtlas = assets[TextureAssets.RAIN_CLOUDS_ATLAS.descriptor]
     private val dawnAtlases =
@@ -98,10 +109,18 @@ class GameScreen(
     private val stage = stages.stage
     private val uiStage = stages.uiStage
     private val spriteBatch = context.inject<SpriteBatch>()
+    private val polygonSpriteBatch = context.inject<PolygonSpriteBatch>()
     private val phyWorld =
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
             autoClearForces = false
         }
+
+    // Framebuffer
+    private var fbo: FrameBuffer? = null
+
+    // container (provider) for the fbo, so that systems are getting a updated fbo every frame
+    private lateinit var targets: RenderTargets
+
     private val rayHandler = RayHandler(phyWorld)
     private val lightEngine =
         Scene2dLightEngine(
@@ -114,15 +133,17 @@ class GameScreen(
             entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv() and EntityCategory.SENSOR.bit.inv()),
             lightActivationRadius = 25f,
             lightViewportScale = 4f,
+            refreshRateHz = 75f,
         )
     private val profiler by lazy { GLProfiler(Gdx.graphics) }
-    private val entityWorld =
+    private val entityWorld by lazy {
         configureWorld {
             injectables {
                 add("audio", audio)
                 add("assetManager", assets)
                 add("phyWorld", phyWorld)
                 add("worldObjectsAtlas", worldObjectsAtlas)
+                add("waterAtlas", waterAtlas)
                 add("cloudsAtlas", cloudsAtlas)
                 add("rainCloudsAtlas", rainCloudsAtlas)
                 add("dawnAtlases", dawnAtlases)
@@ -133,8 +154,10 @@ class GameScreen(
                 add("shapeRenderer", ShapeRenderer())
                 add("debugRenderService", DefaultDebugRenderService())
                 add("spriteBatch", spriteBatch)
+                add("polygonSpriteBatch", polygonSpriteBatch)
                 add("profiler", profiler)
                 add("lightEngine", lightEngine)
+                add("renderTargets", targets)
             }
             systems {
                 add(AnimationSystem())
@@ -151,11 +174,13 @@ class GameScreen(
                 add(DamageTextSystem())
                 add(JumpSystem())
                 add(ContactHandlerSystem())
+                add(WaterSystem())
                 add(PhysicsSystem())
                 add(AmbienceSystem())
                 add(ReverbSystem())
                 add(CloudSystem())
                 add(RainSystem())
+                add(UnderWaterSoundSystem())
                 add(SoundEffectSystem())
                 add(MusicSystem())
                 add(BasicSensorsSystem())
@@ -167,6 +192,7 @@ class GameScreen(
                 add(MoveSystem())
                 add(PhysicTransformSyncSystem())
                 add(TransformVisualSyncSystem())
+                add(ParticleRemoveSystem())
                 add(CameraSystem())
                 add(RenderSystem())
                 if (ENABLE_DEBUG) add(DebugSystem())
@@ -176,10 +202,19 @@ class GameScreen(
                 add(UiRenderSystem())
             }
         }
+    }
 
     override fun show() {
+        createFbo(Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
+        targets = RenderTargets(requireNotNull(fbo))
+
         rayHandler.setBlurNum(2)
         profiler.enable()
+
+        // setting basic graphic modes (can cause stutter on HiDPI displays)
+        Gdx.graphics.setVSync(VSYNC)
+        Gdx.graphics.setForegroundFPS(MAX_FPS)
+
         // add a gameState Entity to the screen
         entityWorld.entity {
             if (ENABLE_DEBUG) it += DebugComponent()
@@ -221,6 +256,7 @@ class GameScreen(
         mushroomAtlases.normalAtlas?.dispose()
         mushroomAtlases.specularAtlas?.dispose()
         entityWorld.dispose()
+        fbo?.dispose()
         tiledMap.disposeSafely()
         audio.dispose()
     }
@@ -231,10 +267,35 @@ class GameScreen(
     ) {
         super.resize(width, height)
         lightEngine.resize(width, height)
-        rayHandler.resizeFBO(width / 2, height / 2)
+        rayHandler.resizeFBO(Gdx.graphics.backBufferWidth / 2, Gdx.graphics.backBufferHeight / 2)
+        createFbo(Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
+        targets.fbo = requireNotNull(fbo)
+    }
+
+    private fun createFbo(
+        width: Int,
+        height: Int,
+    ) {
+        if (Gdx.graphics.width == 0 || Gdx.graphics.height == 0) return
+        if (fbo != null) fbo!!.dispose()
+        val frameBufferBuilder = GLFrameBuffer.FrameBufferBuilder(width, height)
+        frameBufferBuilder.addBasicColorTextureAttachment(Pixmap.Format.RGBA8888)
+
+        // add stencil-buffer to the fbo for masking the rain
+        frameBufferBuilder.addStencilRenderBuffer(GL20.GL_STENCIL_INDEX8)
+        fbo = frameBufferBuilder.build()
     }
 
     companion object {
         private val logger = logger<GameScreen>()
     }
 }
+
+/**
+ * Container class for render targets used in the rendering pipeline.
+ *
+ * @property fbo The main [FrameBuffer] used for off-screen rendering.
+ */
+class RenderTargets(
+    var fbo: FrameBuffer,
+)

@@ -18,6 +18,7 @@ import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.utility.hourToAngle
 import io.bennyoe.utility.isHourIn
 import io.bennyoe.utility.nightFactor
+import ktx.tiled.height
 import ktx.tiled.width
 import kotlin.math.PI
 import kotlin.math.abs
@@ -35,14 +36,16 @@ class SkySystem :
     PausableSystem {
     private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
 
-    private var mapWidth = 0
+    private var mapWidth = 0f
+    private var mapHeight = 0f
     private var centerX = 0f
     private var centerY = 0f
-    private var radius = 0f
+    private var horizontalRadius = 0f
+    private var verticalRadius = 0f
 
     companion object {
-        private const val VERTICAL_CIRCLE_SCALE = 0.55f
-        private const val HORIZONTAL_CIRCLE_SCALE = 1.25f
+        private const val VERTICAL_CIRCLE_SCALE = 1f
+        private const val HORIZONTAL_CIRCLE_SCALE = .9f
         private const val CELESTIAL_BODY_SIZE_MULTIPLIER = 3f
         private const val MOON_PHASE_SHIFT_RADIANS = PI.toFloat()
         private const val SIZE_SCALING_THRESHOLD_DEGREES = 45.0
@@ -50,9 +53,12 @@ class SkySystem :
 
     override fun handle(event: Event): Boolean {
         if (event is MapChangedEvent) {
-            mapWidth = event.map.width
+            mapWidth = event.map.width.toFloat()
+            mapHeight = event.map.height.toFloat()
             centerX = mapWidth / 2f
-            radius = mapWidth / 2f
+            centerY = mapHeight / 2f
+            horizontalRadius = mapWidth / 2f
+            verticalRadius = mapHeight / 2f
             return true
         }
         return false
@@ -127,8 +133,8 @@ class SkySystem :
         transformCmp: TransformComponent,
         bodyAngle: Float,
     ) {
-        val x = centerX + cos(bodyAngle) * radius * HORIZONTAL_CIRCLE_SCALE
-        val y = centerY + sin(bodyAngle) * radius * VERTICAL_CIRCLE_SCALE
+        val x = centerX + cos(bodyAngle) * horizontalRadius * HORIZONTAL_CIRCLE_SCALE
+        val y = centerY + sin(bodyAngle) * verticalRadius * VERTICAL_CIRCLE_SCALE
 
         val size = getDynamicSize(y) * CELESTIAL_BODY_SIZE_MULTIPLIER
         transformCmp.position.set(x, y)
@@ -138,7 +144,7 @@ class SkySystem :
 
     private fun getDynamicSize(y: Float): Float {
         val distanceToCenter = abs(y - centerY)
-        val threshold = radius * sin(Math.toRadians(SIZE_SCALING_THRESHOLD_DEGREES)).toFloat()
+        val threshold = verticalRadius * sin(Math.toRadians(SIZE_SCALING_THRESHOLD_DEGREES)).toFloat()
         val normalized = ((threshold - distanceToCenter) / threshold).coerceIn(0f, 1f)
         return 1f + normalized * normalized * 2f
     }

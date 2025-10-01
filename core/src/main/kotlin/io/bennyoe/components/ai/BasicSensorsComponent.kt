@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector2
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.utility.BodyData
+import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.SensorType
 import ktx.collections.gdxArrayOf
 import ktx.math.plus
@@ -14,6 +14,8 @@ import ktx.math.vec2
 class BasicSensorsComponent(
     val chaseRange: Float,
 ) : Component<BasicSensorsComponent> {
+    var from = Vector2()
+    var to = Vector2()
     val upperLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
     val lowerLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
 
@@ -25,7 +27,7 @@ class BasicSensorsComponent(
             isHorizontal = true,
             name = "wall sensor",
             color = Color.BLUE,
-            hitFilter = { it.type == EntityCategory.GROUND || it.type == EntityCategory.WORLD_BOUNDARY },
+            hitFilter = { it.entityCategory == EntityCategory.GROUND || it.entityCategory == EntityCategory.WORLD_BOUNDARY },
         )
     val wallHeightSensor =
         SensorDef(
@@ -35,7 +37,7 @@ class BasicSensorsComponent(
             isHorizontal = true,
             name = "wall height sensor",
             color = Color.BLUE,
-            hitFilter = { it.type == EntityCategory.GROUND },
+            hitFilter = { it.entityCategory == EntityCategory.GROUND },
         )
     val groundSensor = SensorDef(vec2(0.5f, 0f), vec2(0f, -1.6f), SensorType.GROUND_DETECT_SENSOR, false, "ground sensor", Color.GREEN)
     val jumpSensor = SensorDef(vec2(2.2f, 0f), vec2(0f, -1.6f), SensorType.JUMP_SENSOR, false, "jump sensor", Color.GREEN)
@@ -47,7 +49,7 @@ class BasicSensorsComponent(
             isHorizontal = false,
             name = "sight sensor",
             color = Color.WHITE,
-            hitFilter = { it.type == EntityCategory.GROUND },
+            hitFilter = { it.entityCategory == EntityCategory.GROUND },
         )
     val attackSensor =
         SensorDef(
@@ -58,7 +60,7 @@ class BasicSensorsComponent(
             name = "attack sensor",
             color = Color.ORANGE,
             // filter on this type of hit entity
-            hitFilter = { it.type == EntityCategory.PLAYER },
+            hitFilter = { it.entityCategory == EntityCategory.PLAYER },
         )
 
     init {
@@ -74,7 +76,7 @@ class BasicSensorsComponent(
                     type = SensorType.UPPER_LEDGE_SENSOR,
                     isHorizontal = false,
                     name = "upper ledge sensor",
-                    hitFilter = { it.type == EntityCategory.GROUND },
+                    hitFilter = { it.entityCategory == EntityCategory.GROUND },
                 ),
             )
             lowerLedgeSensorArray.add(
@@ -105,7 +107,7 @@ data class SensorDef(
     val name: String,
     val color: Color = Color.BLUE,
     val highlightColor: Color = Color.RED,
-    val hitFilter: ((BodyData) -> Boolean)? = null,
+    val hitFilter: ((EntityBodyData) -> Boolean)? = null,
 ) {
     var from = Vector2()
     var to = Vector2()
@@ -117,25 +119,17 @@ data class SensorDef(
     ) {
         if (isHorizontal) {
             if (type == SensorType.ATTACK_SENSOR) {
-                from =
-                    if (flipImage) {
-                        vec2(bodyPos.x + fromRelative.x + 0.5f, bodyPos.y + fromRelative.y)
-                    } else {
-                        vec2(bodyPos.x + fromRelative.x - 0.5f, bodyPos.y + fromRelative.y)
-                    }
+                val newFromX = if (flipImage) bodyPos.x + fromRelative.x + 0.5f else bodyPos.x + fromRelative.x - 0.5f
+                from.set(newFromX, bodyPos.y + fromRelative.y)
             } else {
                 from.set(bodyPos).add(fromRelative)
             }
 
-            to =
-                if (flipImage) {
-                    vec2(from.x - toRelative.x, from.y + toRelative.y)
-                } else {
-                    vec2(from.x + toRelative.x, from.y + toRelative.y)
-                }
+            val newToX = if (flipImage) from.x - toRelative.x else from.x + toRelative.x
+            to.set(newToX, from.y + toRelative.y)
         } else {
             val locationOffsetX = if (flipImage) -fromRelative.x else fromRelative.x
-            from.set(bodyPos + vec2(locationOffsetX, fromRelative.y))
+            from.set(bodyPos).add(locationOffsetX, fromRelative.y)
             to.set(from.x + toRelative.x, from.y + toRelative.y)
         }
     }

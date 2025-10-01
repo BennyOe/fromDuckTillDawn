@@ -7,14 +7,21 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.AIR_BUBBLES_START_DELAY
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HasGroundContact
+import io.bennyoe.components.HasWaterContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.IsDiving
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.config.GameConstants
+import io.bennyoe.components.StateComponent
+import io.bennyoe.components.WATER_CONTACT_GRACE_PERIOD
+import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
+import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.systems.PausableSystem
 import ktx.log.logger
 import ktx.math.component1
@@ -24,10 +31,7 @@ class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(
         family { all(PhysicComponent, ImageComponent) },
-        interval =
-            Fixed(
-                GameConstants.PHYSIC_TIME_STEP,
-            ),
+        interval = Fixed(PHYSIC_TIME_STEP),
     ),
     PausableSystem {
     override fun onUpdate() {
@@ -36,12 +40,12 @@ class PhysicsSystem(
             phyWorld.autoClearForces = false
         }
         super.onUpdate()
-        phyWorld.clearForces()
     }
 
     override fun onTick() {
         super.onTick()
         phyWorld.step(deltaTime, 6, 2)
+        phyWorld.clearForces()
     }
 
     override fun onTickEntity(entity: Entity) {
@@ -49,13 +53,15 @@ class PhysicsSystem(
         val moveCmp = entity.getOrNull(MoveComponent)
         val jumpCmp = entity.getOrNull(JumpComponent)
         val bashCmp = entity.getOrNull(BashComponent)
+        val stateCmp = entity.getOrNull(StateComponent)
         val imageCmp = entity[ImageComponent]
         val healthCmp = entity[HealthComponent]
-
         setJumpImpulse(jumpCmp, physicCmp)
-        setWalkImpulse(moveCmp, physicCmp)
+        setWalkAndSwimImpulse(moveCmp, physicCmp, stateCmp)
         setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
         setGroundContact(entity)
+        setWaterContact(entity)
+        setUnderWaterContact(entity)
         if (moveCmp != null && (moveCmp.throwBack || moveCmp.throwBackCooldown > 0)) {
             setThrowBackImpulse(moveCmp, physicCmp, healthCmp)
         }
@@ -118,18 +124,22 @@ class PhysicsSystem(
             }
             if (it.throwBackCooldown > 0) {
                 it.throwBackCooldown -= deltaTime
-                moveCmp.moveVelocity = 0f
+                moveCmp.moveVelocity.x = 0f
             }
         }
     }
 
-    private fun setWalkImpulse(
+    private fun setWalkAndSwimImpulse(
         moveCmp: MoveComponent?,
         physicCmp: PhysicComponent,
+        stateCmp: StateComponent<*, *>?,
     ) {
         moveCmp?.let {
             if (it.throwBackCooldown > 0) return
-            physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity - physicCmp.body.linearVelocity.x)
+            physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity.x - physicCmp.body.linearVelocity.x)
+            if (stateCmp?.stateMachine?.currentState == PlayerFSM.SWIM || stateCmp?.stateMachine?.currentState == PlayerFSM.DIVE) {
+                physicCmp.impulse.y = physicCmp.body.mass * (moveCmp.moveVelocity.y - physicCmp.body.linearVelocity.y)
+            }
         }
     }
 
@@ -145,16 +155,79 @@ class PhysicsSystem(
         }
     }
 
-    private fun setGroundContact(playerEntity: Entity) {
-        val physicCmp = playerEntity[PhysicComponent]
+    private fun setGroundContact(entity: Entity) {
+        val physicCmp = entity[PhysicComponent]
         if (physicCmp.activeGroundContacts > 0) {
-            playerEntity.configure {
+            entity.configure {
                 it += HasGroundContact
             }
         } else {
-            playerEntity.configure {
+            entity.configure {
                 it -= HasGroundContact
             }
+        }
+    }
+
+    private fun setWaterContact(entity: Entity) {
+        val physic = entity[PhysicComponent]
+
+        val hadContact = entity.has(HasWaterContact)
+        val inContactNow = physic.activeWaterContacts > 0
+
+        if (inContactNow) {
+            if (!hadContact) {
+                entity.configure { it += HasWaterContact }
+                logger.debug { "Water contact." }
+            }
+            physic.waterContactGraceTimer = WATER_CONTACT_GRACE_PERIOD
+            return
+        }
+
+        if (physic.waterContactGraceTimer > 0f) {
+            physic.waterContactGraceTimer -= deltaTime
+            return
+        }
+
+        if (hadContact) {
+            entity.configure { it -= HasWaterContact }
+            logger.debug { "Water contact ended." }
+        }
+    }
+
+    private fun setUnderWaterContact(entity: Entity) {
+        val physicCmp = entity[PhysicComponent]
+        val particleCmp = entity.getOrNull(ParticleComponent)
+
+        val wasUnder = entity.has(IsDiving)
+        val nowUnder = physicCmp.activeUnderWaterContacts > 0
+
+        if (nowUnder) {
+            if (!wasUnder) {
+                entity.configure { it += IsDiving }
+                logger.debug { "Underwater." }
+                physicCmp.airBubblesDelayTimer = AIR_BUBBLES_START_DELAY
+            } else {
+                if (physicCmp.airBubblesDelayTimer > 0f) {
+                    physicCmp.airBubblesDelayTimer -= deltaTime
+                } else {
+                    particleCmp?.let { p ->
+                        p.enabled = true
+                    }
+                }
+            }
+            physicCmp.underWaterGraceTimer = WATER_CONTACT_GRACE_PERIOD
+            return
+        }
+
+        if (physicCmp.underWaterGraceTimer > 0f) {
+            physicCmp.underWaterGraceTimer -= deltaTime
+            return
+        }
+
+        if (wasUnder) {
+            entity.configure { it -= IsDiving }
+            particleCmp?.enabled = false
+            logger.debug { "Left underwater." }
         }
     }
 

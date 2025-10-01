@@ -34,8 +34,8 @@ import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.debug.DebugRenderer
-import io.bennyoe.utility.BodyData
-import io.bennyoe.utility.FixtureData
+import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.FixtureSensorData
 import io.bennyoe.utility.SensorType
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
@@ -145,7 +145,7 @@ class AttackSystemIntegrationTest {
                     )
             }
 
-        enemyBody.userData = BodyData(EntityCategory.ENEMY, enemyEntity)
+        enemyBody.userData = EntityBodyData(enemyEntity, EntityCategory.ENEMY)
 
         // --------------- Setup Fixture ----------------
         val shape = PolygonShape().apply { setAsBox(0.5f, 0.5f) }
@@ -156,7 +156,7 @@ class AttackSystemIntegrationTest {
                 filter.categoryBits = EntityCategory.ENEMY.bit
             }
         val fixture = enemyBody.createFixture(fixtureDef)
-        fixture.userData = FixtureData(SensorType.HITBOX_SENSOR)
+        fixture.userData = FixtureSensorData(enemyEntity, SensorType.HITBOX_SENSOR)
         shape.dispose()
     }
 
@@ -280,7 +280,7 @@ class AttackSystemIntegrationTest {
         val enemyStateCmp = with(world) { enemyEntity[StateComponent] as StateComponent<MushroomStateContext, MushroomFSM> }
 
         val firstFixture = enemyPhysicCmp.body.fixtureList.firstOrNull()
-        firstFixture?.userData = BodyData(EntityCategory.ENEMY, enemyEntity)
+        firstFixture?.userData = EntityBodyData(enemyEntity, EntityCategory.ENEMY)
 
         inputCmp.attackJustPressed = true
         attackCmp.attackDelay = 0f

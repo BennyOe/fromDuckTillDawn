@@ -56,14 +56,14 @@ class ShaderService {
     }
 
     fun updateUniformsPerFrame(
-        shaderCmp: ShaderRenderingComponent,
-        timeOfDay: Float,
-        continuousTime: Float,
+        shader: ShaderProgram,
+        uniforms: Map<String, Any>,
+        timeOfDay: Float? = null,
+        continuousTime: Float? = null,
     ) {
-        val shader = shaderCmp.shader ?: return
-        shader.setUniformf("u_time", timeOfDay)
-        shader.setUniformf("u_continuousTime", continuousTime)
-        for ((k, v) in shaderCmp.uniforms) setUniformAny(shader, k, v)
+        timeOfDay?.let { shader.setUniformf("u_timeOfDay", timeOfDay) }
+        continuousTime?.let { shader.setUniformf("u_time", continuousTime) }
+        for ((k, v) in uniforms) setUniformAny(shader, k, v)
     }
 
     /**

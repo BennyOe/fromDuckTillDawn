@@ -54,7 +54,8 @@ data class SpawnCfg(
                                 EntityCategory.GROUND.bit or
                                     EntityCategory.WORLD_BOUNDARY.bit or
                                     EntityCategory.SENSOR.bit or
-                                    EntityCategory.ENEMY.bit
+                                    EntityCategory.ENEMY.bit or
+                                    EntityCategory.WATER.bit
                             ),
                             animationModel = AnimationModel.PLAYER_DAWN,
                             animationType = AnimationType.IDLE,
@@ -114,6 +115,7 @@ data class SpawnCfg(
                                             SoundType.DAWN_HIT to listOf(SoundAssets.DAWN_HIT_SOUND),
                                             SoundType.DAWN_BASH to listOf(SoundAssets.DAWN_BASH_SOUND),
                                             SoundType.DAWN_DEATH to listOf(SoundAssets.DAWN_DEATH_SOUND),
+                                            SoundType.DAWN_WATER_SPLASH to listOf(SoundAssets.DAWN_WATER_SPLASH_SOUND),
                                         ),
                                     // Define the player's footstep sounds for each surface
                                     footstepsSounds =
@@ -130,7 +132,8 @@ data class SpawnCfg(
                             physicMaskCategory = (
                                 EntityCategory.GROUND.bit or
                                     EntityCategory.WORLD_BOUNDARY.bit or
-                                    EntityCategory.PLAYER.bit
+                                    EntityCategory.PLAYER.bit or
+                                    EntityCategory.WATER.bit
                             ),
                             animationModel = AnimationModel.ENEMY_MUSHROOM,
                             animationType = AnimationType.IDLE,
@@ -143,7 +146,7 @@ data class SpawnCfg(
                             aiTreePath = "ai/mushroom.tree",
                             scaleSpeed = 0.5f,
                             keepCorpse = true,
-                            removeDelay = .2f,
+                            removeDelay = 2f,
                             nearbyEnemiesDefaultSensorRadius = NORMAL_DETECTION_RADIUS,
                             nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS,
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),

@@ -52,7 +52,8 @@ enum class SoundType(
     DAWN_HIT,
     DAWN_BASH(true),
     DAWN_DEATH,
-    DAWN_JUMP(true),
+    DAWN_JUMP,
+    DAWN_WATER_SPLASH,
 
     // Enemies
     MUSHROOM_FOOTSTEPS(true, true, true),

@@ -55,6 +55,8 @@ abstract class AbstractLightEngine(
     val entityCategory: Short = 0x0001.toShort(),
     val entityMask: Short = -1,
     val lightActivationRadius: Float = -1f,
+    val lightViewportScale: Float = 2f,
+    refreshRateHz: Float? = null,
 ) {
     protected val vertShader: FileHandle = Gdx.files.internal("shader/light.vert")
     protected val fragShader: FileHandle = Gdx.files.internal("shader/light.frag")
@@ -70,12 +72,52 @@ abstract class AbstractLightEngine(
     protected var specularRemapMin = 0.1f
     protected var specularRemapMax = 0.5f
     private val density = Gdx.graphics.backBufferScale
+    private val lightCam = OrthographicCamera()
+    private var lightAcc = 0f
+    private var refreshStep: Float? = refreshRateHz?.let { 1f / it }
 
     init {
         setupShader()
         RayHandler.useDiffuseLight(useDiffuseLight)
         updateShaderAmbientColor(Color(1f, 1f, 1f, 1.0f))
         rayHandler.setAmbientLight(.1f, .1f, .1f, .1f)
+    }
+
+    /**
+     * Renders all Box2D lights managed by the engine.
+     *
+     * This method updates the Box2D light system's combined matrix using the current camera,
+     * then renders all active Box2D lights (shadows, lightmaps) to the screen.
+     * Call this after updating and activating lights, and before drawing the final scene.
+     */
+    fun renderBox2dLights() {
+        lightCam.setToOrtho(false, viewport.worldWidth, viewport.worldHeight)
+
+        lightCam.position.set(cam.position)
+        lightCam.zoom = cam.zoom
+        lightCam.update()
+
+        rayHandler.setCombinedMatrix(
+            lightCam.combined,
+            cam.position.x,
+            cam.position.y,
+            viewport.worldWidth * lightViewportScale,
+            viewport.worldHeight * lightViewportScale,
+        )
+
+        val step = refreshStep
+        if (step == null) {
+            // Uncapped: do the full update every frame
+            rayHandler.update()
+        } else {
+            // Capped: fixed update cadence (e.g. 60 Hz)
+            lightAcc += Gdx.graphics.deltaTime
+            while (lightAcc >= step) {
+                rayHandler.update()
+                lightAcc -= step
+            }
+        }
+        rayHandler.render()
     }
 
     /**
@@ -144,6 +186,12 @@ abstract class AbstractLightEngine(
     fun resetOverlayColor() {
         batch.flush()
         batch.shader.setUniformf("u_overlayStrength", 0f)
+    }
+
+    /** Change refresh rate at runtime; pass null to disable capping. */
+    fun setRefreshRate(hz: Float?) {
+        refreshStep = hz?.takeIf { it > 0f }?.let { 1f / it }
+        lightAcc = 0f // reset accumulator for clean phase
     }
 
     /**

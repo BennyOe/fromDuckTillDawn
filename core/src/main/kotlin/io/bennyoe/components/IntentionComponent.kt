@@ -12,6 +12,8 @@ class IntentionComponent(
     var wantsToCrouch: Boolean = false,
     var wantsToBash: Boolean = false,
     var wantsToChase: Boolean = false,
+    var wantsToSwimUp: Boolean = false,
+    var wantsToSwimDown: Boolean = false,
 ) : Component<IntentionComponent> {
     override fun type() = IntentionComponent
 

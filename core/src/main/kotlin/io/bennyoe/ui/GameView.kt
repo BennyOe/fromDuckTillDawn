@@ -7,8 +7,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.Value
 import com.badlogic.gdx.utils.Align
-import io.bennyoe.ui.widgets.CharacterInfo
-import io.bennyoe.ui.widgets.DebugView
+import io.bennyoe.ui.widgets.CharacterInfoWidget
+import io.bennyoe.ui.widgets.DebugWidget
 import ktx.scene2d.KTable
 
 class GameView(
@@ -16,19 +16,19 @@ class GameView(
     profiler: GLProfiler,
 ) : Table(skin),
     KTable {
-    private val debugView: DebugView =
-        DebugView(skin, profiler).apply {
+    private val debugWidget: DebugWidget =
+        DebugWidget(skin, profiler).apply {
             touchable = Touchable.disabled
         }
 
-    private val debugContainer: Container<DebugView> =
-        Container(debugView).apply {
+    private val debugContainer: Container<DebugWidget> =
+        Container(debugWidget).apply {
             align(Align.topLeft)
             fill()
             isVisible = false
         }
 
-    private val characterInfo: CharacterInfo = CharacterInfo(skin)
+    private val characterInfoWidget: CharacterInfoWidget = CharacterInfoWidget(skin)
 
     init {
         setFillParent(true)
@@ -48,7 +48,7 @@ class GameView(
 
         // --- Row 2: Bottom status bar ---
         // The character info spans the entire width and sits bottom + centered.
-        add(characterInfo)
+        add(characterInfoWidget)
             .colspan(2)
             .bottom()
             .center()
@@ -61,6 +61,6 @@ class GameView(
     }
 
     fun playerLife(value: Float) {
-        characterInfo.lifeBar.value = value
+        characterInfoWidget.lifeBar.value = value
     }
 }

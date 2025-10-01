@@ -11,7 +11,7 @@ import ktx.actors.alpha
 import ktx.scene2d.KTable
 import ktx.style.get
 
-class DebugView(
+class DebugWidget(
     skin: Skin,
     profiler: GLProfiler,
 ) : Table(skin),

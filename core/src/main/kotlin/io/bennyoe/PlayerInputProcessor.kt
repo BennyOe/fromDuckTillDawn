@@ -117,7 +117,6 @@ class PlayerInputProcessor(
             val playerState = playerEntity[StateComponent].stateMachine.currentState
             val inputCmp = input[InputComponent]
             val allowed = allowedActionsPerState[playerState.toString()] ?: emptySet()
-            logger.debug { "playerState $playerState" }
             if (pressed && action != Action.KILL && action !in allowed) return@forEach
 
             when (action) {

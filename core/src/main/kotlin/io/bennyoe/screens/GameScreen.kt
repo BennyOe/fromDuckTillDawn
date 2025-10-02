@@ -64,7 +64,9 @@ import io.bennyoe.systems.audio.SoundEffectSystem
 import io.bennyoe.systems.audio.UnderWaterSoundSystem
 import io.bennyoe.systems.debug.BTBubbleSystem
 import io.bennyoe.systems.debug.DamageTextSystem
+import io.bennyoe.systems.debug.DebugPropsManager
 import io.bennyoe.systems.debug.DebugSystem
+import io.bennyoe.systems.debug.DebugUiBindingSystem
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.StateBubbleSystem
 import io.bennyoe.systems.entitySpawn.CollisionSpawnSystem
@@ -118,6 +120,7 @@ class GameScreen(
     private val uiStage = stages.uiStage
     private val gameView = GameView(Scene2DSkin.defaultSkin, profiler)
     private val spriteBatch = context.inject<SpriteBatch>()
+    private val debugRenderService = DefaultDebugRenderService()
     private val polygonSpriteBatch = context.inject<PolygonSpriteBatch>()
     private val timeScaleCmp by lazy {
         with(entityWorld) { entityWorld.family { all(TimeScaleComponent) }.first()[TimeScaleComponent] }
@@ -163,7 +166,7 @@ class GameScreen(
                 add("stage", stage)
                 add("uiStage", uiStage)
                 add("shapeRenderer", ShapeRenderer())
-                add("debugRenderService", DefaultDebugRenderService())
+                add("debugRenderService", debugRenderService)
                 add("spriteBatch", spriteBatch)
                 add("polygonSpriteBatch", polygonSpriteBatch)
                 add("profiler", profiler)
@@ -208,7 +211,10 @@ class GameScreen(
                 add(ParticleRemoveSystem())
                 add(CameraSystem())
                 add(RenderSystem())
-                if (ENABLE_DEBUG) add(DebugSystem())
+                if (ENABLE_DEBUG) {
+                    add(DebugSystem())
+                    add(DebugUiBindingSystem())
+                }
                 add(ExpireSystem())
                 add(StateBubbleSystem())
                 add(BTBubbleSystem())
@@ -218,6 +224,7 @@ class GameScreen(
     }
 
     override fun show() {
+        DebugPropsManager.bind(debugRenderService)
         createFbo(Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
         targets = RenderTargets(requireNotNull(fbo))
 

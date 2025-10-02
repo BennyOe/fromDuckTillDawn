@@ -9,6 +9,12 @@ import ktx.log.logger
 
 class DebugComponent(
     var enabled: Boolean = SHOW_ONLY_DEBUG,
+    var playerDebugEnabled: Boolean = false,
+    var enemyDebugEnabled: Boolean = false,
+    var attackDebugEnabled: Boolean = false,
+    var cameraDebugEnabled: Boolean = false,
+    var drawPhysicBodies: Boolean = false,
+    var drawVelocities: Boolean = true,
 ) : Component<DebugComponent> {
     private var alreadyChanged: Boolean = false
 

@@ -10,10 +10,6 @@ class FpsMillis(
     private var frames = 0
     private var maxDt = 0f
 
-    init {
-        setPosition(10f, 20f)
-    }
-
     override fun act(delta: Float) {
         super.act(delta)
         maxDt = maxOf(maxDt, delta)

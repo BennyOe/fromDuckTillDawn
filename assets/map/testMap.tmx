@@ -462,7 +462,7 @@
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="105" name="playerStart" type="playerStart" x="1391.63" y="236.749">
+  <object id="105" name="playerStart" type="playerStart" x="1057.63" y="232.749">
    <point/>
   </object>
  </objectgroup>
@@ -480,14 +480,14 @@
  <objectgroup id="24" name="rainMask" visible="0">
   <object id="130" x="1124.08" y="0.93" width="474.836" height="319.14"/>
  </objectgroup>
- <objectgroup id="25" name="water">
+ <objectgroup id="25" name="water" visible="0">
   <properties>
    <property name="zIndex" type="int" value="10000"/>
   </properties>
   <object id="133" x="1430.66" y="268.417" width="70.9136" height="188.677"/>
   <object id="138" x="1764.16" y="335.833" width="69.398" height="121.153"/>
   <object id="139" x="1486.43" y="390.193" width="302.07" height="66.9305"/>
-  <object id="173" x="826.087" y="137.334" width="294.492" height="53.333"/>
+  <object id="173" x="966.087" y="545.334" width="294.492" height="53.333"/>
  </objectgroup>
  <layer id="26" name="foregroundGround" width="170" height="60">
   <properties>

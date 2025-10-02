@@ -26,7 +26,7 @@ object GameConstants {
     const val WALK_MAX_SPEED = 5f
     const val SWIM_MAX_SPEED = 4f
     const val BASH_COOLDOWN = .2f
-    const val BASH_POWER = 5f
+    const val BASH_POWER = 50f
 
     // ------------------------- Mushroom constants ------------------------------//
     const val NORMAL_DETECTION_RADIUS = 4f
@@ -39,17 +39,8 @@ object GameConstants {
 
     // ------------------------- Debug constants ------------------------------//
     const val ENABLE_DEBUG = true // enables the debug draw
-    const val SHOW_ATTACK_DEBUG = true
-    const val SHOW_PLAYER_DEBUG = true
-    const val SHOW_CAMERA_DEBUG = false
-    const val SHOW_ENEMY_DEBUG = true
     const val DEBUG_ALPHA = 0.5f
     const val SHOW_ONLY_DEBUG = false // disables the rendering of the game and only shows the shapes
-
-    // ------------------------- Sound constants ------------------------------//
-    const val MUSIC_VOLUME = 0f
-    const val AMBIENCE_VOLUME = 0f
-    const val EFFECT_VOLUME = 0f
 
     // ------------------------- Game constants ------------------------------//
     const val DYNAMIC_TIME_OF_DAY = false

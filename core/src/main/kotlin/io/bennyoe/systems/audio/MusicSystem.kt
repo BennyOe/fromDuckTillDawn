@@ -14,7 +14,6 @@ import de.pottgames.tuningfork.jukebox.song.SongMeta
 import de.pottgames.tuningfork.jukebox.song.SongSettings
 import io.bennyoe.components.GameMood
 import io.bennyoe.components.GameStateComponent
-import io.bennyoe.config.GameConstants.MUSIC_VOLUME
 import io.bennyoe.event.MapChangedEvent
 import ktx.tiled.propertyOrNull
 
@@ -63,6 +62,7 @@ class MusicSystem :
     private val musicJukebox: JukeBox by lazy { JukeBox(musicPlayListProvider) }
 
     override fun handle(event: Event?): Boolean {
+        val gameStateCmp = gameStateEntity[GameStateComponent]
         when (event) {
             is MapChangedEvent -> {
                 event.map.propertyOrNull<String>("bgMusic")?.let { path ->
@@ -94,7 +94,7 @@ class MusicSystem :
                     deadMusicPlaylist.addSong(deadSong)
                 }
                 if (!musicJukebox.isPlaying) {
-                    musicJukebox.volume = MUSIC_VOLUME
+                    musicJukebox.volume = gameStateCmp.musicVolume
                     musicJukebox.play()
                 }
             }
@@ -103,6 +103,7 @@ class MusicSystem :
     }
 
     override fun onTick() {
+        musicJukebox.volume = gameStateEntity[GameStateComponent].musicVolume
         musicJukebox.update()
         updateMusicTheme()
     }

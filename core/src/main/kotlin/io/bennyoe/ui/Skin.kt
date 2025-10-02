@@ -12,9 +12,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import ktx.assets.disposeSafely
 import ktx.graphics.color
 import ktx.scene2d.Scene2DSkin
+import ktx.style.checkBox
 import ktx.style.label
 import ktx.style.progressBar
 import ktx.style.skin
+import ktx.style.slider
 import ktx.style.textField
 import ktx.style.window
 
@@ -53,6 +55,17 @@ fun createSkin() {
             window("default") {
                 titleFont = this@skin.getFont("small-font")
                 titleFontColor = Color.RED
+            }
+
+            slider("default-horizontal") {
+                background = this@skin.getDrawable("slider-bg")
+                knob = this@skin.getDrawable("slider-knob")
+            }
+
+            checkBox {
+                checkboxOff = this@skin.getDrawable("checkbox-off")
+                checkboxOn = this@skin.getDrawable("checkbox-on")
+                this.font = this@skin.getFont("small-font")
             }
 
             progressBar("life-bar") {

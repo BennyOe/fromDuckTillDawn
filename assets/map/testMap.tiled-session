@@ -20,11 +20,11 @@
                 19,
                 23
             ],
-            "scale": 1,
-            "selectedLayer": 11,
+            "scale": 0.5,
+            "selectedLayer": 15,
             "viewCenter": {
-                "x": 1439,
-                "y": 143
+                "x": 943,
+                "y": 485
             }
         }
     },

@@ -14,6 +14,9 @@ class GameStateComponent(
     var isTriggerWeatherJustPressed: Boolean = false,
     var isLightningEnabled: Boolean = false,
     var weather: Weather = Weather.CLEAR,
+    var musicVolume: Float = 1f,
+    var ambienceVolume: Float = 1f,
+    var sfxVolume: Float = 1f,
 ) : Component<GameStateComponent> {
     private var alreadyChanged: Boolean = false
 

@@ -10,10 +10,6 @@ class DrawCallsCounterWidget(
 ) : Label("", style) {
     private var timer = 0f
 
-    init {
-        setPosition(40f, 20f)
-    }
-
     override fun act(delta: Float) {
         super.act(delta)
         timer += delta

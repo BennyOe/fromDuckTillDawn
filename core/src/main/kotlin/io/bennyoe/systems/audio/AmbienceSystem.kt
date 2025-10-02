@@ -72,9 +72,9 @@ class AmbienceSystem :
 
     override fun onTick() {
         timeSec += deltaTime
-        baseSound?.update(deltaTime)
-        timeSound?.update(deltaTime)
-        weatherSound?.update(deltaTime)
+        baseSound?.update(deltaTime, gameStateCmp.ambienceVolume)
+        timeSound?.update(deltaTime, gameStateCmp.ambienceVolume)
+        weatherSound?.update(deltaTime, gameStateCmp.ambienceVolume)
 
         if (!isRainingNow && rainTailUntilSec > 0f && timeSec >= rainTailUntilSec) {
             weatherSound?.let { ws ->
@@ -92,7 +92,7 @@ class AmbienceSystem :
         soundsFadingOut.iterator().let { iterator ->
             while (iterator.hasNext()) {
                 val sound = iterator.next()
-                sound.update(deltaTime)
+                sound.update(deltaTime, gameStateCmp.ambienceVolume)
                 if (sound.isStopped()) {
                     iterator.remove()
                 }

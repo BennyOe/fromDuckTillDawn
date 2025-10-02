@@ -15,6 +15,7 @@ class GameView(
 ) : Table(skin),
     KTable {
     private val characterInfoWidget: CharacterInfoWidget = CharacterInfoWidget(skin)
+    val debugWidget = DebugWidget(skin, profiler)
     val debugWindow =
         Window("Debug Window", skin).apply {
             isMovable = true
@@ -26,7 +27,7 @@ class GameView(
             setResizeBorder(12)
             keepWithinStage()
 
-            add(DebugWidget(skin, profiler)).fill().center().expand()
+            add(debugWidget).fill().center().expand()
             isVisible = false
         }
 

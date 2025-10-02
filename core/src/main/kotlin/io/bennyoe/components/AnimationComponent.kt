@@ -47,6 +47,7 @@ enum class AnimationModel(
     NONE(""),
     PLAYER_DAWN("player/dawn/"),
     ENEMY_MUSHROOM("enemy/mushroom/"),
+    CROW("crow"),
 }
 
 enum class AnimationType(
@@ -98,5 +99,9 @@ enum class AnimationType(
     DYING(
         atlasKey = "dying01",
         PlayMode.NORMAL,
+    ),
+    FLY(
+        atlasKey = "fly01",
+        PlayMode.LOOP,
     ),
 }

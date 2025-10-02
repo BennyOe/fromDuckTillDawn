@@ -13,6 +13,7 @@ import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
+import io.bennyoe.components.DisabledComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.ShaderRenderingComponent
@@ -43,6 +44,7 @@ import ktx.log.logger
 class AnimationSystem(
     dawnAtlases: TextureAtlases = inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
+    crowAtlases: TextureAtlases = inject("crowAtlases"),
     val stage: Stage = inject("stage"),
 ) : IteratingSystem(family { all(AnimationComponent, ImageComponent, TransformComponent) }),
     PausableSystem {
@@ -52,6 +54,7 @@ class AnimationSystem(
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.diffuseAtlas,
+            AnimationModel.CROW to crowAtlases.diffuseAtlas,
         )
 
     private val normalAtlasMap: Map<AnimationModel, TextureAtlas> =
@@ -71,6 +74,8 @@ class AnimationSystem(
         val imageCmp = entity[ImageComponent]
         val transformCmp = entity[TransformComponent]
         val physicCmp = entity.getOrNull(PhysicComponent)
+
+        if (entity has DisabledComponent) return
 
         if (aniCmp.animationModel == AnimationModel.NONE) {
             // Simplified logic for tile animations
@@ -95,19 +100,15 @@ class AnimationSystem(
             if (currentFrameIndex != aniCmp.previousFrameIndex) {
                 // A frame change happened
                 aniCmp.animationSoundTriggers[aniCmp.currentAnimationType]?.get(currentFrameIndex)?.let { soundType: SoundType ->
-
-                    // Check if the entity has a PhysicComponent before accessing it
-                    physicCmp?.let { pCmp ->
-                        stage.fire(
-                            PlaySoundEvent(
-                                entity,
-                                soundType = soundType,
-                                volume = 1f,
-                                position = if (soundType.positional) transformCmp.position else null,
-                                floorType = pCmp.floorType,
-                            ),
-                        )
-                    }
+                    stage.fire(
+                        PlaySoundEvent(
+                            entity,
+                            soundType = soundType,
+                            volume = 1f,
+                            position = if (soundType.positional) transformCmp.position else null,
+                            floorType = physicCmp?.floorType,
+                        ),
+                    )
                 }
                 aniCmp.previousFrameIndex = currentFrameIndex
             }

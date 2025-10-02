@@ -67,6 +67,8 @@ enum class SoundType(
 
     // Trigger
     LAUGH,
+
+    CROW(true, true),
 }
 
 data class SoundProfile(

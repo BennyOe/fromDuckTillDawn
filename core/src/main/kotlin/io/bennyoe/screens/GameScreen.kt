@@ -42,6 +42,7 @@ import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CloudSystem
+import io.bennyoe.systems.CrowSystem
 import io.bennyoe.systems.DamageSystem
 import io.bennyoe.systems.DivingSystem
 import io.bennyoe.systems.ExpireSystem
@@ -113,6 +114,10 @@ class GameScreen(
             assets[TextureAssets.MUSHROOM_N_ATLAS.descriptor],
             assets[TextureAssets.MUSHROOM_S_ATLAS.descriptor],
         )
+    private val crowAtlases =
+        TextureAtlases(
+            assets[TextureAssets.CROW_ATLAS.descriptor],
+        )
     private val particleAtlas = assets[TextureAssets.PARTICLE_ATLAS.descriptor]
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()
@@ -162,6 +167,7 @@ class GameScreen(
                 add("rainCloudsAtlas", rainCloudsAtlas)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
+                add("crowAtlases", crowAtlases)
                 add("particlesAtlas", particleAtlas)
                 add("stage", stage)
                 add("uiStage", uiStage)
@@ -189,6 +195,7 @@ class GameScreen(
                 add(JumpSystem())
                 add(ContactHandlerSystem())
                 add(WaterSystem())
+                add(CrowSystem())
                 add(PhysicsSystem())
                 add(AmbienceSystem())
                 add(ReverbSystem())

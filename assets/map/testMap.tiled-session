@@ -38,7 +38,7 @@
         "groundTiles1.tsx"
     ],
     "project": "testMap.tiled-project",
-    "property.type": "bool",
+    "property.type": "int",
     "recentFiles": [
         "groundTiles1.tsx",
         "fire.tsx",

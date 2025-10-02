@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="27" nextobjectid="174">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="27" nextobjectid="175">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
@@ -33,7 +33,7 @@
     <property name="zIndex" type="int" value="5000"/>
    </properties>
   </imagelayer>
-  <objectgroup id="20" name="sky" visible="0">
+  <objectgroup id="20" name="sky">
    <properties>
     <property name="zIndex" type="int" value="0"/>
    </properties>
@@ -76,6 +76,12 @@
      <property name="initialIntensity" type="float" value="6"/>
      <property name="isManaged" type="bool" value="false"/>
      <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
+    </properties>
+    <point/>
+   </object>
+   <object id="174" name="crow" type="crow" x="976.5" y="145.5">
+    <properties>
+     <property name="zIndex" type="int" value="4500"/>
     </properties>
     <point/>
    </object>
@@ -293,7 +299,7 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="18" name="ambienceZones">
+  <objectgroup id="18" name="ambienceZones" visible="0">
    <object id="109" x="480.585" y="0.584795" width="642.69" height="256.14">
     <properties>
      <property name="base" value="sound/ambience/forest/forest_base.mp3"/>

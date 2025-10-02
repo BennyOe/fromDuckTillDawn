@@ -16,7 +16,8 @@ import ktx.log.logger
 
 class CrowSystem(
     private val stage: Stage = inject("stage"),
-) : IteratingSystem(family { all(CrowComponent) }) {
+) : IteratingSystem(family { all(CrowComponent) }),
+    PausableSystem {
     private var delay: Float = MathUtils.random(10f, 50f)
     private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
 

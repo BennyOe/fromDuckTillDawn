@@ -18,7 +18,7 @@ import ktx.log.logger
 import ktx.math.component1
 import ktx.math.component2
 
-private const val STATE_BUBBLE_OFFSET_Y = 1.6f
+private const val STATE_BUBBLE_OFFSET_Y = 2f
 
 class BTBubbleSystem(
     private val stage: Stage = inject("stage"),

@@ -4,7 +4,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.GameStateComponent
-import io.bennyoe.components.TimeScaleComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.ui.GameView
 import kotlin.math.roundToInt
@@ -15,7 +14,6 @@ class DebugUiBindingSystem(
         inject("debugRenderService"),
 ) : IntervalSystem() {
     private val debugFamily = world.family { all(DebugComponent) }
-    private val timeScaleFamily = world.family { all(TimeScaleComponent) }
     private val gameStateFamily = world.family { all(GameStateComponent) }
 
     // Find the GameView once, as it's a persistent UI element.
@@ -25,16 +23,14 @@ class DebugUiBindingSystem(
         val gv = gameView ?: return
         val debugWidget = gv.debugWidget
         val debugEntity = debugFamily.firstOrNull() ?: return
-        val timeScaleEntity = timeScaleFamily.firstOrNull() ?: return
         val gameStateEntity = gameStateFamily.firstOrNull() ?: return
 
         val debugCmp = debugEntity[DebugComponent]
-        val timeScaleCmp = timeScaleEntity[TimeScaleComponent]
         val gameStateCmp = gameStateEntity[GameStateComponent]
 
         // --- 1. UI -> Game State ---
         // Read values from widgets and write them to the components.
-        timeScaleCmp.current = debugWidget.gameSpeedSlider.value
+        debugCmp.debugTimeScale = debugWidget.gameSpeedSlider.value
 
         gameStateCmp.musicVolume = debugWidget.musicVolumeSlider.value
         gameStateCmp.ambienceVolume = debugWidget.ambienceVolumeSlider.value
@@ -50,7 +46,7 @@ class DebugUiBindingSystem(
         // --- 2. Game State -> UI ---
         // Read values from components and update the UI.
         // This ensures the UI reflects the state even if it's changed programmatically.
-        val speedPercent = (timeScaleCmp.current * 100).roundToInt()
+        val speedPercent = (debugCmp.debugTimeScale * 100).roundToInt()
         debugWidget.gameSpeedLabel.setText("Game speed: $speedPercent%")
 
         val musicPercent = (gameStateCmp.musicVolume * 100).roundToInt()
@@ -61,7 +57,7 @@ class DebugUiBindingSystem(
         debugWidget.sfxVolumeLabel.setText("Sfx: $sfxPercent%")
 
         // Also set slider and checkboxes in case the state was changed from code
-        debugWidget.gameSpeedSlider.value = timeScaleCmp.current
+        debugWidget.gameSpeedSlider.value = debugCmp.debugTimeScale
         debugWidget.playerDebugCheckBox.isChecked = debugCmp.playerDebugEnabled
         debugWidget.enemyDebugCheckBox.isChecked = debugCmp.enemyDebugEnabled
         debugWidget.attackDebugCheckBox.isChecked = debugCmp.attackDebugEnabled

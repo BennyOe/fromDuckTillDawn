@@ -15,6 +15,7 @@ class DebugComponent(
     var cameraDebugEnabled: Boolean = false,
     var drawPhysicBodies: Boolean = false,
     var drawVelocities: Boolean = true,
+    var debugTimeScale: Float = 1f,
 ) : Component<DebugComponent> {
     private var alreadyChanged: Boolean = false
 

@@ -15,18 +15,36 @@ import ktx.collections.gdxArrayOf
 
 interface DebugRenderer {
     fun addShape(shape: DebugShape)
+
+    fun addProperty(
+        name: String,
+        value: Any,
+    )
 }
 
 class DefaultDebugRenderService : DebugRenderer {
     val shapes: GdxArray<DebugShape> = gdxArrayOf()
+    val renderToDebugProperties = mutableMapOf<String, Any>()
 
     override fun addShape(shape: DebugShape) {
         shapes.add(shape)
+    }
+
+    override fun addProperty(
+        name: String,
+        value: Any,
+    ) {
+        renderToDebugProperties[name] = value
     }
 }
 
 class NoOpDebugRenderService : DebugRenderer {
     override fun addShape(shape: DebugShape) = Unit
+
+    override fun addProperty(
+        name: String,
+        value: Any,
+    ) = Unit
 }
 
 data class DebugShape(

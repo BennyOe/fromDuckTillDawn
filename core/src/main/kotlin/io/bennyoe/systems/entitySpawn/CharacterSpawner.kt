@@ -11,7 +11,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
-import io.bennyoe.PlayerInputProcessor
 import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AnimationComponent
@@ -344,8 +343,6 @@ class CharacterSpawner(
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.PLAYER_IS_HIT.ordinal)
-
-        PlayerInputProcessor(world = world)
     }
 
     /**

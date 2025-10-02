@@ -22,10 +22,6 @@ import io.bennyoe.components.debug.BTBubbleComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.components.debug.StateBubbleComponent
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
-import io.bennyoe.config.GameConstants.SHOW_ATTACK_DEBUG
-import io.bennyoe.config.GameConstants.SHOW_CAMERA_DEBUG
-import io.bennyoe.config.GameConstants.SHOW_ENEMY_DEBUG
-import io.bennyoe.config.GameConstants.SHOW_PLAYER_DEBUG
 import io.bennyoe.ui.GameView
 import io.bennyoe.ui.widgets.debug.LabelWidget
 import ktx.assets.disposeSafely
@@ -52,48 +48,55 @@ class DebugSystem(
         uiStage.actors.filterIsInstance<GameView>().first()
     }
     private var lastDebugState = false
+    private val debugEntity by lazy { world.family { all(DebugComponent) }.firstOrNull() }
+    private val debugCmp by lazy { debugEntity?.let { entity -> entity[DebugComponent] } }
     private val debugCfg =
-        mapOf(
-            DebugType.ATTACK to SHOW_ATTACK_DEBUG,
-            DebugType.PLAYER to SHOW_PLAYER_DEBUG,
-            DebugType.CAMERA to SHOW_CAMERA_DEBUG,
-            DebugType.ENEMY to SHOW_ENEMY_DEBUG,
+        mutableMapOf(
             DebugType.NONE to true,
+            DebugType.PLAYER to false,
+            DebugType.ENEMY to false,
+            DebugType.ATTACK to false,
+            DebugType.CAMERA to false,
         )
 
     override fun onTick() {
-        val debugEntity = world.family { all(DebugComponent) }.firstOrNull() ?: return
-        val debugCmp = debugEntity.let { entity -> entity[DebugComponent] }
-
         val playerEntity = world.family { all(StateComponent) }.firstOrNull() ?: return
         val enemyEntities = world.family { all(BehaviorTreeComponent) }
+        debugCmp?.let { debugComponent ->
+            debugCfg[DebugType.PLAYER] = debugComponent.playerDebugEnabled
+            debugCfg[DebugType.ENEMY] = debugComponent.enemyDebugEnabled
+            debugCfg[DebugType.ATTACK] = debugComponent.attackDebugEnabled
+            debugCfg[DebugType.CAMERA] = debugComponent.cameraDebugEnabled
 
-        if (debugCmp.enabled != lastDebugState) {
-            gameView.toggleDebugOverlay()
-            lastDebugState = debugCmp.enabled
-        }
-
-        if (debugCmp.enabled) {
-            stage.viewport.apply()
-            physicsRenderer.render(phyWorld, stage.camera.combined)
-
-            enemyEntities.forEach { enemyEntity ->
-                addStateBubbles(enemyEntity, playerEntity)
-                addBTBubbles(enemyEntity)
+            if (debugComponent.enabled != lastDebugState) {
+                gameView.toggleDebugOverlay()
+                lastDebugState = debugComponent.enabled
             }
 
-            val currentShapes = debugRenderingService.shapes.toSet()
-            drawDebugLines()
-            purgeStaleLabels(currentShapes)
-        } else {
-            enemyEntities.forEach { enemyEntity ->
-                removeStateBubbles(playerEntity, enemyEntity)
-                removeBTBubbles(enemyEntity)
-            }
+            if (debugComponent.enabled) {
+                stage.viewport.apply()
+                physicsRenderer.isDrawVelocities = debugComponent.drawVelocities
+                physicsRenderer.isDrawBodies = debugComponent.drawPhysicBodies
+                physicsRenderer.render(phyWorld, stage.camera.combined)
 
-            uiStage.actors.removeAll { it is LabelWidget }
-            labels.values.forEach { it.remove() }
-            labels.clear()
+                enemyEntities.forEach { enemyEntity ->
+                    addStateBubbles(enemyEntity, playerEntity)
+                    addBTBubbles(enemyEntity)
+                }
+
+                val visibleShapes = debugRenderingService.shapes.filter { shape -> debugCfg[shape.debugType] == true }
+                drawDebugLines(visibleShapes)
+                purgeStaleLabels(visibleShapes.toSet())
+            } else {
+                enemyEntities.forEach { enemyEntity ->
+                    removeStateBubbles(playerEntity, enemyEntity)
+                    removeBTBubbles(enemyEntity)
+                }
+
+                uiStage.actors.removeAll { it is LabelWidget }
+                labels.values.forEach { it.remove() }
+                labels.clear()
+            }
         }
 
         // clear the shapes to avoid increasing draw calls per frame
@@ -152,8 +155,8 @@ class DebugSystem(
     for text rendering. The method iterates over a collection of debug shapes provided by the `DebugRenderService`, applies the appropriate
     projection matrices for world and UI rendering, and ensures proper alignment of shapes and labels in both coordinate systems.
      */
-    private fun drawDebugLines() {
-        debugRenderingService.shapes.filter { debugCfg[it.debugType] == true }.groupBy { it.shapeType }.forEach { (type, shapes) ->
+    private fun drawDebugLines(visibleShapes: List<DebugShape>) {
+        visibleShapes.groupBy { it.shapeType }.forEach { (type, shapes) ->
             shapeRenderer.use(type) {
                 // this needs to be set to allow transparency alpha
                 Gdx.gl.glEnable(GL20.GL_BLEND)

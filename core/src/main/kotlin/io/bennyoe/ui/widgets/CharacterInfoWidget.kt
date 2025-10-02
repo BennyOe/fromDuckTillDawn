@@ -19,6 +19,6 @@ class CharacterInfoWidget(
         lifeBar.value = 0.8f
         lifeBar.setAnimateDuration(0.5f)
         airBar.value = 0.8f
-        airBar.setAnimateDuration(0.5f)
+        airBar.setAnimateDuration(0.75f)
     }
 }

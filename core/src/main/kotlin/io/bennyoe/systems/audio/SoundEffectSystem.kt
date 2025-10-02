@@ -11,12 +11,12 @@ import com.github.quillraven.fleks.World.Companion.inject
 import de.pottgames.tuningfork.Audio
 import de.pottgames.tuningfork.BufferedSoundSource
 import de.pottgames.tuningfork.StreamedSoundSource
+import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.components.audio.SoundProfileComponent
-import io.bennyoe.config.GameConstants.EFFECT_VOLUME
 import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StopLoopingSoundEvent
@@ -66,6 +66,7 @@ class SoundEffectSystem(
 ) : IteratingSystem(family { all(AudioComponent, TransformComponent) }),
     EventListener,
     LightEngineEventConsumer {
+    private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }
     private val loopingSounds = mutableMapOf<SoundType, BufferedSoundSource>()
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
     private val oneShotSoundSources = mutableListOf<BufferedSoundSource>()
@@ -80,17 +81,18 @@ class SoundEffectSystem(
     init {
         buzzSound.isRelative = false
         buzzSound.setLooping(true)
-        buzzSound.volume = .1f * EFFECT_VOLUME
         buzzSound.attenuationFactor = 3f
         buzzSound.playbackPosition = 3f
         LightEngineEventListener.subscribe(this)
     }
 
     override fun onEvent(event: LightEngineEvent) {
+        val gameStateCmp = gameStateEntity[GameStateComponent]
         when (event) {
             is LightningEvent -> thunderTriggered = true
             is FaultyLightEvent -> {
                 if (event.lightIsOn) {
+                    buzzSound.volume = .1f * gameStateCmp.sfxVolume
                     reverb.registerSource(buzzSound)
                     buzzSound.setPosition(vec3(event.position.x, event.position.y, 0f))
                     if (!buzzSound.isPlaying) {
@@ -122,6 +124,7 @@ class SoundEffectSystem(
     }
 
     override fun onTickEntity(entity: Entity) {
+        val gameStateCmp = gameStateEntity[GameStateComponent]
         val soundCmp = entity[AudioComponent]
         val transformCmp = entity[TransformComponent]
 
@@ -132,7 +135,7 @@ class SoundEffectSystem(
 
             val soundAsset = SoundMappingService.getSoundAsset(soundCmp.soundType) ?: return
             val source = audio.obtainSource(assets[soundAsset.descriptor.random()])
-            source.volume = soundCmp.soundVolume * EFFECT_VOLUME
+            source.volume = soundCmp.soundVolume * gameStateCmp.sfxVolume
             source.attenuationFactor = 1f
             source.attenuationMaxDistance = soundCmp.soundAttenuationMaxDistance
             source.attenuationMinDistance = soundCmp.soundAttenuationMinDistance
@@ -144,10 +147,14 @@ class SoundEffectSystem(
             source.play()
         }
 
-        soundCmp.bufferedSoundSource?.setPosition(transformCmp.position.x + transformCmp.width * 0.5f, transformCmp.position.y, 0f)
+        soundCmp.bufferedSoundSource?.let {
+            it.volume = soundCmp.soundVolume * gameStateCmp.sfxVolume
+            it.setPosition(transformCmp.position.x + transformCmp.width * 0.5f, transformCmp.position.y, 0f)
+        }
     }
 
     private fun triggerThunder() {
+        val gameStateCmp = gameStateEntity[GameStateComponent]
         if (thunderTriggered && thunderDelayCounter < THUNDER_DELAY) {
             thunderDelayCounter += deltaTime
             return
@@ -158,7 +165,7 @@ class SoundEffectSystem(
             triggeredSound.isRelative = true
             triggeredSound.setLooping(false)
             reverb.registerSource(triggeredSound)
-            triggeredSound.volume = EFFECT_VOLUME
+            triggeredSound.volume = gameStateCmp.sfxVolume
             triggeredSound.play()
             thunderDelayCounter = 0f
             thunderTriggered = false
@@ -191,6 +198,7 @@ class SoundEffectSystem(
     }
 
     override fun handle(event: Event): Boolean {
+        val gameStateCmp = gameStateEntity[GameStateComponent]
         return when (event) {
             is PlaySoundEvent -> {
                 val soundProfile =
@@ -211,7 +219,7 @@ class SoundEffectSystem(
                 }
 
                 reverb.registerSource(source)
-                source.volume = event.volume * EFFECT_VOLUME
+                source.volume = event.volume * gameStateCmp.sfxVolume
                 if (shouldVary) {
                     source.pitch = MathUtils.random(MIN_PITCH, MAX_PITCH)
                 }
@@ -237,7 +245,7 @@ class SoundEffectSystem(
 
                 reverb.registerSource(source)
 
-                source.volume = event.volume * EFFECT_VOLUME
+                source.volume = event.volume * gameStateCmp.sfxVolume
                 source.attenuationFactor = 1f
                 source.play()
                 loopingSounds[event.soundType] = source
@@ -261,7 +269,7 @@ class SoundEffectSystem(
                 }
                 triggeredSound.setLooping(event.looping)
                 reverb.registerSource(triggeredSound)
-                triggeredSound.volume = event.volume * EFFECT_VOLUME
+                triggeredSound.volume = event.volume * gameStateCmp.sfxVolume
                 triggeredSound.play()
                 true
             }

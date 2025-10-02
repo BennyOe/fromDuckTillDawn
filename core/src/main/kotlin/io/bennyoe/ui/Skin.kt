@@ -12,10 +12,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import ktx.assets.disposeSafely
 import ktx.graphics.color
 import ktx.scene2d.Scene2DSkin
+import ktx.style.checkBox
 import ktx.style.label
 import ktx.style.progressBar
 import ktx.style.skin
+import ktx.style.slider
 import ktx.style.textField
+import ktx.style.window
 
 enum class Drawables(
     val atlasKey: String,
@@ -48,6 +51,22 @@ fun createSkin() {
         skin(TextureAtlas("ui/ui.atlas")) {
             add("default-font", mainFont, BitmapFont::class.java)
             add("small-font", smallFont, BitmapFont::class.java)
+
+            window("default") {
+                titleFont = this@skin.getFont("small-font")
+                titleFontColor = Color.RED
+            }
+
+            slider("default-horizontal") {
+                background = this@skin.getDrawable("slider-bg")
+                knob = this@skin.getDrawable("slider-knob")
+            }
+
+            checkBox {
+                checkboxOff = this@skin.getDrawable("checkbox-off")
+                checkboxOn = this@skin.getDrawable("checkbox-on")
+                this.font = this@skin.getFont("small-font")
+            }
 
             progressBar("life-bar") {
                 background = this@skin.getDrawable(Drawables.BAR_BG.atlasKey)

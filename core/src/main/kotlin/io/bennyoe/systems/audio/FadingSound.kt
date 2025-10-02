@@ -3,7 +3,6 @@ package io.bennyoe.systems.audio
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.math.Interpolation
 import de.pottgames.tuningfork.StreamedSoundSource
-import io.bennyoe.config.GameConstants.AMBIENCE_VOLUME
 
 const val LOOP_START = 5f
 const val LOOP_END = 25f
@@ -33,7 +32,10 @@ class FadingSound(
         source.play()
     }
 
-    fun update(deltaTime: Float) {
+    fun update(
+        deltaTime: Float,
+        ambienceVolume: Float,
+    ) {
         if (state == State.STOPPED) return
         if (delayTime < delayDuration) {
             source.volume = 0f
@@ -47,7 +49,7 @@ class FadingSound(
 
         when (state) {
             State.FADING_IN -> {
-                source.volume = Interpolation.fade.apply(0f, targetVolume * AMBIENCE_VOLUME, alphaFadeIn)
+                source.volume = Interpolation.fade.apply(0f, targetVolume * ambienceVolume, alphaFadeIn)
                 if (alphaFadeIn >= 1f) {
                     state = State.PLAYING
                     fadeTime = 0f
@@ -55,14 +57,14 @@ class FadingSound(
             }
 
             State.FADING_OUT -> {
-                source.volume = Interpolation.fade.apply(targetVolume * AMBIENCE_VOLUME, 0f, alphaFadeOut)
+                source.volume = Interpolation.fade.apply(targetVolume * ambienceVolume, 0f, alphaFadeOut)
                 if (alphaFadeOut >= 1f) {
                     stop()
                 }
             }
 
             State.PLAYING -> {
-                // Volume is already at target, do nothing.
+                source.volume = ambienceVolume
             }
 
             State.STOPPED -> {

@@ -61,12 +61,14 @@ class AnimationSystem(
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.normalAtlas!!,
             AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.normalAtlas!!,
+            AnimationModel.CROW to crowAtlases.normalAtlas!!,
         )
 
     private val specularAtlasMap: Map<AnimationModel, TextureAtlas> =
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.specularAtlas!!,
             AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.specularAtlas!!,
+            AnimationModel.CROW to crowAtlases.specularAtlas!!,
         )
 
     override fun onTickEntity(entity: Entity) {
@@ -143,10 +145,10 @@ class AnimationSystem(
                 if (normalRegion != null) {
                     shaderRenderingComponent.normal = normalRegion
                 } else {
-//                    logger.error {
-//                        "Normal map region '${currentDiffuseRegion.name}' " +
-//                            "with index ${currentDiffuseRegion.index} not found in normal atlas!"
-//                    }
+                    logger.error {
+                        "Normal map region '${currentDiffuseRegion.name}' " +
+                            "with index ${currentDiffuseRegion.index} not found in normal atlas!"
+                    }
                     shaderRenderingComponent.normal = null
                 }
             } else {
@@ -171,10 +173,10 @@ class AnimationSystem(
                 if (specularRegion != null) {
                     shaderRenderingComponent.specular = specularRegion
                 } else {
-//                    logger.error {
-//                        "Specular map region '${currentDiffuseRegion.name}' " +
-//                            "with index ${currentDiffuseRegion.index} not found in specular atlas!"
-//                    }
+                    logger.error {
+                        "Specular map region '${currentDiffuseRegion.name}' " +
+                            "with index ${currentDiffuseRegion.index} not found in specular atlas!"
+                    }
                     shaderRenderingComponent.specular = null
                 }
             } else {

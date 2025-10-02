@@ -22,6 +22,8 @@ enum class TextureAssets(
     CLOUDS_ATLAS("clouds.atlas"),
     RAIN_CLOUDS_ATLAS("rain_clouds.atlas"),
     CROW_ATLAS("crow.atlas"),
+    CROW_N_ATLAS("crow_n.atlas"),
+    CROW_S_ATLAS("crow_s.atlas"),
 }
 
 enum class MapAssets(

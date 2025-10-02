@@ -130,6 +130,7 @@ class SkySpawner(
                         val imageCmp = ImageComponent(stage, zIndex = layerZIndex + zIndex)
                         imageCmp.image = Image()
                         it += imageCmp
+                        it += ShaderRenderingComponent()
                         it +=
                             AudioComponent(
                                 soundAttenuationFactor = 0.5f,

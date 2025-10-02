@@ -117,6 +117,8 @@ class GameScreen(
     private val crowAtlases =
         TextureAtlases(
             assets[TextureAssets.CROW_ATLAS.descriptor],
+            assets[TextureAssets.CROW_N_ATLAS.descriptor],
+            assets[TextureAssets.CROW_S_ATLAS.descriptor],
         )
     private val particleAtlas = assets[TextureAssets.PARTICLE_ATLAS.descriptor]
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
@@ -293,6 +295,9 @@ class GameScreen(
         mushroomAtlases.diffuseAtlas.dispose()
         mushroomAtlases.normalAtlas?.dispose()
         mushroomAtlases.specularAtlas?.dispose()
+        crowAtlases.diffuseAtlas.dispose()
+        crowAtlases.normalAtlas?.dispose()
+        crowAtlases.specularAtlas?.dispose()
         entityWorld.dispose()
         fbo?.dispose()
         tiledMap.disposeSafely()

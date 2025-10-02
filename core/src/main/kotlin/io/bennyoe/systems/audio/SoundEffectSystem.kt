@@ -210,6 +210,7 @@ class SoundEffectSystem(
                 val soundAsset = SoundMappingService.getSoundAsset(event.soundType, soundProfile, event.floorType) ?: return true
                 val soundBuffer = assets[soundAsset.descriptor.random()]
                 val source = audio.obtainSource(soundBuffer)
+                val audioCmp = event.entity.getOrNull(AudioComponent)
 
                 source.isRelative = true
                 event.position?.let {
@@ -218,8 +219,17 @@ class SoundEffectSystem(
                     source.attenuationFactor = 3f
                 }
 
-                reverb.registerSource(source)
                 source.volume = event.volume * gameStateCmp.sfxVolume
+
+                // if the entity has an AudioComponent, use the properties
+                audioCmp?.let {
+                    source.attenuationFactor = it.soundAttenuationFactor
+                    source.attenuationMinDistance = it.soundAttenuationMinDistance
+                    source.attenuationMaxDistance = it.soundAttenuationMaxDistance
+                    source.volume = it.soundVolume * gameStateCmp.sfxVolume
+                }
+
+                reverb.registerSource(source)
                 if (shouldVary) {
                     source.pitch = MathUtils.random(MIN_PITCH, MAX_PITCH)
                 }

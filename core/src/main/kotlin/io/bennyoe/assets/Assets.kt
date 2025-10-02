@@ -21,6 +21,7 @@ enum class TextureAssets(
     WATER_ATLAS("water.atlas"),
     CLOUDS_ATLAS("clouds.atlas"),
     RAIN_CLOUDS_ATLAS("rain_clouds.atlas"),
+    CROW_ATLAS("crow.atlas"),
 }
 
 enum class MapAssets(
@@ -96,6 +97,8 @@ enum class SoundAssets(
     MUSHROOM_ALARMED_SOUND(listOf("mushroom/alarmed.mp3")),
     MUSHROOM_DEATH_SOUND(listOf("mushroom/death.mp3")),
     MUSHROOM_ATTACK_SOUND(listOf("mushroom/attack.mp3")),
+
+    CROW(listOf("crow/crow.mp3")),
 
     // Environment
     CAMPFIRE(listOf("environment/campfire_3.mp3")),

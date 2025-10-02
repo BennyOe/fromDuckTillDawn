@@ -11,6 +11,12 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.World
+import io.bennyoe.assets.SoundAssets
+import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.AnimationModel
+import io.bennyoe.components.AnimationType
+import io.bennyoe.components.CrowComponent
+import io.bennyoe.components.DisabledComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.LightningComponent
@@ -21,11 +27,15 @@ import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.SkyComponent
 import io.bennyoe.components.SkyComponentType
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.audio.AudioComponent
+import io.bennyoe.components.audio.SoundProfileComponent
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.GameConstants.WORLD_HEIGHT
 import io.bennyoe.config.GameConstants.WORLD_WIDTH
 import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
+import io.bennyoe.systems.audio.SoundProfile
+import io.bennyoe.systems.audio.SoundType
 import io.bennyoe.utility.setupShader
 import ktx.math.vec2
 import ktx.tiled.type
@@ -110,6 +120,36 @@ class SkySpawner(
                             )
                         it += particle
                         it += SkyComponent(SkyComponentType.SHOOTING_STAR)
+                    }
+                }
+
+                "crow" -> {
+                    world.entity {
+                        val position = vec2(100f, skyObject.y * UNIT_SCALE)
+                        it += TransformComponent(position, 2f, 2f)
+                        val imageCmp = ImageComponent(stage, zIndex = layerZIndex + zIndex)
+                        imageCmp.image = Image()
+                        it += imageCmp
+                        it +=
+                            AudioComponent(
+                                soundAttenuationFactor = 0.5f,
+                                soundAttenuationMinDistance = 10f,
+                                soundAttenuationMaxDistance = 20f,
+                                soundVolume = 1f,
+                                soundType = SoundType.CROW,
+                            )
+                        it +=
+                            SoundProfileComponent(
+                                SoundProfile(simpleSounds = mapOf(SoundType.CROW to listOf(SoundAssets.CROW))),
+                            )
+                        val animation = AnimationComponent()
+                        animation.animationModel = AnimationModel.CROW
+                        animation.nextAnimation(AnimationType.FLY)
+                        animation.animationSoundTriggers =
+                            mapOf(AnimationType.FLY to mapOf(11 to SoundType.CROW))
+                        it += animation
+                        it += CrowComponent
+                        it += DisabledComponent
                     }
                 }
 

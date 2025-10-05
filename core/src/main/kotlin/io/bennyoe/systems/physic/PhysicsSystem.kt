@@ -57,14 +57,14 @@ class PhysicsSystem(
         val bashCmp = entity.getOrNull(BashComponent)
         val stateCmp = entity.getOrNull(StateComponent)
         val imageCmp = entity[ImageComponent]
-        val healthCmp = entity[HealthComponent]
+        val healthCmp = entity.getOrNull(HealthComponent)
         setJumpImpulse(jumpCmp, physicCmp)
         setWalkAndSwimImpulse(moveCmp, physicCmp, stateCmp)
         setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
         setGroundContact(entity)
         setWaterContact(entity)
         setUnderWaterContact(entity)
-        if (moveCmp != null && (moveCmp.throwBack || moveCmp.throwBackCooldown > 0)) {
+        if (healthCmp != null && moveCmp != null && (moveCmp.throwBack || moveCmp.throwBackCooldown > 0)) {
             setThrowBackImpulse(moveCmp, physicCmp, healthCmp)
         }
 

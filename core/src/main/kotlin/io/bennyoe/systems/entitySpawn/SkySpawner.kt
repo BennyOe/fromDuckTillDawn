@@ -126,7 +126,7 @@ class SkySpawner(
                 "crow" -> {
                     world.entity {
                         val position = vec2(100f, skyObject.y * UNIT_SCALE)
-                        it += TransformComponent(position, 2f, 2f)
+                        it += TransformComponent(position, 1.4f, 1.4f)
                         val imageCmp = ImageComponent(stage, zIndex = layerZIndex + zIndex)
                         imageCmp.image = Image()
                         it += imageCmp

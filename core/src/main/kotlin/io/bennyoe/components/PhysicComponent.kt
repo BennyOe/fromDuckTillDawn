@@ -32,6 +32,7 @@ class PhysicComponent : Component<PhysicComponent> {
     val offset: Vector2 = Vector2()
     val size: Vector2 = Vector2()
     var prevPos: Vector2 = Vector2()
+    var prevAngle: Float = 0f
     var impulse: Vector2 = Vector2()
     var categoryBits = EntityCategory.GROUND.bit
     var activeGroundContacts: Int = 0
@@ -62,6 +63,7 @@ class PhysicComponent : Component<PhysicComponent> {
             sensorType: SensorType = SensorType.NONE,
             categoryBit: Short = EntityCategory.GROUND.bit,
             maskBit: Short = -1,
+            myDensity: Float = 1f,
         ): PhysicComponent {
             when (shape) {
                 is Rectangle -> {
@@ -100,7 +102,7 @@ class PhysicComponent : Component<PhysicComponent> {
                                         this.userData = FixtureSensorData(entity, sensorType)
                                         filter.categoryBits = categoryBit
                                         filter.maskBits = maskBit
-                                        density = 1f
+                                        this.density = myDensity
                                         friction = myFriction
                                     }
                                 }
@@ -129,6 +131,7 @@ class PhysicComponent : Component<PhysicComponent> {
             setUserdata: EntityBodyData? = null,
             myFriction: Float = 1f,
             sensorType: SensorType = SensorType.NONE,
+            myDensity: Float = 1f,
         ): PhysicComponent {
             val x = image.x
             val y = image.y
@@ -150,7 +153,7 @@ class PhysicComponent : Component<PhysicComponent> {
                 this.userData = FixtureSensorData(entity, sensorType)
                 this.filter.categoryBits = categoryBit
                 this.filter.maskBits = maskBit
-                density = 1f
+                this.density = myDensity
                 friction = myFriction
             }
 

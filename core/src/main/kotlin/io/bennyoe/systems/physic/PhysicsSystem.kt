@@ -73,6 +73,7 @@ class PhysicsSystem(
         }
 
         physicCmp.prevPos.set(physicCmp.body.position)
+        physicCmp.prevAngle = physicCmp.body.angle
 
         if (!physicCmp.impulse.isZero) {
             physicCmp.body.applyLinearImpulse(physicCmp.impulse, physicCmp.body.worldCenter, true)
@@ -96,6 +97,7 @@ class PhysicsSystem(
                 MathUtils.lerp(prevX, bodyX, alpha) - width * 0.5f,
                 MathUtils.lerp(prevY, bodyY, alpha) - height * 0.5f,
             )
+            setRotation(MathUtils.lerpAngleDeg(physicCmp.prevAngle * MathUtils.radDeg, physicCmp.body.angle * MathUtils.radDeg, alpha))
         }
     }
 

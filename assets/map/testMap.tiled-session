@@ -15,6 +15,9 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "lantern.tsx": {
+            "dynamicWrapping": true
+        },
         "testMap.tmx": {
             "expandedGroupLayers": [
                 19,
@@ -28,7 +31,7 @@
             }
         }
     },
-    "last.imagePath": "/Users/benjamin.oechsle/private/GameDev/FromDuckTillDawn/assets/map/GandalfHardcore FREE Platformer Assets/Animated Sprites",
+    "last.imagePath": "/Users/benjamin.oechsle/private/GameDev/FromDuckTillDawn/assets/map/lantern",
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 16,
     "map.tileWidth": 16,
@@ -48,5 +51,6 @@
     "tileset.tileSize": {
         "height": 32,
         "width": 32
-    }
+    },
+    "tileset.type": 1
 }

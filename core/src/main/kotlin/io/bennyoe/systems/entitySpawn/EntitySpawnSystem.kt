@@ -30,7 +30,7 @@ class EntitySpawnSystem(
     private val lightSpawner = LightSpawner(lightEngine)
     private val audioSpawner = AudioSpawner(world, phyWorld)
     private val skySpawner = SkySpawner(world, lightEngine, stage, worldObjectsAtlas)
-    private val mapObjectSpawner = MapObjectSpawner(world, stage)
+    private val mapObjectSpawner = MapObjectSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
     private val characterSpawner = CharacterSpawner(world, phyWorld, lightEngine, stage, debugRenderService, dawnAtlases, mushroomAtlases)
     private val rainMaskSpawner = RainMaskSpawner(world, stage)
     private val waterSpawner = WaterSpawner(world, phyWorld)

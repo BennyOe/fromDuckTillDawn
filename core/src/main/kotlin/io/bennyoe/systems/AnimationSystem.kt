@@ -145,10 +145,10 @@ class AnimationSystem(
                 if (normalRegion != null) {
                     shaderRenderingComponent.normal = normalRegion
                 } else {
-                    logger.error {
-                        "Normal map region '${currentDiffuseRegion.name}' " +
-                            "with index ${currentDiffuseRegion.index} not found in normal atlas!"
-                    }
+//                    logger.error {
+//                        "Normal map region '${currentDiffuseRegion.name}' " +
+//                            "with index ${currentDiffuseRegion.index} not found in normal atlas!"
+//                    }
                     shaderRenderingComponent.normal = null
                 }
             } else {
@@ -173,10 +173,10 @@ class AnimationSystem(
                 if (specularRegion != null) {
                     shaderRenderingComponent.specular = specularRegion
                 } else {
-                    logger.error {
-                        "Specular map region '${currentDiffuseRegion.name}' " +
-                            "with index ${currentDiffuseRegion.index} not found in specular atlas!"
-                    }
+//                    logger.error {
+//                        "Specular map region '${currentDiffuseRegion.name}' " +
+//                            "with index ${currentDiffuseRegion.index} not found in specular atlas!"
+//                    }
                     shaderRenderingComponent.specular = null
                 }
             } else {

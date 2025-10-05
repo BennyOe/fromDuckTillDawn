@@ -17,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.ChainRenderComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.components.ImageComponent
@@ -52,6 +53,7 @@ class RenderSystem(
     private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
     private val playerActor by lazy { world.family { all(PlayerComponent) }.first()[ImageComponent].image }
     private val rainMaskFamily by lazy { world.family { all(RainMaskComponent) } }
+    private val chainFamily by lazy { world.family { all(ChainRenderComponent) } }
 
     // Storage for map layers from MapChangedEvent
     private val mapTileLayers = mutableListOf<TiledMapTileLayer>()
@@ -100,7 +102,7 @@ class RenderSystem(
 
         // --- 2. SCENE PASS (into sceneFbo) ---
         renderTargets.fbo.use {
-            lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime, rainMaskFamily)
+            lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime, rainMaskFamily, chainFamily)
         }
 
         // --- 3. RENDER TO SCREEN (render the fbo texture to the screen) ---

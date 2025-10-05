@@ -24,6 +24,7 @@ class EntitySpawnSystem(
     worldObjectsAtlas: TextureAtlas = World.inject("worldObjectsAtlas"),
     dawnAtlases: TextureAtlases = World.inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = World.inject("mushroomAtlases"),
+    bgNormalAtlases: TextureAtlases = World.inject("bgNormalAtlases"),
 ) : IteratingSystem(World.family { all(SpawnComponent) }),
     EventListener,
     PausableSystem {
@@ -34,6 +35,7 @@ class EntitySpawnSystem(
     private val characterSpawner = CharacterSpawner(world, phyWorld, lightEngine, stage, debugRenderService, dawnAtlases, mushroomAtlases)
     private val rainMaskSpawner = RainMaskSpawner(world, stage)
     private val waterSpawner = WaterSpawner(world, phyWorld)
+    private val bgNormalSpawner = BgNormalSpawner(world, stage, lightEngine, bgNormalAtlases)
 
     override fun onTickEntity(entity: Entity) {
     }
@@ -81,7 +83,10 @@ class EntitySpawnSystem(
                 event.map.layers
                     .findLayerDeep("water")
                     ?.let { waterSpawner.spawnWater(it) }
-
+                // Adding backgrounds with normal maps
+                event.map.layers
+                    .findLayerDeep("bgNormal")
+                    ?.let { bgNormalSpawner.spawnBgNormal(it, getLayerZIndex(it) ?: 7100) }
                 return true
             }
         }

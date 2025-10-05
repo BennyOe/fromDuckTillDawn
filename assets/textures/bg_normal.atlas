@@ -1,0 +1,5 @@
+bg_normal.png
+size:512,512
+repeat:none
+wall
+bounds:2,2,256,256

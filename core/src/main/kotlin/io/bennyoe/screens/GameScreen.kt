@@ -120,6 +120,12 @@ class GameScreen(
             assets[TextureAssets.CROW_N_ATLAS.descriptor],
             assets[TextureAssets.CROW_S_ATLAS.descriptor],
         )
+    private val bgNormalAtlases =
+        TextureAtlases(
+            assets[TextureAssets.BG_NORMAL.descriptor],
+            assets[TextureAssets.BG_NORMAL_N.descriptor],
+//            assets[TextureAssets.BG_NORMAL_S.descriptor],
+        )
     private val particleAtlas = assets[TextureAssets.PARTICLE_ATLAS.descriptor]
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()
@@ -173,6 +179,7 @@ class GameScreen(
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
                 add("crowAtlases", crowAtlases)
+                add("bgNormalAtlases", bgNormalAtlases)
                 add("particlesAtlas", particleAtlas)
                 add("stage", stage)
                 add("uiStage", uiStage)

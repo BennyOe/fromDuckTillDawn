@@ -38,7 +38,12 @@ class WaterRenderer(
 
     init {
         // Ensure linear filtering for the water texture to avoid pixelated waves.
-        waterAtlas.apply { textures.forEach { it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear) } }
+        waterAtlas.apply {
+            textures.forEach {
+                it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+                it.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
+            }
+        }
     }
 
     /**

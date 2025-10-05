@@ -133,7 +133,7 @@ class GameScreen(
         with(entityWorld) { entityWorld.family { all(TimeScaleComponent) }.first()[TimeScaleComponent] }
     }
     private val debugCmp by lazy {
-        with(entityWorld) { entityWorld.family { all(DebugComponent) }.first()[DebugComponent] }
+        with(entityWorld) { entityWorld.family { all(DebugComponent) }.firstOrNull()?.get(DebugComponent) }
     }
     private val phyWorld =
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
@@ -284,8 +284,8 @@ class GameScreen(
         profiler.reset()
         val capped = delta.coerceAtMost(0.25f)
         val scale = timeScaleCmp.current
-        val debugTimeScale = debugCmp.debugTimeScale
-        val scaledDelta = capped * scale * debugTimeScale * TIME_SCALE
+        val debugTimeScale = debugCmp?.debugTimeScale
+        val scaledDelta = capped * scale * (debugTimeScale ?: 1f) * TIME_SCALE
 
         GdxAI.getTimepiece().update(scaledDelta)
         entityWorld.update(scaledDelta)

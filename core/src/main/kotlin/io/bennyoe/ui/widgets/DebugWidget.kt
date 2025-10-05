@@ -1,3 +1,4 @@
+// main/kotlin/io/bennyoe/ui/widgets/DebugWidget.kt
 package io.bennyoe.ui.widgets
 
 import com.badlogic.gdx.graphics.profiling.GLProfiler
@@ -19,21 +20,24 @@ class DebugWidget(
     profiler: GLProfiler,
 ) : Table(skin),
     KTable {
+    // metrics
     private val fpsCounter = FpsCounterWidget(skin["debug"])
     private val fpsMillis = FpsMillis(skin["debug"])
     private val drawCallsCounter = DrawCallsCounterWidget(skin["debug"], profiler)
+
+    // game
     val gameSpeedSlider = Slider(0f, 2f, 0.1f, false, skin)
     val gameSpeedLabel: Label
 
+    // sound
     val musicVolumeSlider = Slider(0f, 1f, 0.1f, false, skin)
     val musicVolumeLabel: Label
-
     val ambienceVolumeSlider = Slider(0f, 1f, 0.1f, false, skin)
     val ambienceVolumeLabel: Label
-
     val sfxVolumeSlider = Slider(0f, 1f, 0.1f, false, skin)
     val sfxVolumeLabel: Label
 
+    // physics
     val playerDebugCheckBox: CheckBox
     val physicBodiesDebugCheckBox: CheckBox
     val velocityDebugCheckBox: CheckBox
@@ -41,8 +45,23 @@ class DebugWidget(
     val attackDebugCheckBox: CheckBox
     val cameraDebugCheckBox: CheckBox
 
+    // light
+    val directionalLightIntensitySlider: Slider
+    val directionalLightIntensityLabel: Label
+    val box2dLightStrengthSlider: Slider
+    val box2dLightStrengthLabel: Label
+    val shaderIntensitySlider: Slider
+    val shaderIntensityLabel: Label
+    val diffuseLightCheckBox: CheckBox
+    val normalInfluenceSlider: Slider
+    val normalInfluenceLabel: Label
+    val specularIntensitySlider: Slider
+    val specularIntensityLabel: Label
+    val sunElevationSlider: Slider
+    val sunElevationLabel: Label
+
+    // dynamic properties (stats)
     private val debugPropsTable = Table(skin).left()
-    private val debugPropLabels = mutableMapOf<String, Label>()
     private var lastKeys: List<String> = emptyList()
 
     init {
@@ -50,6 +69,19 @@ class DebugWidget(
         musicVolumeSlider.value = .6f
         ambienceVolumeSlider.value = .4f
         sfxVolumeSlider.value = .8f
+
+        directionalLightIntensitySlider = Slider(0f, 1f, 0.01f, false, skin)
+        directionalLightIntensitySlider.value = 1f
+        box2dLightStrengthSlider = Slider(0f, 4f, 0.01f, false, skin)
+        box2dLightStrengthSlider.value = 0.3f
+        shaderIntensitySlider = Slider(0f, 10f, 0.1f, false, skin)
+        shaderIntensitySlider.value = 0.2f
+        normalInfluenceSlider = Slider(0f, 1f, 0.01f, false, skin)
+        normalInfluenceSlider.value = 1f
+        specularIntensitySlider = Slider(0f, 10f, 0.01f, false, skin)
+        specularIntensitySlider.value = 1f
+        sunElevationSlider = Slider(0f, 90f, .1f, false, skin)
+        sunElevationSlider.value = 45f
 
         background = skin.getDrawable(Drawables.DEBUG_FRAME.atlasKey)
         alpha = 0.8f
@@ -69,6 +101,13 @@ class DebugWidget(
         musicVolumeLabel = Label("Music: %03f%%".format(musicVolumeSlider.value), skin, "debug")
         ambienceVolumeLabel = Label("Ambience: %03f%%".format(ambienceVolumeSlider.value), skin, "debug")
         sfxVolumeLabel = Label("SoundEffects: %03f%%".format(sfxVolumeSlider.value), skin, "debug")
+        directionalLightIntensityLabel = Label("DirLight: ${directionalLightIntensitySlider.value}", skin, "debug")
+        box2dLightStrengthLabel = Label("Box2D: ${box2dLightStrengthSlider.value}", skin, "debug")
+        shaderIntensityLabel = Label("Shader: ${shaderIntensitySlider.value}", skin, "debug")
+
+        normalInfluenceLabel = Label("Normal Influence: ${normalInfluenceSlider.value}", skin, "debug")
+        specularIntensityLabel = Label("Specular Intensity: ${specularIntensitySlider.value}", skin, "debug")
+        sunElevationLabel = Label("Sun Elevation: ${sunElevationSlider.value}", skin, "debug")
 
         val sliderTable = Table().left().padTop(10f)
         sliderTable.add(gameSpeedLabel).padRight(5f).width(reservedWidth)
@@ -79,14 +118,50 @@ class DebugWidget(
             .padRight(5f)
             .padTop(10f)
             .width(reservedWidth)
-        sliderTable.add(musicVolumeSlider).right().row()
+        sliderTable
+            .add(musicVolumeSlider)
+            .right()
+            .padTop(10f)
+            .row()
         sliderTable.add(ambienceVolumeLabel).padRight(5f).width(reservedWidth)
         sliderTable.add(ambienceVolumeSlider).right().row()
         sliderTable.add(sfxVolumeLabel).padRight(5f).width(reservedWidth)
-        sliderTable.add(sfxVolumeSlider).right()
+        sliderTable.add(sfxVolumeSlider).right().row()
+
+        diffuseLightCheckBox = CheckBox("Diffuse Light", skin)
+        diffuseLightCheckBox.isChecked = true
+        sliderTable
+            .add(directionalLightIntensityLabel)
+            .padRight(5f)
+            .padTop(15f)
+            .width(reservedWidth)
+        sliderTable
+            .add(directionalLightIntensitySlider)
+            .right()
+            .padTop(16f)
+            .row()
+        sliderTable.add(box2dLightStrengthLabel).padRight(5f).width(reservedWidth)
+        sliderTable.add(box2dLightStrengthSlider).right().row()
+        sliderTable.add(shaderIntensityLabel).padRight(5f).width(reservedWidth)
+        sliderTable.add(shaderIntensitySlider).right().row()
+
+        sliderTable.add(normalInfluenceLabel).padRight(5f).width(reservedWidth)
+        sliderTable.add(normalInfluenceSlider).right().row()
+        sliderTable.add(specularIntensityLabel).padRight(5f).width(reservedWidth)
+        sliderTable.add(specularIntensitySlider).right().row()
+        sliderTable.add(sunElevationLabel).padRight(5f).width(reservedWidth)
+        sliderTable.add(sunElevationSlider).right().row()
+
+        sliderTable
+            .add(diffuseLightCheckBox)
+            .padTop(3f)
+            .padBottom(10f)
+            .left()
+            .row()
         add(sliderTable).padBottom(10f).row()
 
         physicBodiesDebugCheckBox = CheckBox("PhysicBodies", skin)
+        physicBodiesDebugCheckBox.isChecked = true
         velocityDebugCheckBox = CheckBox("Velocity (need Bodies)", skin)
         playerDebugCheckBox = CheckBox("PlayerDebug", skin)
         enemyDebugCheckBox = CheckBox("EnemyDebug", skin)
@@ -97,7 +172,7 @@ class DebugWidget(
         add(playerDebugCheckBox).padTop(3f).row()
         add(enemyDebugCheckBox).padTop(3f).row()
         add(attackDebugCheckBox).padTop(3f).row()
-        add(cameraDebugCheckBox).padTop(3f).padBottom(10f).row()
+        add(cameraDebugCheckBox).padTop(3f).row()
 
         add(debugPropsTable).growX().padTop(6f).row()
     }
@@ -107,10 +182,8 @@ class DebugWidget(
 
         if (keys != lastKeys) {
             debugPropsTable.clearChildren()
-            debugPropLabels.clear()
             for (k in keys) {
                 val label = Label("", skin, "debug")
-                debugPropLabels[k] = label
                 debugPropsTable.add(label).left().row()
             }
             lastKeys = keys
@@ -118,13 +191,13 @@ class DebugWidget(
 
         for (k in keys) {
             val v = props[k] ?: continue
+            val label = (debugPropsTable.children.find { it is Label && it.name == k } as? Label) ?: continue
             if (v is Number) {
-                debugPropLabels[k]?.setText("$k ${formatNumber(v)}")
+                label.setText("$k ${formatNumber(v)}")
             } else {
-                debugPropLabels[k]?.setText("$k $v")
+                label.setText("$k $v")
             }
         }
-
         debugPropsTable.invalidateHierarchy()
     }
 

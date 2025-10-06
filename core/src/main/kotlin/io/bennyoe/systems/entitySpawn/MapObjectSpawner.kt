@@ -188,7 +188,7 @@ class MapObjectSpawner(
                     bodyA = anchorBody,
                     bodyB = phyCmp.body,
                     texture = worldObjectsAtlas.findRegion("chain"),
-                    segmentHeight = 1f, // Smaller segment for a finer chain
+                    segmentHeight = 1f,
                 )
 
             // add light to body

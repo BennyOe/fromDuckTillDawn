@@ -157,8 +157,8 @@ class MapObjectSpawner(
                             this.position.set(position.x + visualWidth * 0.5f, position.y + visualHeight * 0.5f)
                             fixedRotation = false
                             allowSleep = true
-                            angularDamping = 1f
-                            linearDamping = 0.6f
+                            angularDamping = .7f
+                            linearDamping = 0.4f
                         }
                     body.box(visualWidth, visualHeight) {
                         density = 10f
@@ -195,7 +195,7 @@ class MapObjectSpawner(
             val light =
                 lightEngine.addPointLight(
                     phyCmp.body.position,
-                    Color.ORANGE,
+                    Color.GOLD,
                     5f,
                     12f,
                     2f,

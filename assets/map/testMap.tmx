@@ -295,7 +295,7 @@
    </properties>
   </object>
  </objectgroup>
- <group id="19" name="audio" visible="0">
+ <group id="19" name="audio">
   <objectgroup id="15" name="reverbZones">
    <object id="89" x="1225.49" y="108.366" width="281.841" height="150.262">
     <properties>
@@ -310,7 +310,7 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="18" name="ambienceZones" visible="0">
+  <objectgroup id="18" name="ambienceZones">
    <object id="109" x="480.585" y="0.584795" width="642.69" height="256.14">
     <properties>
      <property name="base" value="sound/ambience/forest/forest_base.mp3"/>
@@ -324,6 +324,7 @@
    <object id="111" x="1135.26" y="0.584971" width="367.836" height="256.14">
     <properties>
      <property name="base" value="sound/ambience/cave/cave_base.mp3"/>
+     <property name="isIndoor" type="bool" value="true"/>
      <property name="rain" value="sound/ambience/cave/cave_rain.mp3"/>
      <property name="type" value="cave"/>
      <property name="volume" type="float" value="0.5"/>
@@ -382,19 +383,6 @@
    </properties>
    <point/>
   </object>
-  <object id="40" name="faultyLightCone" type="fireLight" x="1174.09" y="246.515">
-   <properties>
-    <property name="color" type="color" value="#fffdffe2"/>
-    <property name="distance" type="float" value="14"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="3"/>
-    <property name="falloffProfile" type="float" value="0.9"/>
-    <property name="initialIntensity" type="float" value="10"/>
-    <property name="isManaged" type="bool" value="false"/>
-    <property name="lightType" type="int" propertytype="lightType" value="0"/>
-    <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
-   </properties>
-   <point/>
-  </object>
   <object id="41" name="blueLight" type="greenLight" x="1056.67" y="176">
    <properties>
     <property name="color" type="color" value="#ff8208fc"/>
@@ -440,7 +428,7 @@
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="105" name="playerStart" type="playerStart" x="1886.68" y="262.611">
+  <object id="105" name="playerStart" type="playerStart" x="1052.01" y="231.278">
    <point/>
   </object>
  </objectgroup>

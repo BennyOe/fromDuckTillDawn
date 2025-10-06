@@ -5,6 +5,8 @@ import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.debug.DebugComponent
+import io.bennyoe.systems.light.AmbientLightSystem
+import io.bennyoe.systems.light.LightingParameters
 import io.bennyoe.ui.GameView
 import kotlin.math.roundToInt
 
@@ -16,27 +18,60 @@ class DebugUiBindingSystem(
     private val debugFamily = world.family { all(DebugComponent) }
     private val gameStateFamily = world.family { all(GameStateComponent) }
     private val gameView: GameView? by lazy { uiStage.actors.filterIsInstance<GameView>().firstOrNull() }
+    private val ambientLightSystem: AmbientLightSystem by lazy { world.system<AmbientLightSystem>() }
+
+    private var lastKnownParams: LightingParameters? = null
 
     override fun onTick() {
-        val gv = gameView ?: return
-        val debugWidget = gv.debugWidget
+        val gameView = gameView ?: return
+        val debugWidget = gameView.debugWidget
         val debugEntity = debugFamily.firstOrNull() ?: return
         val gameStateEntity = gameStateFamily.firstOrNull() ?: return
 
         val debugCmp = debugEntity[DebugComponent]
         val gameStateCmp = gameStateEntity[GameStateComponent]
 
-        // --- 1. UI -> Game State ---
+        // --- 1. Synchronize Lighting Parameters (Two-Way) ---
+        val programmaticParams = ambientLightSystem.currentParams
 
-        // game
+        // Initialize lastKnownParams on the first run
+        if (lastKnownParams == null) {
+            lastKnownParams = programmaticParams.copy()
+        }
+
+        // Check if the game logic has changed the parameters (e.g., zone change)
+        if (programmaticParams != lastKnownParams) {
+            // Game state has changed -> Update the UI to reflect it
+            debugWidget.directionalLightIntensitySlider.value = programmaticParams.directionalLightIntensity
+            debugWidget.box2dLightStrengthSlider.value = programmaticParams.box2dLightStrength
+            debugWidget.shaderIntensitySlider.value = programmaticParams.shaderIntensity
+            debugWidget.shaderAmbientSlider.value = programmaticParams.shaderAmbientStrength
+            debugWidget.normalInfluenceSlider.value = programmaticParams.normalInfluence
+            debugWidget.specularIntensitySlider.value = programmaticParams.specularIntensity
+            debugWidget.sunElevationSlider.value = programmaticParams.sunElevation
+            debugWidget.diffuseLightCheckBox.isChecked = programmaticParams.useDiffuseLight
+        } else {
+            // No programmatic change -> UI is the source of truth, update the game state
+            ambientLightSystem.currentParams.apply {
+                directionalLightIntensity = debugWidget.directionalLightIntensitySlider.value
+                box2dLightStrength = debugWidget.box2dLightStrengthSlider.value
+                shaderIntensity = debugWidget.shaderIntensitySlider.value
+                shaderAmbientStrength = debugWidget.shaderAmbientSlider.value
+                normalInfluence = debugWidget.normalInfluenceSlider.value
+                specularIntensity = debugWidget.specularIntensitySlider.value
+                sunElevation = debugWidget.sunElevationSlider.value
+                useDiffuseLight = debugWidget.diffuseLightCheckBox.isChecked
+            }
+        }
+
+        // Update our copy for the next frame's comparison
+        lastKnownParams = ambientLightSystem.currentParams.copy()
+
+        // --- 2. Bind other Debug settings (UI -> Game) ---
         debugCmp.debugTimeScale = debugWidget.gameSpeedSlider.value
-
-        // sound
         gameStateCmp.musicVolume = debugWidget.musicVolumeSlider.value
         gameStateCmp.ambienceVolume = debugWidget.ambienceVolumeSlider.value
         gameStateCmp.sfxVolume = debugWidget.sfxVolumeSlider.value
-
-        // physics
         debugCmp.drawPhysicBodies = debugWidget.physicBodiesDebugCheckBox.isChecked
         debugCmp.drawVelocities = debugWidget.velocityDebugCheckBox.isChecked
         debugCmp.playerDebugEnabled = debugWidget.playerDebugCheckBox.isChecked
@@ -44,23 +79,10 @@ class DebugUiBindingSystem(
         debugCmp.attackDebugEnabled = debugWidget.attackDebugCheckBox.isChecked
         debugCmp.cameraDebugEnabled = debugWidget.cameraDebugCheckBox.isChecked
 
-        // light
-        debugCmp.directionalLightIntensity = debugWidget.directionalLightIntensitySlider.value
-        debugCmp.box2dLightStrength = debugWidget.box2dLightStrengthSlider.value
-        debugCmp.shaderIntensity = debugWidget.shaderIntensitySlider.value
-        debugCmp.normalInfluence = debugWidget.normalInfluenceSlider.value
-        debugCmp.specularIntensity = debugWidget.specularIntensitySlider.value
-        debugCmp.sunElevation = debugWidget.sunElevationSlider.value
-        debugCmp.useDiffuseLight = debugWidget.diffuseLightCheckBox.isChecked
-
-        // --- 2. Game State -> UI ---
-
-        // game
+        // --- 3. Update UI Labels (Game -> UI) ---
         val speedPercent = (debugCmp.debugTimeScale * 100).roundToInt()
         debugWidget.gameSpeedLabel.setText("Game speed: $speedPercent%")
-        debugWidget.gameSpeedSlider.value = debugCmp.debugTimeScale
 
-        // sound
         val musicPercent = (gameStateCmp.musicVolume * 100).roundToInt()
         val ambiencePercent = (gameStateCmp.ambienceVolume * 100).roundToInt()
         val sfxPercent = (gameStateCmp.sfxVolume * 100).roundToInt()
@@ -68,27 +90,19 @@ class DebugUiBindingSystem(
         debugWidget.ambienceVolumeLabel.setText("Ambience: $ambiencePercent%")
         debugWidget.sfxVolumeLabel.setText("Sfx: $sfxPercent%")
 
-        // physics
         debugWidget.playerDebugCheckBox.isChecked = debugCmp.playerDebugEnabled
         debugWidget.enemyDebugCheckBox.isChecked = debugCmp.enemyDebugEnabled
         debugWidget.attackDebugCheckBox.isChecked = debugCmp.attackDebugEnabled
         debugWidget.cameraDebugCheckBox.isChecked = debugCmp.cameraDebugEnabled
 
-        // light
-        debugWidget.directionalLightIntensityLabel.setText("DirLight: %.2f".format(debugCmp.directionalLightIntensity))
-        debugWidget.box2dLightStrengthLabel.setText("Box2D: %.2f".format(debugCmp.box2dLightStrength))
-        debugWidget.shaderIntensityLabel.setText("Shader: %.2f".format(debugCmp.shaderIntensity))
-        debugWidget.normalInfluenceLabel.setText("Normal Influence: %.2f".format(debugCmp.normalInfluence))
-        debugWidget.specularIntensityLabel.setText("Specular Int.: %.2f".format(debugCmp.specularIntensity))
-        debugWidget.sunElevationLabel.setText("Sun Elevation: %.0f".format(debugCmp.sunElevation))
-
-        debugWidget.directionalLightIntensitySlider.value = debugCmp.directionalLightIntensity
-        debugWidget.box2dLightStrengthSlider.value = debugCmp.box2dLightStrength
-        debugWidget.shaderIntensitySlider.value = debugCmp.shaderIntensity
-        debugWidget.normalInfluenceSlider.value = debugCmp.normalInfluence
-        debugWidget.specularIntensitySlider.value = debugCmp.specularIntensity
-        debugWidget.sunElevationSlider.value = debugCmp.sunElevation
-        debugWidget.diffuseLightCheckBox.isChecked = debugCmp.useDiffuseLight
+        // Read directly from the sliders for the labels to give immediate feedback
+        debugWidget.directionalLightIntensityLabel.setText("DirLight: %.2f".format(debugWidget.directionalLightIntensitySlider.value))
+        debugWidget.box2dLightStrengthLabel.setText("Box2D: %.2f".format(debugWidget.box2dLightStrengthSlider.value))
+        debugWidget.shaderIntensityLabel.setText("Shader: %.2f".format(debugWidget.shaderIntensitySlider.value))
+        debugWidget.shaderAmbientLabel.setText("ShaderAmbient: %.2f".format(debugWidget.shaderAmbientSlider.value))
+        debugWidget.normalInfluenceLabel.setText("Normal Influence: %.2f".format(debugWidget.normalInfluenceSlider.value))
+        debugWidget.specularIntensityLabel.setText("Specular Int.: %.2f".format(debugWidget.specularIntensitySlider.value))
+        debugWidget.sunElevationLabel.setText("Sun Elevation: %.0f".format(debugWidget.sunElevationSlider.value))
 
         DebugPropsManager.flush()
         debugWidget.setDebugProperties(debugRenderingService.renderToDebugProperties)

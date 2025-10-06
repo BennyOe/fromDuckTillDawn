@@ -8,6 +8,7 @@
     ],
     "fileStates": {
         "fire.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
@@ -16,18 +17,20 @@
             "scaleInEditor": 1
         },
         "lantern.tsx": {
-            "dynamicWrapping": true
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "testMap.tmx": {
             "expandedGroupLayers": [
-                19,
-                23
+                23,
+                19
             ],
-            "scale": 0.5,
+            "scale": 1.5,
             "selectedLayer": 15,
             "viewCenter": {
-                "x": 943,
-                "y": 485
+                "x": 1287,
+                "y": 414.99999999999994
             }
         }
     },
@@ -38,11 +41,13 @@
     "openFiles": [
         "testMap.tmx",
         "fire.tsx",
-        "groundTiles1.tsx"
+        "groundTiles1.tsx",
+        "lantern.tsx"
     ],
     "project": "testMap.tiled-project",
-    "property.type": "int",
+    "property.type": "bool",
     "recentFiles": [
+        "lantern.tsx",
         "groundTiles1.tsx",
         "fire.tsx",
         "testMap.tmx"

@@ -1,4 +1,3 @@
-// main/kotlin/io/bennyoe/ui/widgets/DebugWidget.kt
 package io.bennyoe.ui.widgets
 
 import com.badlogic.gdx.graphics.profiling.GLProfiler
@@ -50,6 +49,8 @@ class DebugWidget(
     val directionalLightIntensityLabel: Label
     val box2dLightStrengthSlider: Slider
     val box2dLightStrengthLabel: Label
+    val shaderAmbientSlider: Slider
+    val shaderAmbientLabel: Label
     val shaderIntensitySlider: Slider
     val shaderIntensityLabel: Label
     val diffuseLightCheckBox: CheckBox
@@ -73,15 +74,17 @@ class DebugWidget(
         directionalLightIntensitySlider = Slider(0f, 1f, 0.01f, false, skin)
         directionalLightIntensitySlider.value = 1f
         box2dLightStrengthSlider = Slider(0f, 4f, 0.01f, false, skin)
-        box2dLightStrengthSlider.value = 0.3f
+        box2dLightStrengthSlider.value = 1.9f
+        shaderAmbientSlider = Slider(0f, 10f, 0.1f, false, skin)
+        shaderAmbientSlider.value = 2.2f
         shaderIntensitySlider = Slider(0f, 10f, 0.1f, false, skin)
-        shaderIntensitySlider.value = 0.2f
+        shaderIntensitySlider.value = 1.2f
         normalInfluenceSlider = Slider(0f, 1f, 0.01f, false, skin)
         normalInfluenceSlider.value = 1f
         specularIntensitySlider = Slider(0f, 10f, 0.01f, false, skin)
-        specularIntensitySlider.value = 1f
+        specularIntensitySlider.value = 0.7f
         sunElevationSlider = Slider(0f, 90f, .1f, false, skin)
-        sunElevationSlider.value = 45f
+        sunElevationSlider.value = 60f
 
         background = skin.getDrawable(Drawables.DEBUG_FRAME.atlasKey)
         alpha = 0.8f
@@ -103,6 +106,7 @@ class DebugWidget(
         sfxVolumeLabel = Label("SoundEffects: %03f%%".format(sfxVolumeSlider.value), skin, "debug")
         directionalLightIntensityLabel = Label("DirLight: ${directionalLightIntensitySlider.value}", skin, "debug")
         box2dLightStrengthLabel = Label("Box2D: ${box2dLightStrengthSlider.value}", skin, "debug")
+        shaderAmbientLabel = Label("ShaderAmbient: ${shaderAmbientSlider.value}", skin, "debug")
         shaderIntensityLabel = Label("Shader: ${shaderIntensitySlider.value}", skin, "debug")
 
         normalInfluenceLabel = Label("Normal Influence: ${normalInfluenceSlider.value}", skin, "debug")
@@ -142,6 +146,8 @@ class DebugWidget(
             .row()
         sliderTable.add(box2dLightStrengthLabel).padRight(5f).width(reservedWidth)
         sliderTable.add(box2dLightStrengthSlider).right().row()
+        sliderTable.add(shaderAmbientLabel).padRight(5f).width(reservedWidth)
+        sliderTable.add(shaderAmbientSlider).right().row()
         sliderTable.add(shaderIntensityLabel).padRight(5f).width(reservedWidth)
         sliderTable.add(shaderIntensitySlider).right().row()
 

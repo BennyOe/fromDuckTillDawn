@@ -62,5 +62,6 @@ data class AmbienceChangeEvent(
     val type: AmbienceType,
     val variations: Map<SoundVariation, String>?,
     val volume: Float?,
+    val isIndoor: Boolean,
 ) : Event(),
     AudioEvent

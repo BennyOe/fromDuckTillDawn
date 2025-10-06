@@ -2,6 +2,7 @@ package io.bennyoe.systems.entitySpawn
 
 import com.badlogic.gdx.maps.MapLayer
 import com.github.quillraven.fleks.World
+import io.bennyoe.components.IsIndoorComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.audio.AmbienceSoundComponent
 import io.bennyoe.components.audio.AmbienceType
@@ -80,6 +81,11 @@ class AudioSpawner(
                         categoryBit = EntityCategory.SENSOR.bit,
                     )
                 entity += physicCmp
+
+                entity +=
+                    IsIndoorComponent(
+                        ambienceSoundObj.properties.get("isIndoor") as? Boolean ?: false,
+                    )
 
                 val baseSound = ambienceSoundObj.properties.get("base")?.let { SoundVariation.BASE to it as String }
                 val daySound = ambienceSoundObj.properties.get("day")?.let { SoundVariation.DAY to it as String }

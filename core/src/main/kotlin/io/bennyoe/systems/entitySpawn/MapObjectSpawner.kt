@@ -25,6 +25,7 @@ import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
+import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.audio.SoundType
 import ktx.box2d.body
@@ -201,6 +202,7 @@ class MapObjectSpawner(
                     1f,
                     rays = 512,
                 )
+            light.effect = LightEffectType.OIL_LAMP
             e += LightComponent(light)
         }
     }

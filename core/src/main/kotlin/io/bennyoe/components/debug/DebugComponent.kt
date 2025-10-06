@@ -16,13 +16,6 @@ class DebugComponent(
     var drawPhysicBodies: Boolean = false,
     var drawVelocities: Boolean = true,
     var debugTimeScale: Float = 1f,
-    var directionalLightIntensity: Float = 1f,
-    var box2dLightStrength: Float = 1f,
-    var shaderIntensity: Float = 1f,
-    var useDiffuseLight: Boolean = true,
-    var normalInfluence: Float = 1f,
-    var specularIntensity: Float = 1f,
-    var sunElevation: Float = 45f,
 ) : Component<DebugComponent> {
     private var alreadyChanged: Boolean = false
 

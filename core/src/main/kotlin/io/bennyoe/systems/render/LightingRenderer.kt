@@ -19,10 +19,11 @@ import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.ShaderRenderingComponent
+import io.bennyoe.components.TiledTextureComponent
 import io.bennyoe.components.TimeOfDay
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
-import io.bennyoe.config.GameConstants
+import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.render.DrawUtils.drawRegion
 import kotlin.math.atan2
@@ -113,7 +114,7 @@ class LightingRenderer(
             val ropeCmp = entity[ChainRenderComponent]
             val region = ropeCmp.texture
             val segmentHeight = ropeCmp.segmentHeight
-            val segmentWidth = region.regionWidth * GameConstants.UNIT_SCALE
+            val segmentWidth = region.regionWidth * UNIT_SCALE
 
             val p1 = ropeCmp.bodyA.getWorldPoint(ropeCmp.joint.localAnchorA)
             val p2 = ropeCmp.bodyB.getWorldPoint(ropeCmp.joint.localAnchorB)
@@ -224,7 +225,11 @@ class LightingRenderer(
                     engine.setOverlayColor(it.color, strength)
                 }
 
-                renderWithNormalMapping(engine, renderable.imageCmp, renderable.shaderRenderingCmp)
+                if (renderable.tiledCmp != null) {
+                    renderWithTiledNormalMapping(engine, renderable.imageCmp, renderable.shaderRenderingCmp, renderable.tiledCmp)
+                } else {
+                    renderWithNormalMapping(engine, renderable.imageCmp, renderable.shaderRenderingCmp)
+                }
 
                 if (hadHit) {
                     engine.resetOverlayColor()
@@ -264,6 +269,38 @@ class LightingRenderer(
             }
 
         return newShaderType
+    }
+
+    private fun renderWithTiledNormalMapping(
+        engine: Scene2dLightEngine,
+        imageCmp: ImageComponent,
+        shaderCmp: ShaderRenderingComponent,
+        tiledCmp: TiledTextureComponent,
+    ) {
+        if (shaderCmp.specular != null) {
+            engine.drawTiled(
+                diffuse = shaderCmp.diffuse!!,
+                normals = shaderCmp.normal!!,
+                specular = shaderCmp.specular!!,
+                x = imageCmp.image.x,
+                y = imageCmp.image.y,
+                width = imageCmp.image.width,
+                height = imageCmp.image.height,
+                scale = tiledCmp.scale,
+                unitScale = UNIT_SCALE,
+            )
+        } else {
+            engine.drawTiled(
+                diffuse = shaderCmp.diffuse!!,
+                normals = shaderCmp.normal!!,
+                x = imageCmp.image.x,
+                y = imageCmp.image.y,
+                width = imageCmp.image.width,
+                height = imageCmp.image.height,
+                scale = tiledCmp.scale,
+                unitScale = UNIT_SCALE,
+            )
+        }
     }
 
     private fun renderWithNormalMapping(

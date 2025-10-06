@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="28" nextobjectid="188">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="28" nextobjectid="189">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
@@ -157,7 +157,7 @@
  </layer>
  <layer id="1" name="ground" width="170" height="60">
   <properties>
-   <property name="zIndex" type="int" value="7000"/>
+   <property name="zIndex" type="int" value="7200"/>
   </properties>
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,235,236,237,238,239,239,237,238,239,236,237,238,239,237,238,239,236,237,238,239,236,237,238,239,21,22,23,21,22,23,0,0,0,0,0,0,0,0,0,24,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -226,13 +226,14 @@
   <properties>
    <property name="zIndex" type="int" value="7100"/>
   </properties>
-  <object id="186" x="1276.33" y="108" width="217" height="147.667">
+  <object id="186" x="1123.33" y="90" width="370" height="165.667">
    <properties>
+    <property name="scale" type="float" value="0.5"/>
     <property name="texture" value="wall"/>
    </properties>
   </object>
  </objectgroup>
- <objectgroup id="3" name="collisionBoxes">
+ <objectgroup id="3" name="collisionBoxes" visible="0">
   <object id="3" name="2" x="546.794" y="80.9704" width="42.2058" height="44.6175">
    <properties>
     <property name="floorType" value="grass"/>
@@ -296,7 +297,7 @@
   </object>
  </objectgroup>
  <group id="19" name="audio">
-  <objectgroup id="15" name="reverbZones">
+  <objectgroup id="15" name="reverbZones" visible="0">
    <object id="89" x="1225.49" y="108.366" width="281.841" height="150.262">
     <properties>
      <property name="effectIntensity" type="float" value="0.8"/>
@@ -310,7 +311,7 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="18" name="ambienceZones">
+  <objectgroup id="18" name="ambienceZones" visible="0">
    <object id="109" x="480.585" y="0.584795" width="642.69" height="256.14">
     <properties>
      <property name="base" value="sound/ambience/forest/forest_base.mp3"/>

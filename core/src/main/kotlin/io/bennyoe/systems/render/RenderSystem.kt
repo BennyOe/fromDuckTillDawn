@@ -25,6 +25,7 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.RainMaskComponent
 import io.bennyoe.components.ShaderRenderingComponent
+import io.bennyoe.components.TiledTextureComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
@@ -163,6 +164,8 @@ class RenderSystem(
             val shaderRenderingCmp = entity.getOrNull(ShaderRenderingComponent)
             val hitEffectCmp = entity.getOrNull(HitEffectComponent)
             val transformCmp = entity[TransformComponent]
+            val tiledCmp = entity.getOrNull(TiledTextureComponent)
+
             entity.getOrNull(ImageComponent)?.let { imageCmp ->
                 renderQueue.add(
                     RenderableElement.EntityWithImage(
@@ -172,6 +175,7 @@ class RenderSystem(
                         shaderRenderingCmp = shaderRenderingCmp,
                         hitEffectComponent = hitEffectCmp,
                         zIndex = imageCmp.zIndex,
+                        tiledCmp = tiledCmp,
                     ),
                 )
             }
@@ -295,6 +299,7 @@ sealed class RenderableElement {
         val shaderRenderingCmp: ShaderRenderingComponent?,
         val hitEffectComponent: HitEffectComponent?,
         override val zIndex: Int,
+        val tiledCmp: TiledTextureComponent?,
     ) : RenderableElement()
 
     data class EntityWithParticle(

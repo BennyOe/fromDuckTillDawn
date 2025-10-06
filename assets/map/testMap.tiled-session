@@ -45,7 +45,7 @@
         "lantern.tsx"
     ],
     "project": "testMap.tiled-project",
-    "property.type": "bool",
+    "property.type": "float",
     "recentFiles": [
         "lantern.tsx",
         "groundTiles1.tsx",

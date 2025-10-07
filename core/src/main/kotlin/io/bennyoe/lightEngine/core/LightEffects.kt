@@ -8,11 +8,11 @@ import kotlin.math.sin
 enum class LightEffectType {
     NONE,
     FIRE,
-    OIL_LAMP,
     PULSE,
     FAULTY_LAMP,
     LIGHTNING,
     COLOR_CYCLE,
+    OIL_LAMP,
 }
 
 data class LightEffectParameters(

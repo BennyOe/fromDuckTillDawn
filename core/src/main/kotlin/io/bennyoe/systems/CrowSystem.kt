@@ -13,12 +13,15 @@ import io.bennyoe.components.TimeOfDay
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.utility.getViewportDimensions
 import ktx.log.logger
+import ktx.math.vec2
+
+const val CROW_REMOVE_OFFSET = 8f
 
 class CrowSystem(
     private val stage: Stage = inject("stage"),
 ) : IteratingSystem(family { all(CrowComponent) }),
     PausableSystem {
-    private var delay: Float = MathUtils.random(10f, 50f)
+    private var delay: Float = MathUtils.random(1f, 5f)
     private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
 
     override fun onTickEntity(entity: Entity) {
@@ -31,11 +34,12 @@ class CrowSystem(
         }
 
         if (entity hasNo DisabledComponent &&
-            transformCmp.position.x > viewportDimensions.right + transformCmp.width
+            transformCmp.position.x > viewportDimensions.right + transformCmp.width + CROW_REMOVE_OFFSET
         ) {
             // remove
             logger.debug { "Crow removed" }
             entity.configure { it += DisabledComponent }
+            transformCmp.position.set(vec2(-100f, -100f))
             delay = MathUtils.random(20f, 50f)
             return
         }

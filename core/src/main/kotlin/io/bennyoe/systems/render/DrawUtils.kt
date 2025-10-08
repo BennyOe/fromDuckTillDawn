@@ -22,16 +22,26 @@ object DrawUtils {
                 region,
                 imageCmp.image.x + imageCmp.image.width,
                 imageCmp.image.y,
+                imageCmp.image.originX,
+                imageCmp.image.originY,
                 -imageCmp.image.width,
                 imageCmp.image.height,
+                imageCmp.image.scaleX,
+                imageCmp.image.scaleY,
+                imageCmp.image.rotation,
             )
         } else {
             engine.batch.draw(
                 region,
                 imageCmp.image.x,
                 imageCmp.image.y,
+                imageCmp.image.originX,
+                imageCmp.image.originY,
                 imageCmp.image.width,
                 imageCmp.image.height,
+                imageCmp.image.scaleX,
+                imageCmp.image.scaleY,
+                imageCmp.image.rotation,
             )
         }
         engine.batch.color = oldColor

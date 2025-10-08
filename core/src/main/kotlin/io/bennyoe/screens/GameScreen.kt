@@ -120,6 +120,12 @@ class GameScreen(
             assets[TextureAssets.CROW_N_ATLAS.descriptor],
             assets[TextureAssets.CROW_S_ATLAS.descriptor],
         )
+    private val bgNormalAtlases =
+        TextureAtlases(
+            assets[TextureAssets.BG_NORMAL.descriptor],
+            assets[TextureAssets.BG_NORMAL_N.descriptor],
+//            assets[TextureAssets.BG_NORMAL_S.descriptor],
+        )
     private val particleAtlas = assets[TextureAssets.PARTICLE_ATLAS.descriptor]
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()
@@ -133,7 +139,7 @@ class GameScreen(
         with(entityWorld) { entityWorld.family { all(TimeScaleComponent) }.first()[TimeScaleComponent] }
     }
     private val debugCmp by lazy {
-        with(entityWorld) { entityWorld.family { all(DebugComponent) }.first()[DebugComponent] }
+        with(entityWorld) { entityWorld.family { all(DebugComponent) }.firstOrNull()?.get(DebugComponent) }
     }
     private val phyWorld =
         createWorld(gravity = Vector2(0f, GRAVITY), true).apply {
@@ -173,6 +179,7 @@ class GameScreen(
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
                 add("crowAtlases", crowAtlases)
+                add("bgNormalAtlases", bgNormalAtlases)
                 add("particlesAtlas", particleAtlas)
                 add("stage", stage)
                 add("uiStage", uiStage)
@@ -284,8 +291,8 @@ class GameScreen(
         profiler.reset()
         val capped = delta.coerceAtMost(0.25f)
         val scale = timeScaleCmp.current
-        val debugTimeScale = debugCmp.debugTimeScale
-        val scaledDelta = capped * scale * debugTimeScale * TIME_SCALE
+        val debugTimeScale = debugCmp?.debugTimeScale
+        val scaledDelta = capped * scale * (debugTimeScale ?: 1f) * TIME_SCALE
 
         GdxAI.getTimepiece().update(scaledDelta)
         entityWorld.update(scaledDelta)

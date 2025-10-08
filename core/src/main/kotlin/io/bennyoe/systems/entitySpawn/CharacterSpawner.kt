@@ -13,6 +13,7 @@ import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.assets.TextureAtlases
+import io.bennyoe.components.AmbienceZoneContactComponent
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
@@ -307,6 +308,8 @@ class CharacterSpawner(
         entity += FlashlightComponent(flashlightSpot, flashLightHalo)
 
         entity += ReverbZoneContactComponent()
+
+        entity += AmbienceZoneContactComponent()
 
         val input = InputComponent()
         entity += input

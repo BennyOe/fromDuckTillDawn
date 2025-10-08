@@ -18,7 +18,6 @@ class RainMaskSpawner(
 ) {
     fun spawnRainMasks(rainMaskLayer: MapLayer) {
         rainMaskLayer.objects.forEach { rainMask ->
-            println("Shape: ${rainMask.javaClass}")
             world.entity {
                 it +=
                     TransformComponent(

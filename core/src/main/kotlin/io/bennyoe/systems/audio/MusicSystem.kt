@@ -62,7 +62,7 @@ class MusicSystem :
     private val musicJukebox: JukeBox by lazy { JukeBox(musicPlayListProvider) }
 
     override fun handle(event: Event?): Boolean {
-        val gameStateCmp = gameStateEntity[GameStateComponent]
+        val gameStateCmp = gameStateEntity.getOrNull(GameStateComponent)
         when (event) {
             is MapChangedEvent -> {
                 event.map.propertyOrNull<String>("bgMusic")?.let { path ->
@@ -94,7 +94,7 @@ class MusicSystem :
                     deadMusicPlaylist.addSong(deadSong)
                 }
                 if (!musicJukebox.isPlaying) {
-                    musicJukebox.volume = gameStateCmp.musicVolume
+                    musicJukebox.volume = gameStateCmp?.musicVolume ?: 0f
                     musicJukebox.play()
                 }
             }
@@ -109,9 +109,9 @@ class MusicSystem :
     }
 
     private fun updateMusicTheme() {
-        val gameStateCmp = gameStateEntity[GameStateComponent]
+        val gameStateCmp = gameStateEntity.getOrNull(GameStateComponent)
         val newTheme =
-            when (gameStateCmp.gameMood) {
+            when (gameStateCmp?.gameMood) {
                 GameMood.CHASE -> GameMood.CHASE.ordinal
                 GameMood.PLAYER_DEAD -> GameMood.PLAYER_DEAD.ordinal
                 else -> GameMood.NORMAL.ordinal

@@ -17,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.ChainRenderComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.components.ImageComponent
@@ -24,6 +25,7 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.RainMaskComponent
 import io.bennyoe.components.ShaderRenderingComponent
+import io.bennyoe.components.TiledTextureComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
@@ -52,6 +54,7 @@ class RenderSystem(
     private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
     private val playerActor by lazy { world.family { all(PlayerComponent) }.first()[ImageComponent].image }
     private val rainMaskFamily by lazy { world.family { all(RainMaskComponent) } }
+    private val chainFamily by lazy { world.family { all(ChainRenderComponent) } }
 
     // Storage for map layers from MapChangedEvent
     private val mapTileLayers = mutableListOf<TiledMapTileLayer>()
@@ -100,7 +103,7 @@ class RenderSystem(
 
         // --- 2. SCENE PASS (into sceneFbo) ---
         renderTargets.fbo.use {
-            lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime, rainMaskFamily)
+            lightingRenderer.render(renderQueue, playerActor, orthoCam, gameStateCmp, continuousTime, rainMaskFamily, chainFamily)
         }
 
         // --- 3. RENDER TO SCREEN (render the fbo texture to the screen) ---
@@ -161,6 +164,8 @@ class RenderSystem(
             val shaderRenderingCmp = entity.getOrNull(ShaderRenderingComponent)
             val hitEffectCmp = entity.getOrNull(HitEffectComponent)
             val transformCmp = entity[TransformComponent]
+            val tiledCmp = entity.getOrNull(TiledTextureComponent)
+
             entity.getOrNull(ImageComponent)?.let { imageCmp ->
                 renderQueue.add(
                     RenderableElement.EntityWithImage(
@@ -170,6 +175,7 @@ class RenderSystem(
                         shaderRenderingCmp = shaderRenderingCmp,
                         hitEffectComponent = hitEffectCmp,
                         zIndex = imageCmp.zIndex,
+                        tiledCmp = tiledCmp,
                     ),
                 )
             }
@@ -293,6 +299,7 @@ sealed class RenderableElement {
         val shaderRenderingCmp: ShaderRenderingComponent?,
         val hitEffectComponent: HitEffectComponent?,
         override val zIndex: Int,
+        val tiledCmp: TiledTextureComponent?,
     ) : RenderableElement()
 
     data class EntityWithParticle(

@@ -10,13 +10,16 @@ import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.AmbienceZoneContactComponent
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.IsIndoorComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.audio.AmbienceSoundComponent
+import io.bennyoe.components.audio.AmbienceType
 import io.bennyoe.components.audio.ReverbZoneComponent
 import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundTriggerComponent
@@ -67,6 +70,7 @@ class ContactHandlerSystem(
 
         handleReverbZoneEnd(parts)
         handleGroundEnd(parts)
+        handleAmbienceEnd(parts)
         handleNearbyEnemiesEnd(parts)
         handleInWaterEnd(parts)
         handleUnderWaterEnd(parts)
@@ -175,20 +179,77 @@ class ContactHandlerSystem(
     }
 
     private fun handleAmbienceBegin(p: Parts) {
-        // SOUND_AMBIENCE_SENSOR touched by PLAYER
-        val sensorOwner =
-            p.sensorOwnerWhenPlayerTouches(SensorType.SOUND_AMBIENCE_SENSOR) ?: return
+        val (player, sensorOwner) = p.playerAndSensorOwner(SensorType.SOUND_AMBIENCE_SENSOR) ?: return
+
+        val contactCmp = player.entity[AmbienceZoneContactComponent]
+        val oldActiveZone = contactCmp.getActiveZone() // Get state BEFORE adding
 
         val ambienceSoundCmp = sensorOwner.entity[AmbienceSoundComponent]
-        logger.debug { "Ambience Event ${ambienceSoundCmp.type} played" }
+        val isIndoorCmp = sensorOwner.entity[IsIndoorComponent]
+        contactCmp.addContact(ambienceSoundCmp, isIndoorCmp)
 
-        stage.fire(
-            AmbienceChangeEvent(
-                ambienceSoundCmp.type,
-                ambienceSoundCmp.variations,
-                ambienceSoundCmp.volume!!,
-            ),
-        )
+        val newActiveZone = contactCmp.getActiveZone() // Get state AFTER adding
+
+        // Only fire an event if the top-most active zone has changed
+        if (newActiveZone != oldActiveZone) {
+            logger.debug { "Ambience Begin. New active zone: ${newActiveZone?.first?.type}" }
+            stage.fire(
+                AmbienceChangeEvent(
+                    newActiveZone!!.first.type,
+                    newActiveZone.first.variations,
+                    newActiveZone.first.volume,
+                    newActiveZone.second.isIndoor,
+                ),
+            )
+        }
+    }
+
+    private fun handleAmbienceEnd(p: Parts) {
+        val pair =
+            p.playerAndSensorOwnerOnEnd(
+                sensorType = SensorType.SOUND_AMBIENCE_SENSOR,
+                playerSensor = SensorType.HITBOX_SENSOR,
+            ) ?: return
+        val (player, sensorOwner) = pair
+
+        with(world) {
+            if (player.entity has AmbienceZoneContactComponent && sensorOwner.entity has AmbienceSoundComponent) {
+                val contactCmp = player.entity[AmbienceZoneContactComponent]
+                val oldActiveZone = contactCmp.getActiveZone() // Get state BEFORE removing
+
+                val ambienceSoundCmp = sensorOwner.entity[AmbienceSoundComponent]
+                val isIndoorCmp = sensorOwner.entity[IsIndoorComponent]
+                contactCmp.removeContact(ambienceSoundCmp, isIndoorCmp)
+
+                val newActiveZone = contactCmp.getActiveZone() // Get state AFTER removing
+
+                // Only fire an event if the top-most active zone has changed
+                if (newActiveZone != oldActiveZone) {
+                    logger.debug { "Ambience End. New active zone: ${newActiveZone?.first?.type ?: "NONE"}" }
+                    if (newActiveZone != null) {
+                        // Fell back into another overlapping zone
+                        stage.fire(
+                            AmbienceChangeEvent(
+                                newActiveZone.first.type,
+                                newActiveZone.first.variations,
+                                newActiveZone.first.volume,
+                                newActiveZone.second.isIndoor,
+                            ),
+                        )
+                    } else {
+                        // Left all zones, revert to default outdoor
+                        stage.fire(
+                            AmbienceChangeEvent(
+                                AmbienceType.NONE,
+                                null,
+                                null,
+                                isIndoor = false,
+                            ),
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun handleReverbZoneBegin(p: Parts) {

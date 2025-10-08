@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="27" nextobjectid="175">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="28" nextobjectid="189">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
@@ -8,6 +8,7 @@
  </properties>
  <tileset firstgid="1" source="groundTiles1.tsx"/>
  <tileset firstgid="649" source="fire.tsx"/>
+ <tileset firstgid="689" source="lantern.tsx"/>
  <group id="23" name="bg">
   <imagelayer id="8" name="backgroundMountain" offsetx="480" offsety="0" parallaxx="0.05">
    <image source="GandalfHardcore FREE Platformer Assets/GandalfHardcore Background layers/Autumn BG/GandalfHardcore Background layers_layer 4.png" width="1024" height="346"/>
@@ -103,10 +104,10 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,506,506,507,508,509,488,488,488,488,452,453,454,455,473,473,473,0,0,0,0,0,75,21,22,23,39,21,22,23,77,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,506,507,508,509,506,506,506,506,506,452,453,454,455,491,491,491,0,0,0,0,0,21,22,23,41,57,21,22,23,76,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,506,507,508,509,455,455,455,455,455,455,455,455,473,509,509,509,0,0,0,0,0,21,22,23,59,75,39,21,22,23,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,506,507,508,509,473,473,473,473,473,473,473,473,491,507,508,509,0,0,0,0,0,21,22,23,77,23,57,21,22,23,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,451,0,0,0,0,0,0,0,506,507,508,509,491,491,491,491,491,491,491,491,509,507,508,509,0,0,0,0,0,21,22,23,77,41,23,23,22,23,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,469,452,453,454,452,452,452,452,506,507,508,509,509,509,509,509,509,509,509,509,506,507,508,509,0,0,0,0,0,21,22,23,77,59,41,41,23,23,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,487,470,471,472,470,470,470,470,470,470,452,452,452,470,470,470,470,470,470,470,470,471,472,473,0,0,0,0,0,21,21,22,23,77,59,59,41,41,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,506,507,508,509,473,473,0,0,0,473,473,473,491,507,508,509,0,0,0,0,0,21,22,23,77,23,57,21,22,23,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,451,0,0,0,0,0,0,0,506,507,508,509,491,491,0,0,0,491,491,491,509,507,508,509,0,0,0,0,0,21,22,23,77,41,23,23,22,23,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,469,452,453,454,452,452,452,452,506,507,508,509,509,509,0,0,0,509,509,509,506,507,508,509,0,0,0,0,0,21,22,23,77,59,41,41,23,23,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,487,470,471,472,470,470,470,470,470,470,452,452,452,470,0,0,0,0,0,0,0,471,472,473,0,0,0,0,0,21,21,22,23,77,59,59,41,41,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,505,488,489,490,488,488,488,488,488,488,470,470,470,488,488,488,488,488,488,488,488,489,490,491,0,0,0,0,0,39,21,22,23,77,77,77,59,59,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,506,507,508,506,506,506,506,506,506,488,488,488,506,506,506,506,506,506,506,506,507,508,509,0,0,0,0,0,57,21,22,23,21,75,76,77,77,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,506,506,506,506,506,507,508,509,0,0,0,0,0,0,0,0,0,0,0,75,39,40,41,39,39,21,75,76,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -156,7 +157,7 @@
  </layer>
  <layer id="1" name="ground" width="170" height="60">
   <properties>
-   <property name="zIndex" type="int" value="7000"/>
+   <property name="zIndex" type="int" value="7200"/>
   </properties>
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,235,236,237,238,239,239,237,238,239,236,237,238,239,237,238,239,236,237,238,239,236,237,238,239,21,22,23,21,22,23,0,0,0,0,0,0,0,0,0,24,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -221,7 +222,18 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="3" name="collisionBoxes">
+ <objectgroup id="27" name="bgNormal">
+  <properties>
+   <property name="zIndex" type="int" value="7100"/>
+  </properties>
+  <object id="186" x="1123.33" y="90" width="370" height="165.667">
+   <properties>
+    <property name="scale" type="float" value="0.5"/>
+    <property name="texture" value="wall"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup id="3" name="collisionBoxes" visible="0">
   <object id="3" name="2" x="546.794" y="80.9704" width="42.2058" height="44.6175">
    <properties>
     <property name="floorType" value="grass"/>
@@ -285,7 +297,7 @@
   </object>
  </objectgroup>
  <group id="19" name="audio">
-  <objectgroup id="15" name="reverbZones">
+  <objectgroup id="15" name="reverbZones" visible="0">
    <object id="89" x="1225.49" y="108.366" width="281.841" height="150.262">
     <properties>
      <property name="effectIntensity" type="float" value="0.8"/>
@@ -313,13 +325,14 @@
    <object id="111" x="1135.26" y="0.584971" width="367.836" height="256.14">
     <properties>
      <property name="base" value="sound/ambience/cave/cave_base.mp3"/>
+     <property name="isIndoor" type="bool" value="true"/>
      <property name="rain" value="sound/ambience/cave/cave_rain.mp3"/>
      <property name="type" value="cave"/>
      <property name="volume" type="float" value="0.5"/>
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="17" name="soundTriggers">
+  <objectgroup id="17" name="soundTriggers" visible="0">
    <object id="108" x="1282.25" y="193.567" width="23.9766" height="61.9883">
     <properties>
      <property name="sound" value="sound/trigger/laugh.mp3"/>
@@ -354,8 +367,9 @@
     <property name="zIndex" type="int" value="5"/>
    </properties>
   </object>
+  <object id="178" name="lantern" type="lantern" gid="716" x="1380" y="136" width="17.0968" height="25.6452"/>
  </objectgroup>
- <objectgroup id="14" name="lights" visible="0">
+ <objectgroup id="14" name="lights">
   <object id="32" name="greenLight" type="greenLight" x="896" y="176">
    <properties>
     <property name="color" type="color" value="#ff01ff17"/>
@@ -367,19 +381,6 @@
     <property name="initialIntensity" type="float" value="9"/>
     <property name="lightType" type="int" propertytype="lightType" value="1"/>
     <property name="shaderIntensityMultiplier" type="float" value="1"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="40" name="faultyLightCone" type="fireLight" x="1174.09" y="246.515">
-   <properties>
-    <property name="color" type="color" value="#fffdffe2"/>
-    <property name="distance" type="float" value="14"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="3"/>
-    <property name="falloffProfile" type="float" value="0.9"/>
-    <property name="initialIntensity" type="float" value="10"/>
-    <property name="isManaged" type="bool" value="false"/>
-    <property name="lightType" type="int" propertytype="lightType" value="0"/>
-    <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
    </properties>
    <point/>
   </object>
@@ -423,52 +424,12 @@
    </properties>
    <point/>
   </object>
-  <object id="106" name="greenLight" type="greenLight" x="1297.08" y="142.105">
-   <properties>
-    <property name="color" type="color" value="#ff01ff17"/>
-    <property name="coneDegree" type="float" value="70"/>
-    <property name="direction" type="float" value="-90"/>
-    <property name="distance" type="float" value="12"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
-    <property name="falloffProfile" type="float" value="12"/>
-    <property name="initialIntensity" type="float" value="9"/>
-    <property name="lightType" type="int" propertytype="lightType" value="0"/>
-    <property name="shaderIntensityMultiplier" type="float" value="1"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="107" name="redLight" type="greenLight" x="1464.21" y="143.86">
-   <properties>
-    <property name="color" type="color" value="#fff90024"/>
-    <property name="coneDegree" type="float" value="70"/>
-    <property name="direction" type="float" value="-90"/>
-    <property name="distance" type="float" value="12"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="0"/>
-    <property name="falloffProfile" type="float" value="12"/>
-    <property name="initialIntensity" type="float" value="9"/>
-    <property name="lightType" type="int" propertytype="lightType" value="0"/>
-    <property name="shaderIntensityMultiplier" type="float" value="1"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="116" name="fireLight" type="fireLight" x="1401.64" y="247.953">
-   <properties>
-    <property name="color" type="color" value="#ffff0000"/>
-    <property name="distance" type="float" value="7"/>
-    <property name="effect" type="int" propertytype="lightEffect" value="1"/>
-    <property name="falloffProfile" type="float" value="0.5"/>
-    <property name="initialIntensity" type="float" value="6"/>
-    <property name="lightType" type="int" propertytype="lightType" value="0"/>
-    <property name="shaderIntensityMultiplier" type="float" value="0.5"/>
-   </properties>
-   <point/>
-  </object>
  </objectgroup>
  <objectgroup id="4" name="playerStart">
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="105" name="playerStart" type="playerStart" x="1057.63" y="232.749">
+  <object id="105" name="playerStart" type="playerStart" x="1052.01" y="231.278">
    <point/>
   </object>
  </objectgroup>
@@ -495,7 +456,7 @@
   <object id="139" x="1486.43" y="390.193" width="302.07" height="66.9305"/>
   <object id="173" x="966.087" y="545.334" width="294.492" height="53.333"/>
  </objectgroup>
- <layer id="26" name="foregroundGround" width="170" height="60">
+ <layer id="26" name="foregroundGround" width="170" height="60" visible="0">
   <properties>
    <property name="renderedOnTopOfWater" type="bool" value="true"/>
    <property name="zIndex" type="int" value="110000"/>

@@ -7,20 +7,26 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.maps.tiled.tiles.AnimatedTiledMapTile
+import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Family
 import com.github.quillraven.fleks.World
+import io.bennyoe.components.ChainRenderComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.ShaderRenderingComponent
+import io.bennyoe.components.TiledTextureComponent
 import io.bennyoe.components.TimeOfDay
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
+import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.render.DrawUtils.drawRegion
+import kotlin.math.atan2
 
 class LightingRenderer(
     val stage: Stage,
@@ -31,6 +37,7 @@ class LightingRenderer(
 ) {
     private val shapeRenderer: ShapeRenderer = ShapeRenderer()
     private val waterFamily by lazy { world.family { all(WaterComponent, TransformComponent) } }
+    private val tmpVec = Vector2()
 
     fun render(
         renderQueue: List<RenderableElement>,
@@ -39,6 +46,7 @@ class LightingRenderer(
         gameStateCmp: GameStateComponent,
         continuousTime: Float,
         rainMaskFamily: Family,
+        chainFamily: Family,
     ) {
         AnimatedTiledMapTile.updateAnimationBaseTime()
         mapRenderer.setView(orthoCam)
@@ -90,6 +98,57 @@ class LightingRenderer(
                             ShaderType.DEFAULT
                         }
                     }
+            }
+            renderChains(engine, chainFamily)
+        }
+    }
+
+    private fun renderChains(
+        engine: Scene2dLightEngine,
+        ropeFamily: Family,
+    ) {
+        // Ropes don't need normal mapping, so ensure default shader
+        shaderService.switchToDefaultIfNeeded(engine, ShaderType.CUSTOM)
+
+        ropeFamily.forEach { entity ->
+            val ropeCmp = entity[ChainRenderComponent]
+            val region = ropeCmp.texture
+            val segmentHeight = ropeCmp.segmentHeight
+            val segmentWidth = region.regionWidth * UNIT_SCALE
+
+            val p1 = ropeCmp.bodyA.getWorldPoint(ropeCmp.joint.localAnchorA)
+            val p2 = ropeCmp.bodyB.getWorldPoint(ropeCmp.joint.localAnchorB)
+
+            val direction = tmpVec.set(p2).sub(p1)
+            val distance = direction.len()
+            val angleRad = atan2(direction.y, direction.x)
+            val angleDeg = angleRad * MathUtils.radDeg
+            direction.nor()
+
+            val numSegments = MathUtils.ceil(distance / segmentHeight)
+            for (i in 0 until numSegments) {
+                val segmentStart = i * segmentHeight
+                val centerX = p1.x + direction.x * (segmentStart + segmentHeight / 2f)
+                val centerY = p1.y + direction.y * (segmentStart + segmentHeight / 2f)
+
+                val originX = segmentWidth / 2f
+                val originY = segmentHeight / 2f
+
+                val drawX = centerX - originX
+                val drawY = centerY - originY
+
+                engine.batch.draw(
+                    region,
+                    drawX,
+                    drawY,
+                    originX,
+                    originY,
+                    segmentWidth,
+                    segmentHeight,
+                    1f,
+                    1f,
+                    angleDeg - 90f,
+                )
             }
         }
     }
@@ -166,7 +225,11 @@ class LightingRenderer(
                     engine.setOverlayColor(it.color, strength)
                 }
 
-                renderWithNormalMapping(engine, renderable.imageCmp, renderable.shaderRenderingCmp)
+                if (renderable.tiledCmp != null) {
+                    renderWithTiledNormalMapping(engine, renderable.imageCmp, renderable.shaderRenderingCmp, renderable.tiledCmp)
+                } else {
+                    renderWithNormalMapping(engine, renderable.imageCmp, renderable.shaderRenderingCmp)
+                }
 
                 if (hadHit) {
                     engine.resetOverlayColor()
@@ -206,6 +269,38 @@ class LightingRenderer(
             }
 
         return newShaderType
+    }
+
+    private fun renderWithTiledNormalMapping(
+        engine: Scene2dLightEngine,
+        imageCmp: ImageComponent,
+        shaderCmp: ShaderRenderingComponent,
+        tiledCmp: TiledTextureComponent,
+    ) {
+        if (shaderCmp.specular != null) {
+            engine.drawTiled(
+                diffuse = shaderCmp.diffuse!!,
+                normals = shaderCmp.normal!!,
+                specular = shaderCmp.specular!!,
+                x = imageCmp.image.x,
+                y = imageCmp.image.y,
+                width = imageCmp.image.width,
+                height = imageCmp.image.height,
+                scale = tiledCmp.scale,
+                unitScale = UNIT_SCALE,
+            )
+        } else {
+            engine.drawTiled(
+                diffuse = shaderCmp.diffuse!!,
+                normals = shaderCmp.normal!!,
+                x = imageCmp.image.x,
+                y = imageCmp.image.y,
+                width = imageCmp.image.width,
+                height = imageCmp.image.height,
+                scale = tiledCmp.scale,
+                unitScale = UNIT_SCALE,
+            )
+        }
     }
 
     private fun renderWithNormalMapping(

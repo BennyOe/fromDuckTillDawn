@@ -13,6 +13,8 @@ sealed class GameLight(
     open val shaderLight: ShaderLight,
     open var b2dLight: Light,
     open var isManaged: Boolean = true,
+    open var isIndoor: Boolean = false,
+    open var distanceScale: Float = 1f,
     internal val baseIntensity: Float = shaderLight.intensity,
     internal val baseColor: Color = Color(shaderLight.color),
     internal val baseDistance: Float = b2dLight.distance,
@@ -87,6 +89,8 @@ sealed class GameLight(
         override var b2dLight: Light,
         var shaderIntensityMultiplier: Float = 1.0f,
         override var isManaged: Boolean = true,
+        override var isIndoor: Boolean = false,
+        override var distanceScale: Float = 1.0f,
     ) : GameLight(shaderLight, b2dLight) {
         var position: Vector2
             get() = b2dLight.position
@@ -123,6 +127,8 @@ sealed class GameLight(
         override var b2dLight: Light,
         var shaderIntensityMultiplier: Float = 1.0f,
         override var isManaged: Boolean = true,
+        override var isIndoor: Boolean = false,
+        override var distanceScale: Float = 1.0f,
     ) : GameLight(shaderLight, b2dLight) {
         var position: Vector2
             get() = b2dLight.position

@@ -371,6 +371,7 @@ abstract class AbstractLightEngine(
         entityCategory: Short = this.entityCategory,
         entityMask: Short = this.entityMask,
         isManaged: Boolean = true,
+        isIndoor: Boolean = false,
     ): GameLight.Point {
         val falloff = Falloff.fromDistance(b2dDistance, falloffProfile).toVector3()
 
@@ -401,7 +402,14 @@ abstract class AbstractLightEngine(
             )
         }
 
-        val gameLight = GameLight.Point(shaderLight, b2dLight, shaderIntensityMultiplier, isManaged)
+        val gameLight =
+            GameLight.Point(
+                shaderLight = shaderLight,
+                b2dLight = b2dLight,
+                shaderIntensityMultiplier = shaderIntensityMultiplier,
+                isManaged = isManaged,
+                isIndoor = isIndoor,
+            )
 
         managedLights.add(gameLight)
         return gameLight
@@ -441,6 +449,7 @@ abstract class AbstractLightEngine(
         entityCategory: Short = this.entityCategory,
         entityMask: Short = this.entityMask,
         isManaged: Boolean = true,
+        isIndoor: Boolean = false,
     ): GameLight.Spot {
         val falloff = Falloff.fromDistance(b2dDistance, falloffProfile).toVector3()
 
@@ -475,7 +484,14 @@ abstract class AbstractLightEngine(
             )
         }
 
-        val gameLight = GameLight.Spot(shaderLight, b2dLight, shaderIntensityMultiplier, isManaged)
+        val gameLight =
+            GameLight.Spot(
+                shaderLight = shaderLight,
+                b2dLight = b2dLight,
+                shaderIntensityMultiplier = shaderIntensityMultiplier,
+                isManaged = isManaged,
+                isIndoor = isIndoor,
+            )
 
         managedLights.add(gameLight)
         return gameLight

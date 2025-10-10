@@ -77,7 +77,8 @@ private fun fire(
     light.shaderLight.color.lerp(light.currentTargetColor, lerpAlpha)
 
     light.b2dLight.setColor(light.shaderLight.color.r, light.shaderLight.color.g, light.shaderLight.color.b, light.b2dLight.color.a)
-    light.b2dLight.distance = light.baseDistance + (light.shaderLight.intensity - light.baseIntensity)
+    val effectDistance = light.baseDistance + (light.shaderLight.intensity - light.baseIntensity)
+    light.b2dLight.distance = effectDistance * light.distanceScale
 }
 
 private val TMP_COLOR = Color()
@@ -89,6 +90,8 @@ private fun oilLamp(
     val delta = Gdx.graphics.deltaTime
     light.flickerTimer -= delta
 
+    val fadeFactor = (light.b2dLight.distance / light.baseDistance).coerceIn(0f, 1f)
+
     if (light.flickerTimer <= 0f) {
         light.flickerTimer = (Math.random() * 0.15f + 0.10f).toFloat()
 
@@ -96,7 +99,7 @@ private fun oilLamp(
         val targetIntensity =
             (light.baseIntensity * (1f + intensityJitter))
                 .coerceIn(light.baseIntensity * 0.85f, light.baseIntensity * 1.15f)
-        light.currentTargetIntensity = targetIntensity
+        light.currentTargetIntensity = targetIntensity * fadeFactor
 
         val warmColor = TMP_COLOR.set(1f, 0.82f, 0.45f, 1f)
         val warmthAmount = (Math.random().toFloat() * 0.08f) * intensity
@@ -115,7 +118,8 @@ private fun oilLamp(
     light.shaderLight.color.lerp(light.currentTargetColor, lerpAlpha)
 
     light.b2dLight.setColor(light.shaderLight.color.r, light.shaderLight.color.g, light.shaderLight.color.b, light.b2dLight.color.a)
-    light.b2dLight.distance = light.baseDistance + (light.shaderLight.intensity - light.baseIntensity) * 0.6f
+    val effectDistance = light.baseDistance + (light.shaderLight.intensity - light.baseIntensity)
+    light.b2dLight.distance = effectDistance * light.distanceScale
 }
 
 private fun pulse(

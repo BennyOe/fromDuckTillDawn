@@ -26,7 +26,9 @@ enum class TextureAssets(
     CROW_S_ATLAS("crow_s.atlas"),
     BG_NORMAL("bg_normal.atlas"),
     BG_NORMAL_N("bg_normal_n.atlas"),
-//    BG_NORMAL_S("bg_normal_s.atlas"),
+
+    //    BG_NORMAL_S("bg_normal_s.atlas"),
+    FOREGROUND("foreground.atlas"),
 }
 
 enum class MapAssets(

@@ -16,6 +16,8 @@ import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.utility.times
 
+const val LIGHT_COLOR_TRANSITION_TIME = 1f
+
 internal data class LightingParameters(
     var directionalLightIntensity: Float = 0.75f,
     var box2dLightStrength: Float = 1f,
@@ -60,7 +62,7 @@ class AmbientLightSystem(
     internal var currentParams = outdoorParams
     private var sourceParams: LightingParameters? = null
     private var targetParams: LightingParameters? = null
-    private val transitionDuration: Float = 2f
+    private val transitionDuration: Float = LIGHT_COLOR_TRANSITION_TIME
     private var transitionTimer: Float = transitionDuration
 
     override fun onTick() {

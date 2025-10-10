@@ -134,7 +134,8 @@ data class SpawnCfg(
                                 EntityCategory.GROUND.bit or
                                     EntityCategory.WORLD_BOUNDARY.bit or
                                     EntityCategory.PLAYER.bit or
-                                    EntityCategory.WATER.bit
+                                    EntityCategory.WATER.bit or
+                                    EntityCategory.SENSOR.bit
                             ),
                             animationModel = AnimationModel.ENEMY_MUSHROOM,
                             animationType = AnimationType.IDLE,

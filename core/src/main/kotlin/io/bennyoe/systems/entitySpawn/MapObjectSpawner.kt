@@ -126,6 +126,7 @@ class MapObjectSpawner(
             val visualWidth = (mapObject.tile.textureRegion.regionWidth * UNIT_SCALE) * scale
             val visualHeight = (mapObject.tile.textureRegion.regionHeight * UNIT_SCALE) * scale
             val position = vec2(mapObject.x * UNIT_SCALE, mapObject.y * UNIT_SCALE)
+            val isIndoor = mapObject.properties.get("isIndoor") as? Boolean ?: false
 
             // 2. Create ImageComponent with the final size and correct origin.
             val (image, maybeAnimation) = buildImageAndOptionalAnimation(mapObject)
@@ -194,13 +195,14 @@ class MapObjectSpawner(
             // add light to body
             val light =
                 lightEngine.addPointLight(
-                    phyCmp.body.position,
-                    Color.GOLD,
-                    5f,
-                    12f,
-                    2f,
-                    1f,
+                    position = phyCmp.body.position,
+                    color = Color.ORANGE,
+                    initialIntensity = 5f,
+                    b2dDistance = 12f,
+                    falloffProfile = 2f,
+                    shaderIntensityMultiplier = 1f,
                     rays = 512,
+                    isIndoor = isIndoor,
                 )
             light.effect = LightEffectType.OIL_LAMP
             e += LightComponent(light)

@@ -25,10 +25,11 @@ class EntitySpawnSystem(
     dawnAtlases: TextureAtlases = World.inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = World.inject("mushroomAtlases"),
     bgNormalAtlases: TextureAtlases = World.inject("bgNormalAtlases"),
+    forgroundAtlas: TextureAtlas = World.inject("foregroundAtlas"),
 ) : IteratingSystem(World.family { all(SpawnComponent) }),
     EventListener,
     PausableSystem {
-    private val lightSpawner = LightSpawner(lightEngine)
+    private val lightSpawner = LightSpawner(world, lightEngine)
     private val audioSpawner = AudioSpawner(world, phyWorld)
     private val skySpawner = SkySpawner(world, lightEngine, stage, worldObjectsAtlas)
     private val mapObjectSpawner = MapObjectSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
@@ -36,6 +37,7 @@ class EntitySpawnSystem(
     private val rainMaskSpawner = RainMaskSpawner(world, stage)
     private val waterSpawner = WaterSpawner(world, phyWorld)
     private val bgNormalSpawner = BgNormalSpawner(world, stage, bgNormalAtlases)
+    private val foregroundSpawner = ForegroundSpawner(world, stage, forgroundAtlas)
 
     override fun onTickEntity(entity: Entity) {
     }
@@ -87,6 +89,10 @@ class EntitySpawnSystem(
                 event.map.layers
                     .findLayerDeep("bgNormal")
                     ?.let { bgNormalSpawner.spawnBgNormal(it, getLayerZIndex(it) ?: 7100) }
+                // Adding forground Images
+                event.map.layers
+                    .findLayerDeep("foreground")
+                    ?.let { foregroundSpawner.spawnForeground(it, getLayerZIndex(it) ?: 7100) }
                 return true
             }
         }

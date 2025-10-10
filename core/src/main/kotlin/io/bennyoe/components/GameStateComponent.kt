@@ -17,6 +17,7 @@ class GameStateComponent(
     var musicVolume: Float = 1f,
     var ambienceVolume: Float = 1f,
     var sfxVolume: Float = 1f,
+    var playerIsIndoor: Boolean = false,
 ) : Component<GameStateComponent> {
     private var alreadyChanged: Boolean = false
 

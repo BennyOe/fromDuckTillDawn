@@ -15,6 +15,7 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IsIndoorComponent
+import io.bennyoe.components.LightComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
@@ -56,7 +57,7 @@ class ContactHandlerSystem(
 
         handleReverbZoneBegin(parts)
         handleSoundTriggerBegin(parts)
-        handleAmbienceBegin(parts)
+        handleAmbienceContact(parts, isBeginning = true)
         handleGroundBegin(parts)
         handleNearbyEnemiesBegin(parts)
         handlePlayerEnemyHitboxCollision(parts)
@@ -70,7 +71,7 @@ class ContactHandlerSystem(
 
         handleReverbZoneEnd(parts)
         handleGroundEnd(parts)
-        handleAmbienceEnd(parts)
+        handleAmbienceContact(parts, isBeginning = false)
         handleNearbyEnemiesEnd(parts)
         handleInWaterEnd(parts)
         handleUnderWaterEnd(parts)
@@ -178,75 +179,52 @@ class ContactHandlerSystem(
         }
     }
 
-    private fun handleAmbienceBegin(p: Parts) {
-        val (player, sensorOwner) = p.playerAndSensorOwner(SensorType.SOUND_AMBIENCE_SENSOR) ?: return
+    private fun handleAmbienceContact(
+        p: Parts,
+        isBeginning: Boolean,
+    ) {
+        val (movingEntityData, zoneData) = p.entityAndAmbienceZone() ?: return
 
-        val contactCmp = player.entity[AmbienceZoneContactComponent]
-        val oldActiveZone = contactCmp.getActiveZone() // Get state BEFORE adding
+        // Case 1: The moving entity is the Player
+        if (movingEntityData.entityCategory == EntityCategory.PLAYER) {
+            with(world) {
+                val contactCmp = movingEntityData.entity.getOrNull(AmbienceZoneContactComponent) ?: return
+                val ambienceSoundCmp = zoneData.entity[AmbienceSoundComponent]
+                val isIndoorCmp = zoneData.entity[IsIndoorComponent]
 
-        val ambienceSoundCmp = sensorOwner.entity[AmbienceSoundComponent]
-        val isIndoorCmp = sensorOwner.entity[IsIndoorComponent]
-        contactCmp.addContact(ambienceSoundCmp, isIndoorCmp)
+                val oldActiveZone = contactCmp.getActiveZone()
 
-        val newActiveZone = contactCmp.getActiveZone() // Get state AFTER adding
+                if (isBeginning) {
+                    contactCmp.addContact(ambienceSoundCmp, isIndoorCmp)
+                } else {
+                    contactCmp.removeContact(ambienceSoundCmp, isIndoorCmp)
+                }
 
-        // Only fire an event if the top-most active zone has changed
-        if (newActiveZone != oldActiveZone) {
-            logger.debug { "Ambience Begin. New active zone: ${newActiveZone?.first?.type}" }
-            stage.fire(
-                AmbienceChangeEvent(
-                    newActiveZone!!.first.type,
-                    newActiveZone.first.variations,
-                    newActiveZone.first.volume,
-                    newActiveZone.second.isIndoor,
-                ),
-            )
-        }
-    }
+                val newActiveZone = contactCmp.getActiveZone()
 
-    private fun handleAmbienceEnd(p: Parts) {
-        val pair =
-            p.playerAndSensorOwnerOnEnd(
-                sensorType = SensorType.SOUND_AMBIENCE_SENSOR,
-                playerSensor = SensorType.HITBOX_SENSOR,
-            ) ?: return
-        val (player, sensorOwner) = pair
-
-        with(world) {
-            if (player.entity has AmbienceZoneContactComponent && sensorOwner.entity has AmbienceSoundComponent) {
-                val contactCmp = player.entity[AmbienceZoneContactComponent]
-                val oldActiveZone = contactCmp.getActiveZone() // Get state BEFORE removing
-
-                val ambienceSoundCmp = sensorOwner.entity[AmbienceSoundComponent]
-                val isIndoorCmp = sensorOwner.entity[IsIndoorComponent]
-                contactCmp.removeContact(ambienceSoundCmp, isIndoorCmp)
-
-                val newActiveZone = contactCmp.getActiveZone() // Get state AFTER removing
-
-                // Only fire an event if the top-most active zone has changed
                 if (newActiveZone != oldActiveZone) {
-                    logger.debug { "Ambience End. New active zone: ${newActiveZone?.first?.type ?: "NONE"}" }
-                    if (newActiveZone != null) {
-                        // Fell back into another overlapping zone
-                        stage.fire(
-                            AmbienceChangeEvent(
-                                newActiveZone.first.type,
-                                newActiveZone.first.variations,
-                                newActiveZone.first.volume,
-                                newActiveZone.second.isIndoor,
-                            ),
-                        )
-                    } else {
-                        // Left all zones, revert to default outdoor
-                        stage.fire(
-                            AmbienceChangeEvent(
-                                AmbienceType.NONE,
-                                null,
-                                null,
-                                isIndoor = false,
-                            ),
-                        )
-                    }
+                    val type = newActiveZone?.first?.type ?: AmbienceType.NONE
+                    val variations = newActiveZone?.first?.variations
+                    val volume = newActiveZone?.first?.volume
+                    val isIndoor = newActiveZone?.second?.isIndoor ?: false
+
+                    logger.debug { "Ambience Change. New active zone: $type" }
+                    stage.fire(AmbienceChangeEvent(type, variations, volume, isIndoor))
+                }
+            }
+        }
+
+        // Case 2: The moving entity has a LightComponent
+        with(world) {
+            if (movingEntityData.entity has LightComponent) {
+                val lightCmp = movingEntityData.entity[LightComponent]
+                // Check if the zone is actually marked as "indoor"
+                val isIndoorZone = zoneData.entity.getOrNull(IsIndoorComponent)?.isIndoor ?: false
+
+                if (isIndoorZone) {
+                    lightCmp.gameLight.isIndoor = isBeginning
+                    if (!isBeginning) lightCmp.gameLight.setOn(true)
+                    logger.debug { "Entity ${movingEntityData.entity.id} light isIndoor set to $isBeginning" }
                 }
             }
         }
@@ -390,6 +368,17 @@ class ContactHandlerSystem(
                 bFixture.hasSensorType(sensor) && aCategory == EntityCategory.PLAYER -> aBody to bBody
                 else -> null
             }
+
+        fun entityAndAmbienceZone(): Pair<EntityBodyData, EntityBodyData>? {
+            val aIsZone = aFixture.hasSensorType(SensorType.SOUND_AMBIENCE_SENSOR)
+            val bIsZone = bFixture.hasSensorType(SensorType.SOUND_AMBIENCE_SENSOR)
+
+            return when {
+                aIsZone && !bIsZone -> bBody to aBody // b is the moving entity, a is the zone
+                bIsZone && !aIsZone -> aBody to bBody // a is the moving entity, b is the zone
+                else -> null
+            }
+        }
 
         fun sensorOwnerAndPlayer(sensor: SensorType): Pair<EntityBodyData, EntityBodyData>? =
             when {

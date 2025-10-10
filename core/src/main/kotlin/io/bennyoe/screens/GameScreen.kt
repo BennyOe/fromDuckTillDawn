@@ -75,6 +75,7 @@ import io.bennyoe.systems.entitySpawn.EntitySpawnSystem
 import io.bennyoe.systems.light.AmbientLightSystem
 import io.bennyoe.systems.light.EntityLightSystem
 import io.bennyoe.systems.light.FlashlightSystem
+import io.bennyoe.systems.light.IndoorLightSystem
 import io.bennyoe.systems.physic.ContactHandlerSystem
 import io.bennyoe.systems.physic.PhysicsSystem
 import io.bennyoe.systems.physic.WaterSystem
@@ -127,6 +128,7 @@ class GameScreen(
 //            assets[TextureAssets.BG_NORMAL_S.descriptor],
         )
     private val particleAtlas = assets[TextureAssets.PARTICLE_ATLAS.descriptor]
+    private val foregroundAtlas = assets[TextureAssets.FOREGROUND.descriptor]
     private val tiledMap = assets[MapAssets.TEST_MAP.descriptor]
     private val stages = context.inject<Stages>()
     private val stage = stages.stage
@@ -181,6 +183,7 @@ class GameScreen(
                 add("crowAtlases", crowAtlases)
                 add("bgNormalAtlases", bgNormalAtlases)
                 add("particlesAtlas", particleAtlas)
+                add("foregroundAtlas", foregroundAtlas)
                 add("stage", stage)
                 add("uiStage", uiStage)
                 add("shapeRenderer", ShapeRenderer())
@@ -222,6 +225,7 @@ class GameScreen(
                 add(BehaviorTreeSystem())
                 add(GameMoodSystem())
                 add(TimeSystem())
+                add(IndoorLightSystem())
                 add(SkySystem())
                 add(UiDataSystem())
                 add(MoveSystem())

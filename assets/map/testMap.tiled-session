@@ -13,6 +13,7 @@
             "scaleInEditor": 1
         },
         "groundTiles1.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
@@ -45,7 +46,7 @@
         "lantern.tsx"
     ],
     "project": "testMap.tiled-project",
-    "property.type": "float",
+    "property.type": "bool",
     "recentFiles": [
         "lantern.tsx",
         "groundTiles1.tsx",

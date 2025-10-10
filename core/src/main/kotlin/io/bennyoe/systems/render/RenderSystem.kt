@@ -21,6 +21,7 @@ import io.bennyoe.components.ChainRenderComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.IsForeground
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.RainMaskComponent
@@ -35,8 +36,11 @@ import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.screens.RenderTargets
 import io.bennyoe.utility.findImageLayerDeep
 import io.bennyoe.utility.findTileLayerDeep
+import ktx.actors.alpha
 import ktx.graphics.use
 import ktx.log.logger
+
+const val FOREGROUND_FADE_TIME = 1f
 
 class RenderSystem(
     private val stage: Stage = inject("stage"),
@@ -49,6 +53,9 @@ class RenderSystem(
     ),
     EventListener {
     private var continuousTime = 0f
+    private val transitionDuration: Float = FOREGROUND_FADE_TIME
+    private var transitionTimer: Float = transitionDuration
+
     private val mapRenderer = OrthogonalTiledMapRenderer(null, UNIT_SCALE, stage.batch)
     private val orthoCam = stage.camera as OrthographicCamera
     private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
@@ -65,6 +72,9 @@ class RenderSystem(
 
     // The unified render queue that gets rendered on top of the water - rebuilt each frame
     private val renderQueueOnTopOfWater = mutableListOf<RenderableElement>()
+
+    // The unified render queue that gets rendered on top of everything - rebuilt each frame
+    private val renderQueueForeground = mutableListOf<RenderableElement>()
 
     private val shaderService = ShaderService()
     private val waterRenderer = WaterRenderer(stage, polygonSpriteBatch, waterAtlas)
@@ -124,15 +134,30 @@ class RenderSystem(
         waterRenderer.render(waterFamily, continuousTime, tex, orthoCam)
 
         // --- 5. RENDER FOREGROUND TILES (on top of the water) ---
-        renderForegroundPlain(stage.batch, orthoCam, renderQueueOnTopOfWater, mapRenderer)
+        renderInFrontOfWater(stage.batch, orthoCam, renderQueueOnTopOfWater, mapRenderer)
 
-        // --- 6. RENDER LIGHTS (draw the final box2dLights) ---
+        // --- 6. RENDER FOREGROUND IMAGES (for mountains / buildings that can be entered) WITH FADE IN / OUT ---
+        val target = if (gameStateCmp.playerIsIndoor) 0f else transitionDuration
+        if (transitionTimer < target) {
+            transitionTimer = (transitionTimer + deltaTime).coerceAtMost(transitionDuration)
+        } else if (transitionTimer > target) {
+            transitionTimer = (transitionTimer - deltaTime).coerceAtLeast(0f)
+        }
+
+        val alpha = (transitionTimer / transitionDuration).coerceIn(0f, 1f)
+
+        if (alpha > 0f) {
+            renderForeground(stage.batch, orthoCam, renderQueueForeground, alpha)
+        }
+
+        // --- 7. RENDER LIGHTS (draw the final box2dLights) ---
         lightEngine.renderBox2dLights()
     }
 
     private fun buildRenderQueue() {
         renderQueue.clear()
         renderQueueOnTopOfWater.clear()
+        renderQueueForeground.clear()
 
         // 1. Add all map image layers
         mapImageLayers.forEach { layer ->
@@ -165,19 +190,34 @@ class RenderSystem(
             val hitEffectCmp = entity.getOrNull(HitEffectComponent)
             val transformCmp = entity[TransformComponent]
             val tiledCmp = entity.getOrNull(TiledTextureComponent)
+            val isForegroundLayer = entity has IsForeground
 
             entity.getOrNull(ImageComponent)?.let { imageCmp ->
-                renderQueue.add(
-                    RenderableElement.EntityWithImage(
-                        entity = entity,
-                        imageCmp = imageCmp,
-                        transformCmp = transformCmp,
-                        shaderRenderingCmp = shaderRenderingCmp,
-                        hitEffectComponent = hitEffectCmp,
-                        zIndex = imageCmp.zIndex,
-                        tiledCmp = tiledCmp,
-                    ),
-                )
+                if (isForegroundLayer) {
+                    renderQueueForeground.add(
+                        RenderableElement.EntityWithImage(
+                            entity = entity,
+                            imageCmp = imageCmp,
+                            transformCmp = transformCmp,
+                            shaderRenderingCmp = shaderRenderingCmp,
+                            hitEffectComponent = hitEffectCmp,
+                            zIndex = imageCmp.zIndex,
+                            tiledCmp = tiledCmp,
+                        ),
+                    )
+                } else {
+                    renderQueue.add(
+                        RenderableElement.EntityWithImage(
+                            entity = entity,
+                            imageCmp = imageCmp,
+                            transformCmp = transformCmp,
+                            shaderRenderingCmp = shaderRenderingCmp,
+                            hitEffectComponent = hitEffectCmp,
+                            zIndex = imageCmp.zIndex,
+                            tiledCmp = tiledCmp,
+                        ),
+                    )
+                }
             }
 
             entity.getOrNull(ParticleComponent)?.let { particleCmp ->
@@ -194,6 +234,8 @@ class RenderSystem(
 
         // 4. Sort everything by zIndex
         renderQueue.sortBy { it.zIndex }
+        renderQueueOnTopOfWater.sortBy { it.zIndex }
+        renderQueueForeground.sortBy { it.zIndex }
     }
 
     /**
@@ -207,7 +249,7 @@ class RenderSystem(
      * @param elements The list of renderable elements to draw.
      * @param mapRenderer The tiled map renderer for tile and image layers.
      */
-    private fun renderForegroundPlain(
+    private fun renderInFrontOfWater(
         batch: Batch,
         orthoCam: OrthographicCamera,
         elements: List<RenderableElement>,
@@ -261,6 +303,57 @@ class RenderSystem(
                         e.particleCmp.actor.draw(batch, 1f)
                     }
                 }
+            }
+        }
+
+        batch.end()
+    }
+
+    private fun renderForeground(
+        batch: Batch,
+        orthoCam: OrthographicCamera,
+        elements: List<RenderableElement>,
+        alpha: Float,
+    ) {
+        batch.projectionMatrix = orthoCam.combined
+
+        batch.begin()
+
+        elements.forEach { e ->
+            when (e) {
+                is RenderableElement.EntityWithImage -> {
+                    val img = e.imageCmp.image
+                    img.alpha = alpha
+                    val drw = img.drawable as? TextureRegionDrawable ?: return@forEach
+                    val region = drw.region
+
+                    val old = batch.color.cpy()
+                    batch.setColor(1f, 1f, 1f, alpha)
+
+                    batch.draw(
+                        region,
+                        img.x,
+                        img.y,
+                        img.originX,
+                        img.originY,
+                        img.width,
+                        img.height,
+                        img.scaleX,
+                        img.scaleY,
+                        img.rotation,
+                    )
+
+                    batch.color = old
+                }
+
+                is RenderableElement.EntityWithParticle -> {
+                    if (e.particleCmp.enabled) {
+                        e.particleCmp.actor.setPosition(e.transformCmp.position.x, e.transformCmp.position.y)
+                        e.particleCmp.actor.draw(batch, 1f)
+                    }
+                }
+
+                else -> Unit
             }
         }
 

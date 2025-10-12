@@ -1,6 +1,7 @@
 package io.bennyoe.systems.render
 
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.physics.box2d.BodyDef
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
@@ -38,10 +39,17 @@ class TransformVisualSyncSystem(
             val targetWidth: Float
             val targetHeight: Float
 
-            if (entity has PhysicComponent) {
-                // For entities with a PhysicComponent (e.g., player, mushroom),
-                targetWidth = imageCmp.scaleX
-                targetHeight = imageCmp.scaleY
+            val physCmp = entity.getOrNull(PhysicComponent)
+            if (physCmp != null) {
+                if (physCmp.body.type == BodyDef.BodyType.DynamicBody) {
+                    // For dynamic bodies like Player/Mushroom, the size is determined by a visual scale factor.
+                    targetWidth = imageCmp.scaleX
+                    targetHeight = imageCmp.scaleY
+                } else {
+                    // For static bodies like the Door, size comes from the TransformComponent (from the map).
+                    targetWidth = transformCmp.width * imageCmp.scaleX
+                    targetHeight = transformCmp.height * imageCmp.scaleY
+                }
             } else {
                 // We now tie the background's position and size directly to the camera's view.
                 if (skyCmp != null && (skyCmp.type == SkyComponentType.SKY || skyCmp.type == SkyComponentType.STARS)) {

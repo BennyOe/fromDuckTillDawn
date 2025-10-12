@@ -45,6 +45,7 @@ import io.bennyoe.systems.CloudSystem
 import io.bennyoe.systems.CrowSystem
 import io.bennyoe.systems.DamageSystem
 import io.bennyoe.systems.DivingSystem
+import io.bennyoe.systems.DoorSystem
 import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.GameMoodSystem
 import io.bennyoe.systems.GameStateSystem
@@ -226,6 +227,7 @@ class GameScreen(
                 add(GameMoodSystem())
                 add(TimeSystem())
                 add(IndoorLightSystem())
+                add(DoorSystem())
                 add(SkySystem())
                 add(UiDataSystem())
                 add(MoveSystem())

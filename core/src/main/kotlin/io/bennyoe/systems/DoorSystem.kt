@@ -1,0 +1,67 @@
+package io.bennyoe.systems
+
+import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.scenes.scene2d.Event
+import com.badlogic.gdx.scenes.scene2d.EventListener
+import com.github.quillraven.fleks.Entity
+import com.github.quillraven.fleks.IteratingSystem
+import com.github.quillraven.fleks.World.Companion.family
+import io.bennyoe.components.DoorComponent
+import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.TransformComponent
+import io.bennyoe.event.DoorEvent
+import ktx.log.logger
+
+private const val DOOR_SPEED = 0.8f
+
+class DoorSystem :
+    IteratingSystem(family { all(DoorComponent, TransformComponent, PhysicComponent) }),
+    EventListener {
+    override fun handle(event: Event): Boolean {
+        when (event) {
+            is DoorEvent -> {
+                val doorEntity = event.targetDoorEntity
+                val doorCmp = doorEntity[DoorComponent]
+                val transformCmp = doorEntity[TransformComponent]
+
+                if (doorCmp.initialPosition == null) {
+                    doorEntity.configure {
+                        it[DoorComponent].initialPosition = transformCmp.position.cpy()
+                    }
+                }
+
+                doorEntity.configure {
+                    doorCmp.isOpen = !doorCmp.isOpen
+                }
+                return true
+            }
+        }
+        return false
+    }
+
+    override fun onTickEntity(entity: Entity) {
+        val doorCmp = entity[DoorComponent]
+        val transformCmp = entity[TransformComponent]
+        val physicCmp = entity[PhysicComponent]
+
+        val initialPos = doorCmp.initialPosition ?: return
+
+        // Determine the target Y position based on whether the door is open or closed.
+        val targetY =
+            if (doorCmp.isOpen) {
+                initialPos.y - transformCmp.height - 2f
+            } else {
+                initialPos.y
+            }
+
+        val currentPos = physicCmp.body.position
+
+        val newY = MathUtils.lerp(currentPos.y, targetY + transformCmp.height / 2, deltaTime * DOOR_SPEED)
+
+        physicCmp.body.setTransform(currentPos.x, newY, physicCmp.body.angle)
+    }
+
+    companion object {
+        val logger = logger<DoorSystem>()
+    }
+}

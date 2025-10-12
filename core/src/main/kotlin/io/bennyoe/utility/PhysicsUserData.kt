@@ -45,6 +45,7 @@ enum class SensorType {
     SOUND_AMBIENCE_SENSOR,
     IN_WATER_SENSOR,
     UNDER_WATER_SENSOR,
+    DOOR_TRIGGER_SENSOR,
 }
 
 enum class FloorType {

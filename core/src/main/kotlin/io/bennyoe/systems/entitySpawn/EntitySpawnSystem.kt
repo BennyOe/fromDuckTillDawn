@@ -38,6 +38,7 @@ class EntitySpawnSystem(
     private val waterSpawner = WaterSpawner(world, phyWorld)
     private val bgNormalSpawner = BgNormalSpawner(world, stage, bgNormalAtlases)
     private val foregroundSpawner = ForegroundSpawner(world, stage, forgroundAtlas)
+    private val doorSpawner = DoorSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
 
     override fun onTickEntity(entity: Entity) {
     }
@@ -93,6 +94,14 @@ class EntitySpawnSystem(
                 event.map.layers
                     .findLayerDeep("foreground")
                     ?.let { foregroundSpawner.spawnForeground(it, getLayerZIndex(it) ?: 7100) }
+                // Adding doors
+                event.map.layers
+                    .findLayerDeep("doors")
+                    ?.let { doorSpawner.spawnDoors(it, getLayerZIndex(it) ?: 7000) }
+                // Adding door triggers
+                event.map.layers
+                    .findLayerDeep("triggers")
+                    ?.let { doorSpawner.spawnTrigger(it) }
                 return true
             }
         }

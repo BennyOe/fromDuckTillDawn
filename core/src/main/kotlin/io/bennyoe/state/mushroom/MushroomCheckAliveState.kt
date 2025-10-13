@@ -3,10 +3,10 @@ package io.bennyoe.state.mushroom
 import com.badlogic.gdx.ai.msg.Telegram
 import io.bennyoe.state.FsmMessageTypes
 
-object MushroomCheckAliveState : MushroomFSM() {
+class MushroomCheckAliveState : MushroomFSM() {
     override fun update(ctx: MushroomStateContext) {
         if (ctx.healthComponent.isDead) {
-            ctx.changeState(DEATH)
+            ctx.changeState(DEATH())
             return
         }
     }

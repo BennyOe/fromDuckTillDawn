@@ -213,8 +213,8 @@ class CharacterSpawner(
             StateComponent(
                 world = world,
                 owner = MushroomStateContext(entity, world, stage),
-                initialState = MushroomFSM.IDLE,
-                globalState = MushroomCheckAliveState,
+                initialState = MushroomFSM.IDLE(),
+                globalState = MushroomCheckAliveState(),
             )
         entity += state
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)

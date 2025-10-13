@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="33" nextobjectid="197">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="33" nextobjectid="209">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
@@ -233,7 +233,7 @@
    </properties>
   </object>
  </objectgroup>
- <objectgroup id="3" name="collisionBoxes" visible="0">
+ <objectgroup id="3" name="collisionBoxes">
   <object id="3" name="2" x="546.794" y="80.9704" width="42.2058" height="44.6175">
    <properties>
     <property name="floorType" value="grass"/>
@@ -294,7 +294,7 @@
     <property name="floorType" value="stone"/>
    </properties>
   </object>
-  <object id="192" x="1138.94" y="112.602" width="136.795" height="106.796"/>
+  <object id="192" x="1122.94" y="112.602" width="152.795" height="106.796"/>
   <object id="193" x="1168.6" y="63.9353" width="106.128" height="47.4627"/>
   <object id="194" x="1216.6" y="15.602" width="59.4613" height="47.4627"/>
  </objectgroup>
@@ -468,11 +468,83 @@
    <point/>
   </object>
  </objectgroup>
- <objectgroup id="13" name="enemies" visible="0">
+ <objectgroup id="13" name="enemies">
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
   <object id="97" name="enemy" x="753.099" y="223.977">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="197" name="enemy" x="1172" y="246.5">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="198" name="enemy" x="1207" y="244">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="199" name="enemy" x="1242.5" y="243.5">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="200" name="enemy" x="1277" y="243">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="201" name="enemy" x="1303.5" y="241">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="202" name="enemy" x="1329.5" y="242">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="203" name="enemy" x="1225" y="248.5">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="204" name="enemy" x="1260" y="246">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="205" name="enemy" x="1295.5" y="245.5">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="206" name="enemy" x="1330" y="245">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="207" name="enemy" x="1356.5" y="243">
+   <properties>
+    <property name="type" value="enemy"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="208" name="enemy" x="1382.5" y="244">
    <properties>
     <property name="type" value="enemy"/>
    </properties>
@@ -580,7 +652,7 @@
    <properties>
     <property name="zIndex" type="int" value="7000"/>
    </properties>
-   <object id="195" x="1121.78" y="220.983" width="14.1126" height="34.0768">
+   <object id="195" x="1123.02" y="219.65" width="14.1126" height="36.1677">
     <properties>
      <property name="id" value="caveDoor01"/>
      <property name="texture" value="door"/>

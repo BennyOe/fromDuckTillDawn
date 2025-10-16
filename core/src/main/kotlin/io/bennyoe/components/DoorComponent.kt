@@ -8,6 +8,7 @@ class DoorComponent(
     val id: String,
     var isOpen: Boolean = false,
     var initialPosition: Vector2? = null,
+    var targetY: Float? = null,
 ) : Component<DoorComponent> {
     override fun type() = DoorComponent
 

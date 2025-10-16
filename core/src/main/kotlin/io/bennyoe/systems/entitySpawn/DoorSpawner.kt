@@ -24,6 +24,7 @@ import ktx.tiled.shape
 import ktx.tiled.width
 import ktx.tiled.x
 import ktx.tiled.y
+import kotlin.experimental.or
 
 class DoorSpawner(
     val world: World,
@@ -65,7 +66,7 @@ class DoorSpawner(
                         image = imageCmp.image,
                         bodyType = BodyDef.BodyType.StaticBody,
                         categoryBit = EntityCategory.GROUND.bit,
-                        maskBit = EntityCategory.PLAYER.bit,
+                        maskBit = EntityCategory.PLAYER.bit or EntityCategory.ENEMY.bit,
                         setUserdata = EntityBodyData(it, EntityCategory.GROUND),
                     )
             }

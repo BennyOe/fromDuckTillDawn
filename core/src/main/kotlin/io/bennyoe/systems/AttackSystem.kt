@@ -88,7 +88,7 @@ class AttackSystem(
             logger.debug { "Fixture found" }
             bodyData.entity.configure {
                 val healthCmp = it.getOrNull(HealthComponent)
-                healthCmp?.takeDamage(attackCmp.damage)
+                healthCmp?.takeDamage(attackCmp.baseDamage)
                 healthCmp?.attackedFromBehind = x < fixture.body.position.x
             }
             return@query true

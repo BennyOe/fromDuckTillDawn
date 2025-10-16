@@ -24,6 +24,7 @@ class EntitySpawnSystem(
     worldObjectsAtlas: TextureAtlas = World.inject("worldObjectsAtlas"),
     dawnAtlases: TextureAtlases = World.inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = World.inject("mushroomAtlases"),
+    minotaurAtlases: TextureAtlases = World.inject("minotaurAtlases"),
     bgNormalAtlases: TextureAtlases = World.inject("bgNormalAtlases"),
     forgroundAtlas: TextureAtlas = World.inject("foregroundAtlas"),
 ) : IteratingSystem(World.family { all(SpawnComponent) }),
@@ -33,7 +34,8 @@ class EntitySpawnSystem(
     private val audioSpawner = AudioSpawner(world, phyWorld)
     private val skySpawner = SkySpawner(world, lightEngine, stage, worldObjectsAtlas)
     private val mapObjectSpawner = MapObjectSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
-    private val characterSpawner = CharacterSpawner(world, phyWorld, lightEngine, stage, debugRenderService, dawnAtlases, mushroomAtlases)
+    private val characterSpawner =
+        CharacterSpawner(world, phyWorld, lightEngine, stage, debugRenderService, dawnAtlases, mushroomAtlases, minotaurAtlases)
     private val rainMaskSpawner = RainMaskSpawner(world, stage)
     private val waterSpawner = WaterSpawner(world, phyWorld)
     private val bgNormalSpawner = BgNormalSpawner(world, stage, bgNormalAtlases)

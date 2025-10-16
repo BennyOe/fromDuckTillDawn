@@ -55,7 +55,7 @@ class DamageSystem(
                         physicCmp.body.position.x,
                         physicCmp.body.position.y - physicCmp.size.y * 0.8f,
                     )
-                damageTextCmp.label = Label("${attackCmp.damage.toInt()} / ${healthCmp.current.toInt()}", Scene2DSkin.defaultSkin)
+                damageTextCmp.label = Label("${attackCmp.baseDamage.toInt()} / ${healthCmp.current.toInt()}", Scene2DSkin.defaultSkin)
                 entity.configure { it += damageTextCmp }
             }
         }

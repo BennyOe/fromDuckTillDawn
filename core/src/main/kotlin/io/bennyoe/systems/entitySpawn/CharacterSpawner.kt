@@ -74,11 +74,13 @@ class CharacterSpawner(
     val debugRenderer: DebugRenderer,
     dawnAtlases: TextureAtlases,
     mushroomAtlases: TextureAtlases,
+    minotaurAtlases: TextureAtlases,
 ) {
     private val atlasMap: Map<AnimationModel, TextureAtlas> =
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.diffuseAtlas,
+            AnimationModel.ENEMY_MINOTAUR to minotaurAtlases.diffuseAtlas,
         )
 
     private val sizesCache = mutableMapOf<String, Vector2>()
@@ -108,6 +110,7 @@ class CharacterSpawner(
 
                 val animation = AnimationComponent()
                 animation.animationModel = cfg.animationModel
+                animation.speedMultiplier = cfg.animationSpeed
                 animation.nextAnimation(cfg.animationType)
                 animation.animationSoundTriggers = cfg.soundTrigger
                 entity += animation
@@ -178,6 +181,7 @@ class CharacterSpawner(
 
                 if (cfg.canAttack) {
                     val attackCmp = AttackComponent()
+                    attackCmp.baseDamage = cfg.damage
                     attackCmp.extraRange *= cfg.attackExtraRange
                     attackCmp.maxDamage *= cfg.scaleAttackDamage
                     attackCmp.attackDelay = cfg.attackDelay

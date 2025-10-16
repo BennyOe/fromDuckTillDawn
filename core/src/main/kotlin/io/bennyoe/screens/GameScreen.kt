@@ -116,6 +116,10 @@ class GameScreen(
             assets[TextureAssets.MUSHROOM_N_ATLAS.descriptor],
             assets[TextureAssets.MUSHROOM_S_ATLAS.descriptor],
         )
+    private val minotaurAtlases =
+        TextureAtlases(
+            assets[TextureAssets.MINOTAUR_ATLAS.descriptor],
+        )
     private val crowAtlases =
         TextureAtlases(
             assets[TextureAssets.CROW_ATLAS.descriptor],
@@ -152,7 +156,7 @@ class GameScreen(
     // Framebuffer
     private var fbo: FrameBuffer? = null
 
-    // container (provider) for the fbo, so that systems are getting a updated fbo every frame
+    // container (provider) for the fbo, so that systems are getting an updated fbo every frame
     private lateinit var targets: RenderTargets
 
     private val rayHandler = RayHandler(phyWorld)
@@ -181,6 +185,7 @@ class GameScreen(
                 add("rainCloudsAtlas", rainCloudsAtlas)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
+                add("minotaurAtlases", minotaurAtlases)
                 add("crowAtlases", crowAtlases)
                 add("bgNormalAtlases", bgNormalAtlases)
                 add("particlesAtlas", particleAtlas)

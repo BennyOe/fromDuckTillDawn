@@ -18,11 +18,13 @@ import kotlin.experimental.or
 data class SpawnCfg(
     val animationModel: AnimationModel = AnimationModel.NONE,
     val animationType: AnimationType = AnimationType.NONE,
+    val animationSpeed: Float = 1f,
     val bodyType: BodyDef.BodyType = BodyDef.BodyType.StaticBody,
     val entityCategory: EntityCategory = EntityCategory.GROUND,
     val physicMaskCategory: Short = 0x0000,
     val canAttack: Boolean = false,
     val attackDelay: Float = 0.2f,
+    val damage: Float = 5f,
     val scaleAttackDamage: Float = 1f,
     val attackExtraRange: Float = 1f,
     val scalePhysic: Vector2 = vec2(1f, 1f),
@@ -127,7 +129,7 @@ data class SpawnCfg(
                                 ),
                         )
 
-                    "enemy" ->
+                    "mushroom" ->
                         SpawnCfg(
                             entityCategory = EntityCategory.ENEMY,
                             physicMaskCategory = (
@@ -153,6 +155,80 @@ data class SpawnCfg(
                             nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS,
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),
                             chaseSpeed = CHASE_SPEED,
+                            zIndex = 10,
+                            soundTrigger =
+                                mapOf(
+                                    AnimationType.WALK to
+                                        mapOf(
+                                            0 to SoundType.MUSHROOM_FOOTSTEPS,
+                                            2 to SoundType.MUSHROOM_FOOTSTEPS,
+                                            4 to SoundType.MUSHROOM_FOOTSTEPS,
+                                            6 to SoundType.MUSHROOM_FOOTSTEPS,
+                                        ),
+                                    AnimationType.HIT to
+                                        mapOf(
+                                            1 to SoundType.MUSHROOM_HIT,
+                                        ),
+                                    AnimationType.ATTACK_1 to
+                                        mapOf(
+                                            1 to SoundType.MUSHROOM_ATTACK,
+                                        ),
+                                    AnimationType.DYING to
+                                        mapOf(
+                                            1 to SoundType.MUSHROOM_DEATH,
+                                        ),
+                                    AnimationType.JUMP to
+                                        mapOf(
+                                            1 to SoundType.MUSHROOM_JUMP,
+                                        ),
+                                ),
+                            soundProfile =
+                                SoundProfile(
+                                    simpleSounds =
+                                        mapOf(
+                                            SoundType.MUSHROOM_HIT to listOf(SoundAssets.MUSHROOM_HIT_SOUND),
+                                            SoundType.MUSHROOM_ATTACK to listOf(SoundAssets.MUSHROOM_ATTACK_SOUND),
+                                            SoundType.MUSHROOM_DEATH to listOf(SoundAssets.MUSHROOM_DEATH_SOUND),
+                                            SoundType.MUSHROOM_JUMP to listOf(SoundAssets.MUSHROOM_JUMP_SOUND),
+                                        ),
+                                    footstepsSounds =
+                                        mapOf(
+                                            FloorType.STONE to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_STONE),
+                                            FloorType.GRASS to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_GRASS),
+                                        ),
+                                ),
+                        )
+
+                    "minotaur" ->
+                        SpawnCfg(
+                            entityCategory = EntityCategory.ENEMY,
+                            physicMaskCategory = (
+                                EntityCategory.GROUND.bit or
+                                    EntityCategory.WORLD_BOUNDARY.bit or
+                                    EntityCategory.PLAYER.bit or
+                                    EntityCategory.WATER.bit or
+                                    EntityCategory.SENSOR.bit
+                            ),
+                            animationModel = AnimationModel.ENEMY_MINOTAUR,
+                            animationType = AnimationType.IDLE,
+                            animationSpeed = 1.4f,
+                            bodyType = BodyDef.BodyType.DynamicBody,
+                            canAttack = true,
+                            attackDelay = 0.3f,
+                            attackExtraRange = 4f,
+                            damage = 20f,
+                            scaleAttackDamage = 5f,
+                            scaleImage = vec2(17f, 17f),
+                            scalePhysic = vec2(1f, 2.5f),
+                            offsetPhysic = vec2(0f, -1.83f),
+                            aiTreePath = "ai/mushroom.tree",
+                            scaleSpeed = 0.5f,
+                            keepCorpse = false,
+                            removeDelay = 2f,
+                            nearbyEnemiesDefaultSensorRadius = NORMAL_DETECTION_RADIUS * 2f,
+                            nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS * 2f,
+                            nearbyEnemiesSensorOffset = vec2(0f, 0f),
+                            chaseSpeed = CHASE_SPEED * 2f,
                             zIndex = 10,
                             soundTrigger =
                                 mapOf(

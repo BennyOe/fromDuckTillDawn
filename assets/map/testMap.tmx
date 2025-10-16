@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="33" nextobjectid="209">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="33" nextobjectid="211">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
@@ -460,11 +460,11 @@
    <point/>
   </object>
  </objectgroup>
- <objectgroup id="4" name="playerStart" visible="0">
+ <objectgroup id="4" name="playerStart">
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="105" name="playerStart" type="playerStart" x="1057.01" y="227.278">
+  <object id="105" name="playerStart" type="playerStart" x="1391.01" y="225.778">
    <point/>
   </object>
  </objectgroup>
@@ -472,81 +472,15 @@
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="97" name="enemy" x="753.099" y="223.977">
+  <object id="97" name="mushroom" x="762.099" y="225.477">
    <properties>
-    <property name="type" value="enemy"/>
+    <property name="type" value="mushroom"/>
    </properties>
    <point/>
   </object>
-  <object id="197" name="enemy" x="1172" y="246.5">
+  <object id="209" name="minotaur" x="2186" y="230.5">
    <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="198" name="enemy" x="1207" y="244">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="199" name="enemy" x="1242.5" y="243.5">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="200" name="enemy" x="1277" y="243">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="201" name="enemy" x="1303.5" y="241">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="202" name="enemy" x="1329.5" y="242">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="203" name="enemy" x="1225" y="248.5">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="204" name="enemy" x="1260" y="246">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="205" name="enemy" x="1295.5" y="245.5">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="206" name="enemy" x="1330" y="245">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="207" name="enemy" x="1356.5" y="243">
-   <properties>
-    <property name="type" value="enemy"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="208" name="enemy" x="1382.5" y="244">
-   <properties>
-    <property name="type" value="enemy"/>
+    <property name="type" value="minotaur"/>
    </properties>
    <point/>
   </object>
@@ -643,6 +577,11 @@
  <group id="30" name="doorAndTrigger">
   <objectgroup id="32" name="triggers">
    <object id="196" x="991.547" y="230.987" width="14.801" height="23.4063">
+    <properties>
+     <property name="targetId" value="caveDoor01"/>
+    </properties>
+   </object>
+   <object id="210" x="1241.1" y="230.797" width="14.801" height="23.4063">
     <properties>
      <property name="targetId" value="caveDoor01"/>
     </properties>

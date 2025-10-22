@@ -160,12 +160,14 @@ class CharacterSpawner(
 
                 entity += GroundTypeSensorComponent
 
-                entity +=
+                val transformCmp =
                     TransformComponent(
                         vec2(physics.body.position.x, physics.body.position.y),
                         physics.size.x,
                         physics.size.y,
                     )
+                entity += transformCmp
+
                 entity += HealthComponent()
                 entity +=
                     DeadComponent(
@@ -190,14 +192,17 @@ class CharacterSpawner(
 
                 entity += ShaderRenderingComponent()
 
-                entity += JumpComponent()
+                entity +=
+                    JumpComponent(
+                        maxHeight = cfg.jumpHeight,
+                    )
 
                 entity += SoundProfileComponent(cfg.soundProfile)
 
                 when (cfg.entityCategory) {
                     EntityCategory.PLAYER -> spawnPlayerSpecifics(entity, physics)
 
-                    EntityCategory.ENEMY -> spawnEnemySpecifics(entity, cfg)
+                    EntityCategory.ENEMY -> spawnEnemySpecifics(entity, cfg, transformCmp)
 
                     else -> throw IllegalArgumentException("Unsupported character type for 'EntityCategory': ${cfg.entityCategory}")
                 }
@@ -208,6 +213,7 @@ class CharacterSpawner(
     private fun EntityCreateContext.spawnEnemySpecifics(
         entity: Entity,
         cfg: SpawnCfg,
+        transformCmp: TransformComponent,
     ) {
         entity += IntentionComponent()
 
@@ -249,7 +255,7 @@ class CharacterSpawner(
             filter.maskBits = EntityCategory.PLAYER.bit
         }
 
-        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius)
+        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp)
 
         entity += RayHitComponent()
 

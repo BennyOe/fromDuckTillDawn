@@ -7,6 +7,7 @@ import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.config.GameConstants.CHASE_SPEED
+import io.bennyoe.config.GameConstants.JUMP_MAX_HEIGHT
 import io.bennyoe.config.GameConstants.NORMAL_DETECTION_RADIUS
 import io.bennyoe.systems.audio.SoundProfile
 import io.bennyoe.systems.audio.SoundType
@@ -27,6 +28,7 @@ data class SpawnCfg(
     val damage: Float = 5f,
     val scaleAttackDamage: Float = 1f,
     val attackExtraRange: Float = 1f,
+    val jumpHeight: Float = 5f,
     val scalePhysic: Vector2 = vec2(1f, 1f),
     val offsetPhysic: Vector2 = vec2(0f, 0f),
     val scaleImage: Vector2 = vec2(1f, 1f),
@@ -66,6 +68,7 @@ data class SpawnCfg(
                             canAttack = true,
                             attackDelay = 0.1f,
                             attackExtraRange = 1.4f,
+                            jumpHeight = JUMP_MAX_HEIGHT,
                             scaleImage = vec2(4f, 2f),
                             scalePhysic = vec2(0.2f, 0.5f),
                             keepCorpse = true,
@@ -216,9 +219,10 @@ data class SpawnCfg(
                             canAttack = true,
                             attackDelay = 0.3f,
                             attackExtraRange = 4f,
+                            jumpHeight = 10f,
                             damage = 20f,
                             scaleAttackDamage = 5f,
-                            scaleImage = vec2(17f, 17f),
+                            scaleImage = vec2(28f, 17f),
                             scalePhysic = vec2(1f, 2.5f),
                             offsetPhysic = vec2(0f, -1.83f),
                             aiTreePath = "ai/mushroom.tree",
@@ -228,7 +232,7 @@ data class SpawnCfg(
                             nearbyEnemiesDefaultSensorRadius = NORMAL_DETECTION_RADIUS * 2f,
                             nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS * 2f,
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),
-                            chaseSpeed = CHASE_SPEED * 2f,
+                            chaseSpeed = CHASE_SPEED,
                             zIndex = 10,
                             soundTrigger =
                                 mapOf(

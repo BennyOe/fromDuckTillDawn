@@ -13,6 +13,7 @@ import io.bennyoe.config.GameConstants.JUMP_MAX_HEIGHT
 import io.bennyoe.config.GameConstants.NORMAL_DETECTION_RADIUS
 import io.bennyoe.systems.audio.SoundProfile
 import io.bennyoe.systems.audio.SoundType
+import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.FloorType
 import ktx.app.gdxError
 import ktx.math.vec2
@@ -32,7 +33,7 @@ data class SpawnCfg(
     val scalePhysic: Vector2 = vec2(1f, 1f),
     val offsetPhysic: Vector2 = vec2(0f, 0f),
     val scaleImage: Vector2 = vec2(1f, 1f),
-    val zIndex: Int = 1,
+    val zIndex: Int = ZIndex.MIN.value,
     val scaleSpeed: Float = 1f,
     val aiTreePath: String = "",
     val keepCorpse: Boolean = false,
@@ -84,7 +85,7 @@ data class SpawnCfg(
                             scalePhysic = vec2(0.2f, 0.5f),
                             keepCorpse = true,
                             removeDelay = 1f,
-                            zIndex = 20,
+                            zIndex = ZIndex.PLAYER_OFFSET.value,
                             soundTrigger =
                                 mapOf(
                                     AnimationType.WALK to
@@ -181,7 +182,7 @@ data class SpawnCfg(
                             nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS,
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),
                             chaseSpeed = CHASE_SPEED,
-                            zIndex = 10,
+                            zIndex = ZIndex.ENEMY_OFFSET.value,
                             soundTrigger =
                                 mapOf(
                                     AnimationType.WALK to
@@ -257,8 +258,6 @@ data class SpawnCfg(
                                         ),
                                 ),
                             jumpHeight = 10f,
-                            damage = 20f,
-                            scaleAttackDamage = 5f,
                             scaleImage = vec2(28f, 17f),
                             scalePhysic = vec2(1f, 2.5f),
                             offsetPhysic = vec2(0f, -1.83f),
@@ -270,7 +269,7 @@ data class SpawnCfg(
                             nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS * 2f,
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),
                             chaseSpeed = CHASE_SPEED,
-                            zIndex = 10,
+                            zIndex = ZIndex.ENEMY_OFFSET.value,
                             soundTrigger =
                                 mapOf(
                                     AnimationType.WALK to

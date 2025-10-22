@@ -9,11 +9,12 @@ import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.actors.ParticleActor
+import io.bennyoe.systems.render.ZIndex
 
 class ParticleComponent(
     private val stage: Stage,
     val type: ParticleType,
-    var zIndex: Int = 0,
+    var zIndex: Int = ZIndex.PARTICLES.value,
     val particleFile: FileHandle,
     val scaleFactor: Float = 1f,
     val motionScaleFactor: Float = 1f,

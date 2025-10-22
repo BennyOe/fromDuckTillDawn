@@ -56,6 +56,7 @@ import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.debug.DebugRenderer
+import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.FixtureSensorData
 import io.bennyoe.utility.SensorType
@@ -349,7 +350,7 @@ class CharacterSpawner(
                 motionScaleFactor = .05f,
                 looping = true,
                 stage = stage,
-                zIndex = 60000,
+                zIndex = ZIndex.PARTICLES.value,
                 enabled = false,
                 type = ParticleType.AIR_BUBBLES,
             )

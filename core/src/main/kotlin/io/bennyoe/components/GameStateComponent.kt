@@ -5,6 +5,7 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import io.bennyoe.components.debug.DebugComponent.Companion.logger
 import io.bennyoe.config.GameConstants.INITIAL_TIME_OF_DAY
+import io.bennyoe.systems.render.ZIndex
 
 class GameStateComponent(
     var isPaused: Boolean = false,
@@ -92,8 +93,8 @@ enum class TimeOfDay { DAY, NIGHT, DAWN, DUSK, TWILIGHT }
 
 enum class Weather(
     val cloudSpawnSpeed: Float,
-    val minZIndex: Int = 1000,
-    val maxZIndex: Int = 1000,
+    val minZIndex: Int = ZIndex.SKY.value,
+    val maxZIndex: Int = ZIndex.SKY.value,
     val minSize: Float = 16f,
     val maxSize: Float = 32f,
     val minImageAlpha: Float = .7f,
@@ -106,13 +107,13 @@ enum class Weather(
     PARTIALLY_CLOUDY(cloudSpawnSpeed = 20f),
     CLOUDY(
         cloudSpawnSpeed = 6f,
-        maxZIndex = 3000,
+        maxZIndex = ZIndex.PARALLAX_BG_1.value,
         shadowMultiplier = .6f,
         lightMultiplier = Color(.8f, .8f, .8f, .8f),
     ),
     RAIN(
         cloudSpawnSpeed = 1f,
-        maxZIndex = 4000,
+        maxZIndex = ZIndex.PARALLAX_BG_2.value,
         minSize = 32f,
         maxSize = 64f,
         minImageAlpha = 1f,

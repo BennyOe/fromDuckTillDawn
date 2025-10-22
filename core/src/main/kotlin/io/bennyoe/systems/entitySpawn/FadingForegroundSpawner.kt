@@ -15,7 +15,7 @@ import ktx.tiled.width
 import ktx.tiled.x
 import ktx.tiled.y
 
-class ForegroundSpawner(
+class FadingForegroundSpawner(
     private val world: World,
     private val stage: Stage,
     private val foregroundAtlas: TextureAtlas,

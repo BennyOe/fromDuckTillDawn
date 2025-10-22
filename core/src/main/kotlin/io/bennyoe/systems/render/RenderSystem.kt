@@ -162,24 +162,26 @@ class RenderSystem(
         // 1. Add all map image layers
         mapImageLayers.forEach { layer ->
             if (layer.textureRegion == null) return
-            val zIndex = layer.properties.get("zIndex", Int::class.java) ?: 0
             val renderedOnTopOfWater = layer.properties.get("renderedOnTopOfWater", Boolean::class.java) ?: false
 
             if (renderedOnTopOfWater) {
+                val zIndex = layer.properties.get("zIndex", Int::class.java) ?: ZIndex.TILES_BEFORE_WATER.value
                 renderQueueOnTopOfWater.add(RenderableElement.ImageLayer(layer, zIndex))
             } else {
+                val zIndex = layer.properties.get("zIndex", Int::class.java) ?: ZIndex.MIN.value
                 renderQueue.add(RenderableElement.ImageLayer(layer, zIndex))
             }
         }
 
         // 2. Add all map tile layers
         mapTileLayers.forEach { layer ->
-            val zIndex = layer.properties.get("zIndex", Int::class.java) ?: 7000
             val renderedOnTopOfWater = layer.properties.get("renderedOnTopOfWater", Boolean::class.java) ?: false
 
             if (renderedOnTopOfWater) {
+                val zIndex = layer.properties.get("zIndex", Int::class.java) ?: ZIndex.TILES_BEFORE_WATER.value
                 renderQueueOnTopOfWater.add(RenderableElement.TileLayer(layer, zIndex))
             } else {
+                val zIndex = layer.properties.get("zIndex", Int::class.java) ?: ZIndex.TILES.value
                 renderQueue.add(RenderableElement.TileLayer(layer, zIndex))
             }
         }

@@ -18,6 +18,7 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.CharacterTypeComponent
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.GroundTypeSensorComponent
@@ -41,6 +42,7 @@ import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants
 import io.bennyoe.config.SpawnCfg
@@ -91,7 +93,9 @@ class CharacterSpawner(
         layerZIndex: Int,
     ) {
         characterObjectsLayer.objects.forEach { characterObj ->
-            val cfg = SpawnCfg.createSpawnCfg(characterObj.type ?: throw IllegalArgumentException("Type must not be null"))
+            val characterType =
+                CharacterType.valueOf(characterObj.type?.uppercase() ?: throw IllegalArgumentException("Type must not be null"))
+            val cfg = SpawnCfg.createSpawnCfg(characterType)
             val relativeSize = size(cfg.animationModel, cfg.animationType)
             world.entity { entity ->
                 // Add general components
@@ -114,6 +118,8 @@ class CharacterSpawner(
                 animation.nextAnimation(cfg.animationType)
                 animation.animationSoundTriggers = cfg.soundTrigger
                 entity += animation
+
+                entity += CharacterTypeComponent(cfg.characterType)
 
                 val physics =
                     PhysicComponent.physicsComponentFromImage(
@@ -183,10 +189,7 @@ class CharacterSpawner(
 
                 if (cfg.canAttack) {
                     val attackCmp = AttackComponent()
-                    attackCmp.baseDamage = cfg.damage
-                    attackCmp.extraRange *= cfg.attackExtraRange
-                    attackCmp.maxDamage *= cfg.scaleAttackDamage
-                    attackCmp.attackDelay = cfg.attackDelay
+                    attackCmp.attackMap = cfg.attackMap
                     entity += attackCmp
                 }
 

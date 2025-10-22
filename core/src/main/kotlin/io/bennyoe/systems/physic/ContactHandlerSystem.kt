@@ -319,8 +319,8 @@ class ContactHandlerSystem(
 
         val (player, enemy) = pair
         with(world) {
-            val attack = enemy.entity[AttackComponent]
-            val health = player.entity[HealthComponent]
+            val attackCmp = enemy.entity[AttackComponent]
+            val healthCmp = player.entity[HealthComponent]
 
             val playerX =
                 player.entity[PhysicComponent]
@@ -329,8 +329,8 @@ class ContactHandlerSystem(
                 enemy.entity[PhysicComponent]
                     .body.position.x
 
-            health.attackedFromBehind = playerX > enemyX
-            health.takenDamage = attack.maxDamage
+            healthCmp.attackedFromBehind = playerX > enemyX
+            healthCmp.takenDamage = attackCmp.attackMap[attackCmp.appliedAttack]?.maxDamage ?: 0f
         }
     }
 

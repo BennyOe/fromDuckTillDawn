@@ -3,6 +3,7 @@ package io.bennyoe.state.player
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
 import io.bennyoe.components.AnimationType
+import io.bennyoe.components.AttackType
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.event.PlaySoundEvent
@@ -219,7 +220,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             logger.debug { "Entering ATTACK_1" }
             ctx.intentionCmp.wantsToAttack = false
             ctx.setAnimation(AnimationType.ATTACK_1)
-            ctx.attackComponent.applyAttack = true
+            ctx.attackComponent.appliedAttack = AttackType.SWORD
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -247,7 +248,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.intentionCmp.wantsToAttack2 = false
             ctx.intentionCmp.wantsToAttack = false
             ctx.setAnimation(AnimationType.ATTACK_2)
-            ctx.attackComponent.applyAttack = true
+            ctx.attackComponent.appliedAttack = AttackType.SWORD
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -275,7 +276,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.intentionCmp.wantsToAttack3 = false
             ctx.intentionCmp.wantsToAttack = false
             ctx.setAnimation(AnimationType.ATTACK_3)
-            ctx.attackComponent.applyAttack = true
+            ctx.attackComponent.appliedAttack = AttackType.SWORD
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -391,7 +392,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.add(HitEffectComponent())
             ctx.moveComponent.throwBack = true
             ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
-            ctx.attackComponent.applyAttack = false
+            ctx.attackComponent.appliedAttack = AttackType.NONE
             ctx.healthComponent.takenDamage = 0f
         }
 

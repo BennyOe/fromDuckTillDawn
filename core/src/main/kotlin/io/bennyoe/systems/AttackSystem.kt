@@ -9,9 +9,11 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.AttackType
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.TimeScaleComponent
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.addToDebugView
@@ -29,20 +31,27 @@ class AttackSystem(
 ) : IteratingSystem(family { all(AttackComponent) }),
     PausableSystem {
     private var attackDelayCounter = 0f
+    private val timeScaleCmp by lazy { world.family { all(TimeScaleComponent) }.first()[TimeScaleComponent] }
 
     override fun onTickEntity(entity: Entity) {
         val attackCmp = entity[AttackComponent]
         val physicCmp = entity[PhysicComponent]
         val imageCmp = entity[ImageComponent]
 
-        if (!attackCmp.applyAttack) return
+        if (attackCmp.appliedAttack == AttackType.NONE) return
 
-        if (attackDelayCounter < attackCmp.attackDelay) {
+        val appliedAttack = attackCmp.attackMap[attackCmp.appliedAttack]!!
+
+        if (attackDelayCounter < appliedAttack.attackDelay) {
             attackDelayCounter += deltaTime
             return
         }
 
-        attackCmp.applyAttack = false
+        // set the hit stop if it is available
+        timeScaleCmp.isHitStopActive = appliedAttack.hasHitStop
+        timeScaleCmp.currentHitStopDuration = appliedAttack.hitStopDuration
+
+        attackCmp.appliedAttack = AttackType.NONE
         attackDelayCounter = 0f
 
         val leftAttack = imageCmp.flipImage
@@ -51,12 +60,12 @@ class AttackSystem(
         val halfW = w * 0.5f
         val halfH = h * 0.5f
 
-        val attackX = if (leftAttack) x - halfW - attackCmp.extraRange else x + halfW
+        val attackX = if (leftAttack) x - halfW - appliedAttack.extraRange else x + halfW
         AABB_Rect
             .set(
                 attackX,
                 y - halfH,
-                attackCmp.extraRange,
+                appliedAttack.extraRange,
                 h,
             ).addToDebugView(debugRenderer, Color.GOLD, "attack box", ShapeRenderer.ShapeType.Filled, 0.4f, 1f, DebugType.ATTACK)
 
@@ -88,7 +97,7 @@ class AttackSystem(
             logger.debug { "Fixture found" }
             bodyData.entity.configure {
                 val healthCmp = it.getOrNull(HealthComponent)
-                healthCmp?.takeDamage(attackCmp.baseDamage)
+                healthCmp?.takeDamage(appliedAttack.baseDamage)
                 healthCmp?.attackedFromBehind = x < fixture.body.position.x
             }
             return@query true

@@ -32,13 +32,12 @@ class DamageSystem(
         val attackCmp = entity[AttackComponent]
         val animationCmp = entity[AnimationComponent]
         val stateCmp = entity[StateComponent]
+        val baseDamageString = attackCmp.attackMap[attackCmp.appliedAttack]?.baseDamage ?: 0f
 
         if (healthCmp.takenDamage > 0f) {
             logger.debug { "takenDamage: ${healthCmp.takenDamage}" }
             healthCmp.current -= healthCmp.takenDamage
             healthCmp.takenDamage = 0f
-
-            world.system<TimeSystem>().startHitStop()
 
             if (entity hasNo PlayerComponent) {
                 animationCmp.nextAnimation(AnimationType.HIT)
@@ -55,7 +54,7 @@ class DamageSystem(
                         physicCmp.body.position.x,
                         physicCmp.body.position.y - physicCmp.size.y * 0.8f,
                     )
-                damageTextCmp.label = Label("${attackCmp.baseDamage.toInt()} / ${healthCmp.current.toInt()}", Scene2DSkin.defaultSkin)
+                damageTextCmp.label = Label("${baseDamageString.toInt()} / ${healthCmp.current.toInt()}", Scene2DSkin.defaultSkin)
                 entity.configure { it += damageTextCmp }
             }
         }

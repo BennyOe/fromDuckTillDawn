@@ -5,6 +5,8 @@ import com.badlogic.gdx.physics.box2d.BodyDef
 import io.bennyoe.assets.SoundAssets
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
+import io.bennyoe.components.Attack
+import io.bennyoe.components.AttackType
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.config.GameConstants.CHASE_SPEED
 import io.bennyoe.config.GameConstants.JUMP_MAX_HEIGHT
@@ -24,10 +26,8 @@ data class SpawnCfg(
     val entityCategory: EntityCategory = EntityCategory.GROUND,
     val physicMaskCategory: Short = 0x0000,
     val canAttack: Boolean = false,
-    val attackDelay: Float = 0.2f,
-    val damage: Float = 5f,
-    val scaleAttackDamage: Float = 1f,
-    val attackExtraRange: Float = 1f,
+    val attackMap: Map<AttackType, Attack> = mapOf(),
+    val characterType: CharacterType = CharacterType.PLAYER,
     val jumpHeight: Float = 5f,
     val scalePhysic: Vector2 = vec2(1f, 1f),
     val offsetPhysic: Vector2 = vec2(0f, 0f),
@@ -46,12 +46,12 @@ data class SpawnCfg(
     val soundProfile: SoundProfile = SoundProfile(),
 ) {
     companion object {
-        val cachedSpawnCfgs = mutableMapOf<String, SpawnCfg>()
+        val cachedSpawnCfgs = mutableMapOf<CharacterType, SpawnCfg>()
 
-        fun createSpawnCfg(type: String): SpawnCfg =
-            cachedSpawnCfgs.getOrPut(type) {
-                when (type) {
-                    "playerStart" ->
+        fun createSpawnCfg(characterType: CharacterType): SpawnCfg =
+            cachedSpawnCfgs.getOrPut(characterType) {
+                when (characterType) {
+                    CharacterType.PLAYER ->
                         SpawnCfg(
                             entityCategory = EntityCategory.PLAYER,
                             physicMaskCategory = (
@@ -65,9 +65,20 @@ data class SpawnCfg(
                             animationModel = AnimationModel.PLAYER_DAWN,
                             animationType = AnimationType.IDLE,
                             bodyType = BodyDef.BodyType.DynamicBody,
+                            characterType = CharacterType.PLAYER,
                             canAttack = true,
-                            attackDelay = 0.1f,
-                            attackExtraRange = 1.4f,
+                            attackMap =
+                                mapOf(
+                                    AttackType.SWORD to
+                                        Attack(
+                                            AttackType.SWORD,
+                                            CharacterType.PLAYER,
+                                            5f,
+                                            5f,
+                                            1.4f,
+                                            0.2f,
+                                        ),
+                                ),
                             jumpHeight = JUMP_MAX_HEIGHT,
                             scaleImage = vec2(4f, 2f),
                             scalePhysic = vec2(0.2f, 0.5f),
@@ -132,7 +143,7 @@ data class SpawnCfg(
                                 ),
                         )
 
-                    "mushroom" ->
+                    CharacterType.MUSHROOM ->
                         SpawnCfg(
                             entityCategory = EntityCategory.ENEMY,
                             physicMaskCategory = (
@@ -145,8 +156,20 @@ data class SpawnCfg(
                             animationModel = AnimationModel.ENEMY_MUSHROOM,
                             animationType = AnimationType.IDLE,
                             bodyType = BodyDef.BodyType.DynamicBody,
+                            characterType = CharacterType.MUSHROOM,
                             canAttack = true,
-                            attackDelay = 0.3f,
+                            attackMap =
+                                mapOf(
+                                    AttackType.HEADNUT to
+                                        Attack(
+                                            AttackType.HEADNUT,
+                                            CharacterType.MUSHROOM,
+                                            5f,
+                                            5f,
+                                            1f,
+                                            0.3f,
+                                        ),
+                                ),
                             scaleImage = vec2(3f, 3f),
                             scalePhysic = vec2(0.2f, 0.4f),
                             offsetPhysic = vec2(0f, -0.7f),
@@ -202,7 +225,7 @@ data class SpawnCfg(
                                 ),
                         )
 
-                    "minotaur" ->
+                    CharacterType.MINOTAUR ->
                         SpawnCfg(
                             entityCategory = EntityCategory.ENEMY,
                             physicMaskCategory = (
@@ -216,9 +239,23 @@ data class SpawnCfg(
                             animationType = AnimationType.IDLE,
                             animationSpeed = 1.4f,
                             bodyType = BodyDef.BodyType.DynamicBody,
+                            characterType = CharacterType.MINOTAUR,
                             canAttack = true,
-                            attackDelay = 0.3f,
-                            attackExtraRange = 4f,
+                            attackMap =
+                                mapOf(
+                                    // TODO needs to be changed to AttackType.AXE as soon as the Minotaur gets his own FSM and AI
+                                    AttackType.HEADNUT to
+                                        Attack(
+                                            AttackType.HEADNUT,
+                                            CharacterType.MINOTAUR,
+                                            20f,
+                                            25f,
+                                            4f,
+                                            0.3f,
+                                            true,
+                                            .3f,
+                                        ),
+                                ),
                             jumpHeight = 10f,
                             damage = 20f,
                             scaleAttackDamage = 5f,
@@ -277,7 +314,7 @@ data class SpawnCfg(
                                 ),
                         )
 
-                    else -> gdxError("There is no spawn configuration for entity-type $type")
+                    else -> gdxError("There is no spawn configuration for entity-type $characterType")
                 }
             }
     }

@@ -19,6 +19,7 @@ class TimeSystem : IntervalSystem() {
     private var fastForwardEndTime = 0f
 
     override fun onTick() {
+        if (timeScaleCmp.isHitStopActive) startHitStop(duration = timeScaleCmp.currentHitStopDuration)
         handleHitStop()
         handleFastForwardTrigger(gameStateCmp)
         updateTime()
@@ -39,6 +40,7 @@ class TimeSystem : IntervalSystem() {
             timeScaleCmp.hitStopTimer -= Gdx.graphics.deltaTime
             if (timeScaleCmp.hitStopTimer <= 0f) {
                 timeScaleCmp.current = 1f
+                timeScaleCmp.isHitStopActive = false
             }
         }
     }

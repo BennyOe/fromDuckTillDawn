@@ -61,8 +61,8 @@ class CloudSystem(
 
         val viewportRight = camera.position.x + camera.viewportWidth * camera.zoom / 2f
         if (transformCmp.position.x > viewportRight + imageCmp.image.width) {
-            entity.configure { it += DisabledComponent }
             imageCmp.image.isVisible = false
+            entity.configure { it += DisabledComponent }
             cloudPool.add(entity)
         }
     }

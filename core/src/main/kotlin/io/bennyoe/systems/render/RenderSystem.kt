@@ -18,6 +18,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ChainRenderComponent
+import io.bennyoe.components.DisabledComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.components.ImageComponent
@@ -188,6 +189,8 @@ class RenderSystem(
 
         // 3. Add all entities
         world.family { any(ImageComponent, ParticleComponent) }.forEach { entity ->
+            if (entity has DisabledComponent) return@forEach
+
             val shaderRenderingCmp = entity.getOrNull(ShaderRenderingComponent)
             val hitEffectCmp = entity.getOrNull(HitEffectComponent)
             val transformCmp = entity[TransformComponent]

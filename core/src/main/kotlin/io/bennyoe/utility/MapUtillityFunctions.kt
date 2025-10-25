@@ -44,3 +44,20 @@ fun MapLayers.findTileLayerDeep(): List<TiledMapTileLayer> {
     }
     return result
 }
+
+/**
+ * Finds all layers recursively within the given layers collection
+ * whose names start with the specified prefix.
+ */
+fun MapLayers.findLayersStartingWithDeep(prefix: String): List<MapLayer> {
+    val result = mutableListOf<MapLayer>()
+    this.forEach { layer ->
+        if (layer.name.startsWith(prefix)) {
+            result.add(layer)
+        }
+        if (layer is MapGroupLayer) {
+            result.addAll(layer.layers.findLayersStartingWithDeep(prefix)) // Recursive call
+        }
+    }
+    return result
+}

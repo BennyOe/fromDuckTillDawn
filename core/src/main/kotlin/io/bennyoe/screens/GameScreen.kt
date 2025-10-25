@@ -53,6 +53,7 @@ import io.bennyoe.systems.HitStopSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.ParallaxSystem
 import io.bennyoe.systems.ParticleRemoveSystem
 import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
@@ -104,6 +105,7 @@ class GameScreen(
     private val waterAtlas = assets[TextureAssets.WATER_ATLAS.descriptor]
     private val cloudsAtlas = assets[TextureAssets.CLOUDS_ATLAS.descriptor]
     private val rainCloudsAtlas = assets[TextureAssets.RAIN_CLOUDS_ATLAS.descriptor]
+    private val animatedBgAtlas = assets[TextureAssets.ANIMATED_BG_ATLAS.descriptor]
     private val dawnAtlases =
         TextureAtlases(
             assets[TextureAssets.DAWN_ATLAS.descriptor],
@@ -183,6 +185,7 @@ class GameScreen(
                 add("waterAtlas", waterAtlas)
                 add("cloudsAtlas", cloudsAtlas)
                 add("rainCloudsAtlas", rainCloudsAtlas)
+                add("animatedBgAtlas", animatedBgAtlas)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
                 add("minotaurAtlases", minotaurAtlases)
@@ -228,6 +231,7 @@ class GameScreen(
                 add(MusicSystem())
                 add(BasicSensorsSystem())
                 add(StateSystem())
+                add(ParallaxSystem())
                 add(BehaviorTreeSystem())
                 add(GameMoodSystem())
                 add(TimeSystem())

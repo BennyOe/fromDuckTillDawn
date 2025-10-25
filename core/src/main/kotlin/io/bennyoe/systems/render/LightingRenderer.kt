@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.maps.tiled.tiles.AnimatedTiledMapTile
@@ -14,9 +15,11 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Family
 import com.github.quillraven.fleks.World
+import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ChainRenderComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.ParallaxComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.TiledTextureComponent
@@ -27,6 +30,7 @@ import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.render.DrawUtils.drawRegion
 import kotlin.math.atan2
+import kotlin.math.roundToInt
 
 class LightingRenderer(
     val stage: Stage,
@@ -79,7 +83,15 @@ class LightingRenderer(
                         }
 
                         is RenderableElement.EntityWithImage -> {
-                            renderEntityWithCorrectShader(engine, renderable, currentShader, gameStateCmp.timeOfDay, continuousTime)
+                            val parallaxCmp = with(world) { renderable.entity.getOrNull(ParallaxComponent) } // ADDED Check
+                            val animationCmp = with(world) { renderable.entity.getOrNull(AnimationComponent) } // ADDED Check
+                            if (parallaxCmp != null && animationCmp == null) {
+                                shaderService.switchToDefaultIfNeeded(engine, currentShader)
+                                drawTilingParallaxBackground(engine, renderable.imageCmp, renderable.transformCmp, parallaxCmp)
+                                ShaderType.DEFAULT
+                            } else {
+                                renderEntityWithCorrectShader(engine, renderable, currentShader, gameStateCmp.timeOfDay, continuousTime)
+                            }
                         }
 
                         is RenderableElement.EntityWithParticle -> {
@@ -101,6 +113,73 @@ class LightingRenderer(
             }
             renderChains(engine, chainFamily)
         }
+    }
+
+    private fun drawTilingParallaxBackground(
+        engine: Scene2dLightEngine,
+        imageCmp: ImageComponent,
+        transformCmp: TransformComponent,
+        parallaxCmp: ParallaxComponent,
+    ) {
+        val drawable = imageCmp.image.drawable as? TextureRegionDrawable ?: return
+        val region = drawable.region
+        val texture = region.texture ?: return
+
+        // Ensure texture wrap modes are set correctly
+        if (texture.uWrap != Texture.TextureWrap.Repeat || texture.vWrap != Texture.TextureWrap.ClampToEdge) {
+            texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.ClampToEdge)
+        }
+
+        // Texture dimensions in PIXELS
+        val texturePixelWidth = region.regionWidth.toFloat()
+        val texturePixelHeight = region.regionHeight.toFloat()
+        if (texturePixelWidth <= 0 || texturePixelHeight <= 0) return
+
+        if (transformCmp.width <= 0 || transformCmp.height <= 0) return
+
+        // --- Destination Rectangle ---
+        // X and Width are from the Tiled rectangle (defines the horizontal space)
+        val destX = parallaxCmp.initialPosition.x
+        val destWidth = parallaxCmp.worldWidth
+        // Y is the bottom of the Tiled rectangle
+        val destY = parallaxCmp.initialPosition.y
+        // Height is the ORIGINAL image height to preserve aspect ratio
+        val destHeight = transformCmp.height
+        // --- End Destination Rectangle ---
+
+        // --- srcX Calculation (Scrolling Offset in Pixels) ---
+        val offsetWorldUnits = destX - transformCmp.position.x
+        val offsetTexturePixels = (offsetWorldUnits / transformCmp.width) * texturePixelWidth
+        var srcX = offsetTexturePixels % texturePixelWidth
+        if (srcX < 0) {
+            srcX += texturePixelWidth
+        }
+        // --- End srcX Calculation ---
+
+        // --- Source Rectangle (Pixels) ---
+        // Y and Height come directly from the texture region
+        val srcY = region.regionY.toFloat()
+        val srcHeight = region.regionHeight.toFloat() // MODIFIED - Use full region height
+
+        // Width needs to cover the horizontal repetitions based on destWidth
+        val repetitionsNeeded = MathUtils.ceil(destWidth / transformCmp.width)
+        val srcWidth = texturePixelWidth * repetitionsNeeded // Use texturePixelWidth
+
+        // --- End Source Rectangle ---
+
+        engine.batch.draw(
+            texture,
+            destX, // Destination X (Tiled Rect)
+            destY, // Destination Y (Bottom of Tiled Rect) // MODIFIED
+            destWidth, // Destination Width (Tiled Rect)
+            destHeight, // Destination Height (Original Image Height) // MODIFIED
+            srcX.roundToInt(), // Source X (pixels, scrolling offset)
+            srcY.roundToInt(), // Source Y (pixels, from region)
+            srcWidth.roundToInt(), // Source Width (pixels, enough for repeats) // MODIFIED
+            srcHeight.roundToInt(), // Source Height (pixels, full region height) // MODIFIED
+            imageCmp.flipImage,
+            false,
+        )
     }
 
     private fun renderChains(

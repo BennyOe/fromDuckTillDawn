@@ -27,6 +27,7 @@ enum class TextureAssets(
     CROW_S_ATLAS("crow_s.atlas"),
     BG_NORMAL("bg_normal.atlas"),
     BG_NORMAL_N("bg_normal_n.atlas"),
+    ANIMATED_BG_ATLAS("animated_bg.atlas"),
 
     //    BG_NORMAL_S("bg_normal_s.atlas"),
     FOREGROUND("foreground.atlas"),

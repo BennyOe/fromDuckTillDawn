@@ -16,6 +16,7 @@ import io.bennyoe.systems.PausableSystem
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.findLayerDeep
+import io.bennyoe.utility.findLayersStartingWithDeep
 
 class EntitySpawnSystem(
     stage: Stage = World.inject("stage"),
@@ -28,6 +29,7 @@ class EntitySpawnSystem(
     minotaurAtlases: TextureAtlases = World.inject("minotaurAtlases"),
     bgNormalAtlases: TextureAtlases = World.inject("bgNormalAtlases"),
     forgroundAtlas: TextureAtlas = World.inject("foregroundAtlas"),
+    animatedBgAtlas: TextureAtlas = World.inject("animatedBgAtlas"),
 ) : IteratingSystem(World.family { all(SpawnComponent) }),
     EventListener,
     PausableSystem {
@@ -42,6 +44,7 @@ class EntitySpawnSystem(
     private val bgNormalSpawner = BgNormalSpawner(world, stage, bgNormalAtlases)
     private val fadingForegroundSpawner = FadingForegroundSpawner(world, stage, forgroundAtlas)
     private val doorSpawner = DoorSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
+    private val backgroundParallaxSpawner = BackgroundParallaxSpawner(world, stage, animatedBgAtlas)
 
     override fun onTickEntity(entity: Entity) {
     }
@@ -135,6 +138,14 @@ class EntitySpawnSystem(
                 event.map.layers
                     .findLayerDeep("triggers")
                     ?.let { doorSpawner.spawnTrigger(it) }
+                event.map.layers
+                    .findLayersStartingWithDeep("parallax")
+                    .forEach { layer ->
+                        backgroundParallaxSpawner.spawnParallaxBackgrounds(
+                            layer,
+                            getLayerZIndex(layer) ?: 0,
+                        )
+                    }
                 return true
             }
         }

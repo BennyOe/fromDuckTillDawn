@@ -10,7 +10,7 @@
  <tileset firstgid="649" source="fire.tsx"/>
  <tileset firstgid="689" source="lantern.tsx"/>
  <group id="23" name="bg">
-  <objectgroup id="20" name="sky">
+  <objectgroup id="20" name="sky" visible="0">
    <properties>
     <property name="zIndex" type="int" value="0"/>
    </properties>
@@ -63,7 +63,7 @@
     <point/>
    </object>
   </objectgroup>
-  <objectgroup id="33" name="parallaxBg0" parallaxx="0.05">
+  <objectgroup id="33" name="parallaxBg0" visible="0" parallaxx="0.05">
    <properties>
     <property name="zIndex" type="int" value="2000"/>
    </properties>
@@ -73,7 +73,7 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="34" name="parallaxBg1" parallaxx="0.5">
+  <objectgroup id="34" name="parallaxBg1" visible="0" parallaxx="0.5">
    <properties>
     <property name="zIndex" type="int" value="3000"/>
    </properties>
@@ -110,7 +110,7 @@
     </properties>
    </object>
   </objectgroup>
-  <objectgroup id="37" name="parallaxBg4">
+  <objectgroup id="37" name="parallaxBg4" visible="0">
    <properties>
     <property name="zIndex" type="int" value="6000"/>
    </properties>

@@ -121,64 +121,61 @@ class LightingRenderer(
         transformCmp: TransformComponent,
         parallaxCmp: ParallaxComponent,
     ) {
+        // Resolve drawable/region/texture; abort early on missing data
         val drawable = imageCmp.image.drawable as? TextureRegionDrawable ?: return
         val region = drawable.region
         val texture = region.texture ?: return
 
-        // Ensure texture wrap modes are set correctly
+        // Ensure correct wrap: horizontal repeat (U), vertical clamp (V)
         if (texture.uWrap != Texture.TextureWrap.Repeat || texture.vWrap != Texture.TextureWrap.ClampToEdge) {
             texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.ClampToEdge)
         }
 
-        // Texture dimensions in PIXELS
+        // Basic sanity checks for source (pixels) and destination (world units)
         val texturePixelWidth = region.regionWidth.toFloat()
         val texturePixelHeight = region.regionHeight.toFloat()
         if (texturePixelWidth <= 0 || texturePixelHeight <= 0) return
-
         if (transformCmp.width <= 0 || transformCmp.height <= 0) return
 
-        // --- Destination Rectangle ---
-        // X and Width are from the Tiled rectangle (defines the horizontal space)
+        // Destination rectangle in world coordinates
         val destX = parallaxCmp.initialPosition.x
         val destWidth = parallaxCmp.worldWidth
-        // Y is the bottom of the Tiled rectangle
         val destY = parallaxCmp.initialPosition.y
-        // Height is the ORIGINAL image height to preserve aspect ratio
         val destHeight = transformCmp.height
-        // --- End Destination Rectangle ---
 
-        // --- srcX Calculation (Scrolling Offset in Pixels) ---
-        val offsetWorldUnits = destX - transformCmp.position.x
-        val offsetTexturePixels = (offsetWorldUnits / transformCmp.width) * texturePixelWidth
-        var srcX = offsetTexturePixels % texturePixelWidth
-        if (srcX < 0) {
-            srcX += texturePixelWidth
-        }
-        // --- End srcX Calculation ---
+        // Define one tile as the actually drawn Image width (keeps visual sync with other systems)
+        val drawnWidthWu = imageCmp.image.width.toDouble()
+        if (drawnWidthWu <= 0.0) return
 
-        // --- Source Rectangle (Pixels) ---
-        // Y and Height come directly from the texture region
-        val srcY = region.regionY.toFloat()
-        val srcHeight = region.regionHeight.toFloat() // MODIFIED - Use full region height
+        // Compute phase within a single tile based on world offset
+        fun floorMod(
+            x: Double,
+            m: Double,
+        ): Double = ((x % m) + m) % m
+        val offsetWu = destX.toDouble() - transformCmp.position.x.toDouble()
+        val offsetTiles = offsetWu / drawnWidthWu
+        val phaseTiles = floorMod(offsetTiles, 1.0)
+        val tilesVisible = destWidth.toDouble() / drawnWidthWu
 
-        // Width needs to cover the horizontal repetitions based on destWidth
-        val repetitionsNeeded = MathUtils.ceil(destWidth / transformCmp.width)
-        val srcWidth = texturePixelWidth * repetitionsNeeded // Use texturePixelWidth
+        // Map tile phase/span to U coordinates; handle optional horizontal flip
+        val tileSpanU = (region.u2 - region.u).toDouble()
+        val u0 = region.u.toDouble() + phaseTiles * tileSpanU
+        val u1 = u0 + tilesVisible * tileSpanU
+        val (uStart, uEnd) = if (!imageCmp.flipImage) u0 to u1 else u1 to u0
 
-        // --- End Source Rectangle ---
-
+        // Draw using UVs (U repeats horizontally, V covers the full region vertically)
+        val vStart = region.v2
+        val vEnd = region.v
         engine.batch.draw(
-            texture,
-            destX, // Destination X (Tiled Rect)
-            destY, // Destination Y (Bottom of Tiled Rect) // MODIFIED
-            destWidth, // Destination Width (Tiled Rect)
-            destHeight, // Destination Height (Original Image Height) // MODIFIED
-            srcX.roundToInt(), // Source X (pixels, scrolling offset)
-            srcY.roundToInt(), // Source Y (pixels, from region)
-            srcWidth.roundToInt(), // Source Width (pixels, enough for repeats) // MODIFIED
-            srcHeight.roundToInt(), // Source Height (pixels, full region height) // MODIFIED
-            imageCmp.flipImage,
-            false,
+            region.texture,
+            destX,
+            destY,
+            destWidth,
+            destHeight,
+            uStart.toFloat(),
+            vStart,
+            uEnd.toFloat(),
+            vEnd,
         )
     }
 

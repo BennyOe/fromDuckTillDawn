@@ -30,7 +30,11 @@ import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.render.DrawUtils.drawRegion
 import kotlin.math.atan2
-import kotlin.math.roundToInt
+
+private fun floorMod(
+    x: Float,
+    m: Float,
+): Float = ((x % m) + m) % m
 
 class LightingRenderer(
     val stage: Stage,
@@ -134,8 +138,8 @@ class LightingRenderer(
         // Basic sanity checks for source (pixels) and destination (world units)
         val texturePixelWidth = region.regionWidth.toFloat()
         val texturePixelHeight = region.regionHeight.toFloat()
-        if (texturePixelWidth <= 0 || texturePixelHeight <= 0) return
-        if (transformCmp.width <= 0 || transformCmp.height <= 0) return
+        if (texturePixelWidth <= 0f || texturePixelHeight <= 0f) return
+        if (transformCmp.width <= 0f || transformCmp.height <= 0f) return
 
         // Destination rectangle in world coordinates
         val destX = parallaxCmp.initialPosition.x
@@ -143,39 +147,43 @@ class LightingRenderer(
         val destY = parallaxCmp.initialPosition.y
         val destHeight = transformCmp.height
 
-        // Define one tile as the actually drawn Image width (keeps visual sync with other systems)
-        val drawnWidthWu = imageCmp.image.width.toDouble()
-        if (drawnWidthWu <= 0.0) return
+        // Use imageCmp.image.width as the base tile width in world units.
+        val tileWidthWu = imageCmp.image.width
+        if (tileWidthWu <= 0.0f) return
 
-        // Compute phase within a single tile based on world offset
-        fun floorMod(
-            x: Double,
-            m: Double,
-        ): Double = ((x % m) + m) % m
-        val offsetWu = destX.toDouble() - transformCmp.position.x.toDouble()
-        val offsetTiles = offsetWu / drawnWidthWu
-        val phaseTiles = floorMod(offsetTiles, 1.0)
-        val tilesVisible = destWidth.toDouble() / drawnWidthWu
+        // Calculate total offset in World Units
+        val offsetWu = destX - transformCmp.position.x
 
-        // Map tile phase/span to U coordinates; handle optional horizontal flip
-        val tileSpanU = (region.u2 - region.u).toDouble()
-        val u0 = region.u.toDouble() + phaseTiles * tileSpanU
+        // Convert world offset to "tile" offset
+        val offsetTiles = offsetWu / tileWidthWu
+
+        // Get the fractional part of the tile offset (e.g., 0.25 for 25% into a tile)
+        val phaseTiles = floorMod(offsetTiles, 1.0f)
+
+        // Calculate how many tiles are visible in the destination rectangle
+        val tilesVisible = destWidth / tileWidthWu
+
+        // Get the U-coordinate span of the texture region
+        val tileSpanU = region.u2 - region.u
+
+        // Calculate start and end U-coordinates
+        val u0 = region.u + phaseTiles * tileSpanU
         val u1 = u0 + tilesVisible * tileSpanU
+
+        // Apply flip if necessary
         val (uStart, uEnd) = if (!imageCmp.flipImage) u0 to u1 else u1 to u0
 
         // Draw using UVs (U repeats horizontally, V covers the full region vertically)
-        val vStart = region.v2
-        val vEnd = region.v
         engine.batch.draw(
             region.texture,
             destX,
             destY,
             destWidth,
             destHeight,
-            uStart.toFloat(),
-            vStart,
-            uEnd.toFloat(),
-            vEnd,
+            uStart,
+            region.v2,
+            uEnd,
+            region.v,
         )
     }
 

@@ -51,7 +51,7 @@ class BackgroundParallaxSpawner(
                     imageHeightInWorldUnits = imageDimensions.y * UNIT_SCALE
                 } else {
                     val texture =
-                        Texture(Gdx.files.internal("images/${background.properties.get("image")}.png"))
+                        Texture(Gdx.files.internal("images/backgrounds/${background.properties.get("image")}.png"))
                     imageCmp.image = Image(texture)
 
                     imageWidthInWorldUnits = texture.width * UNIT_SCALE

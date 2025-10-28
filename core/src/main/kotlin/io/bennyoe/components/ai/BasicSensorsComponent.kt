@@ -22,7 +22,7 @@ class BasicSensorsComponent(
 
     val wallSensor =
         SensorDef(
-            fromRelative = vec2(1f, 0f), // Start exactly at the center-right edge
+            fromRelative = vec2(1f, 0f),
             toRelative = vec2(0.5f, 0f),
             type = SensorType.WALL_SENSOR,
             isHorizontal = true,
@@ -34,7 +34,7 @@ class BasicSensorsComponent(
     // WallHeightSensor is checked if the entity can jump over the obstacle
     val wallHeightSensor =
         SensorDef(
-            fromRelative = vec2(1f, 1.5f), // Start 0.2 above at the top-right corner
+            fromRelative = vec2(1f, 1.5f),
             toRelative = vec2(0.5f, 0f),
             type = SensorType.WALL_HEIGHT_SENSOR,
             isHorizontal = true,
@@ -44,7 +44,7 @@ class BasicSensorsComponent(
         )
     val groundSensor =
         SensorDef(
-            fromRelative = vec2(1f, -1f), // Start exactly at the bottom-right corner
+            fromRelative = vec2(1f, -1f),
             toRelative = vec2(0f, -1.4f),
             type = SensorType.GROUND_DETECT_SENSOR,
             isHorizontal = false,
@@ -53,7 +53,7 @@ class BasicSensorsComponent(
         )
     val jumpSensor =
         SensorDef(
-            fromRelative = vec2(3.2f, -1f), // Start slightly in front of the bottom-right corner
+            fromRelative = vec2(3.2f, -1f),
             toRelative = vec2(0f, -1.4f),
             type = SensorType.JUMP_SENSOR,
             false,

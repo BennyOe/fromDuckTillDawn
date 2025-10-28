@@ -104,8 +104,8 @@ class MushroomFSMUnitTest {
                     StateComponent(
                         world,
                         MushroomStateContext(it, world, stage),
-                        MushroomFSM.IDLE,
-                        MushroomCheckAliveState,
+                        MushroomFSM.IDLE(),
+                        MushroomCheckAliveState(),
                     )
             }
         stateContext = MushroomStateContext(entity, world, stage)
@@ -114,7 +114,7 @@ class MushroomFSMUnitTest {
     @Test
     fun `default state should be IDLE`() {
         val stateCmp = with(world) { entity[StateComponent] }
-        assertEquals(MushroomFSM.IDLE, stateCmp.stateMachine.currentState)
+        assertEquals(MushroomFSM.IDLE()::class.java, stateCmp.stateMachine.currentState::class.java)
     }
 
     @Test
@@ -124,15 +124,15 @@ class MushroomFSMUnitTest {
 
         intentionCmp.walkDirection = WalkDirection.LEFT
         stateCmp.stateMachine.update()
-        assertEquals(MushroomFSM.WALK, stateCmp.stateMachine.currentState)
+        assertEquals(MushroomFSM.WALK()::class.java, stateCmp.stateMachine.currentState::class.java)
 
         intentionCmp.walkDirection = WalkDirection.NONE
         stateCmp.stateMachine.update()
-        assertEquals(MushroomFSM.IDLE, stateCmp.stateMachine.currentState)
+        assertEquals(MushroomFSM.IDLE()::class.java, stateCmp.stateMachine.currentState::class.java)
 
         intentionCmp.walkDirection = WalkDirection.RIGHT
         stateCmp.stateMachine.update()
-        assertEquals(MushroomFSM.WALK, stateCmp.stateMachine.currentState)
+        assertEquals(MushroomFSM.WALK()::class.java, stateCmp.stateMachine.currentState::class.java)
     }
 
     @Test
@@ -141,7 +141,7 @@ class MushroomFSMUnitTest {
 
         repeat(3) {
             stateCmp.stateMachine.update()
-            assertEquals(MushroomFSM.IDLE, stateCmp.stateMachine.currentState)
+            assertEquals(MushroomFSM.IDLE()::class.java, stateCmp.stateMachine.currentState::class.java)
         }
     }
 
@@ -150,24 +150,24 @@ class MushroomFSMUnitTest {
         val stateCmp = with(world) { entity[StateComponent] }
         val healthCmp = with(world) { entity[HealthComponent] }
 
-        givenState(MushroomFSM.IDLE)
+        givenState(MushroomFSM.IDLE())
         healthCmp.current = 0f
 
         stateCmp.stateMachine.update()
-        assertEquals(MushroomFSM.DEATH, stateCmp.stateMachine.currentState)
+        assertEquals(MushroomFSM.DEATH()::class.java, stateCmp.stateMachine.currentState::class.java)
     }
 
     @Test
     fun `should not change state when in DEATH state`() {
         val stateCmp = with(world) { entity[StateComponent] }
         val inputCmp = with(world) { entity[InputComponent] }
-        givenState(MushroomFSM.DEATH)
+        givenState(MushroomFSM.DEATH())
         with(world) { entity.configure { it += HasGroundContact } }
 
         inputCmp.jumpJustPressed = true
         stateCmp.stateMachine.update()
         world.update(1f)
-        assertNotEquals(MushroomFSM.WALK, stateCmp.stateMachine.currentState)
+        assertNotEquals(MushroomFSM.WALK()::class.java, stateCmp.stateMachine.currentState::class.java)
     }
 
     @Test
@@ -179,7 +179,7 @@ class MushroomFSMUnitTest {
         deadCmp.removeDelayCounter = deadDelay
         deadCmp.removeDelay = deadDelay
 
-        givenState(MushroomFSM.DEATH)
+        givenState(MushroomFSM.DEATH())
 
         assertTrue(healthCmp.isDead)
         assertFalse(bodyMock.isActive)

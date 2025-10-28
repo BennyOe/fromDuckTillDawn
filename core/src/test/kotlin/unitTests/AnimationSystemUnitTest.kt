@@ -55,6 +55,7 @@ class AnimationSystemUnitTest {
                     add("dawnAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
                     add("mushroomAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
                     add("crowAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
+                    add("minotaurAtlases", TextureAtlases(atlasMock, atlasMock, atlasMock))
                     add("stage", stageMock)
                 }
                 systems { add(AnimationSystem()) }

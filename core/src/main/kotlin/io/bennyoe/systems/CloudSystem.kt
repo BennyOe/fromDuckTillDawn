@@ -16,6 +16,7 @@ import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.Weather
+import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.getViewportDimensions
 import ktx.collections.GdxArray
 import ktx.math.vec2
@@ -60,8 +61,8 @@ class CloudSystem(
 
         val viewportRight = camera.position.x + camera.viewportWidth * camera.zoom / 2f
         if (transformCmp.position.x > viewportRight + imageCmp.image.width) {
-            entity.configure { it += DisabledComponent }
             imageCmp.image.isVisible = false
+            entity.configure { it += DisabledComponent }
             cloudPool.add(entity)
         }
     }
@@ -81,7 +82,7 @@ class CloudSystem(
                 world.entity {
                     it += CloudComponent()
                     it += TransformComponent(position = vec2(0f, 0f), width = 1f, height = 1f)
-                    val image = ImageComponent(stage, zIndex = 2000 + it.id)
+                    val image = ImageComponent(stage, zIndex = ZIndex.CLOUDS.value + it.id)
                     image.image = Image()
                     image.image.isVisible = false
                     it += image

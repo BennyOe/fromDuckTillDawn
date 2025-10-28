@@ -12,6 +12,7 @@ import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.AmbienceZoneContactComponent
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.DoorTriggerComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IsIndoorComponent
@@ -26,6 +27,7 @@ import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundTriggerComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.event.AmbienceChangeEvent
+import io.bennyoe.event.DoorEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StreamSoundEvent
 import io.bennyoe.event.fire
@@ -64,6 +66,7 @@ class ContactHandlerSystem(
         handleGroundTypeBegin(parts)
         handleInWaterBegin(parts)
         handleUnderWaterBegin(parts)
+        doorSensorZoneBegin(parts)
     }
 
     override fun endContact(contact: Contact) {
@@ -128,7 +131,7 @@ class ContactHandlerSystem(
     }
 
     private fun handleUnderWaterBegin(p: Parts) {
-        val (entityWithSensor, waterEntity) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
+        val (entityWithSensor, _) = p.entityAndUnderWaterWhenSensor(SensorType.UNDER_WATER_SENSOR) ?: return
         with(world) {
             entityWithSensor.entity.getOrNull(PhysicComponent)?.let {
                 it.activeUnderWaterContacts++
@@ -316,8 +319,8 @@ class ContactHandlerSystem(
 
         val (player, enemy) = pair
         with(world) {
-            val attack = enemy.entity[AttackComponent]
-            val health = player.entity[HealthComponent]
+            val attackCmp = enemy.entity[AttackComponent]
+            val healthCmp = player.entity[HealthComponent]
 
             val playerX =
                 player.entity[PhysicComponent]
@@ -326,9 +329,16 @@ class ContactHandlerSystem(
                 enemy.entity[PhysicComponent]
                     .body.position.x
 
-            health.attackedFromBehind = playerX > enemyX
-            health.takenDamage = attack.maxDamage
+            healthCmp.attackedFromBehind = playerX > enemyX
+            healthCmp.takenDamage = attackCmp.attackMap[attackCmp.appliedAttack]?.maxDamage ?: 0f
         }
+    }
+
+    private fun doorSensorZoneBegin(parts: Parts) {
+        val sensorOwner = parts.sensorOwnerWhenPlayerTouches(SensorType.DOOR_TRIGGER_SENSOR)
+        val doorTriggerCmp = sensorOwner?.entity?.getOrNull(DoorTriggerComponent) ?: return
+
+        stage.fire(DoorEvent(doorTriggerCmp.targetEntity))
     }
 
     // --- Small helpers (reduce branching noise) ------------------------------

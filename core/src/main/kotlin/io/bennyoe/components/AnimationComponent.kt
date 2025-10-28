@@ -14,6 +14,7 @@ class AnimationComponent(
     var animationModel: AnimationModel = AnimationModel.PLAYER_DAWN,
     var currentAnimationType: AnimationType = AnimationType.NONE,
     var animationSoundTriggers: Map<AnimationType, Map<Int, SoundType>> = emptyMap(),
+    var speedMultiplier: Float = 1f,
 ) : Component<AnimationComponent> {
     override fun type() = AnimationComponent
 
@@ -47,6 +48,7 @@ enum class AnimationModel(
     NONE(""),
     PLAYER_DAWN("player/dawn/"),
     ENEMY_MUSHROOM("enemy/mushroom/"),
+    ENEMY_MINOTAUR("enemy/minotaur/"),
     CROW("crow"),
 }
 

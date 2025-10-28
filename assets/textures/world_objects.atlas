@@ -3,6 +3,10 @@ size:2048,1024
 repeat:none
 chain
 bounds:2,2,7,48
+door
+bounds:1978,902,7,31
+key
+bounds:1898,527,13,4
 moon2
 bounds:1576,211,320,320
 noise

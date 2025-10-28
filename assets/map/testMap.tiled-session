@@ -24,14 +24,15 @@
         },
         "testMap.tmx": {
             "expandedGroupLayers": [
+                19,
                 23,
-                19
+                30
             ],
-            "scale": 1.5,
-            "selectedLayer": 15,
+            "scale": 2,
+            "selectedLayer": 17,
             "viewCenter": {
-                "x": 1287,
-                "y": 414.99999999999994
+                "x": 445.75,
+                "y": 203.75
             }
         }
     },
@@ -46,7 +47,7 @@
         "lantern.tsx"
     ],
     "project": "testMap.tiled-project",
-    "property.type": "bool",
+    "property.type": "int",
     "recentFiles": [
         "lantern.tsx",
         "groundTiles1.tsx",

@@ -42,17 +42,39 @@ class BasicSensorsSystem(
         val imageCmp = entity[ImageComponent]
         val intentionCmp = entity[IntentionComponent]
         val bodyPos = phyCmp.body.position
+        val bodySize = phyCmp.size
         val flipImg = imageCmp.flipImage
         val playerBodyPos = playerEntity[PhysicComponent].body.position
+        val fixtureCenterPos = bodyPos.cpy().add(phyCmp.offset)
 
         // update sensor positions
-        updateSensorPositions(basicSensorsCmp, bodyPos, flipImg, playerBodyPos)
+        updateSensorPositions(
+            basicSensorsCmp,
+            fixtureCenterPos,
+            flipImg,
+            playerBodyPos,
+            bodySize,
+        )
 
         clearLedgeHitArrays(rayHitCmp)
 
         // update upper ledge sensor positions
-        createLedgeSensors(basicSensorsCmp.upperLedgeSensorArray, intentionCmp, bodyPos, flipImg, rayHitCmp.upperLedgeHits)
-        createLedgeSensors(basicSensorsCmp.lowerLedgeSensorArray, intentionCmp, bodyPos, flipImg, rayHitCmp.lowerLedgeHits)
+        createLedgeSensors(
+            basicSensorsCmp.upperLedgeSensorArray,
+            intentionCmp,
+            fixtureCenterPos,
+            flipImg,
+            rayHitCmp.upperLedgeHits,
+            bodySize,
+        )
+        createLedgeSensors(
+            basicSensorsCmp.lowerLedgeSensorArray,
+            intentionCmp,
+            fixtureCenterPos,
+            flipImg,
+            rayHitCmp.lowerLedgeHits,
+            bodySize,
+        )
         rayHitCmp.upperLedgeHits.sort()
         rayHitCmp.lowerLedgeHits.sort()
 
@@ -118,10 +140,11 @@ class BasicSensorsSystem(
         bodyPos: Vector2,
         flipImg: Boolean,
         rayHitArray: GdxArray<LedgeHitData>,
+        bodySize: Vector2,
     ) {
         sensorArray.forEach { sensor ->
             if (!intentionCmp.wantsToChase) return@forEach
-            sensor.updateAbsolutePositions(bodyPos, flipImg)
+            sensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
 
             var hitGroundThisTick = false
 
@@ -168,12 +191,13 @@ class BasicSensorsSystem(
         bodyPos: Vector2,
         flipImg: Boolean,
         playerBodyPos: Vector2,
+        bodySize: Vector2,
     ) {
-        basicSensorsCmp.wallSensor.updateAbsolutePositions(bodyPos, flipImg)
-        basicSensorsCmp.wallHeightSensor.updateAbsolutePositions(bodyPos, flipImg)
-        basicSensorsCmp.groundSensor.updateAbsolutePositions(bodyPos, flipImg)
-        basicSensorsCmp.jumpSensor.updateAbsolutePositions(bodyPos, flipImg)
-        basicSensorsCmp.attackSensor.updateAbsolutePositions(bodyPos, flipImg)
+        basicSensorsCmp.wallSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
+        basicSensorsCmp.wallHeightSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
+        basicSensorsCmp.groundSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
+        basicSensorsCmp.jumpSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
+        basicSensorsCmp.attackSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
         basicSensorsCmp.sightSensor.updateSightSensor(bodyPos, playerBodyPos)
     }
 

@@ -44,6 +44,7 @@ import ktx.log.logger
 class AnimationSystem(
     dawnAtlases: TextureAtlases = inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
+    minotaurAtlases: TextureAtlases = inject("minotaurAtlases"),
     crowAtlases: TextureAtlases = inject("crowAtlases"),
     val stage: Stage = inject("stage"),
 ) : IteratingSystem(family { all(AnimationComponent, ImageComponent, TransformComponent) }),
@@ -54,6 +55,7 @@ class AnimationSystem(
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.diffuseAtlas,
+            AnimationModel.ENEMY_MINOTAUR to minotaurAtlases.diffuseAtlas,
             AnimationModel.CROW to crowAtlases.diffuseAtlas,
         )
 
@@ -202,7 +204,7 @@ class AnimationSystem(
             setTexturesToAnimation(
                 currentAtlas,
                 aniKeyPath,
-                aniCmp.nextAnimationType.speed,
+                aniCmp.nextAnimationType.speed / aniCmp.speedMultiplier,
                 aniCmp.nextAnimationType.playMode,
             )
 

@@ -18,6 +18,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ChainRenderComponent
+import io.bennyoe.components.DisabledComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.components.ImageComponent
@@ -162,30 +163,34 @@ class RenderSystem(
         // 1. Add all map image layers
         mapImageLayers.forEach { layer ->
             if (layer.textureRegion == null) return
-            val zIndex = layer.properties.get("zIndex", Int::class.java) ?: 0
             val renderedOnTopOfWater = layer.properties.get("renderedOnTopOfWater", Boolean::class.java) ?: false
 
             if (renderedOnTopOfWater) {
+                val zIndex = layer.properties.get("zIndex", Int::class.java) ?: ZIndex.TILES_BEFORE_WATER.value
                 renderQueueOnTopOfWater.add(RenderableElement.ImageLayer(layer, zIndex))
             } else {
+                val zIndex = layer.properties.get("zIndex", Int::class.java) ?: ZIndex.MIN.value
                 renderQueue.add(RenderableElement.ImageLayer(layer, zIndex))
             }
         }
 
         // 2. Add all map tile layers
         mapTileLayers.forEach { layer ->
-            val zIndex = layer.properties.get("zIndex", Int::class.java) ?: 7000
             val renderedOnTopOfWater = layer.properties.get("renderedOnTopOfWater", Boolean::class.java) ?: false
 
             if (renderedOnTopOfWater) {
+                val zIndex = layer.properties.get("zIndex", Int::class.java) ?: ZIndex.TILES_BEFORE_WATER.value
                 renderQueueOnTopOfWater.add(RenderableElement.TileLayer(layer, zIndex))
             } else {
+                val zIndex = layer.properties.get("zIndex", Int::class.java) ?: ZIndex.TILES.value
                 renderQueue.add(RenderableElement.TileLayer(layer, zIndex))
             }
         }
 
         // 3. Add all entities
         world.family { any(ImageComponent, ParticleComponent) }.forEach { entity ->
+            if (entity has DisabledComponent) return@forEach
+
             val shaderRenderingCmp = entity.getOrNull(ShaderRenderingComponent)
             val hitEffectCmp = entity.getOrNull(HitEffectComponent)
             val transformCmp = entity[TransformComponent]

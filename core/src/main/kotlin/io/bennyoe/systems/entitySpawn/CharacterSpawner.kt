@@ -18,6 +18,7 @@ import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AnimationModel
 import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.CharacterTypeComponent
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.GroundTypeSensorComponent
@@ -41,6 +42,7 @@ import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants
 import io.bennyoe.config.SpawnCfg
@@ -54,6 +56,7 @@ import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.debug.DebugRenderer
+import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.FixtureSensorData
 import io.bennyoe.utility.SensorType
@@ -74,11 +77,13 @@ class CharacterSpawner(
     val debugRenderer: DebugRenderer,
     dawnAtlases: TextureAtlases,
     mushroomAtlases: TextureAtlases,
+    minotaurAtlases: TextureAtlases,
 ) {
     private val atlasMap: Map<AnimationModel, TextureAtlas> =
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.diffuseAtlas,
+            AnimationModel.ENEMY_MINOTAUR to minotaurAtlases.diffuseAtlas,
         )
 
     private val sizesCache = mutableMapOf<String, Vector2>()
@@ -89,7 +94,9 @@ class CharacterSpawner(
         layerZIndex: Int,
     ) {
         characterObjectsLayer.objects.forEach { characterObj ->
-            val cfg = SpawnCfg.createSpawnCfg(characterObj.type ?: throw IllegalArgumentException("Type must not be null"))
+            val characterType =
+                CharacterType.valueOf(characterObj.type?.uppercase() ?: throw IllegalArgumentException("Type must not be null"))
+            val cfg = SpawnCfg.createSpawnCfg(characterType)
             val relativeSize = size(cfg.animationModel, cfg.animationType)
             world.entity { entity ->
                 // Add general components
@@ -108,9 +115,12 @@ class CharacterSpawner(
 
                 val animation = AnimationComponent()
                 animation.animationModel = cfg.animationModel
+                animation.speedMultiplier = cfg.animationSpeed
                 animation.nextAnimation(cfg.animationType)
                 animation.animationSoundTriggers = cfg.soundTrigger
                 entity += animation
+
+                entity += CharacterTypeComponent(cfg.characterType)
 
                 val physics =
                     PhysicComponent.physicsComponentFromImage(
@@ -157,12 +167,14 @@ class CharacterSpawner(
 
                 entity += GroundTypeSensorComponent
 
-                entity +=
+                val transformCmp =
                     TransformComponent(
                         vec2(physics.body.position.x, physics.body.position.y),
                         physics.size.x,
                         physics.size.y,
                     )
+                entity += transformCmp
+
                 entity += HealthComponent()
                 entity +=
                     DeadComponent(
@@ -178,22 +190,23 @@ class CharacterSpawner(
 
                 if (cfg.canAttack) {
                     val attackCmp = AttackComponent()
-                    attackCmp.extraRange *= cfg.attackExtraRange
-                    attackCmp.maxDamage *= cfg.scaleAttackDamage
-                    attackCmp.attackDelay = cfg.attackDelay
+                    attackCmp.attackMap = cfg.attackMap
                     entity += attackCmp
                 }
 
                 entity += ShaderRenderingComponent()
 
-                entity += JumpComponent()
+                entity +=
+                    JumpComponent(
+                        maxHeight = cfg.jumpHeight,
+                    )
 
                 entity += SoundProfileComponent(cfg.soundProfile)
 
                 when (cfg.entityCategory) {
                     EntityCategory.PLAYER -> spawnPlayerSpecifics(entity, physics)
 
-                    EntityCategory.ENEMY -> spawnEnemySpecifics(entity, cfg)
+                    EntityCategory.ENEMY -> spawnEnemySpecifics(entity, cfg, transformCmp)
 
                     else -> throw IllegalArgumentException("Unsupported character type for 'EntityCategory': ${cfg.entityCategory}")
                 }
@@ -204,6 +217,7 @@ class CharacterSpawner(
     private fun EntityCreateContext.spawnEnemySpecifics(
         entity: Entity,
         cfg: SpawnCfg,
+        transformCmp: TransformComponent,
     ) {
         entity += IntentionComponent()
 
@@ -213,8 +227,8 @@ class CharacterSpawner(
             StateComponent(
                 world = world,
                 owner = MushroomStateContext(entity, world, stage),
-                initialState = MushroomFSM.IDLE,
-                globalState = MushroomCheckAliveState,
+                initialState = MushroomFSM.IDLE(),
+                globalState = MushroomCheckAliveState(),
             )
         entity += state
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
@@ -245,7 +259,7 @@ class CharacterSpawner(
             filter.maskBits = EntityCategory.PLAYER.bit
         }
 
-        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius)
+        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp)
 
         entity += RayHitComponent()
 
@@ -336,7 +350,7 @@ class CharacterSpawner(
                 motionScaleFactor = .05f,
                 looping = true,
                 stage = stage,
-                zIndex = 60000,
+                zIndex = ZIndex.PARTICLES.value,
                 enabled = false,
                 type = ParticleType.AIR_BUBBLES,
             )

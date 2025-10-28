@@ -45,6 +45,7 @@ import io.bennyoe.systems.CloudSystem
 import io.bennyoe.systems.CrowSystem
 import io.bennyoe.systems.DamageSystem
 import io.bennyoe.systems.DivingSystem
+import io.bennyoe.systems.DoorSystem
 import io.bennyoe.systems.ExpireSystem
 import io.bennyoe.systems.GameMoodSystem
 import io.bennyoe.systems.GameStateSystem
@@ -52,6 +53,7 @@ import io.bennyoe.systems.HitStopSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.ParallaxSystem
 import io.bennyoe.systems.ParticleRemoveSystem
 import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
@@ -103,6 +105,7 @@ class GameScreen(
     private val waterAtlas = assets[TextureAssets.WATER_ATLAS.descriptor]
     private val cloudsAtlas = assets[TextureAssets.CLOUDS_ATLAS.descriptor]
     private val rainCloudsAtlas = assets[TextureAssets.RAIN_CLOUDS_ATLAS.descriptor]
+    private val animatedBgAtlas = assets[TextureAssets.ANIMATED_BG_ATLAS.descriptor]
     private val dawnAtlases =
         TextureAtlases(
             assets[TextureAssets.DAWN_ATLAS.descriptor],
@@ -114,6 +117,10 @@ class GameScreen(
             assets[TextureAssets.MUSHROOM_ATLAS.descriptor],
             assets[TextureAssets.MUSHROOM_N_ATLAS.descriptor],
             assets[TextureAssets.MUSHROOM_S_ATLAS.descriptor],
+        )
+    private val minotaurAtlases =
+        TextureAtlases(
+            assets[TextureAssets.MINOTAUR_ATLAS.descriptor],
         )
     private val crowAtlases =
         TextureAtlases(
@@ -151,7 +158,7 @@ class GameScreen(
     // Framebuffer
     private var fbo: FrameBuffer? = null
 
-    // container (provider) for the fbo, so that systems are getting a updated fbo every frame
+    // container (provider) for the fbo, so that systems are getting an updated fbo every frame
     private lateinit var targets: RenderTargets
 
     private val rayHandler = RayHandler(phyWorld)
@@ -178,8 +185,10 @@ class GameScreen(
                 add("waterAtlas", waterAtlas)
                 add("cloudsAtlas", cloudsAtlas)
                 add("rainCloudsAtlas", rainCloudsAtlas)
+                add("animatedBgAtlas", animatedBgAtlas)
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
+                add("minotaurAtlases", minotaurAtlases)
                 add("crowAtlases", crowAtlases)
                 add("bgNormalAtlases", bgNormalAtlases)
                 add("particlesAtlas", particleAtlas)
@@ -222,10 +231,12 @@ class GameScreen(
                 add(MusicSystem())
                 add(BasicSensorsSystem())
                 add(StateSystem())
+                add(ParallaxSystem())
                 add(BehaviorTreeSystem())
                 add(GameMoodSystem())
                 add(TimeSystem())
                 add(IndoorLightSystem())
+                add(DoorSystem())
                 add(SkySystem())
                 add(UiDataSystem())
                 add(MoveSystem())

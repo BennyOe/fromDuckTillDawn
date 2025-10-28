@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.maps.tiled.tiles.AnimatedTiledMapTile
@@ -14,9 +15,11 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Family
 import com.github.quillraven.fleks.World
+import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ChainRenderComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.ParallaxComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.TiledTextureComponent
@@ -27,6 +30,11 @@ import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.render.DrawUtils.drawRegion
 import kotlin.math.atan2
+
+private fun floorMod(
+    x: Float,
+    m: Float,
+): Float = ((x % m) + m) % m
 
 class LightingRenderer(
     val stage: Stage,
@@ -79,7 +87,15 @@ class LightingRenderer(
                         }
 
                         is RenderableElement.EntityWithImage -> {
-                            renderEntityWithCorrectShader(engine, renderable, currentShader, gameStateCmp.timeOfDay, continuousTime)
+                            val parallaxCmp = with(world) { renderable.entity.getOrNull(ParallaxComponent) } // ADDED Check
+                            val animationCmp = with(world) { renderable.entity.getOrNull(AnimationComponent) } // ADDED Check
+                            if (parallaxCmp != null && animationCmp == null) {
+                                shaderService.switchToDefaultIfNeeded(engine, currentShader)
+                                drawTilingParallaxBackground(engine, renderable.imageCmp, renderable.transformCmp, parallaxCmp)
+                                ShaderType.DEFAULT
+                            } else {
+                                renderEntityWithCorrectShader(engine, renderable, currentShader, gameStateCmp.timeOfDay, continuousTime)
+                            }
                         }
 
                         is RenderableElement.EntityWithParticle -> {
@@ -101,6 +117,74 @@ class LightingRenderer(
             }
             renderChains(engine, chainFamily)
         }
+    }
+
+    private fun drawTilingParallaxBackground(
+        engine: Scene2dLightEngine,
+        imageCmp: ImageComponent,
+        transformCmp: TransformComponent,
+        parallaxCmp: ParallaxComponent,
+    ) {
+        // Resolve drawable/region/texture; abort early on missing data
+        val drawable = imageCmp.image.drawable as? TextureRegionDrawable ?: return
+        val region = drawable.region
+        val texture = region.texture ?: return
+
+        // Ensure correct wrap: horizontal repeat (U), vertical clamp (V)
+        if (texture.uWrap != Texture.TextureWrap.Repeat || texture.vWrap != Texture.TextureWrap.ClampToEdge) {
+            texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.ClampToEdge)
+        }
+
+        // Basic sanity checks for source (pixels) and destination (world units)
+        val texturePixelWidth = region.regionWidth.toFloat()
+        val texturePixelHeight = region.regionHeight.toFloat()
+        if (texturePixelWidth <= 0f || texturePixelHeight <= 0f) return
+        if (transformCmp.width <= 0f || transformCmp.height <= 0f) return
+
+        // Destination rectangle in world coordinates
+        val destX = parallaxCmp.initialPosition.x
+        val destWidth = parallaxCmp.worldWidth
+        val destY = parallaxCmp.initialPosition.y
+        val destHeight = transformCmp.height
+
+        // Use imageCmp.image.width as the base tile width in world units.
+        val tileWidthWu = imageCmp.image.width
+        if (tileWidthWu <= 0.0f) return
+
+        // Calculate total offset in World Units
+        val offsetWu = destX - transformCmp.position.x
+
+        // Convert world offset to "tile" offset
+        val offsetTiles = offsetWu / tileWidthWu
+
+        // Get the fractional part of the tile offset (e.g., 0.25 for 25% into a tile)
+        val phaseTiles = floorMod(offsetTiles, 1.0f)
+
+        // Calculate how many tiles are visible in the destination rectangle
+        val tilesVisible = destWidth / tileWidthWu
+
+        // Get the U-coordinate span of the texture region
+        val tileSpanU = region.u2 - region.u
+
+        // Calculate start and end U-coordinates
+        val u0 = region.u + phaseTiles * tileSpanU
+        val u1 = u0 + tilesVisible * tileSpanU
+
+        // Apply flip if necessary
+        val (uStart, uEnd) = if (!imageCmp.flipImage) u0 to u1 else u1 to u0
+
+        // Draw using UVs (U repeats horizontally, V covers the full region vertically)
+        engine.batch.draw(
+            region.texture,
+            destX,
+            destY,
+            destWidth,
+            destHeight,
+            uStart,
+            region.v2,
+            uEnd,
+            region.v,
+        )
     }
 
     private fun renderChains(

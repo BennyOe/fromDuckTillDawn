@@ -7,7 +7,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IsForeground
-import io.bennyoe.components.TiledTextureComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import ktx.math.vec2
@@ -16,7 +15,7 @@ import ktx.tiled.width
 import ktx.tiled.x
 import ktx.tiled.y
 
-class ForegroundSpawner(
+class FadingForegroundSpawner(
     private val world: World,
     private val stage: Stage,
     private val foregroundAtlas: TextureAtlas,
@@ -32,14 +31,12 @@ class ForegroundSpawner(
             val width = foreground.width * UNIT_SCALE
             val height = foreground.height * UNIT_SCALE
             val objZIndex = foreground.properties.get("zIndex") as? Int ?: 0
-            val scale = foreground.properties.get("scale") as? Float ?: 1f
             world.entity {
                 val imgCmp = ImageComponent(stage, zIndex = layerZIndex + objZIndex)
                 imgCmp.image = Image(foregroundAtlas.findRegion(textureName))
                 it += imgCmp
 
                 it += TransformComponent(position, width, height)
-                it += TiledTextureComponent(scale)
                 it += IsForeground
             }
         }

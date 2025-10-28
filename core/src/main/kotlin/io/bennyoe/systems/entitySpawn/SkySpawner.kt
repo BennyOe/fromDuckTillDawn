@@ -36,6 +36,7 @@ import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.audio.SoundProfile
 import io.bennyoe.systems.audio.SoundType
+import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.setupShader
 import ktx.math.vec2
 import ktx.tiled.type
@@ -62,7 +63,7 @@ class SkySpawner(
                     motionScaleFactor = .3f,
                     looping = true,
                     stage = stage,
-                    zIndex = 90000,
+                    zIndex = ZIndex.PARTICLES.value,
                     enabled = false,
                     type = ParticleType.RAIN,
                 )

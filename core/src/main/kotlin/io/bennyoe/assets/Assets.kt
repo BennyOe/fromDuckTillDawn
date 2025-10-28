@@ -16,6 +16,7 @@ enum class TextureAssets(
     MUSHROOM_ATLAS("mushroom.atlas"),
     MUSHROOM_N_ATLAS("mushroom_n.atlas"),
     MUSHROOM_S_ATLAS("mushroom_s.atlas"),
+    MINOTAUR_ATLAS("minotaur.atlas"),
     PARTICLE_ATLAS("particles.atlas"),
     WORLD_OBJECTS_ATLAS("world_objects.atlas"),
     WATER_ATLAS("water.atlas"),
@@ -26,6 +27,7 @@ enum class TextureAssets(
     CROW_S_ATLAS("crow_s.atlas"),
     BG_NORMAL("bg_normal.atlas"),
     BG_NORMAL_N("bg_normal_n.atlas"),
+    ANIMATED_BG_ATLAS("animated_bg.atlas"),
 
     //    BG_NORMAL_S("bg_normal_s.atlas"),
     FOREGROUND("foreground.atlas"),

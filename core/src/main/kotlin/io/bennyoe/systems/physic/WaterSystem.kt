@@ -16,6 +16,7 @@ import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.config.GameConstants
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
+import io.bennyoe.systems.render.ZIndex
 import ktx.math.vec2
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -47,7 +48,7 @@ class WaterSystem(
             motionScaleFactor = 0.2f,
             looping = false,
             stage = stage,
-            zIndex = 90000,
+            zIndex = ZIndex.PARTICLES.value,
             type = ParticleType.WATER_SPLASH,
         )
 

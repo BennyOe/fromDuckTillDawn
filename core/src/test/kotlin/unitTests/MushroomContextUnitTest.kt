@@ -21,6 +21,7 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
@@ -59,6 +60,7 @@ class MushroomContextUnitTest {
     private val intentionCmp = IntentionComponent()
     private val healthCmp = HealthComponent()
     private val nearbyCmp = NearbyEnemiesComponent()
+    private val transformCmp = mockk<TransformComponent>(relaxed = true)
     private val animCmp = spyk(AnimationComponent())
     private val phyCmp =
         PhysicComponent().apply {
@@ -122,15 +124,15 @@ class MushroomContextUnitTest {
                 it += healthCmp
                 it += nearbyCmp
                 it += animCmp
-                it += BasicSensorsComponent(7f)
+                it += BasicSensorsComponent(7f, transformCmp)
                 it += RayHitComponent()
                 it += phyCmp
                 it +=
                     StateComponent(
                         world,
                         MushroomStateContext(it, world, stage),
-                        MushroomFSM.IDLE,
-                        MushroomCheckAliveState,
+                        MushroomFSM.IDLE(),
+                        MushroomCheckAliveState(),
                     )
             }
 

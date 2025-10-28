@@ -10,6 +10,7 @@ object SoundMappingService {
     private val defaultGeneralSounds: Map<SoundType, SoundAssets> =
         mapOf(
             SoundType.CAMPFIRE to SoundAssets.CAMPFIRE,
+            SoundType.LAUGH to SoundAssets.LAUGH,
         )
 
     fun getSoundAsset(

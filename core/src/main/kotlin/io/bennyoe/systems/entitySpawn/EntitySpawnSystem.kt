@@ -14,7 +14,9 @@ import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.PausableSystem
 import io.bennyoe.systems.debug.DefaultDebugRenderService
+import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.findLayerDeep
+import io.bennyoe.utility.findLayersStartingWithDeep
 
 class EntitySpawnSystem(
     stage: Stage = World.inject("stage"),
@@ -24,8 +26,10 @@ class EntitySpawnSystem(
     worldObjectsAtlas: TextureAtlas = World.inject("worldObjectsAtlas"),
     dawnAtlases: TextureAtlases = World.inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = World.inject("mushroomAtlases"),
+    minotaurAtlases: TextureAtlases = World.inject("minotaurAtlases"),
     bgNormalAtlases: TextureAtlases = World.inject("bgNormalAtlases"),
     forgroundAtlas: TextureAtlas = World.inject("foregroundAtlas"),
+    animatedBgAtlas: TextureAtlas = World.inject("animatedBgAtlas"),
 ) : IteratingSystem(World.family { all(SpawnComponent) }),
     EventListener,
     PausableSystem {
@@ -33,11 +37,14 @@ class EntitySpawnSystem(
     private val audioSpawner = AudioSpawner(world, phyWorld)
     private val skySpawner = SkySpawner(world, lightEngine, stage, worldObjectsAtlas)
     private val mapObjectSpawner = MapObjectSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
-    private val characterSpawner = CharacterSpawner(world, phyWorld, lightEngine, stage, debugRenderService, dawnAtlases, mushroomAtlases)
+    private val characterSpawner =
+        CharacterSpawner(world, phyWorld, lightEngine, stage, debugRenderService, dawnAtlases, mushroomAtlases, minotaurAtlases)
     private val rainMaskSpawner = RainMaskSpawner(world, stage)
     private val waterSpawner = WaterSpawner(world, phyWorld)
     private val bgNormalSpawner = BgNormalSpawner(world, stage, bgNormalAtlases)
-    private val foregroundSpawner = ForegroundSpawner(world, stage, forgroundAtlas)
+    private val fadingForegroundSpawner = FadingForegroundSpawner(world, stage, forgroundAtlas)
+    private val doorSpawner = DoorSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
+    private val backgroundParallaxSpawner = BackgroundParallaxSpawner(world, stage, animatedBgAtlas)
 
     override fun onTickEntity(entity: Entity) {
     }
@@ -48,19 +55,37 @@ class EntitySpawnSystem(
                 // Adding Player
                 event.map.layers
                     .findLayerDeep("playerStart")
-                    ?.let { characterSpawner.spawnCharacterObjects(it, getLayerZIndex(it) ?: 9000) }
+                    ?.let {
+                        characterSpawner.spawnCharacterObjects(
+                            it,
+                            getLayerZIndex(it)
+                                ?: ZIndex.CHARACTERS.value,
+                        )
+                    }
                 // Adding enemies
                 event.map.layers
                     .findLayerDeep("enemies")
-                    ?.let { characterSpawner.spawnCharacterObjects(it, getLayerZIndex(it) ?: 9000) }
+                    ?.let {
+                        characterSpawner.spawnCharacterObjects(
+                            it,
+                            getLayerZIndex(it)
+                                ?: ZIndex.CHARACTERS.value,
+                        )
+                    }
                 // Adding all map objects (also animated ones)
                 event.map.layers
                     .findLayerDeep("bgMapObjects")
-                    ?.let { mapObjectSpawner.spawnMapObjects(it, getLayerZIndex(it) ?: 8000) }
+                    ?.let {
+                        mapObjectSpawner.spawnMapObjects(
+                            it,
+                            getLayerZIndex(it)
+                                ?: ZIndex.BG_OBJECTS.value,
+                        )
+                    }
                 // Adding all sky objects
                 event.map.layers
                     .findLayerDeep("sky")
-                    ?.let { skySpawner.spawnSkyObjects(it, getLayerZIndex(it) ?: 1000) }
+                    ?.let { skySpawner.spawnSkyObjects(it, getLayerZIndex(it) ?: ZIndex.SKY.value) }
                 // Adding SoundEffects
                 event.map.layers
                     .findLayerDeep("reverbZones")
@@ -88,11 +113,39 @@ class EntitySpawnSystem(
                 // Adding backgrounds with normal maps
                 event.map.layers
                     .findLayerDeep("bgNormal")
-                    ?.let { bgNormalSpawner.spawnBgNormal(it, getLayerZIndex(it) ?: 7100) }
+                    ?.let {
+                        bgNormalSpawner.spawnBgNormal(
+                            it,
+                            getLayerZIndex(it)
+                                ?: ZIndex.BG_WITH_NORMALS.value,
+                        )
+                    }
                 // Adding forground Images
                 event.map.layers
-                    .findLayerDeep("foreground")
-                    ?.let { foregroundSpawner.spawnForeground(it, getLayerZIndex(it) ?: 7100) }
+                    .findLayerDeep("fadingForeground")
+                    ?.let {
+                        fadingForegroundSpawner.spawnForeground(
+                            it,
+                            getLayerZIndex(it)
+                                ?: ZIndex.FADING_FOREGROUND.value,
+                        )
+                    }
+                // Adding doors
+                event.map.layers
+                    .findLayerDeep("doors")
+                    ?.let { doorSpawner.spawnDoors(it, getLayerZIndex(it) ?: ZIndex.DOORS.value) }
+                // Adding door triggers
+                event.map.layers
+                    .findLayerDeep("triggers")
+                    ?.let { doorSpawner.spawnTrigger(it) }
+                event.map.layers
+                    .findLayersStartingWithDeep("parallax")
+                    .forEach { layer ->
+                        backgroundParallaxSpawner.spawnParallaxBackgrounds(
+                            layer,
+                            getLayerZIndex(layer) ?: 0,
+                        )
+                    }
                 return true
             }
         }

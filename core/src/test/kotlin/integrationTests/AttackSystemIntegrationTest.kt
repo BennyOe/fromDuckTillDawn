@@ -13,7 +13,9 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.Attack
 import io.bennyoe.components.AttackComponent
+import io.bennyoe.components.AttackType
 import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
@@ -23,6 +25,8 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.TimeScaleComponent
+import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
@@ -76,6 +80,15 @@ class AttackSystemIntegrationTest {
             }
 
         // --------------- Setup Player ----------------
+        val playerAttackMap =
+            mapOf(
+                AttackType.SWORD to
+                    Attack(
+                        AttackType.SWORD,
+                        CharacterType.PLAYER,
+                        attackDelay = .01f,
+                    ),
+            )
         val playerBody = mockk<Body>(relaxed = true)
         val imageMock = mockk<Image>(relaxed = true)
 
@@ -94,10 +107,15 @@ class AttackSystemIntegrationTest {
             world.entity {
                 it += animationCmpMock
                 it += playerPhysicCmp
-                it += AttackComponent()
+                it +=
+                    AttackComponent(
+                        attackMap = playerAttackMap,
+                        appliedAttack = playerAttackMap[AttackType.SWORD]!!.attackType,
+                    )
                 it += MoveComponent()
                 it += IntentionComponent()
                 it += HealthComponent()
+                it += TimeScaleComponent()
                 it += FlashlightComponent(spotLight, pointLight)
                 it += playerImageCmp
                 it += InputComponent()
@@ -140,8 +158,8 @@ class AttackSystemIntegrationTest {
                     StateComponent(
                         world,
                         MushroomStateContext(it, world, stage),
-                        MushroomFSM.IDLE,
-                        MushroomCheckAliveState,
+                        MushroomFSM.IDLE(),
+                        MushroomCheckAliveState(),
                     )
             }
 
@@ -174,16 +192,16 @@ class AttackSystemIntegrationTest {
         val enemyStateCmp = with(world) { enemyEntity[StateComponent] as StateComponent<MushroomStateContext, MushroomFSM> }
 
         inputCmp.attackJustPressed = true
-        attackCmp.attackDelay = 0f
 
         world.update(0.061f)
         playerStateCmp.stateMachine.update()
         assertEquals(PlayerFSM.ATTACK_1, playerStateCmp.stateMachine.currentState)
 
+        val damage = attackCmp.attackMap[attackCmp.appliedAttack]!!.baseDamage
+
         world.update(0.061f)
         enemyStateCmp.stateMachine.update()
 
-        val damage = attackCmp.damage
         assertEquals(damage, healthCmp.takenDamage, 1f)
     }
 
@@ -202,30 +220,28 @@ class AttackSystemIntegrationTest {
         val enemyStateCmp = with(world) { enemyEntity[StateComponent] as StateComponent<MushroomStateContext, MushroomFSM> }
 
         inputCmp.attackJustPressed = true
-        attackCmp.attackDelay = 0f
 
         world.update(0.061f)
         playerStateCmp.stateMachine.update()
         assertEquals(PlayerFSM.ATTACK_1, playerStateCmp.stateMachine.currentState)
 
+        val damage = attackCmp.attackMap[attackCmp.appliedAttack]!!.baseDamage
+
         world.update(0.061f)
         enemyStateCmp.stateMachine.update()
 
-        val damage = attackCmp.damage
         assertEquals(damage, enemyHealthCmp.takenDamage, 1f)
         assertEquals(0f, playerHealthCmp.takenDamage)
     }
 
     @Test
     fun `attack does not apply if no attack is triggered`() {
-        val attackCmp = with(world) { playerEntity[AttackComponent] }
         val inputCmp = with(world) { playerEntity[InputComponent] }
 
         @Suppress("UNCHECKED_CAST")
         val playerStateCmp = with(world) { playerEntity[StateComponent] as StateComponent<PlayerStateContext, PlayerFSM> }
 
         inputCmp.attackJustPressed = false
-        attackCmp.attackDelay = 0f
 
         world.update(0.061f)
         playerStateCmp.stateMachine.update()
@@ -234,7 +250,6 @@ class AttackSystemIntegrationTest {
 
     @Test
     fun `attack does not hit entity with same categoryBits`() {
-        val attackCmp = with(world) { playerEntity[AttackComponent] }
         val inputCmp = with(world) { playerEntity[InputComponent] }
 
         val enemyPhysicCmp = with(world) { enemyEntity[PhysicComponent] }
@@ -253,7 +268,6 @@ class AttackSystemIntegrationTest {
             }
 
         inputCmp.attackJustPressed = true
-        attackCmp.attackDelay = 0f
 
         world.update(0.061f)
         playerStateCmp.stateMachine.update()
@@ -267,7 +281,6 @@ class AttackSystemIntegrationTest {
 
     @Test
     fun `attack does not apply if fixture is not HITBOX_SENSOR`() {
-        val attackCmp = with(world) { playerEntity[AttackComponent] }
         val inputCmp = with(world) { playerEntity[InputComponent] }
 
         val enemyPhysicCmp = with(world) { enemyEntity[PhysicComponent] }
@@ -283,7 +296,6 @@ class AttackSystemIntegrationTest {
         firstFixture?.userData = EntityBodyData(enemyEntity, EntityCategory.ENEMY)
 
         inputCmp.attackJustPressed = true
-        attackCmp.attackDelay = 0f
 
         world.update(0.061f)
         playerStateCmp.stateMachine.update()

@@ -23,6 +23,13 @@ data class MapChangedEvent(
 ) : Event(),
     GameEvent
 
+// --- Door Events ---
+
+data class DoorEvent(
+    val targetDoorEntity: Entity,
+) : Event(),
+    GameEvent
+
 // --- Audio Events ---
 sealed interface AudioEvent : GameEvent
 

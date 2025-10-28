@@ -29,7 +29,7 @@ class StateBubbleSystem(
         val stateCmp = entity[StateComponent]
 
         stateBubbleCmp.bubble.displayState(
-            stateCmp.stateMachine.currentState.toString(),
+            stateCmp.stateMachine.currentState.javaClass.simpleName,
         )
     }
 

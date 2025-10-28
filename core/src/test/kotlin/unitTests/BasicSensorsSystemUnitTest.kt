@@ -13,6 +13,7 @@ import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
@@ -37,6 +38,7 @@ class BasicSensorsSystemUnitTest {
         phyWorld = mockk(relaxed = true)
         bodyMock = mockk(relaxed = true)
         val stageMock = mockk<Stage>(relaxed = true)
+        val transformCmp = mockk<TransformComponent>(relaxed = true)
         val imageMock: Image = mockk(relaxed = true)
         val imgCmp =
             ImageComponent(stageMock).also {
@@ -71,7 +73,7 @@ class BasicSensorsSystemUnitTest {
                 it += pCmp
                 it += IntentionComponent().apply { wantsToChase = true }
                 it += imgCmp
-                it += BasicSensorsComponent(7f)
+                it += BasicSensorsComponent(7f, transformCmp)
                 it += RayHitComponent()
             }
     }

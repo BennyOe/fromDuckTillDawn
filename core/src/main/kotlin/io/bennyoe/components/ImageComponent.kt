@@ -6,13 +6,14 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
+import io.bennyoe.systems.render.ZIndex
 
 class ImageComponent(
     private val stage: Stage,
     val scaleX: Float = 1f,
     val scaleY: Float = 1f,
     var flipImage: Boolean = false,
-    var zIndex: Int = 0,
+    var zIndex: Int = ZIndex.MIN.value,
 ) : Component<ImageComponent> {
     lateinit var image: Image
 

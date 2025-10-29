@@ -261,7 +261,7 @@ data class SpawnCfg(
                             scaleImage = vec2(28f, 17f),
                             scalePhysic = vec2(1f, 2.5f),
                             offsetPhysic = vec2(0f, -1.83f),
-                            aiTreePath = "ai/mushroom.tree",
+                            aiTreePath = "ai/minotaur.tree",
                             scaleSpeed = 0.5f,
                             keepCorpse = false,
                             removeDelay = 2f,

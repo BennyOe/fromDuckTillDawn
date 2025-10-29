@@ -5,12 +5,13 @@ import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
-import io.bennyoe.ai.blackboards.MushroomContext
+import io.bennyoe.ai.blackboards.AbstractBlackboard
+import io.bennyoe.ai.blackboards.MinotaurContext
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.addToDebugView
 
-abstract class AbstractAction : LeafTask<MushroomContext>() {
-    val ctx: MushroomContext
+abstract class AbstractAction<T : AbstractBlackboard> : LeafTask<T>() {
+    val ctx: T
         get() = `object`
 
     private var entered = false
@@ -32,7 +33,7 @@ abstract class AbstractAction : LeafTask<MushroomContext>() {
 
     override fun toString(): String = javaClass.simpleName.dropLast(4).uppercase()
 
-    override fun copyTo(task: Task<MushroomContext>) = task
+    override fun copyTo(task: Task<T>) = task
 
     protected abstract fun enter()
 

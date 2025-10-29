@@ -28,7 +28,7 @@ class EntitySpawnSystem(
     mushroomAtlases: TextureAtlases = World.inject("mushroomAtlases"),
     minotaurAtlases: TextureAtlases = World.inject("minotaurAtlases"),
     bgNormalAtlases: TextureAtlases = World.inject("bgNormalAtlases"),
-    forgroundAtlas: TextureAtlas = World.inject("foregroundAtlas"),
+    foregroundAtlas: TextureAtlas = World.inject("foregroundAtlas"),
     animatedBgAtlas: TextureAtlas = World.inject("animatedBgAtlas"),
 ) : IteratingSystem(World.family { all(SpawnComponent) }),
     EventListener,
@@ -42,7 +42,7 @@ class EntitySpawnSystem(
     private val rainMaskSpawner = RainMaskSpawner(world, stage)
     private val waterSpawner = WaterSpawner(world, phyWorld)
     private val bgNormalSpawner = BgNormalSpawner(world, stage, bgNormalAtlases)
-    private val fadingForegroundSpawner = FadingForegroundSpawner(world, stage, forgroundAtlas)
+    private val fadingForegroundSpawner = FadingForegroundSpawner(world, stage, foregroundAtlas)
     private val doorSpawner = DoorSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
     private val backgroundParallaxSpawner = BackgroundParallaxSpawner(world, stage, animatedBgAtlas)
 

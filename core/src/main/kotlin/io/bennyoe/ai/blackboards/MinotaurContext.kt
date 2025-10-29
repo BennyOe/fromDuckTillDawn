@@ -29,7 +29,7 @@ import ktx.collections.lastIndex
 import ktx.log.logger
 import kotlin.math.abs
 
-class MushroomContext(
+class MinotaurContext(
     entity: Entity,
     world: World,
     stage: Stage,

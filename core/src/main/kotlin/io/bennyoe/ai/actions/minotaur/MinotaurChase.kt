@@ -1,6 +1,7 @@
-package io.bennyoe.ai.actions
+package io.bennyoe.ai.actions.minotaur
 
 import com.badlogic.gdx.ai.GdxAI
+import io.bennyoe.ai.blackboards.MinotaurContext
 import io.bennyoe.ai.core.AbstractAction
 import io.bennyoe.components.GameMood
 import io.bennyoe.components.WalkDirection
@@ -10,7 +11,7 @@ import kotlin.math.abs
 const val DURATION_TIMER = .5f
 const val EPS = 1.0f
 
-class Chase : AbstractAction() {
+class MinotaurChase : AbstractAction<MinotaurContext>() {
     private var currentDuration = DURATION_TIMER
     private var xPosition = 0f
 
@@ -46,6 +47,6 @@ class Chase : AbstractAction() {
     }
 
     companion object {
-        val logger = logger<Chase>()
+        val logger = logger<MinotaurChase>()
     }
 }

@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
+import io.bennyoe.ai.blackboards.MinotaurContext
 import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AmbienceZoneContactComponent
@@ -49,6 +50,9 @@ import io.bennyoe.config.SpawnCfg
 import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.state.minotaur.MinotaurCheckAliveState
+import io.bennyoe.state.minotaur.MinotaurFSM
+import io.bennyoe.state.minotaur.MinotaurStateContext
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
 import io.bennyoe.state.mushroom.MushroomStateContext
@@ -203,18 +207,22 @@ class CharacterSpawner(
 
                 entity += SoundProfileComponent(cfg.soundProfile)
 
-                when (cfg.entityCategory) {
-                    EntityCategory.PLAYER -> spawnPlayerSpecifics(entity, physics)
+                if (cfg.entityCategory == EntityCategory.PLAYER) {
+                    spawnPlayerSpecifics(entity, physics)
+                }
 
-                    EntityCategory.ENEMY -> spawnEnemySpecifics(entity, cfg, transformCmp)
-
-                    else -> throw IllegalArgumentException("Unsupported character type for 'EntityCategory': ${cfg.entityCategory}")
+                if (cfg.entityCategory == EntityCategory.ENEMY) {
+                    when (characterType) {
+                        CharacterType.MUSHROOM -> spawnMushroomSpecifics(entity, cfg, transformCmp)
+                        CharacterType.MINOTAUR -> spawnMinotaurSpecifics(entity, cfg, transformCmp)
+                        else -> gdxError("No spawner for character $characterType found")
+                    }
                 }
             }
         }
     }
 
-    private fun EntityCreateContext.spawnEnemySpecifics(
+    private fun EntityCreateContext.spawnMushroomSpecifics(
         entity: Entity,
         cfg: SpawnCfg,
         transformCmp: TransformComponent,
@@ -272,6 +280,68 @@ class CharacterSpawner(
                 // because at this point we finally have access to the correct Entity, World, and Stage.
                 createBlackboard = { entity, world, stage ->
                     MushroomContext(entity, world, stage, debugRenderer)
+                },
+            )
+    }
+
+    private fun EntityCreateContext.spawnMinotaurSpecifics(
+        entity: Entity,
+        cfg: SpawnCfg,
+        transformCmp: TransformComponent,
+    ) {
+        entity += IntentionComponent()
+
+        entity += NearbyEnemiesComponent()
+
+        val state =
+            StateComponent(
+                world = world,
+                owner = MinotaurStateContext(entity, world, stage),
+                initialState = MinotaurFSM.IDLE(),
+                globalState = MinotaurCheckAliveState(),
+            )
+        entity += state
+        messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
+
+        val phyCmp = entity[PhysicComponent]
+
+        val pulseLight =
+            lightEngine.addPointLight(
+                phyCmp.body.position + 1f,
+                Color.ORANGE,
+                11f,
+            )
+        pulseLight.effectParams.pulseMaxIntensity = 4f
+        pulseLight.effectParams.pulseMinIntensity = 2f
+        pulseLight.effect = LightEffectType.PULSE
+        pulseLight.b2dLight.attachToBody(phyCmp.body)
+
+        entity += LightComponent(pulseLight)
+
+        // create normal nearbyEnemiesSensor
+        phyCmp.body.circle(
+            cfg.nearbyEnemiesDefaultSensorRadius,
+            cfg.nearbyEnemiesSensorOffset,
+        ) {
+            isSensor = true
+            userData = FixtureSensorData(entity, SensorType.NEARBY_ENEMY_SENSOR)
+            filter.categoryBits = EntityCategory.SENSOR.bit
+            filter.maskBits = EntityCategory.PLAYER.bit
+        }
+
+        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp)
+
+        entity += RayHitComponent()
+
+        entity +=
+            BehaviorTreeComponent(
+                world = world,
+                stage = stage,
+                treePath = cfg.aiTreePath,
+                // The blackboard must be created via a function reference (or lambda)
+                // because at this point we finally have access to the correct Entity, World, and Stage.
+                createBlackboard = { entity, world, stage ->
+                    MinotaurContext(entity, world, stage, debugRenderer)
                 },
             )
     }

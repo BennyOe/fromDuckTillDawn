@@ -1,12 +1,12 @@
 # Imports ------------------------------------------------------
-import idle:"io.bennyoe.ai.actions.mushroom.MushroomIdle"
-import patrol:"io.bennyoe.ai.actions.mushroom.MushroomPatrol"
-import chase:"io.bennyoe.ai.actions.mushroom.MushroomChase"
-import attack:"io.bennyoe.ai.actions.mushroom.MushroomAttack"
+import idle:"io.bennyoe.ai.actions.minotaur.MinotaurIdle"
+import patrol:"io.bennyoe.ai.actions.minotaur.MinotaurPatrol"
+import chase:"io.bennyoe.ai.actions.minotaur.MinotaurChase"
+import attack:"io.bennyoe.ai.actions.minotaur.MinotaurAttack"
 
 
-import canAttack?:"io.bennyoe.ai.conditions.mushroom.CanAttack"
-import shouldChase?:"io.bennyoe.ai.conditions.mushroom.ShouldChase"
+import canAttack?:"io.bennyoe.ai.conditions.minotaur.CanAttack"
+import shouldChase?:"io.bennyoe.ai.conditions.minotaur.ShouldChase"
 
 # -------------------------------------------------------------
 # Main-Logic:  Attack  →  Chase  →  Patrol

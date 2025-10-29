@@ -1,31 +1,31 @@
-package io.bennyoe.ai.actions
+package io.bennyoe.ai.actions.mushroom
 
 import com.badlogic.gdx.ai.GdxAI
+import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
+import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.ai.core.AbstractAction
 import io.bennyoe.components.GameMood
-import io.bennyoe.components.WalkDirection
 import ktx.log.logger
 
-class Patrol(
+class MushroomIdle(
     @JvmField
     @TaskAttribute(required = true)
     var duration: FloatDistribution? = null,
-) : AbstractAction() {
+) : AbstractAction<MushroomContext>() {
     private var currentDuration = 0f
 
     override fun enter() {
-        logger.debug { "Patrol Enter" }
-        ctx.stopAttack()
+        MushroomAttack.Companion.logger.debug { "Idle Enter" }
         ctx.lastTaskName = this.javaClass.simpleName
         ctx.currentMood = GameMood.NORMAL
-        ctx.intentionCmp.walkDirection = WalkDirection.RIGHT
+        ctx.idle()
         currentDuration = duration?.nextFloat() ?: 1f
     }
 
     override fun onExecute(): Status {
-        ctx.patrol()
+        // GdxAi.getTimepiece() has to be updated in the render() of the screen
         currentDuration -= GdxAI.getTimepiece().deltaTime
         if (currentDuration <= 0f) {
             return Status.SUCCEEDED
@@ -33,7 +33,16 @@ class Patrol(
         return Status.RUNNING
     }
 
+    override fun exit() {
+    }
+
+    // the copyTo must be overridden when @TaskAttribute is specified
+    override fun copyTo(task: Task<MushroomContext>): Task<MushroomContext> {
+        (task as MushroomIdle).duration = duration
+        return task
+    }
+
     companion object {
-        val logger = logger<Patrol>()
+        val logger = logger<MushroomIdle>()
     }
 }

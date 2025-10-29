@@ -9,7 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.ai.blackboards.MushroomContext
+import io.bennyoe.ai.blackboards.MinotaurContext
 import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
@@ -54,7 +54,7 @@ class MushroomContextUnitTest {
     private lateinit var world: World
     private lateinit var mushroomEntity: Entity
     private lateinit var playerEntity: Entity
-    private lateinit var ctx: MushroomContext
+    private lateinit var ctx: MinotaurContext
     private lateinit var stage: Stage
 
     private val intentionCmp = IntentionComponent()
@@ -136,7 +136,7 @@ class MushroomContextUnitTest {
                     )
             }
 
-        ctx = MushroomContext(mushroomEntity, world, stage, NoOpDebugRenderService())
+        ctx = MinotaurContext(mushroomEntity, world, stage, NoOpDebugRenderService())
     }
 
     @Test

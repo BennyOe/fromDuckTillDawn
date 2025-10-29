@@ -42,7 +42,6 @@ class MinotaurChase : AbstractAction<MinotaurContext>() {
 
     override fun exit() {
         currentDuration = DURATION_TIMER
-        ctx.nearestPlatformLedge = null
         ctx.intentionCmp.wantsToChase = false
     }
 

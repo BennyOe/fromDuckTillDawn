@@ -15,7 +15,6 @@ import io.bennyoe.systems.audio.SoundProfile
 import io.bennyoe.systems.audio.SoundType
 import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.FloorType
-import ktx.app.gdxError
 import ktx.math.vec2
 import kotlin.experimental.or
 
@@ -312,8 +311,6 @@ data class SpawnCfg(
                                         ),
                                 ),
                         )
-
-                    else -> gdxError("There is no spawn configuration for entity-type $characterType")
                 }
             }
     }

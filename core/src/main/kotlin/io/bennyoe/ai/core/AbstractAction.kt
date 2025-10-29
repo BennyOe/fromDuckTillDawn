@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
 import io.bennyoe.ai.blackboards.AbstractBlackboard
-import io.bennyoe.ai.blackboards.MinotaurContext
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.addToDebugView
 

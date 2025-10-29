@@ -1,7 +1,6 @@
 package io.bennyoe.ai.conditions.minotaur
 
 import io.bennyoe.ai.blackboards.MinotaurContext
-import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.ai.core.AbstractCondition
 
 class CanAttack : AbstractCondition<MinotaurContext>() {

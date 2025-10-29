@@ -3,7 +3,6 @@ package io.bennyoe.ai.core
 import com.badlogic.gdx.ai.btree.LeafTask
 import com.badlogic.gdx.ai.btree.Task
 import io.bennyoe.ai.blackboards.AbstractBlackboard
-import io.bennyoe.ai.blackboards.MinotaurContext
 
 abstract class AbstractCondition<T : AbstractBlackboard> : LeafTask<T>() {
     val entity: T

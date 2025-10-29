@@ -17,7 +17,7 @@ class MinotaurIdle(
     private var currentDuration = 0f
 
     override fun enter() {
-        MinotaurAttack.Companion.logger.debug { "Idle Enter" }
+        MinotaurAttack.logger.debug { "Idle Enter" }
         ctx.lastTaskName = this.javaClass.simpleName
         ctx.currentMood = GameMood.NORMAL
         ctx.idle()

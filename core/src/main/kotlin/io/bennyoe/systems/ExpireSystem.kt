@@ -3,11 +3,11 @@ package io.bennyoe.systems
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
-import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.animation.AnimationComponent
 import ktx.log.logger
 
 class ExpireSystem :

@@ -14,10 +14,10 @@ import com.badlogic.gdx.utils.Array
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.ParallaxComponent
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import ktx.math.vec2
 import ktx.tiled.height

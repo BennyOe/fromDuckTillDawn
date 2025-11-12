@@ -7,13 +7,12 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.debug.DamageTextComponent
 import io.bennyoe.state.FsmMessageTypes
 import ktx.log.logger

@@ -12,7 +12,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.Attack
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.AttackType
@@ -26,6 +25,7 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TimeScaleComponent
+import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.lightEngine.core.GameLight

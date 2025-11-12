@@ -14,7 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ChainRenderComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.LightComponent
@@ -22,6 +21,7 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE

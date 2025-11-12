@@ -3,10 +3,14 @@ package io.bennyoe.config
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.BodyDef
 import io.bennyoe.assets.SoundAssets
-import io.bennyoe.components.AnimationModel
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.Attack
 import io.bennyoe.components.AttackType
+import io.bennyoe.components.animation.AnimationKey
+import io.bennyoe.components.animation.AnimationModel
+import io.bennyoe.components.animation.MinotaurAnimation
+import io.bennyoe.components.animation.MushroomAnimation
+import io.bennyoe.components.animation.NoAnimationKey
+import io.bennyoe.components.animation.PlayerAnimation
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.config.GameConstants.CHASE_SPEED
 import io.bennyoe.config.GameConstants.JUMP_MAX_HEIGHT
@@ -20,7 +24,7 @@ import kotlin.experimental.or
 
 data class SpawnCfg(
     val animationModel: AnimationModel = AnimationModel.NONE,
-    val animationType: AnimationType = AnimationType.NONE,
+    val animationType: AnimationKey = NoAnimationKey,
     val animationSpeed: Float = 1f,
     val bodyType: BodyDef.BodyType = BodyDef.BodyType.StaticBody,
     val entityCategory: EntityCategory = EntityCategory.GROUND,
@@ -42,7 +46,7 @@ data class SpawnCfg(
     val nearbyEnemiesSensorOffset: Vector2 = vec2(0f, 0f),
     val chaseSpeed: Float = 0f,
     // the soundTrigger is a map of <AnimationType, <FrameWhereSoundIsTriggered, SoundType>>
-    val soundTrigger: Map<AnimationType, Map<Int, SoundType>> = emptyMap(),
+    val soundTrigger: Map<AnimationKey, Map<Int, SoundType>> = emptyMap(),
     val soundProfile: SoundProfile = SoundProfile(),
 ) {
     companion object {
@@ -63,7 +67,7 @@ data class SpawnCfg(
                                     EntityCategory.LANTERN.bit
                             ),
                             animationModel = AnimationModel.PLAYER_DAWN,
-                            animationType = AnimationType.IDLE,
+                            animationType = PlayerAnimation.IDLE,
                             bodyType = BodyDef.BodyType.DynamicBody,
                             characterType = CharacterType.PLAYER,
                             canAttack = true,
@@ -87,20 +91,20 @@ data class SpawnCfg(
                             zIndex = ZIndex.PLAYER_OFFSET.value,
                             soundTrigger =
                                 mapOf(
-                                    AnimationType.WALK to
+                                    PlayerAnimation.WALK to
                                         mapOf(
                                             3 to SoundType.DAWN_FOOTSTEPS,
                                             6 to SoundType.DAWN_FOOTSTEPS,
                                         ),
-                                    AnimationType.ATTACK_1 to
+                                    PlayerAnimation.ATTACK_1 to
                                         mapOf(
                                             1 to SoundType.DAWN_ATTACK_1,
                                         ),
-                                    AnimationType.ATTACK_2 to
+                                    PlayerAnimation.ATTACK_2 to
                                         mapOf(
                                             1 to SoundType.DAWN_ATTACK_2,
                                         ),
-                                    AnimationType.ATTACK_3 to
+                                    PlayerAnimation.ATTACK_3 to
                                         mapOf(
                                             1 to SoundType.DAWN_ATTACK_3,
                                         ),
@@ -108,15 +112,15 @@ data class SpawnCfg(
 //                                        mapOf(
 //                                            1 to SoundType.DAWN_JUMP,
 //                                        ),
-                                    AnimationType.BASH to
+                                    PlayerAnimation.BASH to
                                         mapOf(
                                             2 to SoundType.DAWN_BASH,
                                         ),
-                                    AnimationType.HIT to
+                                    PlayerAnimation.HIT to
                                         mapOf(
                                             2 to SoundType.DAWN_HIT,
                                         ),
-                                    AnimationType.DYING to
+                                    PlayerAnimation.DYING to
                                         mapOf(
                                             2 to SoundType.DAWN_DEATH,
                                         ),
@@ -154,7 +158,7 @@ data class SpawnCfg(
                                     EntityCategory.SENSOR.bit
                             ),
                             animationModel = AnimationModel.ENEMY_MUSHROOM,
-                            animationType = AnimationType.IDLE,
+                            animationType = MushroomAnimation.IDLE,
                             bodyType = BodyDef.BodyType.DynamicBody,
                             characterType = CharacterType.MUSHROOM,
                             canAttack = true,
@@ -184,26 +188,26 @@ data class SpawnCfg(
                             zIndex = ZIndex.ENEMY_OFFSET.value,
                             soundTrigger =
                                 mapOf(
-                                    AnimationType.WALK to
+                                    MushroomAnimation.WALK to
                                         mapOf(
                                             0 to SoundType.MUSHROOM_FOOTSTEPS,
                                             2 to SoundType.MUSHROOM_FOOTSTEPS,
                                             4 to SoundType.MUSHROOM_FOOTSTEPS,
                                             6 to SoundType.MUSHROOM_FOOTSTEPS,
                                         ),
-                                    AnimationType.HIT to
+                                    MushroomAnimation.HIT to
                                         mapOf(
                                             1 to SoundType.MUSHROOM_HIT,
                                         ),
-                                    AnimationType.ATTACK_1 to
+                                    MushroomAnimation.ATTACK_1 to
                                         mapOf(
                                             1 to SoundType.MUSHROOM_ATTACK,
                                         ),
-                                    AnimationType.DYING to
+                                    MushroomAnimation.DYING to
                                         mapOf(
                                             1 to SoundType.MUSHROOM_DEATH,
                                         ),
-                                    AnimationType.JUMP to
+                                    MushroomAnimation.JUMP to
                                         mapOf(
                                             1 to SoundType.MUSHROOM_JUMP,
                                         ),
@@ -236,7 +240,7 @@ data class SpawnCfg(
                                     EntityCategory.SENSOR.bit
                             ),
                             animationModel = AnimationModel.ENEMY_MINOTAUR,
-                            animationType = AnimationType.IDLE,
+                            animationType = MinotaurAnimation.IDLE,
                             animationSpeed = 1.4f,
                             bodyType = BodyDef.BodyType.DynamicBody,
                             characterType = CharacterType.MINOTAUR,
@@ -271,28 +275,20 @@ data class SpawnCfg(
                             zIndex = ZIndex.ENEMY_OFFSET.value,
                             soundTrigger =
                                 mapOf(
-                                    AnimationType.WALK to
+                                    MinotaurAnimation.WALK to
                                         mapOf(
                                             0 to SoundType.MUSHROOM_FOOTSTEPS,
                                             2 to SoundType.MUSHROOM_FOOTSTEPS,
                                             4 to SoundType.MUSHROOM_FOOTSTEPS,
                                             6 to SoundType.MUSHROOM_FOOTSTEPS,
                                         ),
-                                    AnimationType.HIT to
+                                    MinotaurAnimation.HIT to
                                         mapOf(
                                             1 to SoundType.MUSHROOM_HIT,
                                         ),
-                                    AnimationType.ATTACK_1 to
-                                        mapOf(
-                                            1 to SoundType.MUSHROOM_ATTACK,
-                                        ),
-                                    AnimationType.DYING to
+                                    MinotaurAnimation.DYING to
                                         mapOf(
                                             1 to SoundType.MUSHROOM_DEATH,
-                                        ),
-                                    AnimationType.JUMP to
-                                        mapOf(
-                                            1 to SoundType.MUSHROOM_JUMP,
                                         ),
                                 ),
                             soundProfile =

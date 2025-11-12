@@ -10,14 +10,14 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.assets.TextureAtlases
-import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.DisabledComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.animation.AnimationModel
+import io.bennyoe.components.animation.NoAnimationKey
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.fire
 import io.bennyoe.systems.audio.SoundType
@@ -91,7 +91,7 @@ class AnimationSystem(
             val shaderRenderingComponent = entity.getOrNull(ShaderRenderingComponent)
 
             // 1. If a new animation is requested, set it up.
-            if (aniCmp.nextAnimationType != AnimationType.NONE) {
+            if (aniCmp.nextAnimationType != NoAnimationKey) {
                 applyNextAnimation(aniCmp)
             }
 

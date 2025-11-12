@@ -15,7 +15,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.Family
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ChainRenderComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.ImageComponent
@@ -26,6 +25,7 @@ import io.bennyoe.components.TiledTextureComponent
 import io.bennyoe.components.TimeOfDay
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
+import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.render.DrawUtils.drawRegion

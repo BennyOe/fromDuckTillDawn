@@ -12,9 +12,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.World
 import io.bennyoe.assets.SoundAssets
-import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.CrowComponent
 import io.bennyoe.components.DisabledComponent
 import io.bennyoe.components.ImageComponent
@@ -27,6 +24,9 @@ import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.SkyComponent
 import io.bennyoe.components.SkyComponentType
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.animation.AnimationModel
+import io.bennyoe.components.animation.CrowAnimation
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.components.audio.SoundProfileComponent
 import io.bennyoe.config.GameConstants.UNIT_SCALE
@@ -146,9 +146,9 @@ class SkySpawner(
                             )
                         val animation = AnimationComponent()
                         animation.animationModel = AnimationModel.CROW
-                        animation.nextAnimation(AnimationType.FLY)
+                        animation.nextAnimation(CrowAnimation.FLY)
                         animation.animationSoundTriggers =
-                            mapOf(AnimationType.FLY to mapOf(11 to SoundType.CROW))
+                            mapOf(CrowAnimation.FLY to mapOf(11 to SoundType.CROW))
                         it += animation
                         it += CrowComponent
                         it += DisabledComponent

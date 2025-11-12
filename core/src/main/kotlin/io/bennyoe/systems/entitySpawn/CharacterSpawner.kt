@@ -15,9 +15,6 @@ import io.bennyoe.ai.blackboards.MinotaurContext
 import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AmbienceZoneContactComponent
-import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.CharacterTypeComponent
 import io.bennyoe.components.DeadComponent
@@ -41,6 +38,9 @@ import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.animation.AnimationKey
+import io.bennyoe.components.animation.AnimationModel
 import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundProfileComponent
 import io.bennyoe.config.CharacterType
@@ -441,9 +441,9 @@ class CharacterSpawner(
      */
     private fun size(
         model: AnimationModel,
-        type: AnimationType,
+        type: AnimationKey,
     ): Vector2 {
-        val cacheKey = type.name
+        val cacheKey = type.atlasKey
         return sizesCache.getOrPut(cacheKey) {
             val atlas =
                 atlasMap[model]

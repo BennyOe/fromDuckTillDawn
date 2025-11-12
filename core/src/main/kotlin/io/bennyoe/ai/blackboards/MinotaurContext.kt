@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.AnimationComponent
+import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
@@ -16,7 +16,8 @@ import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
-import io.bennyoe.config.EntityCategory
+import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.state.minotaur.MinotaurFSM
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.EntityBodyData

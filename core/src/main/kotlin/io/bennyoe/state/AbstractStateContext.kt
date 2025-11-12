@@ -6,8 +6,6 @@ import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.DeadComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
@@ -16,6 +14,8 @@ import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
+import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.animation.AnimationKey
 
 abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     val entity: Entity,
@@ -61,7 +61,7 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     }
 
     fun setAnimation(
-        type: AnimationType,
+        type: AnimationKey,
         playMode: Animation.PlayMode = Animation.PlayMode.LOOP,
         resetStateTime: Boolean = false,
         isReversed: Boolean = false,

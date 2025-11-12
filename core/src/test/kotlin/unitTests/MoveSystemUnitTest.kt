@@ -5,7 +5,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
-import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
@@ -13,6 +12,7 @@ import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext

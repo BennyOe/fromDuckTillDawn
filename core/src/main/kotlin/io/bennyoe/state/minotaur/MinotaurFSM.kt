@@ -2,9 +2,9 @@ package io.bennyoe.state.minotaur
 
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackType
 import io.bennyoe.components.HitEffectComponent
+import io.bennyoe.components.animation.MinotaurAnimation
 import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import ktx.log.logger
@@ -12,7 +12,7 @@ import ktx.log.logger
 sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
     class IDLE : MinotaurFSM() {
         override fun enter(ctx: MinotaurStateContext) {
-            ctx.setAnimation(AnimationType.IDLE)
+            ctx.setAnimation(MinotaurAnimation.IDLE)
         }
 
         override fun update(ctx: MinotaurStateContext) {
@@ -31,7 +31,7 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
 
     class WALK : MinotaurFSM() {
         override fun enter(ctx: MinotaurStateContext) {
-            ctx.setAnimation(AnimationType.WALK)
+            ctx.setAnimation(MinotaurAnimation.WALK)
         }
 
         override fun update(ctx: MinotaurStateContext) {
@@ -70,7 +70,8 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
     class HIT : MinotaurFSM() {
         override fun enter(ctx: MinotaurStateContext) {
             ctx.add(HitEffectComponent())
-            ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
+            ctx.setAnimation(MinotaurAnimation.HIT, resetStateTime = true)
+            ctx.resetAllIntentions()
             ctx.attackCmp.appliedAttack = AttackType.NONE
             ctx.moveComponent.lockMovement = true
             ctx.moveComponent.moveVelocity.x = 0f
@@ -89,7 +90,7 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
         override fun enter(ctx: MinotaurStateContext) {
             ctx.healthComponent.current = 0f
             ctx.setAnimation(
-                AnimationType.DYING,
+                MinotaurAnimation.DYING,
                 Animation.PlayMode.NORMAL,
                 // isReversed has to be set after the first time to prevent flickering because animation is played back reversed in RESURRECT state
                 isReversed = ctx.deathAlreadyEnteredBefore,

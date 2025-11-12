@@ -1,29 +1,29 @@
 # Imports ------------------------------------------------------
 import idle:"io.bennyoe.ai.actions.minotaur.MinotaurIdle"
-import patrol:"io.bennyoe.ai.actions.minotaur.MinotaurPatrol"
-import chase:"io.bennyoe.ai.actions.minotaur.MinotaurChase"
-import attack:"io.bennyoe.ai.actions.minotaur.MinotaurAttack"
+import scream:"io.bennyoe.ai.actions.minotaur.MinotaurScream"
+import grabAttack:"io.bennyoe.ai.actions.minotaur.MinotaurGrabAttack"
+import stompAttack:"io.bennyoe.ai.actions.minotaur.MinotaurStompAttack"
+import throwAttack:"io.bennyoe.ai.actions.minotaur.MinotaurThrowAttack"
 
 
 import canAttack?:"io.bennyoe.ai.conditions.minotaur.CanAttack"
-import shouldChase?:"io.bennyoe.ai.conditions.minotaur.ShouldChase"
-
-# -------------------------------------------------------------
-# Main-Logic:  Attack  →  Chase  →  Patrol
-# -------------------------------------------------------------
+import seesPlayer?:"io.bennyoe.ai.conditions.minotaur.SeesPlayer"
+import playerGrabable?:"io.bennyoe.ai.conditions.minotaur.PlayerGrabable"
+import playerInStompRange?:"io.bennyoe.ai.conditions.minotaur.PlayerInStompRange"
+import playerInThrowRange?:"io.bennyoe.ai.conditions.minotaur.PlayerInThrowRange"
 
 # This tree is lazy and will only evaluate the conditions when a task is finished.
-subtree name:"idlePatrolLoop"
-  selector
-    (random success: 0.4) idle duration:"uniform,1.0,1.5"
-    patrol duration:"uniform,4.0,6.0"
+subtree name:"combatSequence"
+  sequence
+    scream
+    selector
+        (playerGrabable?) grabAttack
+        (playerInStompRange?) stompAttack
+        (playerInThrowRange?) throwAttack
 
 # this tree is reactive to evaluate the conditions every tick,
 # so it can switch between actions dynamically and interrupt them
 root
   dynamicGuardSelector
-    (canAttack?) sequence
-      attack
-      wait seconds:"uniform,1.5,2.0"
-    (shouldChase?) chase
-    $idlePatrolLoop
+    (seesPlayer?) $combatSequence
+    idle duration:"uniform,1.0,1.5"

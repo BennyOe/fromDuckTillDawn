@@ -5,13 +5,13 @@ import io.bennyoe.ai.core.AbstractAction
 import io.bennyoe.components.GameMood
 import ktx.log.logger
 
-class MinotaurAttack : AbstractAction<MinotaurContext>() {
+class MinotaurStompAttack : AbstractAction<MinotaurContext>() {
     override fun enter() {
         ctx.stopMovement()
-        logger.debug { "Attack Enter" }
+        logger.debug { "Stomp Attack Enter" }
         ctx.lastTaskName = this.javaClass.simpleName
         ctx.currentMood = GameMood.CHASE
-        ctx.startAttack()
+        ctx.startStompAttack()
     }
 
     override fun onExecute(): Status {
@@ -22,6 +22,6 @@ class MinotaurAttack : AbstractAction<MinotaurContext>() {
     }
 
     companion object {
-        val logger = logger<MinotaurAttack>()
+        val logger = logger<MinotaurStompAttack>()
     }
 }

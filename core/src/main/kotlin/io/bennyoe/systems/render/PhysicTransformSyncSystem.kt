@@ -15,7 +15,12 @@ class PhysicTransformSyncSystem : IteratingSystem(family { all(PhysicComponent, 
         if (physicCmp.body.type == BodyDef.BodyType.StaticBody) return
 
         val transformCmp = entity[TransformComponent]
-        transformCmp.position.set(vec2(physicCmp.body.position.x, physicCmp.body.position.y))
+        transformCmp.position.set(
+            vec2(
+                physicCmp.body.position.x + physicCmp.offset.x,
+                physicCmp.body.position.y + physicCmp.offset.y,
+            ),
+        )
         transformCmp.width = physicCmp.size.x
         transformCmp.height = physicCmp.size.y
     }

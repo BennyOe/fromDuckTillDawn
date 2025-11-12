@@ -12,7 +12,6 @@ import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
-import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.debug.DamageTextComponent
 import io.bennyoe.state.FsmMessageTypes
 import ktx.log.logger
@@ -29,7 +28,6 @@ class DamageSystem(
         val healthCmp = entity[HealthComponent]
         val physicCmp = entity[PhysicComponent]
         val attackCmp = entity[AttackComponent]
-        val animationCmp = entity[AnimationComponent]
         val stateCmp = entity[StateComponent]
         val baseDamageString = attackCmp.attackMap[attackCmp.appliedAttack]?.baseDamage ?: 0f
 
@@ -37,10 +35,6 @@ class DamageSystem(
             logger.debug { "takenDamage: ${healthCmp.takenDamage}" }
             healthCmp.current -= healthCmp.takenDamage
             healthCmp.takenDamage = 0f
-
-            if (entity hasNo PlayerComponent) {
-                animationCmp.nextAnimation(AnimationType.HIT)
-            }
 
             if (entity has PlayerComponent) {
                 messageDispatcher.dispatchMessage(FsmMessageTypes.PLAYER_IS_HIT.ordinal)

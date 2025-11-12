@@ -31,6 +31,7 @@ data class SpawnCfg(
     val physicMaskCategory: Short = 0x0000,
     val canAttack: Boolean = false,
     val attackMap: Map<AttackType, Attack> = mapOf(),
+    val maxSightRadius: Float = 1f,
     val characterType: CharacterType = CharacterType.PLAYER,
     val jumpHeight: Float = 5f,
     val scalePhysic: Vector2 = vec2(1f, 1f),
@@ -162,6 +163,7 @@ data class SpawnCfg(
                             bodyType = BodyDef.BodyType.DynamicBody,
                             characterType = CharacterType.MUSHROOM,
                             canAttack = true,
+                            maxSightRadius = 7f,
                             attackMap =
                                 mapOf(
                                     AttackType.HEADNUT to
@@ -245,6 +247,7 @@ data class SpawnCfg(
                             bodyType = BodyDef.BodyType.DynamicBody,
                             characterType = CharacterType.MINOTAUR,
                             canAttack = true,
+                            maxSightRadius = 24f,
                             attackMap =
                                 mapOf(
                                     // TODO needs to be changed to AttackType.AXE as soon as the Minotaur gets his own FSM and AI
@@ -271,7 +274,7 @@ data class SpawnCfg(
                             nearbyEnemiesDefaultSensorRadius = NORMAL_DETECTION_RADIUS * 2f,
                             nearbyEnemiesExtendedSensorRadius = CHASE_DETECTION_RADIUS * 2f,
                             nearbyEnemiesSensorOffset = vec2(0f, 0f),
-                            chaseSpeed = CHASE_SPEED,
+                            chaseSpeed = 20f,
                             zIndex = ZIndex.ENEMY_OFFSET.value,
                             soundTrigger =
                                 mapOf(

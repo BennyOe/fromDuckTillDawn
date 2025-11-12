@@ -9,16 +9,29 @@ import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import ktx.log.logger
 
+const val SCREAM_DURATION = 2f
+const val SHAKE_DURATION = 2f
+const val STUNNED_DURATION = 1f
+
+@Suppress("ktlint:standard:class-naming")
 sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
+    var screamTimeCounter = 0f
+    var stunnedTimeCounter = 0f
+    var shakeTimeCounter = 0f
+
     class IDLE : MinotaurFSM() {
         override fun enter(ctx: MinotaurStateContext) {
             ctx.setAnimation(MinotaurAnimation.IDLE)
         }
 
         override fun update(ctx: MinotaurStateContext) {
+            // TODO check for any intention. If one is true -> changeState to SCREAM
             when {
+                ctx.wantsToGrabAttack -> ctx.changeState(SPIN_ATTACK_START())
+                ctx.wantsToThrowAttack -> ctx.changeState(THROWING_ROCK())
+                ctx.wantsToStompAttack -> ctx.changeState(STOMP())
+                ctx.wantsToScream -> ctx.changeState(SCREAM())
                 ctx.wantsToWalk -> ctx.changeState(WALK())
-                ctx.wantsToAttack -> ctx.changeState(ATTACK())
                 hasWaterContact(ctx) -> ctx.changeState(DEATH())
             }
         }
@@ -37,7 +50,7 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
         override fun update(ctx: MinotaurStateContext) {
             when {
                 hasWaterContact(ctx) -> ctx.changeState(DEATH())
-                ctx.wantsToAttack -> ctx.changeState(ATTACK())
+                ctx.wantsToScream -> ctx.changeState(SCREAM())
                 ctx.wantsToIdle -> ctx.changeState(IDLE())
             }
         }
@@ -48,15 +61,207 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
         ): Boolean = super.onMessage(ctx, telegram)
     }
 
-    class ATTACK : MinotaurFSM() {
+    class SCREAM : MinotaurFSM() {
         override fun enter(ctx: MinotaurStateContext) {
-            ctx.setAnimation(AnimationType.ATTACK_1)
-            ctx.attackCmp.appliedAttack = AttackType.HEADNUT
+            ctx.rotateToPlayer()
+            ctx.setAnimation(MinotaurAnimation.SCREAM)
+            screamTimeCounter = 0f
         }
 
         override fun update(ctx: MinotaurStateContext) {
-            if (hasWaterContact(ctx)) ctx.changeState(DEATH())
+            if (screamTimeCounter < SCREAM_DURATION) {
+                screamTimeCounter += ctx.deltaTime
+                return
+            }
+            ctx.changeState(IDLE())
+        }
+
+        override fun exit(ctx: MinotaurStateContext) {
+            screamTimeCounter = 0f
+        }
+
+        override fun onMessage(
+            ctx: MinotaurStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    class SPIN_ATTACK_START : MinotaurFSM() {
+        override fun enter(ctx: MinotaurStateContext) {
+            ctx.setAnimation(MinotaurAnimation.SPIN_ATTACK_START, Animation.PlayMode.NORMAL)
+            ctx.intentionCmp.wantsToGrabAttack = false
+        }
+
+        override fun update(ctx: MinotaurStateContext) {
             if (ctx.animationComponent.isAnimationFinished()) {
+                ctx.changeState(SPIN_ATTACK_LOOP())
+            }
+        }
+
+        override fun onMessage(
+            ctx: MinotaurStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    class SPIN_ATTACK_LOOP : MinotaurFSM() {
+        override fun enter(ctx: MinotaurStateContext) {
+            ctx.setAnimation(MinotaurAnimation.SPIN_ATTACK_LOOP)
+        }
+
+        override fun update(ctx: MinotaurStateContext) {
+            ctx.runTowardsPlayer()
+            when {
+                ctx.runIntoWall() -> ctx.changeState(STUNNED())
+                ctx.runIntoPlayer() -> ctx.changeState(GRABBING())
+            }
+        }
+
+        override fun exit(ctx: MinotaurStateContext) {
+            ctx.intentionCmp.wantsToChase = false
+            ctx.stopMovement()
+        }
+
+        override fun onMessage(
+            ctx: MinotaurStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    class GRABBING : MinotaurFSM() {
+        override fun enter(ctx: MinotaurStateContext) {
+            ctx.setAnimation(MinotaurAnimation.SHAKING_PLAYER)
+            logger.debug { "GRABBING PLAYER" }
+        }
+
+        override fun update(ctx: MinotaurStateContext) {
+            if (ctx.animationComponent.isAnimationFinished()) {
+                ctx.changeState(SHAKING())
+            }
+            /* TODO
+            set player to not moveable
+            play animation, then -> SHAKING
+             */
+        }
+
+        override fun onMessage(
+            ctx: MinotaurStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    class SHAKING : MinotaurFSM() {
+        override fun enter(ctx: MinotaurStateContext) {
+            ctx.setAnimation(MinotaurAnimation.SHAKING_PLAYER)
+            logger.debug { "SHAKING PLAYER" }
+        }
+
+        override fun update(ctx: MinotaurStateContext) {
+            if (shakeTimeCounter < SHAKE_DURATION) {
+                shakeTimeCounter += ctx.deltaTime
+                return
+            }
+            ctx.changeState(IDLE())
+            /* TODO
+            reduce player health
+            play animation, then -> THROWING
+             */
+        }
+
+        override fun onMessage(
+            ctx: MinotaurStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    class THROWING_PLAYER : MinotaurFSM() {
+        override fun enter(ctx: MinotaurStateContext) {
+            ctx.setAnimation(MinotaurAnimation.THROW_PLAYER)
+            logger.debug { "THROWING PLAYER" }
+        }
+
+        override fun update(ctx: MinotaurStateContext) {
+            if (ctx.animationComponent.isAnimationFinished()) {
+                ctx.changeState(IDLE())
+            }
+            /* TODO
+            reduce player health
+            play animation, then -> THROWING
+             */
+        }
+
+        override fun onMessage(
+            ctx: MinotaurStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    class THROWING_ROCK : MinotaurFSM() {
+        override fun enter(ctx: MinotaurStateContext) {
+            ctx.intentionCmp.wantsToThrowAttack = false
+            ctx.setAnimation(MinotaurAnimation.ROCK_ATTACK, Animation.PlayMode.NORMAL)
+        }
+
+        override fun update(ctx: MinotaurStateContext) {
+            if (ctx.animationComponent.isAnimationFinished()) ctx.changeState(IDLE())
+        }
+
+        override fun onMessage(
+            ctx: MinotaurStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    class RECOVER : MinotaurFSM() {
+        override fun enter(ctx: MinotaurStateContext) {
+        }
+
+        override fun update(ctx: MinotaurStateContext) {
+            // TODO play recover animation for 2 sec then IDLE
+        }
+
+        override fun onMessage(
+            ctx: MinotaurStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    class STUNNED : MinotaurFSM() {
+        override fun enter(ctx: MinotaurStateContext) {
+            ctx.setAnimation(MinotaurAnimation.STUNNED)
+            logger.debug { "STUNNED" }
+            stunnedTimeCounter = 0f
+        }
+
+        override fun update(ctx: MinotaurStateContext) {
+            if (stunnedTimeCounter < STUNNED_DURATION) {
+                stunnedTimeCounter += ctx.deltaTime
+                return
+            }
+
+            ctx.changeState(IDLE())
+            /* TODO
+            make minotaur vulnerable
+            after 2 sec make minotaur invincible and IDLE
+             */
+        }
+
+        override fun onMessage(
+            ctx: MinotaurStateContext,
+            telegram: Telegram,
+        ): Boolean = super.onMessage(ctx, telegram)
+    }
+
+    class STOMP : MinotaurFSM() {
+        override fun enter(ctx: MinotaurStateContext) {
+            ctx.setAnimation(MinotaurAnimation.STOMP_ATTACK, Animation.PlayMode.NORMAL, true)
+            ctx.intentionCmp.wantsToJump = true
+            ctx.intentionCmp.wantsToStomp = false
+        }
+
+        override fun update(ctx: MinotaurStateContext) {
+            if (ctx.animationComponent.isAnimationFinished()) {
+                ctx.intentionCmp.wantsToJump = false
                 ctx.changeState(IDLE())
             }
         }

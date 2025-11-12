@@ -24,6 +24,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class BasicSensorsSystemUnitTest {
@@ -73,7 +74,7 @@ class BasicSensorsSystemUnitTest {
                 it += pCmp
                 it += IntentionComponent().apply { wantsToChase = true }
                 it += imgCmp
-                it += BasicSensorsComponent(7f, transformCmp)
+                it += BasicSensorsComponent(7f, transformCmp, 23f)
                 it += RayHitComponent()
             }
     }
@@ -132,6 +133,6 @@ class BasicSensorsSystemUnitTest {
         ecsWorld.update(1f)
 
         val rayHitCmp = with(ecsWorld) { enemy[RayHitComponent] }
-        assertTrue(rayHitCmp.sightIsBlocked, "Sight sensor should detect obstruction")
+        assertFalse(rayHitCmp.seesPlayer, "Sight sensor should detect obstruction")
     }
 }

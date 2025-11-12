@@ -13,6 +13,7 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.animation.AnimationKey
@@ -31,6 +32,7 @@ abstract class AbstractStateContext<C : AbstractStateContext<C>>(
     val stateComponent: StateComponent<C, *> by lazy { with(world) { entity[StateComponent] as StateComponent<C, *> } }
     val animationComponent: AnimationComponent by lazy { with(world) { entity[AnimationComponent] } }
     val physicComponent: PhysicComponent by lazy { with(world) { entity[PhysicComponent] } }
+    val transformCmp: TransformComponent by lazy { with(world) { entity[TransformComponent] } }
     val moveComponent: MoveComponent by lazy { with(world) { entity[MoveComponent] } }
     val jumpComponent: JumpComponent by lazy { with(world) { entity[JumpComponent] } }
     val healthComponent: HealthComponent by lazy { with(world) { entity[HealthComponent] } }

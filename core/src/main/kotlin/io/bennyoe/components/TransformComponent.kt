@@ -9,6 +9,15 @@ class TransformComponent(
     var width: Float,
     var height: Float,
 ) : Component<TransformComponent> {
+    val bottom: Float
+        get() = position.y - height * 0.5f
+    val top: Float
+        get() = position.y + height * 0.5f
+    val left: Float
+        get() = position.x - width * 0.5f
+    val right: Float
+        get() = position.x + width * 0.5f
+
     override fun type() = TransformComponent
 
     companion object : ComponentType<TransformComponent>()

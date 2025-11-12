@@ -1,6 +1,5 @@
 package io.bennyoe.ai.blackboards
 
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
@@ -11,18 +10,19 @@ import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
-import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.state.minotaur.MinotaurFSM
 import io.bennyoe.systems.debug.DebugRenderer
-import io.bennyoe.systems.debug.addToDebugView
-import io.bennyoe.utility.EntityBodyData
 import ktx.log.logger
 import kotlin.math.abs
+
+private const val HEIGHT_DIFF_EPS = 0.2f
+private const val STOMP_ATTACK_RANGE = 12f
 
 class MinotaurContext(
     entity: Entity,
@@ -32,6 +32,7 @@ class MinotaurContext(
 ) : AbstractBlackboard(entity, world, stage, debugRenderer) {
     val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent
+    val transformCmp: TransformComponent
     val animCmp: AnimationComponent
     val intentionCmp: IntentionComponent
     val rayHitCmp: RayHitComponent
@@ -44,6 +45,7 @@ class MinotaurContext(
         with(world) {
             nearbyEnemiesCmp = entity[NearbyEnemiesComponent]
             phyCmp = entity[PhysicComponent]
+            transformCmp = entity[TransformComponent]
             animCmp = entity[AnimationComponent]
             healthCmp = entity[HealthComponent]
             intentionCmp = entity[IntentionComponent]
@@ -59,44 +61,19 @@ class MinotaurContext(
 
     fun canAttack(): Boolean = rayHitCmp.canAttack
 
-    fun hasPlayerNearby(): Boolean {
-        with(world) {
-            nearbyEnemiesCmp.target = nearbyEnemiesCmp.nearbyEntities
-                .firstOrNull {
-                    val bodyData = it[PhysicComponent].body.userData as EntityBodyData
-                    bodyData.entityCategory == EntityCategory.PLAYER
-                } ?: BehaviorTreeComponent.NO_TARGET
-        }
-        return nearbyEnemiesCmp.target != BehaviorTreeComponent.NO_TARGET
-    }
-
-    fun isPlayerInChaseRange(): Boolean {
-        val selfPos = phyCmp.body.position
-
-        // draw the chase range
-        TMP_CIRC
-            .set(
-                phyCmp.body.position.x,
-                phyCmp.body.position.y,
-                basicSensorsCmp.chaseRange,
-            )
-        TMP_CIRC.addToDebugView(debugRenderer, Color.GREEN, "chaseRange")
-
-        // calculate the distance to the player and return true if it is < chaseRange
-        val player = world.family { all(PlayerComponent, PhysicComponent) }.firstOrNull() ?: return false
-        val playerPos = with(world) { player[PhysicComponent].body.position }
-        val dist2 = selfPos.dst2(playerPos)
-
-        return dist2 <= basicSensorsCmp.chaseRange * basicSensorsCmp.chaseRange
-    }
-
     fun stopMovement() {
         intentionCmp.walkDirection = WalkDirection.NONE
     }
 
-    fun startAttack() {
-        intentionCmp.wantsToAttack = true
+    fun startGrabAttack() {
+        intentionCmp.wantsToGrabAttack = true
     }
+
+    inline fun <reified T : MinotaurFSM> fsmStateIsNot(): Boolean = stateCmp.stateMachine.currentState !is T
+
+    inline fun <reified T : MinotaurFSM> fsmStateIs(): Boolean = stateCmp.stateMachine.currentState is T
+
+    inline fun <reified T : MinotaurFSM> fsmPreviousStateIsNot(): Boolean = stateCmp.stateMachine.previousState !is T
 
     fun stopAttack() {
         intentionCmp.wantsToAttack = false
@@ -107,34 +84,37 @@ class MinotaurContext(
         stopAttack()
     }
 
-    fun patrol() {
-        if (rayHitCmp.wallHit || !rayHitCmp.groundHit) {
-            intentionCmp.walkDirection =
-                when (intentionCmp.walkDirection) {
-                    WalkDirection.LEFT -> WalkDirection.RIGHT
-                    WalkDirection.RIGHT -> WalkDirection.LEFT
-                    else -> WalkDirection.NONE
-                }
-        }
+    fun seesPlayer(): Boolean = rayHitCmp.seesPlayer
+
+    fun playerInGrabRange(): Boolean {
+        val playerBottomLine = with(world) { playerEntity[TransformComponent] }.bottom
+        val minotaurBottomLine = transformCmp.bottom
+        return seesPlayer() && abs(playerBottomLine - minotaurBottomLine) < HEIGHT_DIFF_EPS
     }
 
-    fun chasePlayer() {
-        walkToPosition()
+    fun playerIsInAir(): Boolean {
+        val playerBottomLine = with(world) { playerEntity[TransformComponent] }.bottom
+        val playerHasGroundContact = with(world) { playerEntity has HasGroundContact }
+        val minotaurBottomLine = transformCmp.bottom
+        return playerBottomLine > minotaurBottomLine && !playerHasGroundContact
     }
 
-    private fun walkToPosition() {
-        val selfPos = phyCmp.body.position
-        val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
-        val goToPosition: Float = playerPos.x
-        val dist = selfPos.x - goToPosition
+    fun playerInThrowRange(): Boolean {
+        logger.debug { "CHECKING FOR PLAYER IN THROW RANGE" }
+        return rayHitCmp.playerInThrowRange
+    }
 
-        when {
-            abs(dist) > X_THRESHOLD -> {
-                intentionCmp.walkDirection = if (dist < 0f) WalkDirection.RIGHT else WalkDirection.LEFT
-            }
+    fun startThrowAttack() {
+        intentionCmp.wantsToThrowAttack = true
+    }
 
-            else -> intentionCmp.walkDirection = WalkDirection.NONE
-        }
+    fun playerInStompAttackRange(): Boolean {
+        val playerXPos = with(world) { playerEntity[TransformComponent] }.position.x
+        return abs(playerXPos - transformCmp.position.x) < STOMP_ATTACK_RANGE
+    }
+
+    fun startStompAttack() {
+        intentionCmp.wantsToStomp = true
     }
 
     companion object {

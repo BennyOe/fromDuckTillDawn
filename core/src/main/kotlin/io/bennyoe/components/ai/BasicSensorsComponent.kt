@@ -14,6 +14,7 @@ import ktx.math.vec2
 class BasicSensorsComponent(
     val chaseRange: Float,
     val transformCmp: TransformComponent,
+    val maxSightRadius: Float,
 ) : Component<BasicSensorsComponent> {
     var from = Vector2()
     var to = Vector2()
@@ -22,7 +23,7 @@ class BasicSensorsComponent(
 
     val wallSensor =
         SensorDef(
-            fromRelative = vec2(1f, 0f),
+            fromRelative = vec2(1f, -0.8f),
             toRelative = vec2(0.5f, 0f),
             type = SensorType.WALL_SENSOR,
             isHorizontal = true,

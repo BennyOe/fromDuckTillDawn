@@ -267,7 +267,7 @@ class CharacterSpawner(
             filter.maskBits = EntityCategory.PLAYER.bit
         }
 
-        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp)
+        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp, cfg.maxSightRadius)
 
         entity += RayHitComponent()
 
@@ -305,19 +305,6 @@ class CharacterSpawner(
 
         val phyCmp = entity[PhysicComponent]
 
-        val pulseLight =
-            lightEngine.addPointLight(
-                phyCmp.body.position + 1f,
-                Color.ORANGE,
-                11f,
-            )
-        pulseLight.effectParams.pulseMaxIntensity = 4f
-        pulseLight.effectParams.pulseMinIntensity = 2f
-        pulseLight.effect = LightEffectType.PULSE
-        pulseLight.b2dLight.attachToBody(phyCmp.body)
-
-        entity += LightComponent(pulseLight)
-
         // create normal nearbyEnemiesSensor
         phyCmp.body.circle(
             cfg.nearbyEnemiesDefaultSensorRadius,
@@ -329,7 +316,7 @@ class CharacterSpawner(
             filter.maskBits = EntityCategory.PLAYER.bit
         }
 
-        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp)
+        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp, cfg.maxSightRadius)
 
         entity += RayHitComponent()
 

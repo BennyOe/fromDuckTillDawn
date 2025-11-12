@@ -18,7 +18,6 @@ import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.addToDebugView
@@ -79,9 +78,16 @@ class BasicSensorsSystem(
         rayHitCmp.lowerLedgeHits.sort()
 
         val sightSensor = basicSensorsCmp.sightSensor
-        if (dst(sightSensor.from.x, sightSensor.from.y, sightSensor.to.x, sightSensor.to.y) < CHASE_DETECTION_RADIUS) {
-            processSensor(basicSensorsCmp.sightSensor, phyCmp) { rayHitCmp.sightIsBlocked = it }
+
+        if (dst(sightSensor.from.x, sightSensor.from.y, sightSensor.to.x, sightSensor.to.y) < basicSensorsCmp.maxSightRadius) {
+            // when sight is not blocked player can be seen. If sight is blocked but still in range player is in throwRange
+            processSensor(basicSensorsCmp.sightSensor, phyCmp) { rayHitCmp.seesPlayer = !it }
+            rayHitCmp.playerInThrowRange = true
+        } else {
+            rayHitCmp.seesPlayer = false
+            rayHitCmp.playerInThrowRange = false
         }
+
         processSensor(basicSensorsCmp.wallSensor, phyCmp) { rayHitCmp.wallHit = it }
         processSensor(basicSensorsCmp.wallHeightSensor, phyCmp) { rayHitCmp.wallHeightHit = it }
         processSensor(basicSensorsCmp.groundSensor, phyCmp) { rayHitCmp.groundHit = it }

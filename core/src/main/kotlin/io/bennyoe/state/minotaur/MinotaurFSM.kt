@@ -197,13 +197,44 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
     }
 
     class THROWING_ROCK : MinotaurFSM() {
+        private val PICKUP_FRAME_INDEX = 2
+        private val RELEASE_FRAME_INDEX = 3
+
+        private var hasSpawnedRock = false
+        private var hasThrownRock = false
+
         override fun enter(ctx: MinotaurStateContext) {
+            ctx.rotateToPlayer()
             ctx.intentionCmp.wantsToThrowAttack = false
             ctx.setAnimation(MinotaurAnimation.ROCK_ATTACK, Animation.PlayMode.NORMAL)
+            hasSpawnedRock = false
+            hasThrownRock = false
         }
 
         override fun update(ctx: MinotaurStateContext) {
+            val aniCmp = ctx.animationComponent
+            val currentFrame = aniCmp.animation.getKeyFrameIndex(aniCmp.stateTime)
+
+            if (!hasSpawnedRock && currentFrame >= PICKUP_FRAME_INDEX) {
+                ctx.spawnRock()
+                hasSpawnedRock = true
+            }
+
+            if (!hasThrownRock && currentFrame >= RELEASE_FRAME_INDEX) {
+                val playerPos = ctx.getPlayerPosition()
+                ctx.throwRock(playerPos)
+                hasThrownRock = true
+            }
+
             if (ctx.animationComponent.isAnimationFinished()) ctx.changeState(IDLE())
+        }
+
+        override fun exit(ctx: MinotaurStateContext) {
+            if (ctx.heldProjectile != null) {
+                // remove entity
+                with(ctx.world) { ctx.heldProjectile!!.remove() }
+                ctx.heldProjectile = null
+            }
         }
 
         override fun onMessage(

@@ -326,6 +326,8 @@ bounds:292,650,288,160
 jumpAttack01
 index:2
 bounds:872,650,288,160
+rock
+bounds:872,356,139,130
 rockAttack01
 index:0
 bounds:582,488,288,160

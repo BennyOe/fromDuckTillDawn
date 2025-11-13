@@ -296,7 +296,7 @@ class CharacterSpawner(
         val state =
             StateComponent(
                 world = world,
-                owner = MinotaurStateContext(entity, world, stage),
+                owner = MinotaurStateContext(entity, world, phyWorld, stage, atlasMap[AnimationModel.ENEMY_MINOTAUR]!!),
                 initialState = MinotaurFSM.IDLE(),
                 globalState = MinotaurCheckAliveState(),
             )

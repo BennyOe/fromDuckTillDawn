@@ -5,6 +5,7 @@ import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapLayer
+import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
@@ -132,10 +133,10 @@ class CharacterSpawner(
                 entity += CharacterTypeComponent(cfg.characterType)
 
                 val physics =
-                    PhysicComponent.physicsComponentFromImage(
+                    PhysicComponent.physicsComponentFromBox(
                         phyWorld,
                         entity,
-                        image.image,
+                        getSpawnPosCenter(atlasRegionSize, cfg, characterObj),
                         transformCmp.width,
                         transformCmp.height,
                         cfg.bodyType,
@@ -220,6 +221,23 @@ class CharacterSpawner(
                 }
             }
         }
+    }
+
+    private fun getSpawnPosCenter(
+        atlasRegionSize: Vector2,
+        cfg: SpawnCfg,
+        characterObj: MapObject,
+    ): Vector2 {
+        val visualWidth = atlasRegionSize.x * cfg.scaleImage.x
+        val visualHeight = atlasRegionSize.y * cfg.scaleImage.y
+
+        val spawnXBottomLeft = characterObj.x * UNIT_SCALE
+        val spawnYBottomLeft = characterObj.y * UNIT_SCALE
+
+        return vec2(
+            spawnXBottomLeft + visualWidth * 0.5f,
+            spawnYBottomLeft + visualHeight * 0.5f,
+        )
     }
 
     private fun EntityCreateContext.spawnMushroomSpecifics(

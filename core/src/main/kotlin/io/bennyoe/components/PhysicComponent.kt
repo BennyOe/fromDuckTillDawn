@@ -6,7 +6,6 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.physics.box2d.BodyDef
 import com.badlogic.gdx.physics.box2d.World
-import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import com.github.quillraven.fleks.Entity
@@ -114,10 +113,10 @@ class PhysicComponent : Component<PhysicComponent> {
             }
         }
 
-        fun physicsComponentFromImage(
+        fun physicsComponentFromBox(
             phyWorld: World,
             entity: Entity,
-            image: Image,
+            centerPos: Vector2,
             width: Float,
             height: Float,
             bodyType: BodyDef.BodyType = BodyDef.BodyType.DynamicBody,
@@ -135,15 +134,13 @@ class PhysicComponent : Component<PhysicComponent> {
             sensorType: SensorType = SensorType.NONE,
             myDensity: Float = 1f,
         ): PhysicComponent {
-            val x = image.x
-            val y = image.y
             val scaledWidth = width * scalePhysicX
             val scaledHeight = height * scalePhysicY
 
             // create the Box2D body
             val body =
                 phyWorld.body(bodyType) {
-                    position.set(x + width * 0.5f, y + height * 0.5f)
+                    position.set(centerPos)
                     this.fixedRotation = fixedRotation
                     this.allowSleep = allowSleep
                     userData = setUserdata

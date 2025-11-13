@@ -69,7 +69,7 @@ class MinotaurStateContext(
 
     fun spawnRock() {
         val facingDir = if (imageCmp.flipImage) -1f else 1f
-        val spawnPos = transformCmp.position.cpy().add(1.5f * facingDir, 0.5f)
+        val spawnPos = transformCmp.position.cpy().add(facingDir, 0.5f)
         val width = 4f
         val height = 4f
 
@@ -79,17 +79,17 @@ class MinotaurStateContext(
                 val imageCmp =
                     ImageComponent(stage).apply {
                         image = Image(minotaurAtlas.findRegion("rock"))
-                        image.setPosition(spawnPos.x - width * 0.5f, spawnPos.y + transformCmp.height - height - 1f)
+                        image.setPosition(spawnPos.x - width * 0.5f, spawnPos.y)
                         image.setSize(width, height)
                         zIndex = 100000
                     }
                 it += imageCmp
 
                 val phyBody =
-                    PhysicComponent.physicsComponentFromImage(
+                    PhysicComponent.physicsComponentFromBox(
                         phyWorld = phyWorld,
                         entity = it,
-                        image = imageCmp.image,
+                        centerPos = spawnPos,
                         width,
                         height,
                         bodyType = BodyDef.BodyType.KinematicBody,

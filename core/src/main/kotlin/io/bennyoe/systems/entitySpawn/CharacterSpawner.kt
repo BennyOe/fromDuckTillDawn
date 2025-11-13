@@ -45,7 +45,7 @@ import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundProfileComponent
 import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.config.GameConstants
+import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.config.SpawnCfg
 import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
@@ -101,17 +101,22 @@ class CharacterSpawner(
             val characterType =
                 CharacterType.valueOf(characterObj.type?.uppercase() ?: throw IllegalArgumentException("Type must not be null"))
             val cfg = SpawnCfg.createSpawnCfg(characterType)
-            val relativeSize = size(cfg.animationModel, cfg.animationType)
+            val atlasRegionSize = size(cfg.animationModel, cfg.animationType)
             world.entity { entity ->
                 // Add general components
+                val transformCmp =
+                    TransformComponent(
+                        vec2(characterObj.x, characterObj.y),
+                        atlasRegionSize.x * cfg.scaleImage,
+                        atlasRegionSize.y * cfg.scaleImage,
+                    )
+                entity += transformCmp
                 val image =
                     // scale sets the image size
-                    ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y, zIndex = layerZIndex + cfg.zIndex).apply {
+                    ImageComponent(stage, zIndex = layerZIndex + cfg.zIndex).apply {
                         image =
                             Image().apply {
-                                setPosition(characterObj.x * GameConstants.UNIT_SCALE, characterObj.y * GameConstants.UNIT_SCALE)
-                                // this size sets the physic box
-                                setSize(relativeSize.x, relativeSize.y)
+                                setPosition(characterObj.x * UNIT_SCALE, characterObj.y * UNIT_SCALE)
                             }
                     }
                 image.image.name = cfg.entityCategory.name
@@ -131,12 +136,15 @@ class CharacterSpawner(
                         phyWorld,
                         entity,
                         image.image,
+                        transformCmp.width,
+                        transformCmp.height,
                         cfg.bodyType,
                         categoryBit = cfg.entityCategory.bit,
                         maskBit = cfg.physicMaskCategory,
                         scalePhysicX = cfg.scalePhysic.x,
                         scalePhysicY = cfg.scalePhysic.y,
                         myFriction = 0f,
+                        offsetX = cfg.offsetPhysic.x,
                         offsetY = cfg.offsetPhysic.y,
                         setUserdata = EntityBodyData(entity, cfg.entityCategory),
                         sensorType = SensorType.HITBOX_SENSOR,
@@ -147,7 +155,7 @@ class CharacterSpawner(
                 physics.body.box(
                     physics.size.x * 0.99f,
                     0.01f,
-                    Vector2(0f, 0f - physics.size.y * 0.5f) + cfg.offsetPhysic.y,
+                    Vector2(physics.offset.x, physics.offset.y - physics.size.y * 0.5f),
                 ) {
                     isSensor = true
                     userData = FixtureSensorData(entity, SensorType.GROUND_TYPE_SENSOR)
@@ -159,7 +167,7 @@ class CharacterSpawner(
                 physics.body.box(
                     physics.size.x * 0.99f,
                     0.01f,
-                    Vector2(0f, 0f + physics.size.y * 0.5f) + cfg.offsetPhysic.y,
+                    Vector2(physics.offset.x, physics.offset.y + physics.size.y * 0.5f),
                 ) {
                     isSensor = true
                     userData = FixtureSensorData(entity, SensorType.UNDER_WATER_SENSOR)
@@ -170,14 +178,6 @@ class CharacterSpawner(
                 entity += physics
 
                 entity += GroundTypeSensorComponent
-
-                val transformCmp =
-                    TransformComponent(
-                        vec2(physics.body.position.x, physics.body.position.y),
-                        physics.size.x,
-                        physics.size.y,
-                    )
-                entity += transformCmp
 
                 entity += HealthComponent()
                 entity +=
@@ -341,7 +341,7 @@ class CharacterSpawner(
         phyCmp.body.box(
             physics.size.x * 0.99f,
             0.01f,
-            Vector2(0f, 0f - physics.size.y * 0.5f),
+            Vector2(physics.offset.x, physics.offset.y - physics.size.y * 0.5f),
         ) {
             isSensor = true
             userData = FixtureSensorData(entity, SensorType.GROUND_DETECT_SENSOR)
@@ -440,7 +440,7 @@ class CharacterSpawner(
             if (regions.isEmpty) gdxError("No regions for the animation '$type' for model '$model' found")
 
             val firstFrame = regions.first()
-            Vector2(firstFrame.originalWidth * GameConstants.UNIT_SCALE, firstFrame.originalHeight * GameConstants.UNIT_SCALE)
+            Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
         }
     }
 }

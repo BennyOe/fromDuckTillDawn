@@ -118,6 +118,8 @@ class PhysicComponent : Component<PhysicComponent> {
             phyWorld: World,
             entity: Entity,
             image: Image,
+            width: Float,
+            height: Float,
             bodyType: BodyDef.BodyType = BodyDef.BodyType.DynamicBody,
             scalePhysicX: Float = 1f,
             scalePhysicY: Float = 1f,
@@ -135,8 +137,8 @@ class PhysicComponent : Component<PhysicComponent> {
         ): PhysicComponent {
             val x = image.x
             val y = image.y
-            val width = image.width * scalePhysicX
-            val height = image.height * scalePhysicY
+            val scaledWidth = width * scalePhysicX
+            val scaledHeight = height * scalePhysicY
 
             // create the Box2D body
             val body =
@@ -148,7 +150,7 @@ class PhysicComponent : Component<PhysicComponent> {
                 }
 
             // fixture as box
-            body.box(width, height, Vector2(offsetX, offsetY)) {
+            body.box(scaledWidth, scaledHeight, Vector2(offsetX, offsetY)) {
                 this.isSensor = isSensor
                 this.userData = FixtureSensorData(entity, sensorType)
                 this.filter.categoryBits = categoryBit
@@ -159,7 +161,7 @@ class PhysicComponent : Component<PhysicComponent> {
 
             return PhysicComponent().apply {
                 this.body = body
-                this.size.set(width, height)
+                this.size.set(scaledWidth, scaledHeight)
                 this.offset.set(offsetX, offsetY)
             }
         }

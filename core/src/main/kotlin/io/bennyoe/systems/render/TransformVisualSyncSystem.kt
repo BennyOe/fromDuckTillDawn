@@ -1,7 +1,6 @@
 package io.bennyoe.systems.render
 
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.physics.box2d.BodyDef
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
@@ -16,14 +15,23 @@ import io.bennyoe.components.SkyComponentType
 import io.bennyoe.components.TransformComponent
 
 /**
- * System that synchronizes the visual representation of entities with their transform data.
+ * Synchronizes visual components (Images, Particles) with the TransformComponent.
  *
- * - For entities with a `PhysicComponent`, it updates the image size based on the image's scale.
- * - For background entities (`SkyComponent` of type `SKY` or `STARS`), it aligns the image to the camera's viewport.
- * - For all other entities, it positions and sizes the image based on the `TransformComponent` and `ImageComponent`.
- * - If a `ParticleComponent` is present, it updates the particle actor's position and size accordingly.
+ * This system is the "Source of Truth" for *visual* placement. It reads
+ * from the TransformComponent and updates the corresponding Scene2D-Actors.
  *
- * @param stage The LibGDX stage used to access the camera for viewport calculations.
+ * It handles three main cases for positioning:
+ * 1.  **Dynamic Physics Entities (with PhysicComponent):**
+ * - `TransformComponent.position` is the CENTER of the body.
+ * - The Image is positioned by calculating its bottom-left corner relative to this center.
+ * 2.  **Static Entities (without PhysicComponent):**
+ * - `TransformComponent.position` is the BOTTOM-LEFT corner (as placed in Tiled).
+ * - The Image is positioned directly at this coordinate.
+ * 3.  **Special Cases (Sky, Rain):**
+ * - Full-screen elements like sky or rain are positioned relative to the camera's viewport,
+ * not based on the entity's TransformComponent position.
+ *
+ * @param stage The LibGDX stage, used to access the camera.
  */
 class TransformVisualSyncSystem(
     stage: Stage = inject("stage"),
@@ -32,60 +40,91 @@ class TransformVisualSyncSystem(
 
     override fun onTickEntity(entity: Entity) {
         val transformCmp = entity[TransformComponent]
-        val skyCmp = entity.getOrNull(SkyComponent)
 
+        // Sync ImageComponent if present
         entity.getOrNull(ImageComponent)?.let { imageCmp ->
-            // Differentiate sizing logic based on whether the entity has a PhysicComponent
-            val targetWidth: Float
-            val targetHeight: Float
-
-            val physCmp = entity.getOrNull(PhysicComponent)
-            if (physCmp != null) {
-                if (physCmp.body.type == BodyDef.BodyType.DynamicBody) {
-                    // For dynamic bodies like Player/Mushroom, the size is determined by a visual scale factor.
-                    targetWidth = imageCmp.scaleX
-                    targetHeight = imageCmp.scaleY
-                } else {
-                    // For static bodies like the Door, size comes from the TransformComponent (from the map).
-                    targetWidth = transformCmp.width * imageCmp.scaleX
-                    targetHeight = transformCmp.height * imageCmp.scaleY
-                }
-            } else {
-                // We now tie the background's position and size directly to the camera's view.
-                if (skyCmp != null && (skyCmp.type == SkyComponentType.SKY || skyCmp.type == SkyComponentType.STARS)) {
-                    val vw = orthoCam.viewportWidth * orthoCam.zoom
-                    val vh = orthoCam.viewportHeight * orthoCam.zoom
-
-                    val camX = orthoCam.position.x - vw * 0.5f
-                    val camY = orthoCam.position.y - vh * 0.5f
-
-                    imageCmp.image.setPosition(camX, camY)
-
-                    targetWidth = vw
-                    targetHeight = vh
-                } else {
-                    imageCmp.image.setPosition(transformCmp.position.x, transformCmp.position.y)
-                    targetWidth = transformCmp.width * imageCmp.scaleX
-                    targetHeight = transformCmp.height * imageCmp.scaleY
-                }
-            }
-            imageCmp.image.setSize(targetWidth, targetHeight)
+            syncImage(entity, transformCmp, imageCmp)
         }
 
-        // Update position for ParticleComponents that can (must) appear on the whole viewport like shooting-star and rain
+        // Sync ParticleComponent if present
         entity.getOrNull(ParticleComponent)?.let { particleCmp ->
-            if (skyCmp != null || entity has RainComponent) {
-                val vw = orthoCam.viewportWidth * orthoCam.zoom
-                val vh = orthoCam.viewportHeight * orthoCam.zoom
-                val camX = orthoCam.position.x - vw * 0.5f - 15f
-                val camY = orthoCam.position.y + vh * 0.5f + 10f
-                particleCmp.actor.setPosition(camX + particleCmp.offsetX, camY + particleCmp.offsetY)
+            syncParticle(entity, transformCmp, particleCmp)
+        }
+    }
+
+    /**
+     * Updates the position and size of the Image actor based on the entity's status.
+     */
+    private fun syncImage(
+        entity: Entity,
+        transformCmp: TransformComponent,
+        imageCmp: ImageComponent,
+    ) {
+        val skyCmp = entity.getOrNull(SkyComponent)
+        val hasPhysic = entity.getOrNull(PhysicComponent) != null
+
+        val targetWidth: Float
+        val targetHeight: Float
+
+        // Case 1: Full-screen backgrounds (Sky, Stars)
+        if (skyCmp != null && (skyCmp.type == SkyComponentType.SKY || skyCmp.type == SkyComponentType.STARS)) {
+            val vw = orthoCam.viewportWidth * orthoCam.zoom
+            val vh = orthoCam.viewportHeight * orthoCam.zoom
+            val camX = orthoCam.position.x - vw * 0.5f
+            val camY = orthoCam.position.y - vh * 0.5f
+
+            imageCmp.image.setPosition(camX, camY)
+            targetWidth = vw
+            targetHeight = vh
+        } else {
+            // Case 2 & 3: Standard entities (with or without physics)
+            targetWidth = transformCmp.width * imageCmp.scaleX
+            targetHeight = transformCmp.height * imageCmp.scaleY
+
+            if (hasPhysic) {
+                // Entity HAS physics: transformCmp.position is CENTER.
+                // Calculate the bottom-left corner for the Image.
+                imageCmp.image.setPosition(
+                    transformCmp.position.x - (targetWidth * 0.5f),
+                    transformCmp.position.y - (targetHeight * 0.5f),
+                )
             } else {
-                particleCmp.actor.setPosition(
-                    transformCmp.position.x + particleCmp.offsetX,
-                    transformCmp.position.y + particleCmp.offsetY,
+                // Entity has NO physics: transformCmp.position is BOTTOM-LEFT.
+                // Use it directly.
+                imageCmp.image.setPosition(
+                    transformCmp.position.x,
+                    transformCmp.position.y,
                 )
             }
+        }
+        imageCmp.image.setSize(targetWidth, targetHeight)
+    }
+
+    /**
+     * Updates the position of the Particle actor based on the entity's status.
+     */
+    private fun syncParticle(
+        entity: Entity,
+        transformCmp: TransformComponent,
+        particleCmp: ParticleComponent,
+    ) {
+        val skyCmp = entity.getOrNull(SkyComponent)
+
+        // Case 1: Full-screen particles (Rain, Shooting Stars)
+        if (skyCmp != null || entity has RainComponent) {
+            val vw = orthoCam.viewportWidth * orthoCam.zoom
+            val vh = orthoCam.viewportHeight * orthoCam.zoom
+            val camX = orthoCam.position.x - vw * 0.5f - 15f
+            val camY = orthoCam.position.y + vh * 0.5f + 10f
+            particleCmp.actor.setPosition(camX + particleCmp.offsetX, camY + particleCmp.offsetY)
+        } else {
+            // Case 2: World-space particles (e.g., Fire)
+            // Assumes transformCmp.position is BOTTOM-LEFT,
+            // which is correct for static entities (without physics).
+            particleCmp.actor.setPosition(
+                transformCmp.position.x + particleCmp.offsetX,
+                transformCmp.position.y + particleCmp.offsetY,
+            )
         }
     }
 }

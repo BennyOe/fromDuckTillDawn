@@ -64,6 +64,8 @@ class DoorSpawner(
                         phyWorld = phyWorld,
                         entity = it,
                         image = imageCmp.image,
+                        width,
+                        height,
                         bodyType = BodyDef.BodyType.StaticBody,
                         categoryBit = EntityCategory.GROUND.bit,
                         maskBit = EntityCategory.PLAYER.bit or EntityCategory.ENEMY.bit,

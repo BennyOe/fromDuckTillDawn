@@ -90,6 +90,8 @@ class MinotaurStateContext(
                         phyWorld = phyWorld,
                         entity = it,
                         image = imageCmp.image,
+                        width,
+                        height,
                         bodyType = BodyDef.BodyType.KinematicBody,
                     )
                 it += phyBody

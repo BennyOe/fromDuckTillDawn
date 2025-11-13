@@ -197,8 +197,8 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
     }
 
     class THROWING_ROCK : MinotaurFSM() {
-        private val PICKUP_FRAME_INDEX = 2
-        private val RELEASE_FRAME_INDEX = 3
+        private val pickupFrameIndex = 2
+        private val releaseFrameIndex = 3
 
         private var hasSpawnedRock = false
         private var hasThrownRock = false
@@ -215,12 +215,12 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
             val aniCmp = ctx.animationComponent
             val currentFrame = aniCmp.animation.getKeyFrameIndex(aniCmp.stateTime)
 
-            if (!hasSpawnedRock && currentFrame >= PICKUP_FRAME_INDEX) {
+            if (!hasSpawnedRock && currentFrame >= pickupFrameIndex) {
                 ctx.spawnRock()
                 hasSpawnedRock = true
             }
 
-            if (!hasThrownRock && currentFrame >= RELEASE_FRAME_INDEX) {
+            if (!hasThrownRock && currentFrame >= releaseFrameIndex) {
                 val playerPos = ctx.getPlayerPosition()
                 ctx.throwRock(playerPos)
                 hasThrownRock = true

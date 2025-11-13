@@ -468,7 +468,7 @@ class Scene2dLightEngine(
         height: Int,
     ) {
         if (stage == null) return
-        stage.viewport.update(width, height, true)
+        stage.viewport.update(width, height, false)
         val screenX = stage.viewport.screenX * Gdx.graphics.backBufferScale.toInt()
         val screenY = stage.viewport.screenY * Gdx.graphics.backBufferScale.toInt()
         val screenW = stage.viewport.screenWidth * Gdx.graphics.backBufferScale.toInt()

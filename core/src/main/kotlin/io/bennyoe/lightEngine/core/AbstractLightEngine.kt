@@ -802,7 +802,7 @@ abstract class AbstractLightEngine(
         width: Int,
         height: Int,
     ) {
-        viewport.update(width, height, true)
+        viewport.update(width, height, false)
         val scale = Gdx.graphics.backBufferScale
         rayHandler.setCombinedMatrix(cam)
         shader.bind()

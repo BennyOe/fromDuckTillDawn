@@ -15,7 +15,7 @@ abstract class AbstractScreen(
         context
             .inject<Stages>()
             .stage.viewport
-            .update(width, height, true)
+            .update(width, height, false)
         context
             .inject<Stages>()
             .uiStage.viewport

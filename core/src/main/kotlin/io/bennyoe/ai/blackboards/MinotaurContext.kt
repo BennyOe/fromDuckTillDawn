@@ -87,16 +87,19 @@ class MinotaurContext(
     fun seesPlayer(): Boolean = rayHitCmp.seesPlayer
 
     fun playerInGrabRange(): Boolean {
-        val playerBottomLine = with(world) { playerEntity[TransformComponent] }.bottom
-        val minotaurBottomLine = transformCmp.bottom
-        return seesPlayer() && abs(playerBottomLine - minotaurBottomLine) < HEIGHT_DIFF_EPS
+        val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
+        val playerBottomLine = playerPhysicCmp.body.position.y + playerPhysicCmp.offset.y - playerPhysicCmp.size.y * 0.5f
+        val myBottom = phyCmp.body.position.y + phyCmp.offset.y - phyCmp.size.y * 0.5f
+        return seesPlayer() && abs(playerBottomLine - myBottom) < HEIGHT_DIFF_EPS
     }
 
     fun playerIsInAir(): Boolean {
-        val playerBottomLine = with(world) { playerEntity[TransformComponent] }.bottom
+        val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
+        val playerBottomLine = playerPhysicCmp.body.position.y + playerPhysicCmp.offset.y - playerPhysicCmp.size.y * 0.5f
         val playerHasGroundContact = with(world) { playerEntity has HasGroundContact }
-        val minotaurBottomLine = transformCmp.bottom
-        return playerBottomLine > minotaurBottomLine && !playerHasGroundContact
+
+        val myBottom = phyCmp.body.position.y + phyCmp.offset.y - phyCmp.size.y * 0.5f
+        return playerBottomLine > myBottom && !playerHasGroundContact
     }
 
     fun playerInThrowRange(): Boolean {

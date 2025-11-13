@@ -107,8 +107,8 @@ class CharacterSpawner(
                 val transformCmp =
                     TransformComponent(
                         vec2(characterObj.x, characterObj.y),
-                        atlasRegionSize.x * cfg.scaleImage,
-                        atlasRegionSize.y * cfg.scaleImage,
+                        atlasRegionSize.x * cfg.scaleImage.x,
+                        atlasRegionSize.y * cfg.scaleImage.y,
                     )
                 entity += transformCmp
                 val image =

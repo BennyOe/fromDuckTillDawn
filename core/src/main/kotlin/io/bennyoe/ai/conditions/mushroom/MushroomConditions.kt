@@ -31,6 +31,6 @@ class IsAlive : AbstractCondition<MushroomContext>() {
  */
 class ShouldChase : AbstractCondition<MushroomContext>() {
     override fun condition(): Boolean =
-        (entity.lastTaskName == "Chase" && entity.isPlayerInChaseRange()) ||
+        (entity.lastTaskName == "MushroomChase" && entity.isPlayerInChaseRange()) ||
             entity.hasPlayerNearby()
 }

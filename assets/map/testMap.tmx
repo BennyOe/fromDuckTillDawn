@@ -533,7 +533,7 @@
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="105" name="player" type="player" x="815.31" y="351.674">
+  <object id="105" name="player" type="player" x="2122.31" y="360.674">
    <point/>
   </object>
  </objectgroup>
@@ -547,7 +547,7 @@
    </properties>
    <point/>
   </object>
-  <object id="209" name="minotaur" x="1835.66" y="374.279">
+  <object id="209" name="minotaur" x="1985" y="352.279">
    <properties>
     <property name="type" value="minotaur"/>
    </properties>

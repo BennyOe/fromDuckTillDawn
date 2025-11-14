@@ -20,6 +20,7 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WATER_CONTACT_GRACE_PERIOD
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.state.player.PlayerFSM
@@ -32,7 +33,7 @@ import ktx.math.component2
 class PhysicsSystem(
     private val phyWorld: World = inject("phyWorld"),
 ) : IteratingSystem(
-        family { all(PhysicComponent, ImageComponent) },
+        family { all(PhysicComponent, ImageComponent, TransformComponent) },
         interval = Fixed(PHYSIC_TIME_STEP),
     ),
     PausableSystem {
@@ -81,21 +82,29 @@ class PhysicsSystem(
         }
     }
 
-    // alpha is the offset between two frames
-    // this is for interpolating the animation
+    /** For entities with physics, the Box2D body is the single source of truth
+     * for movement. We interpolate between prevPos and body.position and write
+     * directly to the Image.
+     */
     override fun onAlphaEntity(
         entity: Entity,
         alpha: Float,
     ) {
         val imageCmp = entity[ImageComponent]
         val physicCmp = entity[PhysicComponent]
+        val transformCmp = entity[TransformComponent]
 
         val (prevX, prevY) = physicCmp.prevPos
         val (bodyX, bodyY) = physicCmp.body.position
+
+        val imgWidth = transformCmp.width
+        val imgHeight = transformCmp.height
+
         imageCmp.image.run {
+            setSize(imgWidth, imgHeight)
             setPosition(
-                MathUtils.lerp(prevX, bodyX, alpha) - width * 0.5f,
-                MathUtils.lerp(prevY, bodyY, alpha) - height * 0.5f,
+                MathUtils.lerp(prevX, bodyX, alpha) - imgWidth * 0.5f,
+                MathUtils.lerp(prevY, bodyY, alpha) - imgHeight * 0.5f,
             )
             setRotation(MathUtils.lerpAngleDeg(physicCmp.prevAngle * MathUtils.radDeg, physicCmp.body.angle * MathUtils.radDeg, alpha))
         }

@@ -5,7 +5,6 @@ import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.MapLayer
-import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
@@ -104,21 +103,28 @@ class CharacterSpawner(
             val cfg = SpawnCfg.createSpawnCfg(characterType)
             val atlasRegionSize = size(cfg.animationModel, cfg.animationType)
             world.entity { entity ->
-                val spawnPosCenter = getSpawnPosCenter(atlasRegionSize, cfg, characterObj)
-                // Add general components
+                // center position directly from tiled (point object)
+                val spawnPosCenter = vec2(characterObj.x * UNIT_SCALE, characterObj.y * UNIT_SCALE)
+
+                // calculate visual size
+                val visualWidth = atlasRegionSize.x * cfg.scaleImage.x
+                val visualHeight = atlasRegionSize.y * cfg.scaleImage.y
+
+                // use visual size for transform
                 val transformCmp =
                     TransformComponent(
                         spawnPosCenter,
-                        atlasRegionSize.x * cfg.scaleImage.x,
-                        atlasRegionSize.y * cfg.scaleImage.y,
+                        visualWidth,
+                        visualHeight,
                     )
                 entity += transformCmp
+
                 val image =
                     // scale sets the image size
                     ImageComponent(stage, zIndex = layerZIndex + cfg.zIndex).apply {
                         image =
                             Image().apply {
-                                setPosition(characterObj.x * UNIT_SCALE, characterObj.y * UNIT_SCALE)
+                                setPosition(0f, 0f)
                             }
                     }
                 image.image.name = cfg.entityCategory.name
@@ -138,8 +144,8 @@ class CharacterSpawner(
                         phyWorld,
                         entity,
                         spawnPosCenter,
-                        transformCmp.width,
-                        transformCmp.height,
+                        visualWidth,
+                        visualHeight,
                         cfg.bodyType,
                         categoryBit = cfg.entityCategory.bit,
                         maskBit = cfg.physicMaskCategory,
@@ -222,23 +228,6 @@ class CharacterSpawner(
                 }
             }
         }
-    }
-
-    private fun getSpawnPosCenter(
-        atlasRegionSize: Vector2,
-        cfg: SpawnCfg,
-        characterObj: MapObject,
-    ): Vector2 {
-        val visualWidth = atlasRegionSize.x * cfg.scaleImage.x
-        val visualHeight = atlasRegionSize.y * cfg.scaleImage.y
-
-        val spawnXBottomLeft = characterObj.x * UNIT_SCALE
-        val spawnYBottomLeft = characterObj.y * UNIT_SCALE
-
-        return vec2(
-            spawnXBottomLeft + visualWidth * 0.5f,
-            spawnYBottomLeft + visualHeight * 0.5f,
-        )
     }
 
     private fun EntityCreateContext.spawnMushroomSpecifics(
@@ -449,7 +438,7 @@ class CharacterSpawner(
         model: AnimationModel,
         type: AnimationKey,
     ): Vector2 {
-        val cacheKey = type.atlasKey
+        val cacheKey = "${model.atlasKey}${type.atlasKey}"
         return sizesCache.getOrPut(cacheKey) {
             val atlas =
                 atlasMap[model]

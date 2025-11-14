@@ -15,12 +15,12 @@ import io.bennyoe.components.SkyComponentType
 import io.bennyoe.components.TransformComponent
 
 /**
- * Synchronizes visual components (Images, Particles) with the TransformComponent.
+ * Synchronizes visual components (Images, Particles) from the TransformComponent.
  *
- * This system is the "Source of Truth" for *visual* placement. It reads
- * from the TransformComponent and updates the corresponding Scene2D-Actors.
+ * This system is the "Source of Truth" for *visual* placement for entities without [PhysicComponent].
+ * It reads from the TransformComponent and updates the corresponding Scene2D-Actors.
  *
- * It handles three main cases for positioning:
+ * It handles two main cases for positioning:
  * 1.  **Static Entities (without PhysicComponent):**
  * - `TransformComponent.position` is the BOTTOM-LEFT corner (as placed in Tiled).
  * - The Image is positioned directly at this coordinate.
@@ -32,7 +32,12 @@ import io.bennyoe.components.TransformComponent
  */
 class TransformVisualSyncSystem(
     stage: Stage = inject("stage"),
-) : IteratingSystem(family { all(TransformComponent) }) {
+) : IteratingSystem(
+        family {
+            all(TransformComponent)
+            none(PhysicComponent)
+        },
+    ) {
     private val orthoCam = stage.camera as OrthographicCamera
 
     override fun onTickEntity(entity: Entity) {
@@ -58,12 +63,11 @@ class TransformVisualSyncSystem(
         imageCmp: ImageComponent,
     ) {
         val skyCmp = entity.getOrNull(SkyComponent)
-        val hasPhysic = entity.getOrNull(PhysicComponent) != null
 
         val targetWidth: Float
         val targetHeight: Float
 
-        // Case 1: Full-screen backgrounds (Sky, Stars)
+        // Case 2: Full-screen backgrounds (Sky, Stars)
         if (skyCmp != null && (skyCmp.type == SkyComponentType.SKY || skyCmp.type == SkyComponentType.STARS)) {
             val vw = orthoCam.viewportWidth * orthoCam.zoom
             val vh = orthoCam.viewportHeight * orthoCam.zoom
@@ -74,18 +78,14 @@ class TransformVisualSyncSystem(
             targetWidth = vw
             targetHeight = vh
         } else {
-            // Case 2: Standard entities (without physics)
+            // Case 1: Standard entities (without physics)
             targetWidth = transformCmp.width * imageCmp.scaleX
             targetHeight = transformCmp.height * imageCmp.scaleY
 
-            if (!hasPhysic) {
-                // Entity has NO physics: transformCmp.position is BOTTOM-LEFT.
-                // Use it directly.
-                imageCmp.image.setPosition(
-                    transformCmp.position.x,
-                    transformCmp.position.y,
-                )
-            }
+            imageCmp.image.setPosition(
+                transformCmp.position.x,
+                transformCmp.position.y,
+            )
         }
         imageCmp.image.setSize(targetWidth, targetHeight)
     }

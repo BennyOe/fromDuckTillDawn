@@ -265,7 +265,7 @@ data class SpawnCfg(
                                         ),
                                 ),
                             jumpHeight = 10f,
-                            scaleImage = vec2(5f, 5f),
+                            scaleImage = vec2(2f, 2f),
                             scalePhysic = vec2(0.25f, 0.6f),
                             offsetPhysic = vec2(0f, -1.9f),
                             aiTreePath = "ai/minotaur.tree",

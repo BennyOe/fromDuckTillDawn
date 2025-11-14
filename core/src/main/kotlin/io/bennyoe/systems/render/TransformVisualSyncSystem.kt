@@ -21,13 +21,10 @@ import io.bennyoe.components.TransformComponent
  * from the TransformComponent and updates the corresponding Scene2D-Actors.
  *
  * It handles three main cases for positioning:
- * 1.  **Dynamic Physics Entities (with PhysicComponent):**
- * - `TransformComponent.position` is the CENTER of the body.
- * - The Image is positioned by calculating its bottom-left corner relative to this center.
- * 2.  **Static Entities (without PhysicComponent):**
+ * 1.  **Static Entities (without PhysicComponent):**
  * - `TransformComponent.position` is the BOTTOM-LEFT corner (as placed in Tiled).
  * - The Image is positioned directly at this coordinate.
- * 3.  **Special Cases (Sky, Rain):**
+ * 2.  **Special Cases (Sky, Rain):**
  * - Full-screen elements like sky or rain are positioned relative to the camera's viewport,
  * not based on the entity's TransformComponent position.
  *
@@ -77,18 +74,11 @@ class TransformVisualSyncSystem(
             targetWidth = vw
             targetHeight = vh
         } else {
-            // Case 2 & 3: Standard entities (with or without physics)
+            // Case 2: Standard entities (without physics)
             targetWidth = transformCmp.width * imageCmp.scaleX
             targetHeight = transformCmp.height * imageCmp.scaleY
 
-            if (hasPhysic) {
-                // Entity HAS physics: transformCmp.position is CENTER.
-                // Calculate the bottom-left corner for the Image.
-                imageCmp.image.setPosition(
-                    transformCmp.position.x - (targetWidth * 0.5f),
-                    transformCmp.position.y - (targetHeight * 0.5f),
-                )
-            } else {
+            if (!hasPhysic) {
                 // Entity has NO physics: transformCmp.position is BOTTOM-LEFT.
                 // Use it directly.
                 imageCmp.image.setPosition(

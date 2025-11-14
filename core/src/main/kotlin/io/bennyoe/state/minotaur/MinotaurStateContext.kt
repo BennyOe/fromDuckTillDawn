@@ -114,7 +114,7 @@ class MinotaurStateContext(
         val throwStartPos = rockPhyCmp.body.position
         // Simpler Richtungsvektor + etwas Bogen nach oben
         val direction = targetPos.cpy().sub(throwStartPos).nor()
-        val throwForce = 20f // Muss getweakt werden
+        val throwForce = 200f // Muss getweakt werden
         val impulse = Vector2(direction.x * throwForce, direction.y * throwForce + 5f)
 
         rockPhyCmp.body.applyLinearImpulse(impulse, rockPhyCmp.body.worldCenter, true)

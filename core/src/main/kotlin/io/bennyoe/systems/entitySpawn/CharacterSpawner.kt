@@ -104,10 +104,11 @@ class CharacterSpawner(
             val cfg = SpawnCfg.createSpawnCfg(characterType)
             val atlasRegionSize = size(cfg.animationModel, cfg.animationType)
             world.entity { entity ->
+                val spawnPosCenter = getSpawnPosCenter(atlasRegionSize, cfg, characterObj)
                 // Add general components
                 val transformCmp =
                     TransformComponent(
-                        vec2(characterObj.x, characterObj.y),
+                        spawnPosCenter,
                         atlasRegionSize.x * cfg.scaleImage.x,
                         atlasRegionSize.y * cfg.scaleImage.y,
                     )
@@ -136,7 +137,7 @@ class CharacterSpawner(
                     PhysicComponent.physicsComponentFromBox(
                         phyWorld,
                         entity,
-                        getSpawnPosCenter(atlasRegionSize, cfg, characterObj),
+                        spawnPosCenter,
                         transformCmp.width,
                         transformCmp.height,
                         cfg.bodyType,

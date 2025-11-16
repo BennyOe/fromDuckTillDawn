@@ -55,6 +55,7 @@ import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.ParallaxSystem
 import io.bennyoe.systems.ParticleRemoveSystem
+import io.bennyoe.systems.ProjectileSystem
 import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
@@ -239,6 +240,7 @@ class GameScreen(
                 add(TimeSystem())
                 add(IndoorLightSystem())
                 add(DoorSystem())
+                add(ProjectileSystem())
                 add(SkySystem())
                 add(UiDataSystem())
                 add(MoveSystem())

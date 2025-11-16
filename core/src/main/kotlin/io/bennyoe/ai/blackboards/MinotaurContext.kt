@@ -84,7 +84,7 @@ class MinotaurContext(
         stopAttack()
     }
 
-    fun seesPlayer(): Boolean = rayHitCmp.seesPlayer
+    fun seesPlayer(): Boolean = rayHitCmp.seesPlayer && !with(world) { playerEntity[HealthComponent].isDead }
 
     fun playerInGrabRange(): Boolean {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }

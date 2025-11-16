@@ -547,7 +547,7 @@
    </properties>
    <point/>
   </object>
-  <object id="209" name="minotaur" x="1985" y="352.279">
+  <object id="209" name="minotaur" x="2350" y="350.279">
    <properties>
     <property name="type" value="minotaur"/>
    </properties>

@@ -10,14 +10,19 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
+import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ProjectileComponent
+import io.bennyoe.components.ProjectileType
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
+import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.state.AbstractStateContext
+import io.bennyoe.utility.EntityBodyData
+import kotlin.experimental.or
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
 
 class MinotaurStateContext(
@@ -69,9 +74,9 @@ class MinotaurStateContext(
 
     fun spawnRock() {
         val facingDir = if (imageCmp.flipImage) -1f else 1f
-        val spawnPos = transformCmp.position.cpy().add(facingDir, 0.5f)
-        val width = 4f
-        val height = 4f
+        val spawnPos = transformCmp.position.cpy().add(facingDir, 6.5f)
+        val width = 4.7f
+        val height = 4.7f
 
         heldProjectile =
             world.entity {
@@ -93,9 +98,17 @@ class MinotaurStateContext(
                         width,
                         height,
                         bodyType = BodyDef.BodyType.KinematicBody,
+                        setUserdata = EntityBodyData(it, EntityCategory.ENEMY_PROJECTILE),
+                        categoryBit = EntityCategory.ENEMY_PROJECTILE.bit,
+                        maskBit =
+                            EntityCategory.GROUND.bit or
+                                EntityCategory.WORLD_BOUNDARY.bit or
+                                EntityCategory.PLAYER.bit or
+                                EntityCategory.WATER.bit or
+                                EntityCategory.SENSOR.bit,
                     )
                 it += phyBody
-                it += ProjectileComponent(EntityCategory.ENEMY)
+                it += ProjectileComponent(24f, ProjectileType.ROCK)
             }
     }
 
@@ -110,21 +123,50 @@ class MinotaurStateContext(
         rockPhyCmp.body.isAwake = true
         projectileCmp.isThrown = true
 
-        // 2. Impuls berechnen (einfache ballistische Kurve oder direkter Wurf)
-        val throwStartPos = rockPhyCmp.body.position
-        // Simpler Richtungsvektor + etwas Bogen nach oben
-        val direction = targetPos.cpy().sub(throwStartPos).nor()
-        val throwForce = 200f // Muss getweakt werden
-        val impulse = Vector2(direction.x * throwForce, direction.y * throwForce + 5f)
+        // 2. Start-/Zielposition
+        val startPos = rockPhyCmp.body.position.cpy()
+
+        // MODIFIED! Wir benutzen explizit die Spielerposition als Ziel
+        val targetX = targetPos.x
+        val targetY = targetPos.y
+
+        val dx = targetX - startPos.x
+        if (dx == 0f) {
+            return
+        }
+
+        // Wie lange der Stein in der Luft sein soll (in Sekunden) – Tweak-Parameter fürs Gameplay
+        // Je größer, desto höher/weiter der Bogen
+        val flightTime = 0.4f
+
+        // 3. Horizontal: x(T) = x0 + vx * T  →  vx = (xt - x0) / T
+        val vx = dx / flightTime
+
+        // 4. Vertikal: y(T) = y0 + vy * T + 0.5 * a * T^2
+        //    → vy = (yt - y0 - 0.5 * a * T^2) / T
+        val dy = targetY - startPos.y
+        val vy = (dy - 0.5f * GRAVITY * flightTime * flightTime) / flightTime
+
+        // 5. Gewünschte Geschwindigkeit → Impuls
+        //    impulse = (v_desired - v_current) * mass
+        val desiredVelocity = Vector2(vx, vy)
+        val currentVelocity = rockPhyCmp.body.linearVelocity
+        val velocityChange = desiredVelocity.sub(currentVelocity)
+        val impulse = velocityChange.scl(rockPhyCmp.body.mass)
 
         rockPhyCmp.body.applyLinearImpulse(impulse, rockPhyCmp.body.worldCenter, true)
 
-        // 3. Referenz loslassen
+        // 6. Referenz loslassen
         heldProjectile = null
     }
 
     fun getPlayerPosition(): Vector2 {
         val playerTransformCmp = with(world) { playerEntity[TransformComponent] }
         return playerTransformCmp.position
+    }
+
+    fun grabPlayer() {
+        val playerMoveCmp = with(world) { playerEntity[MoveComponent] }
+        playerMoveCmp.lockMovement = true
     }
 }

@@ -65,7 +65,8 @@ data class SpawnCfg(
                                     EntityCategory.SENSOR.bit or
                                     EntityCategory.ENEMY.bit or
                                     EntityCategory.WATER.bit or
-                                    EntityCategory.LANTERN.bit
+                                    EntityCategory.LANTERN.bit or
+                                    EntityCategory.ENEMY_PROJECTILE.bit
                             ),
                             animationModel = AnimationModel.PLAYER_DAWN,
                             animationType = PlayerAnimation.IDLE,

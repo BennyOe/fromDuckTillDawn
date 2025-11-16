@@ -138,6 +138,7 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
             if (ctx.animationComponent.isAnimationFinished()) {
                 ctx.changeState(SHAKING())
             }
+            ctx.grabPlayer()
             /* TODO
             set player to not moveable
             play animation, then -> SHAKING

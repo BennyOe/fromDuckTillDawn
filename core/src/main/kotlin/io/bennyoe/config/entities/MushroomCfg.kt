@@ -1,9 +1,11 @@
 package io.bennyoe.config.entities
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.physics.box2d.BodyDef
 import io.bennyoe.assets.SoundAssets
 import io.bennyoe.components.Attack
 import io.bennyoe.components.AttackType
+import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.components.animation.AnimationModel
 import io.bennyoe.components.animation.MushroomAnimation
 import io.bennyoe.config.CharacterType
@@ -16,6 +18,7 @@ import io.bennyoe.systems.audio.SoundProfile
 import io.bennyoe.systems.audio.SoundType
 import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.FloorType
+import io.bennyoe.utility.SensorType
 import ktx.math.vec2
 import kotlin.experimental.or
 
@@ -100,6 +103,60 @@ object MushroomCfg {
                             FloorType.STONE to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_STONE),
                             FloorType.GRASS to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_GRASS),
                         ),
+                ),
+            basicSensorList =
+                listOf(
+                    // Wall Sensor: Checks for walls in front of the entity
+                    SensorDef(
+                        bodyAnchorPoint = vec2(1f, -0.8f),
+                        rayLengthOffset = vec2(0.5f, 0f),
+                        type = SensorType.WALL_SENSOR,
+                        isHorizontal = true,
+                        name = "mushroom_wall",
+                        color = Color.BLUE,
+                        hitFilter = {
+                            it.entityCategory == EntityCategory.GROUND ||
+                                it.entityCategory == EntityCategory.WORLD_BOUNDARY
+                        },
+                    ),
+                    // Wall Height Sensor: Checks if the wall is jumpable (empty space above wall)
+                    SensorDef(
+                        bodyAnchorPoint = vec2(1f, 1.5f),
+                        rayLengthOffset = vec2(0.5f, 0f),
+                        type = SensorType.WALL_HEIGHT_SENSOR,
+                        isHorizontal = true,
+                        name = "mushroom_wall_height",
+                        color = Color.BLUE,
+                        hitFilter = { it.entityCategory == EntityCategory.GROUND },
+                    ),
+                    // Ground Sensor: Detects the ground (or lack thereof/ledge) in front
+                    SensorDef(
+                        bodyAnchorPoint = vec2(1f, -1f),
+                        rayLengthOffset = vec2(0f, -1.4f),
+                        type = SensorType.GROUND_DETECT_SENSOR,
+                        isHorizontal = false,
+                        name = "mushroom_ground",
+                        color = Color.GREEN,
+                    ),
+                    // Jump Sensor: Checks for a landing spot across a gap
+                    SensorDef(
+                        bodyAnchorPoint = vec2(3.2f, -1f),
+                        rayLengthOffset = vec2(0f, -1.4f),
+                        type = SensorType.JUMP_SENSOR,
+                        isHorizontal = false,
+                        name = "mushroom_jump",
+                        color = Color.GREEN,
+                    ),
+                    // Attack Sensor: Detects the player in melee range
+                    SensorDef(
+                        bodyAnchorPoint = vec2(1f, -0.7f),
+                        rayLengthOffset = vec2(1f, 0f),
+                        type = SensorType.ATTACK_SENSOR,
+                        isHorizontal = true,
+                        name = "mushroom_attack",
+                        color = Color.ORANGE,
+                        hitFilter = { it.entityCategory == EntityCategory.PLAYER },
+                    ),
                 ),
         )
 }

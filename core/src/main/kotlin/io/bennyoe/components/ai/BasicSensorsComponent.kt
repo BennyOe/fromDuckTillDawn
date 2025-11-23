@@ -12,75 +12,16 @@ import ktx.collections.gdxArrayOf
 import ktx.math.vec2
 
 class BasicSensorsComponent(
+    val sensorList: List<SensorDef>,
     val chaseRange: Float,
     val transformCmp: TransformComponent,
     val maxSightRadius: Float,
+    val sightSensorDef: SensorDef? = null,
 ) : Component<BasicSensorsComponent> {
     var from = Vector2()
     var to = Vector2()
     val upperLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
     val lowerLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
-
-    val wallSensor =
-        SensorDef(
-            bodyAnchorPoint = vec2(1f, -0.8f),
-            rayLengthOffset = vec2(0.5f, 0f),
-            type = SensorType.WALL_SENSOR,
-            isHorizontal = true,
-            name = "wall sensor",
-            color = Color.BLUE,
-            hitFilter = { it.entityCategory == EntityCategory.GROUND || it.entityCategory == EntityCategory.WORLD_BOUNDARY },
-        )
-
-    // WallHeightSensor is checked if the entity can jump over the obstacle
-    val wallHeightSensor =
-        SensorDef(
-            bodyAnchorPoint = vec2(1f, 1.5f),
-            rayLengthOffset = vec2(0.5f, 0f),
-            type = SensorType.WALL_HEIGHT_SENSOR,
-            isHorizontal = true,
-            name = "wall height sensor",
-            color = Color.BLUE,
-            hitFilter = { it.entityCategory == EntityCategory.GROUND },
-        )
-    val groundSensor =
-        SensorDef(
-            bodyAnchorPoint = vec2(1f, -1f),
-            rayLengthOffset = vec2(0f, -1.4f),
-            type = SensorType.GROUND_DETECT_SENSOR,
-            isHorizontal = false,
-            name = "ground sensor",
-            color = Color.GREEN,
-        )
-    val jumpSensor =
-        SensorDef(
-            bodyAnchorPoint = vec2(3.2f, -1f),
-            rayLengthOffset = vec2(0f, -1.4f),
-            type = SensorType.JUMP_SENSOR,
-            false,
-            "jump sensor",
-            Color.GREEN,
-        )
-    val sightSensor =
-        SensorDef(
-            bodyAnchorPoint = vec2(0f, 0f),
-            rayLengthOffset = vec2(0f, 0f),
-            type = SensorType.SIGHT_SENSOR,
-            isHorizontal = false,
-            name = "sight sensor",
-            color = Color.WHITE,
-            hitFilter = { it.entityCategory == EntityCategory.GROUND },
-        )
-    val attackSensor =
-        SensorDef(
-            bodyAnchorPoint = vec2(0f, -0.7f),
-            rayLengthOffset = vec2(4f, 0f),
-            type = SensorType.ATTACK_SENSOR,
-            isHorizontal = true,
-            name = "attack sensor",
-            color = Color.ORANGE,
-            hitFilter = { it.entityCategory == EntityCategory.PLAYER },
-        )
 
     init {
         createUpperLedgeSensors()

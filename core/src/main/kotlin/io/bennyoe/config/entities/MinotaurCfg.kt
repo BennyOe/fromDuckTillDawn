@@ -1,9 +1,11 @@
 package io.bennyoe.config.entities
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.physics.box2d.BodyDef
 import io.bennyoe.assets.SoundAssets
 import io.bennyoe.components.Attack
 import io.bennyoe.components.AttackType
+import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.components.animation.AnimationModel
 import io.bennyoe.components.animation.MinotaurAnimation
 import io.bennyoe.config.CharacterType
@@ -15,6 +17,7 @@ import io.bennyoe.systems.audio.SoundProfile
 import io.bennyoe.systems.audio.SoundType
 import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.FloorType
+import io.bennyoe.utility.SensorType
 import ktx.math.vec2
 import kotlin.experimental.or
 
@@ -95,6 +98,70 @@ object MinotaurCfg {
                             FloorType.STONE to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_STONE),
                             FloorType.GRASS to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_GRASS),
                         ),
+                ),
+            basicSensorList =
+                listOf(
+                    // Wall Sensor: Detects walls earlier because the Minotaur is faster/bigger
+                    SensorDef(
+                        bodyAnchorPoint = vec2(1f, -0.5f),
+                        rayLengthOffset = vec2(1.5f, 0f),
+                        type = SensorType.WALL_SENSOR,
+                        isHorizontal = true,
+                        name = "minotaur_wall",
+                        color = Color.BLUE,
+                        hitFilter = {
+                            it.entityCategory == EntityCategory.GROUND ||
+                                it.entityCategory == EntityCategory.WORLD_BOUNDARY
+                        },
+                    ),
+                    // Wall Height Sensor: Checks higher up if the wall is jumpable (Minotaur jumps higher)
+                    SensorDef(
+                        bodyAnchorPoint = vec2(1f, 2.5f),
+                        rayLengthOffset = vec2(1.5f, 0f),
+                        type = SensorType.WALL_HEIGHT_SENSOR,
+                        isHorizontal = true,
+                        name = "minotaur_wall_height",
+                        color = Color.BLUE,
+                        hitFilter = { it.entityCategory == EntityCategory.GROUND },
+                    ),
+                    // Ground Sensor: Detects ground/ledges directly in front
+                    SensorDef(
+                        bodyAnchorPoint = vec2(1f, -1f),
+                        rayLengthOffset = vec2(0f, -2.0f), // Checking a bit deeper
+                        type = SensorType.GROUND_DETECT_SENSOR,
+                        isHorizontal = false,
+                        name = "minotaur_ground",
+                        color = Color.GREEN,
+                    ),
+                    // Jump Sensor: Checks for landing spots further away due to higher speed/jump power
+                    SensorDef(
+                        bodyAnchorPoint = vec2(4.5f, -1f), // Starts further out
+                        rayLengthOffset = vec2(0f, -2.0f),
+                        type = SensorType.JUMP_SENSOR,
+                        isHorizontal = false,
+                        name = "minotaur_jump",
+                        color = Color.GREEN,
+                    ),
+                    // Attack Sensor: Detects the player in a larger melee range
+                    SensorDef(
+                        bodyAnchorPoint = vec2(1f, -0.5f),
+                        rayLengthOffset = vec2(2.5f, 0f), // Much longer reach than the mushroom
+                        type = SensorType.ATTACK_SENSOR,
+                        isHorizontal = true,
+                        name = "minotaur_attack",
+                        color = Color.ORANGE,
+                        hitFilter = { it.entityCategory == EntityCategory.PLAYER },
+                    ),
+                ),
+            sightSensorDefinition =
+                SensorDef(
+                    bodyAnchorPoint = vec2(0f, 0f),
+                    rayLengthOffset = vec2(0f, 0f),
+                    type = SensorType.SIGHT_SENSOR,
+                    isHorizontal = false,
+                    name = "mushroom_sight",
+                    color = Color.WHITE,
+                    hitFilter = { it.entityCategory == EntityCategory.GROUND },
                 ),
         )
 }

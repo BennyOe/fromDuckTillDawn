@@ -275,7 +275,13 @@ class CharacterSpawner(
             filter.maskBits = EntityCategory.PLAYER.bit
         }
 
-        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp, cfg.maxSightRadius)
+        entity +=
+            BasicSensorsComponent(
+                sensorList = cfg.basicSensorList,
+                chaseRange = cfg.nearbyEnemiesExtendedSensorRadius,
+                transformCmp = transformCmp,
+                maxSightRadius = cfg.maxSightRadius,
+            )
 
         entity += RayHitComponent()
 
@@ -324,7 +330,14 @@ class CharacterSpawner(
             filter.maskBits = EntityCategory.PLAYER.bit
         }
 
-        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp, cfg.maxSightRadius)
+        entity +=
+            BasicSensorsComponent(
+                sensorList = cfg.basicSensorList,
+                chaseRange = cfg.nearbyEnemiesExtendedSensorRadius,
+                transformCmp = transformCmp,
+                maxSightRadius = cfg.maxSightRadius,
+                sightSensorDef = cfg.sightSensorDefinition,
+            )
 
         entity += RayHitComponent()
 

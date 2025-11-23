@@ -46,7 +46,7 @@ import io.bennyoe.components.audio.SoundProfileComponent
 import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
-import io.bennyoe.config.SpawnCfg
+import io.bennyoe.config.SpawnCfgFactory
 import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.state.FsmMessageTypes
@@ -100,7 +100,7 @@ class CharacterSpawner(
         characterObjectsLayer.objects.forEach { characterObj ->
             val characterType =
                 CharacterType.valueOf(characterObj.type?.uppercase() ?: throw IllegalArgumentException("Type must not be null"))
-            val cfg = SpawnCfg.createSpawnCfg(characterType)
+            val cfg = SpawnCfgFactory.createSpawnCfg(characterType)
             val atlasRegionSize = size(cfg.animationModel, cfg.animationType)
             world.entity { entity ->
                 // center position directly from tiled (point object)
@@ -232,7 +232,7 @@ class CharacterSpawner(
 
     private fun EntityCreateContext.spawnMushroomSpecifics(
         entity: Entity,
-        cfg: SpawnCfg,
+        cfg: SpawnCfgFactory,
         transformCmp: TransformComponent,
     ) {
         entity += IntentionComponent()
@@ -294,7 +294,7 @@ class CharacterSpawner(
 
     private fun EntityCreateContext.spawnMinotaurSpecifics(
         entity: Entity,
-        cfg: SpawnCfg,
+        cfg: SpawnCfgFactory,
         transformCmp: TransformComponent,
     ) {
         entity += IntentionComponent()

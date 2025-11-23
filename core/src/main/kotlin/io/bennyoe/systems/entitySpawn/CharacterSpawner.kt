@@ -425,6 +425,7 @@ class CharacterSpawner(
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.PLAYER_IS_HIT.ordinal)
+        messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.PLAYER_IS_GRABBED.ordinal)
     }
 
     /**

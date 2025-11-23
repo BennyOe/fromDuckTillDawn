@@ -15,6 +15,8 @@ class IntentionComponent(
     var wantsToBash: Boolean = false,
     var wantsToSwimUp: Boolean = false,
     var wantsToSwimDown: Boolean = false,
+    var isBeingGrabbed: Boolean = false,
+    var isThrown: Boolean = false,
     // Mushroom intentions
     var wantsToChase: Boolean = false,
     // Minotaur intentions

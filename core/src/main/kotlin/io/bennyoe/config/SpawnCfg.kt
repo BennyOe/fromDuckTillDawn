@@ -252,21 +252,20 @@ data class SpawnCfg(
                             maxSightRadius = 24f,
                             attackMap =
                                 mapOf(
-                                    // TODO needs to be changed to AttackType.AXE as soon as the Minotaur gets his own FSM and AI
-                                    AttackType.HEADNUT to
+                                    AttackType.SHAKE to
                                         Attack(
-                                            AttackType.HEADNUT,
+                                            AttackType.SHAKE,
                                             CharacterType.MINOTAUR,
-                                            20f,
-                                            25f,
-                                            4f,
-                                            0.3f,
-                                            true,
-                                            .3f,
+                                            5f,
+                                            5f,
+                                            0f,
+                                            0.5f,
+                                            false,
+                                            0f,
                                         ),
                                 ),
                             jumpHeight = 10f,
-                            scaleImage = vec2(2f, 2f),
+                            scaleImage = vec2(1.5f, 1.5f),
                             scalePhysic = vec2(0.25f, 0.6f),
                             offsetPhysic = vec2(0f, -1.9f),
                             aiTreePath = "ai/minotaur.tree",

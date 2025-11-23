@@ -386,6 +386,41 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         ): Boolean = super.onMessage(ctx, telegram)
     }
 
+    data object IS_GRABBED : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            logger.debug { "Player is Grabbed" }
+            ctx.setAnimation(PlayerAnimation.HIT, Animation.PlayMode.LOOP, resetStateTime = true)
+            ctx.attackComponent.appliedAttack = AttackType.NONE
+            ctx.isBeingGrabbed()
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            if (!ctx.intentionCmp.isBeingGrabbed) {
+                ctx.changeState(IS_THROWN)
+            }
+        }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = telegram.message == FsmMessageTypes.PLAYER_IS_HIT.ordinal
+    }
+
+    data object IS_THROWN : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            logger.debug { "Player is Thrown" }
+            ctx.setAnimation(PlayerAnimation.JUMP, Animation.PlayMode.LOOP, resetStateTime = true)
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            if (hasGroundContact(ctx)) {
+                ctx.moveComponent.lockMovement = false
+                ctx.intentionCmp.isThrown = false
+                ctx.changeState(IDLE)
+            }
+        }
+    }
+
     data object HIT : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering HIT" }
@@ -457,6 +492,10 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     ): Boolean {
         if (telegram.message == FsmMessageTypes.PLAYER_IS_HIT.ordinal) {
             ctx.changeState(HIT)
+            return true
+        }
+        if (telegram.message == FsmMessageTypes.PLAYER_IS_GRABBED.ordinal) {
+            ctx.changeState(IS_GRABBED)
             return true
         }
         return false

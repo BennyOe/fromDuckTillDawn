@@ -13,6 +13,7 @@ import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HasWaterContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
+import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.IsDivingComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
@@ -56,11 +57,10 @@ class PhysicsSystem(
         val moveCmp = entity.getOrNull(MoveComponent)
         val jumpCmp = entity.getOrNull(JumpComponent)
         val bashCmp = entity.getOrNull(BashComponent)
-        val stateCmp = entity.getOrNull(StateComponent)
         val imageCmp = entity[ImageComponent]
         val healthCmp = entity.getOrNull(HealthComponent)
         setJumpImpulse(jumpCmp, physicCmp)
-        setWalkAndSwimImpulse(moveCmp, physicCmp, stateCmp)
+        setWalkAndSwimImpulse(entity)
         setBashImpulse(bashCmp, imageCmp, physicCmp, entity)
         setGroundContact(entity)
         setWaterContact(entity)
@@ -146,13 +146,16 @@ class PhysicsSystem(
         }
     }
 
-    private fun setWalkAndSwimImpulse(
-        moveCmp: MoveComponent?,
-        physicCmp: PhysicComponent,
-        stateCmp: StateComponent<*, *>?,
-    ) {
+    private fun setWalkAndSwimImpulse(entity: Entity) {
+        val moveCmp = entity.getOrNull(MoveComponent)
+        val stateCmp = entity.getOrNull(StateComponent)
+        val physicCmp = entity[PhysicComponent]
+        val intentionCmp = entity.getOrNull(IntentionComponent)
+
         moveCmp?.let {
             if (it.throwBackCooldown > 0) return
+            if (intentionCmp?.isThrown == true) return
+
             physicCmp.impulse.x = physicCmp.body.mass * (moveCmp.moveVelocity.x - physicCmp.body.linearVelocity.x)
             if (stateCmp?.stateMachine?.currentState == PlayerFSM.SWIM || stateCmp?.stateMachine?.currentState == PlayerFSM.DIVE) {
                 physicCmp.impulse.y = physicCmp.body.mass * (moveCmp.moveVelocity.y - physicCmp.body.linearVelocity.y)

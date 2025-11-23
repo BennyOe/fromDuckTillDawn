@@ -9,7 +9,7 @@ import io.bennyoe.state.AbstractFSM
 import io.bennyoe.state.FsmMessageTypes
 import ktx.log.logger
 
-const val SCREAM_DURATION = 2f
+const val SCREAM_DURATION = 1f
 const val SHAKE_DURATION = 2f
 const val STUNNED_DURATION = 1f
 
@@ -25,7 +25,6 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
         }
 
         override fun update(ctx: MinotaurStateContext) {
-            // TODO check for any intention. If one is true -> changeState to SCREAM
             when {
                 ctx.wantsToGrabAttack -> ctx.changeState(SPIN_ATTACK_START())
                 ctx.wantsToThrowAttack -> ctx.changeState(THROWING_ROCK())
@@ -139,10 +138,6 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
                 ctx.changeState(SHAKING())
             }
             ctx.grabPlayer()
-            /* TODO
-            set player to not moveable
-            play animation, then -> SHAKING
-             */
         }
 
         override fun onMessage(
@@ -152,21 +147,46 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
     }
 
     class SHAKING : MinotaurFSM() {
+        private var damageTickTimer = 0f
+
         override fun enter(ctx: MinotaurStateContext) {
             ctx.setAnimation(MinotaurAnimation.SHAKING_PLAYER)
             logger.debug { "SHAKING PLAYER" }
+            damageTickTimer = 0f
         }
 
         override fun update(ctx: MinotaurStateContext) {
+            damageTickTimer += ctx.deltaTime
+
+            // Retrieve attack config to avoid hardcoded values
+            val shakeAttack = ctx.attackCmp.attackMap[AttackType.SHAKE]
+            // Default to 0.5s if not configured
+            val tickRate = shakeAttack?.attackDelay ?: 0.5f
+
+            if (damageTickTimer >= tickRate) {
+                damageTickTimer -= tickRate
+
+                // Apply damage to player
+                // We access the player entity directly from the context
+                val playerHealth = with(ctx.world) { ctx.playerEntity[io.bennyoe.components.HealthComponent] }
+
+                val damage = shakeAttack?.baseDamage ?: 2f
+                playerHealth.takeDamage(damage)
+
+                // Optional: Send a message or play a specific sound here if you want sync with damage
+                // ctx.stage.fire(PlaySoundEvent(...))
+            }
+
             if (shakeTimeCounter < SHAKE_DURATION) {
                 shakeTimeCounter += ctx.deltaTime
                 return
             }
-            ctx.changeState(IDLE())
-            /* TODO
-            reduce player health
-            play animation, then -> THROWING
-             */
+            ctx.changeState(THROWING_PLAYER())
+        }
+
+        override fun exit(ctx: MinotaurStateContext) {
+            shakeTimeCounter = 0f // Reset global counter
+            damageTickTimer = 0f // Reset local counter
         }
 
         override fun onMessage(
@@ -182,6 +202,7 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
         }
 
         override fun update(ctx: MinotaurStateContext) {
+            ctx.releasePlayer()
             if (ctx.animationComponent.isAnimationFinished()) {
                 ctx.changeState(IDLE())
             }

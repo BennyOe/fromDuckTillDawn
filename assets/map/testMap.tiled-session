@@ -24,15 +24,15 @@
         },
         "testMap.tmx": {
             "expandedGroupLayers": [
-                19,
                 23,
+                19,
                 30
             ],
-            "scale": 3,
-            "selectedLayer": 10,
+            "scale": 0.389,
+            "selectedLayer": 17,
             "viewCenter": {
-                "x": 2120.1666666666665,
-                "y": 633.8333333333333
+                "x": 1254.4987146529566,
+                "y": 440.8740359897173
             }
         }
     },

@@ -1,8 +1,11 @@
 package io.bennyoe.state.minotaur
 
+import com.badlogic.gdx.ai.msg.MessageManager
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.BodyDef
+import com.badlogic.gdx.physics.box2d.Joint
+import com.badlogic.gdx.physics.box2d.joints.WeldJointDef
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
@@ -10,7 +13,6 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
-import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ProjectileComponent
@@ -21,9 +23,15 @@ import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.state.AbstractStateContext
+import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.utility.EntityBodyData
+import ktx.math.vec2
 import kotlin.experimental.or
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
+
+private const val MINOTAUR_GRABBING_OFFSET = 6f
+
+private const val PLAYER_THROW_DISTANCE = 6
 
 class MinotaurStateContext(
     entity: Entity,
@@ -33,6 +41,8 @@ class MinotaurStateContext(
     val minotaurAtlas: TextureAtlas,
     deltaTime: Float = 0f,
 ) : AbstractStateContext<MinotaurStateContext>(entity, world, stage, deltaTime) {
+    private val messageDispatcher = MessageManager.getInstance()
+    private var grabbingJoint: Joint? = null
     val intentionCmp: IntentionComponent by lazy { with(world) { entity[IntentionComponent] } }
     val attackCmp: AttackComponent by lazy { with(world) { entity[AttackComponent] } }
     val imageCmp: ImageComponent by lazy { with(world) { entity[ImageComponent] } }
@@ -166,7 +176,56 @@ class MinotaurStateContext(
     }
 
     fun grabPlayer() {
-        val playerMoveCmp = with(world) { playerEntity[MoveComponent] }
-        playerMoveCmp.lockMovement = true
+        if (grabbingJoint != null) return
+        val playerIntentionCmp = with(world) { playerEntity[IntentionComponent] }
+        val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
+        playerIntentionCmp.isBeingGrabbed = true
+        messageDispatcher.dispatchMessage(FsmMessageTypes.PLAYER_IS_GRABBED.ordinal)
+
+        val direction = if (imageCmp.flipImage) -1 else 1
+
+        grabbingJoint =
+            phyWorld.createJoint(
+                WeldJointDef().apply {
+                    bodyA = physicComponent.body
+                    bodyB = playerPhysicCmp.body
+                    collideConnected = false
+                    localAnchorA.set(direction * MINOTAUR_GRABBING_OFFSET, 0f)
+                },
+            )
+    }
+
+    fun releasePlayer() {
+        val playerIntentionCmp = with(world) { playerEntity[IntentionComponent] }
+        val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
+
+        playerIntentionCmp.isBeingGrabbed = false
+        grabbingJoint?.let { joint ->
+            phyWorld.destroyJoint(joint)
+            grabbingJoint = null
+            playerIntentionCmp.isThrown = true
+
+            val direction = if (imageCmp.flipImage) -1 else 1
+            val startPos = playerPhysicCmp.body.position.cpy()
+            val targetX = startPos.x + PLAYER_THROW_DISTANCE * direction
+
+            // Horizontal distance
+            val dx = targetX - startPos.x
+
+            val flightTime = 0.4f
+
+            // Calculate required velocities (Ballistic trajectory)
+            // We assume dy = 0 (throw to same height), or slightly upwards arc
+            // dy = 0 in the formula: vy = -0.5 * g * t
+            val vx = dx / flightTime
+            val vy = -0.5f * GRAVITY * flightTime
+
+            val desiredVelocity = vec2(vx, vy)
+            val currentVelocity = playerPhysicCmp.body.linearVelocity
+            val velocityChange = desiredVelocity.sub(currentVelocity)
+            val impulse = velocityChange.scl(playerPhysicCmp.body.mass)
+
+            playerPhysicCmp.impulse.set(impulse)
+        }
     }
 }

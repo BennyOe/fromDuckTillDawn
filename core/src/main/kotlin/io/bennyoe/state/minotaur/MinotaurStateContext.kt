@@ -26,6 +26,8 @@ import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.GRAVITY
+import io.bennyoe.event.CameraShakeEvent
+import io.bennyoe.event.fire
 import io.bennyoe.state.AbstractStateContext
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.systems.debug.DebugRenderer
@@ -281,6 +283,7 @@ class MinotaurStateContext(
 
     fun stompAttack() {
         intentionCmp.wantsToStomp = false
+        stage.fire(CameraShakeEvent())
 
         if (isPlayerInStompRange()) {
             val playerHealthCmp = with(world) { playerEntity[HealthComponent] }

@@ -40,6 +40,7 @@ import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.BehaviorTreeSystem
+import io.bennyoe.systems.CameraShakeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CloudSystem
 import io.bennyoe.systems.CrowSystem
@@ -213,6 +214,7 @@ class GameScreen(
                 add(CollisionSpawnSystem())
                 add(InputSystem())
                 add(AttackSystem())
+                add(CameraShakeSystem())
                 add(GameStateSystem())
                 add(DamageSystem())
                 add(HitStopSystem())

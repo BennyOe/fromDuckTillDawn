@@ -38,7 +38,7 @@ object MinotaurCfg {
             bodyType = BodyDef.BodyType.DynamicBody,
             characterType = CharacterType.MINOTAUR,
             canAttack = true,
-            maxSightRadius = 24f,
+            maxSightRadius = 14f,
             attackMap =
                 mapOf(
                     AttackType.SHAKE to
@@ -56,7 +56,7 @@ object MinotaurCfg {
             jumpHeight = 10f,
             scaleImage = vec2(1.5f, 1.5f),
             scalePhysic = vec2(0.25f, 0.6f),
-            offsetPhysic = vec2(0f, -1.9f),
+            offsetPhysic = vec2(0f, -1.5f),
             aiTreePath = "ai/minotaur.tree",
             scaleSpeed = 0.5f,
             keepCorpse = false,
@@ -103,7 +103,7 @@ object MinotaurCfg {
                 listOf(
                     // Wall Sensor: Detects walls earlier because the Minotaur is faster/bigger
                     SensorDef(
-                        bodyAnchorPoint = vec2(1f, -0.5f),
+                        bodyAnchorPoint = vec2(1f, -0.9f),
                         rayLengthOffset = vec2(1.5f, 0f),
                         type = SensorType.WALL_SENSOR,
                         isHorizontal = true,
@@ -144,8 +144,8 @@ object MinotaurCfg {
                     ),
                     // Attack Sensor: Detects the player in a larger melee range
                     SensorDef(
-                        bodyAnchorPoint = vec2(1f, -0.5f),
-                        rayLengthOffset = vec2(2.5f, 0f), // Much longer reach than the mushroom
+                        bodyAnchorPoint = vec2(-0.1f, -0.7f),
+                        rayLengthOffset = vec2(4.5f, 0f), // Much longer reach than the mushroom
                         type = SensorType.ATTACK_SENSOR,
                         isHorizontal = true,
                         name = "minotaur_attack",

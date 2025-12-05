@@ -15,6 +15,7 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.DoorTriggerComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IsIndoorComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.PhysicComponent
@@ -340,6 +341,7 @@ class ContactHandlerSystem(
         with(world) {
             val attackCmp = enemy.entity[AttackComponent]
             val healthCmp = player.entity[HealthComponent]
+            val playerImageCmp = player.entity[ImageComponent]
 
             val playerX =
                 player.entity[PhysicComponent]
@@ -348,7 +350,15 @@ class ContactHandlerSystem(
                 enemy.entity[PhysicComponent]
                     .body.position.x
 
-            healthCmp.attackedFromBehind = playerX > enemyX
+            // Check if enemy is to the right of the player
+            val isEnemyRight = enemyX > playerX
+            // Player faces right if flipImage is false
+            val isPlayerFacingRight = !playerImageCmp.flipImage
+
+            // Back attack logic:
+            // 1. Player faces Right AND Enemy is Left (not Right)
+            // 2. Player faces Left AND Enemy is Right
+            healthCmp.attackedFromBehind = (isPlayerFacingRight && !isEnemyRight) || (!isPlayerFacingRight && isEnemyRight)
             healthCmp.takenDamage = attackCmp.attackMap[attackCmp.appliedAttack]?.maxDamage ?: 0f
         }
     }
@@ -421,8 +431,12 @@ class ContactHandlerSystem(
             val bIsZone = bFixture.hasSensorType(SensorType.SOUND_AMBIENCE_SENSOR)
 
             return when {
-                aIsZone && !bIsZone -> bBody to aBody // b is the moving entity, a is the zone
-                bIsZone && !aIsZone -> aBody to bBody // a is the moving entity, b is the zone
+                aIsZone && !bIsZone -> bBody to aBody
+
+                // b is the moving entity, a is the zone
+                bIsZone && !aIsZone -> aBody to bBody
+
+                // a is the moving entity, b is the zone
                 else -> null
             }
         }
@@ -455,13 +469,17 @@ class ContactHandlerSystem(
             playerSensor: SensorType,
         ): Pair<EntityBodyData, EntityBodyData>? =
             when {
-                aFixture.hasSensorType(sensorType) && bCategory == EntityCategory.PLAYER && bFixture.hasSensorType(playerSensor) ->
+                aFixture.hasSensorType(sensorType) && bCategory == EntityCategory.PLAYER && bFixture.hasSensorType(playerSensor) -> {
                     bBody to aBody
+                }
 
-                bFixture.hasSensorType(sensorType) && aCategory == EntityCategory.PLAYER && aFixture.hasSensorType(playerSensor) ->
+                bFixture.hasSensorType(sensorType) && aCategory == EntityCategory.PLAYER && aFixture.hasSensorType(playerSensor) -> {
                     aBody to bBody
+                }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
 
         fun waterAndObjectFixturesOrNull(): Pair<Fixture, Fixture>? {

@@ -98,7 +98,22 @@ class AttackSystem(
             bodyData.entity.configure {
                 val healthCmp = it.getOrNull(HealthComponent)
                 healthCmp?.takeDamage(appliedAttack.baseDamage)
-                healthCmp?.attackedFromBehind = x < fixture.body.position.x
+
+                // Retrieve the victim's image component to check facing direction
+                val victimImageCmp = it.getOrNull(ImageComponent)
+
+                if (victimImageCmp != null) {
+                    val victimX = fixture.body.position.x
+
+                    val isAttackerRight = x > victimX
+                    val isVictimFacingRight = !victimImageCmp.flipImage
+
+                    // Logic: Victim faces Right & Attacker is Left OR Victim faces Left & Attacker is Right
+                    healthCmp?.attackedFromBehind = (isVictimFacingRight && !isAttackerRight) || (!isVictimFacingRight && isAttackerRight)
+                } else {
+                    // Fallback if no ImageComponent exists (e.g. non-visual entity)
+                    healthCmp?.attackedFromBehind = false
+                }
             }
             return@query true
         }

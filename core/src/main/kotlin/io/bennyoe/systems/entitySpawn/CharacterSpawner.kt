@@ -310,7 +310,15 @@ class CharacterSpawner(
         val state =
             StateComponent(
                 world = world,
-                owner = MinotaurStateContext(entity, world, phyWorld, stage, atlasMap[AnimationModel.ENEMY_MINOTAUR]!!),
+                owner =
+                    MinotaurStateContext(
+                        entity = entity,
+                        world = world,
+                        phyWorld = phyWorld,
+                        stage = stage,
+                        minotaurAtlas = atlasMap[AnimationModel.ENEMY_MINOTAUR]!!,
+                        debugRenderer = debugRenderer,
+                    ),
                 initialState = MinotaurFSM.IDLE(),
                 globalState = MinotaurCheckAliveState(),
             )

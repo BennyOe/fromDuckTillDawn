@@ -22,5 +22,5 @@ enum class MinotaurAnimation(
     THROW_PLAYER("throw01", speed = 0.5f),
     HIT("hit01", PlayMode.NORMAL),
     DYING("dying01", PlayMode.NORMAL),
-    ROCK_BREAK("rockBreak01", PlayMode.NORMAL, speed = 0.5f),
+    ROCK_BREAK("rockBreak01", PlayMode.NORMAL, speed = 0.3f),
 }

@@ -2,7 +2,6 @@ package io.bennyoe.components
 
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
-import io.bennyoe.config.EntityCategory
 
 class ProjectileComponent(
     val damage: Float,
@@ -18,4 +17,5 @@ class ProjectileComponent(
 
 enum class ProjectileType {
     ROCK,
+    SHOCKWAVE,
 }

@@ -72,8 +72,14 @@ class BasicSensorsSystem(
             val playerBodyPos = playerEntity[PhysicComponent].body.position
             sightSensor.updateSightSensor(fixtureCenterPos, playerBodyPos)
 
-            processSensor(sightSensor, phyCmp) { rayHitCmp.seesPlayer = !it }
-            rayHitCmp.playerInThrowRange = true
+            if (dst(sightSensor.from.x, sightSensor.from.y, sightSensor.to.x, sightSensor.to.y) < basicSensorsCmp.maxSightRadius) {
+                // when sight is not blocked player can be seen. If sight is blocked but still in range player is in throwRange
+                processSensor(sightSensor, phyCmp) { rayHitCmp.seesPlayer = !it }
+                rayHitCmp.playerInThrowRange = true
+            } else {
+                rayHitCmp.playerInThrowRange = false
+                rayHitCmp.seesPlayer = false
+            }
         }
 
         basicSensorsCmp.sensorList.forEach { sensor ->

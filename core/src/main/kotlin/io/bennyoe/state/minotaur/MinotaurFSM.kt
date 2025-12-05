@@ -11,7 +11,7 @@ import ktx.log.logger
 
 const val SCREAM_DURATION = 1f
 const val SHAKE_DURATION = 2f
-const val STUNNED_DURATION = 1f
+const val STUNNED_DURATION = 3f
 
 @Suppress("ktlint:standard:class-naming")
 sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
@@ -89,6 +89,7 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
         override fun enter(ctx: MinotaurStateContext) {
             ctx.setAnimation(MinotaurAnimation.SPIN_ATTACK_START, Animation.PlayMode.NORMAL)
             ctx.intentionCmp.wantsToGrabAttack = false
+            ctx.prepareCharge()
         }
 
         override fun update(ctx: MinotaurStateContext) {
@@ -109,7 +110,7 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
         }
 
         override fun update(ctx: MinotaurStateContext) {
-            ctx.runTowardsPlayer()
+            ctx.chargeForward()
             when {
                 ctx.runIntoWall() -> ctx.changeState(STUNNED())
                 ctx.runIntoPlayer() -> ctx.changeState(GRABBING())
@@ -281,7 +282,9 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
 
     class STUNNED : MinotaurFSM() {
         override fun enter(ctx: MinotaurStateContext) {
+            val playerPos = ctx.getPlayerPosition()
             ctx.setAnimation(MinotaurAnimation.STUNNED)
+            ctx.spawnShockwave(playerPos)
             logger.debug { "STUNNED" }
             stunnedTimeCounter = 0f
         }
@@ -306,15 +309,21 @@ sealed class MinotaurFSM : AbstractFSM<MinotaurStateContext>() {
     }
 
     class STOMP : MinotaurFSM() {
+        var stompAttackApplied = false
+
         override fun enter(ctx: MinotaurStateContext) {
             ctx.setAnimation(MinotaurAnimation.STOMP_ATTACK, Animation.PlayMode.NORMAL, true)
             ctx.intentionCmp.wantsToJump = true
-            ctx.intentionCmp.wantsToStomp = false
         }
 
         override fun update(ctx: MinotaurStateContext) {
+            if (ctx.animationComponent.animation.getKeyFrameIndex(ctx.animationComponent.stateTime) == 2 && !stompAttackApplied) {
+                ctx.stompAttack()
+                stompAttackApplied = true
+            }
             if (ctx.animationComponent.isAnimationFinished()) {
                 ctx.intentionCmp.wantsToJump = false
+                stompAttackApplied = false
                 ctx.changeState(IDLE())
             }
         }

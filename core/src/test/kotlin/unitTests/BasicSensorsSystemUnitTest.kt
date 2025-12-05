@@ -1,5 +1,6 @@
 package unitTests
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.physics.box2d.Fixture
@@ -16,12 +17,15 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.SensorType
 import io.mockk.every
 import io.mockk.mockk
+import ktx.math.vec2
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
@@ -74,7 +78,26 @@ class BasicSensorsSystemUnitTest {
                 it += pCmp
                 it += IntentionComponent().apply { wantsToChase = true }
                 it += imgCmp
-                it += BasicSensorsComponent(7f, transformCmp, 23f)
+                it +=
+                    BasicSensorsComponent(
+                        listOf(
+                            SensorDef(
+                                bodyAnchorPoint = vec2(1f, -0.9f),
+                                rayLengthOffset = vec2(1.5f, 0f),
+                                type = SensorType.WALL_SENSOR,
+                                isHorizontal = true,
+                                name = "minotaur_wall",
+                                color = Color.BLUE,
+                                hitFilter = {
+                                    it.entityCategory == EntityCategory.GROUND ||
+                                        it.entityCategory == EntityCategory.WORLD_BOUNDARY
+                                },
+                            ),
+                        ),
+                        7f,
+                        transformCmp,
+                        23f,
+                    )
                 it += RayHitComponent()
             }
     }

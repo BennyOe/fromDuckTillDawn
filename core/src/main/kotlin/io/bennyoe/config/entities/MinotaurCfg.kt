@@ -127,7 +127,7 @@ object MinotaurCfg {
                     // Ground Sensor: Detects ground/ledges directly in front
                     SensorDef(
                         bodyAnchorPoint = vec2(1f, -1f),
-                        rayLengthOffset = vec2(0f, -2.0f), // Checking a bit deeper
+                        rayLengthOffset = vec2(0f, -2.0f),
                         type = SensorType.GROUND_DETECT_SENSOR,
                         isHorizontal = false,
                         name = "minotaur_ground",
@@ -135,7 +135,7 @@ object MinotaurCfg {
                     ),
                     // Jump Sensor: Checks for landing spots further away due to higher speed/jump power
                     SensorDef(
-                        bodyAnchorPoint = vec2(4.5f, -1f), // Starts further out
+                        bodyAnchorPoint = vec2(4.5f, -1f),
                         rayLengthOffset = vec2(0f, -2.0f),
                         type = SensorType.JUMP_SENSOR,
                         isHorizontal = false,
@@ -145,7 +145,7 @@ object MinotaurCfg {
                     // Attack Sensor: Detects the player in a larger melee range
                     SensorDef(
                         bodyAnchorPoint = vec2(-0.1f, -0.7f),
-                        rayLengthOffset = vec2(4.5f, 0f), // Much longer reach than the mushroom
+                        rayLengthOffset = vec2(4.5f, 0f),
                         type = SensorType.ATTACK_SENSOR,
                         isHorizontal = true,
                         name = "minotaur_attack",

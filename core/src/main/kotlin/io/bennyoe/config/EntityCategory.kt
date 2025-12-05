@@ -13,5 +13,5 @@ enum class EntityCategory(
     WORLD_BOUNDARY(0x0020),
     WATER(0x0040),
     LANTERN(0x0080),
-    ENEMY_PROJECTILE(0x0100)
+    ENEMY_PROJECTILE(0x0100),
 }

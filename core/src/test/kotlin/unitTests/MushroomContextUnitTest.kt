@@ -124,7 +124,7 @@ class MushroomContextUnitTest {
                 it += healthCmp
                 it += nearbyCmp
                 it += animCmp
-                it += BasicSensorsComponent(7f, transformCmp, 23f)
+                it += BasicSensorsComponent(emptyList(), 7f, transformCmp, 23f)
                 it += RayHitComponent()
                 it += phyCmp
                 it +=

@@ -20,7 +20,6 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ProjectileComponent
 import io.bennyoe.components.ProjectileType
-import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.RayHitComponent

@@ -14,7 +14,7 @@ import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.state.minotaur.MinotaurFSM
 import io.bennyoe.systems.debug.DebugRenderer
@@ -35,7 +35,7 @@ class MinotaurContext(
     val transformCmp: TransformComponent
     val animCmp: AnimationComponent
     val intentionCmp: IntentionComponent
-    val rayHitCmp: RayHitComponent
+    val rayHitCmp: BasicSensorsHitComponent
     val healthCmp: HealthComponent
     val stateCmp: StateComponent<*, *>
     val basicSensorsCmp: BasicSensorsComponent
@@ -49,7 +49,7 @@ class MinotaurContext(
             animCmp = entity[AnimationComponent]
             healthCmp = entity[HealthComponent]
             intentionCmp = entity[IntentionComponent]
-            rayHitCmp = entity[RayHitComponent]
+            rayHitCmp = entity[BasicSensorsHitComponent]
             stateCmp = entity[StateComponent]
             basicSensorsCmp = entity[BasicSensorsComponent]
         }

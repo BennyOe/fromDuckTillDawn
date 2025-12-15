@@ -35,9 +35,11 @@ import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.ai.LedgeSensorsComponent
+import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.animation.AnimationKey
 import io.bennyoe.components.animation.AnimationModel
@@ -283,7 +285,10 @@ class CharacterSpawner(
                 maxSightRadius = cfg.maxSightRadius,
             )
 
-        entity += RayHitComponent()
+        entity += LedgeSensorsComponent()
+        entity += LedgeSensorsHitComponent()
+
+        entity += BasicSensorsHitComponent()
 
         entity +=
             BehaviorTreeComponent(
@@ -347,7 +352,7 @@ class CharacterSpawner(
                 sightSensorDef = cfg.sightSensorDefinition,
             )
 
-        entity += RayHitComponent()
+        entity += BasicSensorsHitComponent()
 
         entity +=
             BehaviorTreeComponent(

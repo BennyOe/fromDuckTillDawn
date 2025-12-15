@@ -22,7 +22,7 @@ import io.bennyoe.components.ProjectileComponent
 import io.bennyoe.components.ProjectileType
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
-import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.event.CameraShakeEvent
@@ -58,7 +58,7 @@ class MinotaurStateContext(
     val attackCmp: AttackComponent by lazy { with(world) { entity[AttackComponent] } }
     val imageCmp: ImageComponent by lazy { with(world) { entity[ImageComponent] } }
     val playerEntity = world.family { all(PlayerComponent, PhysicComponent) }.first()
-    val rayHitCmp: RayHitComponent by lazy { with(world) { entity[RayHitComponent] } }
+    val rayHitCmp: BasicSensorsHitComponent by lazy { with(world) { entity[BasicSensorsHitComponent] } }
 
     override val wantsToJump get() = intentionCmp.wantsToJump
     override val wantsToAttack get() = intentionCmp.wantsToAttack

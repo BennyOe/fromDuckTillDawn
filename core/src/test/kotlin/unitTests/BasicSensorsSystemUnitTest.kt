@@ -16,7 +16,7 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
-import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.BasicSensorsSystem
@@ -98,7 +98,7 @@ class BasicSensorsSystemUnitTest {
                         transformCmp,
                         23f,
                     )
-                it += RayHitComponent()
+                it += BasicSensorsHitComponent()
             }
     }
 
@@ -118,7 +118,7 @@ class BasicSensorsSystemUnitTest {
 
         ecsWorld.update(1f)
 
-        val rayHitCmp = with(ecsWorld) { enemy[RayHitComponent] }
+        val rayHitCmp = with(ecsWorld) { enemy[BasicSensorsHitComponent] }
         assertTrue(rayHitCmp.wallHit, "Wall sensor should detect ground fixture")
     }
 
@@ -136,7 +136,7 @@ class BasicSensorsSystemUnitTest {
 
         ecsWorld.update(1f)
 
-        val rayHitCmp = with(ecsWorld) { enemy[RayHitComponent] }
+        val rayHitCmp = with(ecsWorld) { enemy[BasicSensorsHitComponent] }
         assertTrue(rayHitCmp.upperLedgeHits.any { it.hit }, "Upper ledge sensor should detect ground")
         assertTrue(rayHitCmp.lowerLedgeHits.any { it.hit }, "Lower ledge sensor should detect ground")
     }
@@ -155,7 +155,7 @@ class BasicSensorsSystemUnitTest {
 
         ecsWorld.update(1f)
 
-        val rayHitCmp = with(ecsWorld) { enemy[RayHitComponent] }
+        val rayHitCmp = with(ecsWorld) { enemy[BasicSensorsHitComponent] }
         assertFalse(rayHitCmp.seesPlayer, "Sight sensor should detect obstruction")
     }
 }

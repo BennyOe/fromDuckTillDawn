@@ -53,6 +53,7 @@ import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.HitStopSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
+import io.bennyoe.systems.LedgeSensorsSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.ParallaxSystem
 import io.bennyoe.systems.ParticleRemoveSystem
@@ -235,6 +236,7 @@ class GameScreen(
                 add(SoundEffectSystem())
                 add(MusicSystem())
                 add(BasicSensorsSystem())
+                add(LedgeSensorsSystem())
                 add(StateSystem())
                 add(ParallaxSystem())
                 add(BehaviorTreeSystem())

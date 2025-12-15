@@ -26,7 +26,7 @@ import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
@@ -125,7 +125,7 @@ class MushroomContextUnitTest {
                 it += nearbyCmp
                 it += animCmp
                 it += BasicSensorsComponent(emptyList(), 7f, transformCmp, 23f)
-                it += RayHitComponent()
+                it += BasicSensorsHitComponent()
                 it += phyCmp
                 it +=
                     StateComponent(
@@ -160,7 +160,7 @@ class MushroomContextUnitTest {
 
     @Test
     fun `canAttack delegates to rayHitComponent`() {
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
         rayHitCmp.canAttack = true
         assertTrue(ctx.canAttack())
     }
@@ -226,7 +226,7 @@ class MushroomContextUnitTest {
 
     @Test
     fun `patrol reverses the walk direction when hitting wall or gap in ground`() {
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
         intentionCmp.walkDirection = WalkDirection.LEFT
         rayHitCmp.wallHit = true
 
@@ -255,7 +255,7 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer triggers jump when player is below and jump is needed`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2, phyCmp.body.position.y + 2)
 
         rayHitCmp.groundHit = false
@@ -270,7 +270,7 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer finds ledge when player is above`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2, phyCmp.body.position.y - 2)
 
         rayHitCmp.lowerLedgeHits.addAll(
@@ -316,7 +316,7 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer does not find drop ledge when none are valid`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
 
         playerPhysicCmp.body.position.set(phyCmp.body.position.x - 2f, phyCmp.body.position.y - 2f)
         rayHitCmp.lowerLedgeHits.addAll(
@@ -339,7 +339,7 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer jumps when below and ledge is set but no walk direction`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
 
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2f, phyCmp.body.position.y + 2f)
 
@@ -375,7 +375,7 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer jumps over wall when blocked`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
 
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2f, phyCmp.body.position.y)
         rayHitCmp.wallHit = true

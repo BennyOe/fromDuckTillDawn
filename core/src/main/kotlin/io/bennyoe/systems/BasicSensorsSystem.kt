@@ -17,7 +17,8 @@ import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.EntityBodyData
-import io.bennyoe.utility.SensorType
+import io.bennyoe.utility.SensorType.PLAYER_IN_THROW_RANGE_SENSOR
+import io.bennyoe.utility.SensorType.SIGHT_SENSOR
 import ktx.log.logger
 
 class BasicSensorsSystem(
@@ -44,11 +45,11 @@ class BasicSensorsSystem(
 
             if (dst(sightSensor.from.x, sightSensor.from.y, sightSensor.to.x, sightSensor.to.y) < basicSensorsCmp.maxSightRadius) {
                 // when sight is not blocked player can be seen. If sight is blocked but still in range player is in throwRange
-                processSensor(sightSensor, phyCmp) { rayHitCmp.seesPlayer = !it }
-                rayHitCmp.playerInThrowRange = true
+                processSensor(sightSensor, phyCmp) { rayHitCmp.setSensorHit(SIGHT_SENSOR, !it) }
+                rayHitCmp.setSensorHit(PLAYER_IN_THROW_RANGE_SENSOR, true)
             } else {
-                rayHitCmp.playerInThrowRange = false
-                rayHitCmp.seesPlayer = false
+                rayHitCmp.setSensorHit(PLAYER_IN_THROW_RANGE_SENSOR, false)
+                rayHitCmp.setSensorHit(SIGHT_SENSOR, false)
             }
         }
 
@@ -60,14 +61,7 @@ class BasicSensorsSystem(
             )
 
             processSensor(sensor, phyCmp) { isHit ->
-                when (sensor.type) {
-                    SensorType.WALL_SENSOR -> rayHitCmp.wallHit = isHit
-                    SensorType.WALL_HEIGHT_SENSOR -> rayHitCmp.wallHeightHit = isHit
-                    SensorType.GROUND_DETECT_SENSOR -> rayHitCmp.groundHit = isHit
-                    SensorType.JUMP_SENSOR -> rayHitCmp.jumpHit = isHit
-                    SensorType.ATTACK_SENSOR -> rayHitCmp.canAttack = isHit
-                    else -> Unit
-                }
+                rayHitCmp.setSensorHit(sensor.type, isHit)
             }
         }
     }

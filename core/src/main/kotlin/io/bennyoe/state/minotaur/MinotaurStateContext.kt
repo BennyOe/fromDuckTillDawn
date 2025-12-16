@@ -32,6 +32,8 @@ import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.SensorType.ATTACK_SENSOR
+import io.bennyoe.utility.SensorType.WALL_SENSOR
 import ktx.math.vec2
 import kotlin.experimental.or
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
@@ -88,13 +90,13 @@ class MinotaurStateContext(
         intentionCmp.walkDirection = WalkDirection.NONE
     }
 
-    fun runIntoWall(): Boolean = rayHitCmp.wallHit
+    fun runIntoWall(): Boolean = rayHitCmp.getSensorHit(WALL_SENSOR)
 
     fun resetAllIntentions() {
         intentionCmp.resetAllIntentions()
     }
 
-    fun runIntoPlayer(): Boolean = rayHitCmp.canAttack
+    fun runIntoPlayer(): Boolean = rayHitCmp.getSensorHit(ATTACK_SENSOR)
 
     fun spawnShockwave(playerPos: Vector2) {
         val spawnPos = transformCmp.position.cpy().add(0f, -5.5f)

@@ -14,17 +14,21 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
-import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.BasicSensorsHitComponent
-import io.bennyoe.components.ai.LedgeSensorsComponent
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
+import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.SensorType.ATTACK_SENSOR
+import io.bennyoe.utility.SensorType.GROUND_DETECT_SENSOR
+import io.bennyoe.utility.SensorType.JUMP_SENSOR
+import io.bennyoe.utility.SensorType.WALL_HEIGHT_SENSOR
+import io.bennyoe.utility.SensorType.WALL_SENSOR
 import ktx.collections.GdxArray
 import ktx.collections.isNotEmpty
 import ktx.collections.lastIndex
@@ -70,7 +74,7 @@ class MushroomContext(
 
     fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
 
-    fun canAttack(): Boolean = basicSensorsHitCmp.canAttack
+    fun canAttack(): Boolean = basicSensorsHitCmp.getSensorHit(ATTACK_SENSOR)
 
     fun hasPlayerNearby(): Boolean {
         with(world) {
@@ -121,7 +125,7 @@ class MushroomContext(
     }
 
     fun patrol() {
-        if (basicSensorsHitCmp.wallHit || !basicSensorsHitCmp.groundHit) {
+        if (basicSensorsHitCmp.getSensorHit(WALL_SENSOR) || !basicSensorsHitCmp.getSensorHit(GROUND_DETECT_SENSOR)) {
             intentionCmp.walkDirection =
                 when (intentionCmp.walkDirection) {
                     WalkDirection.LEFT -> WalkDirection.RIGHT
@@ -296,13 +300,13 @@ class MushroomContext(
     }
 
     private fun jumpOverGap() {
-        if (!basicSensorsHitCmp.groundHit && basicSensorsHitCmp.jumpHit) {
+        if (!basicSensorsHitCmp.getSensorHit(GROUND_DETECT_SENSOR) && basicSensorsHitCmp.getSensorHit(JUMP_SENSOR)) {
             intentionCmp.wantsToJump = true
         }
     }
 
     private fun jumpOverWall() {
-        if (basicSensorsHitCmp.wallHit && !basicSensorsHitCmp.wallHeightHit) {
+        if (basicSensorsHitCmp.getSensorHit(WALL_SENSOR) && !basicSensorsHitCmp.getSensorHit(WALL_HEIGHT_SENSOR)) {
             intentionCmp.wantsToJump = true
         }
     }

@@ -37,7 +37,6 @@ data class SensorDef(
      */
     val rayLengthOffset: Vector2,
     val type: SensorType,
-    val isHorizontal: Boolean,
     val name: String,
     val color: Color = Color.BLUE,
     val highlightColor: Color = Color.RED,

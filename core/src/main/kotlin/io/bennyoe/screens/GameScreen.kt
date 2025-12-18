@@ -62,6 +62,7 @@ import io.bennyoe.systems.TimeSystem
 import io.bennyoe.systems.UiDataSystem
 import io.bennyoe.systems.ai.BasicSensorsSystem
 import io.bennyoe.systems.ai.BehaviorTreeSystem
+import io.bennyoe.systems.ai.FieldOfViewSystem
 import io.bennyoe.systems.ai.LedgeSensorsSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
@@ -237,6 +238,7 @@ class GameScreen(
                 add(MusicSystem())
                 add(BasicSensorsSystem())
                 add(LedgeSensorsSystem())
+                add(FieldOfViewSystem())
                 add(StateSystem())
                 add(ParallaxSystem())
                 add(BehaviorTreeSystem())

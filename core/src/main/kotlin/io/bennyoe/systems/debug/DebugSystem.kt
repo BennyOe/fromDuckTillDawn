@@ -189,7 +189,20 @@ class DebugSystem(
                         }
 
                         is Polygon -> {
-                            it.polygon(dbgShape.shape.vertices)
+                            val v = dbgShape.shape.vertices
+                            if (type == ShapeRenderer.ShapeType.Filled && v.size == 6) {
+                                // only triangles can be drawn with ShapeType.filled
+                                it.triangle(
+                                    v[0],
+                                    v[1],
+                                    v[2],
+                                    v[3],
+                                    v[4],
+                                    v[5],
+                                )
+                            } else {
+                                it.polygon(v)
+                            }
                             drawLabel(dbgShape.shape.vertices[0], dbgShape.shape.vertices[1], dbgShape)
                         }
                     }

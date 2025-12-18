@@ -37,9 +37,12 @@ import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.ai.FieldOfViewComponent
+import io.bennyoe.components.ai.FieldOfViewResultComponent
 import io.bennyoe.components.ai.LedgeSensorsComponent
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
+import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.animation.AnimationKey
 import io.bennyoe.components.animation.AnimationModel
@@ -289,6 +292,19 @@ class CharacterSpawner(
         entity += LedgeSensorsHitComponent()
 
         entity += BasicSensorsHitComponent()
+
+        entity += FieldOfViewResultComponent()
+
+        entity +=
+            FieldOfViewComponent(
+                transformCmp,
+                14f,
+                relativeEyePos = 0.8f,
+                numberOfRays = 9,
+                viewAngle = 45f,
+            )
+
+        entity += SuspicionComponent()
 
         entity +=
             BehaviorTreeComponent(

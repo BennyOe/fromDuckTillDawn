@@ -19,24 +19,19 @@ class LedgeSensorsComponent : Component<LedgeSensorsComponent> {
         for (i in -10..10) {
             upperLedgeSensorArray.add(
                 SensorDef(
-                    bodyAnchorPoint = vec2(i / 2f, 0f),
+                    bodyAnchorPoint = vec2(i / 1f, 0f),
                     rayLengthOffset = vec2(0f, 2f),
                     type = SensorType.UPPER_LEDGE_SENSOR,
-                    isHorizontal = false,
                     name = "upper ledge sensor",
                     hitFilter = { it.entityCategory == EntityCategory.GROUND },
                 ),
             )
             lowerLedgeSensorArray.add(
                 SensorDef(
-                    vec2(
-                        i / 2f,
-                        -2f,
-                    ),
-                    vec2(0f, 2f),
-                    SensorType.LOWER_LEDGE_SENSOR,
-                    false,
-                    "lower ledge sensor",
+                    bodyAnchorPoint = vec2(i / 1f, -2f),
+                    rayLengthOffset = vec2(0f, 2f),
+                    type = SensorType.LOWER_LEDGE_SENSOR,
+                    name = "lower ledge sensor",
                 ),
             )
         }

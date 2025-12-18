@@ -38,8 +38,6 @@ import io.bennyoe.event.fire
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
-import io.bennyoe.systems.BasicSensorsSystem
-import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraShakeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CloudSystem
@@ -53,7 +51,6 @@ import io.bennyoe.systems.GameStateSystem
 import io.bennyoe.systems.HitStopSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
-import io.bennyoe.systems.LedgeSensorsSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.ParallaxSystem
 import io.bennyoe.systems.ParticleRemoveSystem
@@ -63,6 +60,9 @@ import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.TimeSystem
 import io.bennyoe.systems.UiDataSystem
+import io.bennyoe.systems.ai.BasicSensorsSystem
+import io.bennyoe.systems.ai.BehaviorTreeSystem
+import io.bennyoe.systems.ai.LedgeSensorsSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem

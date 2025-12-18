@@ -1,4 +1,4 @@
-package io.bennyoe.systems
+package io.bennyoe.systems.ai
 
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2.dst

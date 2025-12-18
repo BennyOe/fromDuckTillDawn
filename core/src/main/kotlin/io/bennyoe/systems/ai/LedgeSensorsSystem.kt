@@ -1,4 +1,4 @@
-package io.bennyoe.systems
+package io.bennyoe.systems.ai
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Polyline
@@ -11,7 +11,6 @@ import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.LedgeSensorsComponent
 import io.bennyoe.components.ai.LedgeSensorsHitComponent

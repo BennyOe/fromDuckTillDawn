@@ -111,7 +111,9 @@ class SkySystem :
                 particleCmp?.enabled = (gameStateCmp.getTimeOfDay() == TimeOfDay.NIGHT)
             }
 
-            else -> Unit
+            else -> {
+                Unit
+            }
         }
     }
 

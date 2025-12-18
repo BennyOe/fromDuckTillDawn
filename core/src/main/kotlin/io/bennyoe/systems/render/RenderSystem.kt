@@ -358,7 +358,9 @@ class RenderSystem(
                     }
                 }
 
-                else -> Unit
+                else -> {
+                    Unit
+                }
             }
         }
 

@@ -210,7 +210,9 @@ class MushroomContext(
                     }
                 }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
     }
 
@@ -283,7 +285,9 @@ class MushroomContext(
                 intentionCmp.walkDirection = if (dist < 0f) WalkDirection.RIGHT else WalkDirection.LEFT
             }
 
-            else -> intentionCmp.walkDirection = WalkDirection.NONE
+            else -> {
+                intentionCmp.walkDirection = WalkDirection.NONE
+            }
         }
     }
 

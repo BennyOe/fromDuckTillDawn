@@ -106,7 +106,6 @@ class DebugSystem(
     private fun addBTBubbles(enemyEntity: Entity) {
         when {
             enemyEntity hasNo BTBubbleComponent -> world.entity { enemyEntity += BTBubbleComponent(uiStage) }
-
             enemyEntity hasNo UiComponent -> world.entity { enemyEntity += UiComponent }
         }
     }
@@ -114,7 +113,6 @@ class DebugSystem(
     private fun removeBTBubbles(enemyEntity: Entity) {
         when {
             enemyEntity has BTBubbleComponent -> enemyEntity.configure { it -= BTBubbleComponent }
-
             enemyEntity has UiComponent -> enemyEntity.configure { it -= UiComponent }
         }
     }
@@ -125,11 +123,8 @@ class DebugSystem(
     ) {
         when {
             enemyEntity hasNo StateBubbleComponent -> world.entity { enemyEntity += StateBubbleComponent(uiStage) }
-
             enemyEntity hasNo UiComponent -> world.entity { enemyEntity += UiComponent }
-
             playerEntity hasNo StateBubbleComponent -> world.entity { playerEntity += StateBubbleComponent(uiStage) }
-
             playerEntity hasNo UiComponent -> world.entity { playerEntity += UiComponent }
         }
     }
@@ -140,11 +135,8 @@ class DebugSystem(
     ) {
         when {
             enemyEntity has StateBubbleComponent -> enemyEntity.configure { it -= StateBubbleComponent }
-
             enemyEntity has UiComponent -> enemyEntity.configure { it -= UiComponent }
-
             playerEntity has StateBubbleComponent -> playerEntity.configure { it -= StateBubbleComponent }
-
             playerEntity has UiComponent -> playerEntity.configure { it -= UiComponent }
         }
     }

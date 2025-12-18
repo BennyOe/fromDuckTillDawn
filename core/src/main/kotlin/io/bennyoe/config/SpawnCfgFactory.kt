@@ -53,9 +53,7 @@ data class SpawnCfgFactory(
             cachedSpawnCfgsFactory.getOrPut(characterType) {
                 return when (characterType) {
                     CharacterType.PLAYER -> PlayerCfg.config
-
                     CharacterType.MUSHROOM -> MushroomCfg.config
-
                     CharacterType.MINOTAUR -> MinotaurCfg.config
                 }
             }

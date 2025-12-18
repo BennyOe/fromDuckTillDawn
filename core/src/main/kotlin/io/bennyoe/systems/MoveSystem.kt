@@ -28,7 +28,10 @@ class MoveSystem :
 
         if (stateCmp.stateMachine.currentState == PlayerFSM.SWIM || stateCmp.stateMachine.currentState == PlayerFSM.DIVE) {
             when (intentionCmp.walkDirection) {
-                WalkDirection.NONE -> moveCmp.moveVelocity.x = 0f
+                WalkDirection.NONE -> {
+                    moveCmp.moveVelocity.x = 0f
+                }
+
                 WalkDirection.LEFT -> {
                     imageCmp.flipImage = true
                     moveCmp.moveVelocity.x = -moveCmp.maxSwimSpeed
@@ -49,7 +52,10 @@ class MoveSystem :
             }
         } else {
             when (intentionCmp.walkDirection) {
-                WalkDirection.NONE -> moveCmp.moveVelocity.x = 0f
+                WalkDirection.NONE -> {
+                    moveCmp.moveVelocity.x = 0f
+                }
+
                 WalkDirection.LEFT -> {
                     imageCmp.flipImage = true
                     if (intentionCmp.wantsToChase) {

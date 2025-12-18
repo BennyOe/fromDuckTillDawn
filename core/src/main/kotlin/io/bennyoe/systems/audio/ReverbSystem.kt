@@ -178,23 +178,34 @@ class ReverbSystem : IntervalSystem() {
 
     private fun getReverb(presetName: String): SoundEffect? {
         return when (presetName.uppercase()) {
-            "CAVE" ->
+            "CAVE" -> {
                 SoundEffect(
                     EaxReverb.cave().apply {
                         gainLf = .8f
                     },
                 )
+            }
 
-            "FOREST" -> SoundEffect(EaxReverb.forest())
-            "ARENA" ->
+            "FOREST" -> {
+                SoundEffect(EaxReverb.forest())
+            }
+
+            "ARENA" -> {
                 SoundEffect(
                     EaxReverb.arena().apply {
                         gainLf = .8f
                     },
                 )
+            }
 
-            "HANGER" -> SoundEffect(EaxReverb.hangar())
-            "STONEROOM" -> SoundEffect(EaxReverb.stoneRoom())
+            "HANGER" -> {
+                SoundEffect(EaxReverb.hangar())
+            }
+
+            "STONEROOM" -> {
+                SoundEffect(EaxReverb.stoneRoom())
+            }
+
             else -> {
                 logger<ReverbSystem>().error { "Unknown EaxReverb preset: '$presetName'" }
                 return null

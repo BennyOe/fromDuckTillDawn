@@ -91,15 +91,33 @@ class ShaderService {
         if (loc < 0) return
 
         when (value) {
-            is Float -> shader.setUniformf(loc, value)
-            is Int -> shader.setUniformi(loc, value)
-            is Boolean -> shader.setUniformi(loc, if (value) 1 else 0)
+            is Float -> {
+                shader.setUniformf(loc, value)
+            }
 
-            is Vector2 -> shader.setUniformf(loc, value)
-            is Vector3 -> shader.setUniformf(loc, value)
-            is Vector4 -> shader.setUniformf(loc, value)
+            is Int -> {
+                shader.setUniformi(loc, value)
+            }
 
-            is Matrix4 -> shader.setUniformMatrix(loc, value)
+            is Boolean -> {
+                shader.setUniformi(loc, if (value) 1 else 0)
+            }
+
+            is Vector2 -> {
+                shader.setUniformf(loc, value)
+            }
+
+            is Vector3 -> {
+                shader.setUniformf(loc, value)
+            }
+
+            is Vector4 -> {
+                shader.setUniformf(loc, value)
+            }
+
+            is Matrix4 -> {
+                shader.setUniformMatrix(loc, value)
+            }
 
             // Sampler2D: (texture, unit)
             is Pair<*, *> -> {
@@ -110,7 +128,9 @@ class ShaderService {
                 shader.setUniformi(loc, unit)
             }
 
-            else -> throw IllegalArgumentException("Unsupported uniform type for '$name': ${value::class.qualifiedName}")
+            else -> {
+                throw IllegalArgumentException("Unsupported uniform type for '$name': ${value::class.qualifiedName}")
+            }
         }
     }
 }

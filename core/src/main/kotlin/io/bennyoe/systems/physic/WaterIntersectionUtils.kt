@@ -66,7 +66,10 @@ object WaterIntersectionUtils {
         val polyA: PolygonShape =
             when (fA.shape.type) {
                 Shape.Type.Polygon -> fA.shape as PolygonShape
-                Shape.Type.Circle -> circleToSquare(fA) // approximated by an axis-aligned square
+
+                Shape.Type.Circle -> circleToSquare(fA)
+
+                // approximated by an axis-aligned square
                 else -> return false
             }
         val polyB: PolygonShape =

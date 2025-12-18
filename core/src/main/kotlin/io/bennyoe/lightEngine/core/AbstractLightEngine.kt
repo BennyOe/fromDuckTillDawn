@@ -228,15 +228,16 @@ abstract class AbstractLightEngine(
 
         val newB2dLight =
             when (light) {
-                is GameLight.Directional ->
+                is GameLight.Directional -> {
                     DirectionalLight(
                         rayHandler,
                         light.b2dLight.rayNum,
                         light.b2dLight.color,
                         light.b2dLight.direction,
                     )
+                }
 
-                is GameLight.Point ->
+                is GameLight.Point -> {
                     PointLight(
                         rayHandler,
                         light.b2dLight.rayNum,
@@ -246,8 +247,9 @@ abstract class AbstractLightEngine(
                             .position.x,
                         light.b2dLight.position.y,
                     )
+                }
 
-                is GameLight.Spot ->
+                is GameLight.Spot -> {
                     ConeLight(
                         rayHandler,
                         light.b2dLight.rayNum,
@@ -258,6 +260,7 @@ abstract class AbstractLightEngine(
                         light.b2dLight.direction,
                         (light.b2dLight as ConeLight).coneDegree,
                     )
+                }
             }
 
         light.b2dLight.apply {
@@ -652,7 +655,9 @@ abstract class AbstractLightEngine(
                         }
                     }
 
-                    else -> 0.0
+                    else -> {
+                        0.0
+                    }
                 }
             }.coerceIn(0.0, 1.0)
 

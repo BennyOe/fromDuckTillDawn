@@ -23,6 +23,10 @@ class PlayerStateContext(
         physicComponent.body.apply { isActive = true }
     }
 
+    fun isBeingGrabbed() {
+        moveComponent.lockMovement = true
+    }
+
     val intentionCmp: IntentionComponent by lazy { with(world) { entity[IntentionComponent] } }
     val attackComponent: AttackComponent by lazy { with(world) { entity[AttackComponent] } }
 

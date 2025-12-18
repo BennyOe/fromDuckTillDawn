@@ -30,4 +30,5 @@ enum class AttackType {
     HEADNUT,
     AXE,
     BASH,
+    SHAKE,
 }

@@ -1,18 +1,19 @@
-package io.bennyoe.ai.actions
+package io.bennyoe.ai.actions.mushroom
 
 import com.badlogic.gdx.ai.GdxAI
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
+import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.ai.core.AbstractAction
 import io.bennyoe.components.GameMood
 import io.bennyoe.components.WalkDirection
 import ktx.log.logger
 
-class Patrol(
+class MushroomPatrol(
     @JvmField
     @TaskAttribute(required = true)
     var duration: FloatDistribution? = null,
-) : AbstractAction() {
+) : AbstractAction<MushroomContext>() {
     private var currentDuration = 0f
 
     override fun enter() {
@@ -34,6 +35,6 @@ class Patrol(
     }
 
     companion object {
-        val logger = logger<Patrol>()
+        val logger = logger<MushroomPatrol>()
     }
 }

@@ -3,13 +3,13 @@ package io.bennyoe.systems
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
-import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
+import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.state.player.PlayerFSM
 import ktx.log.logger
 

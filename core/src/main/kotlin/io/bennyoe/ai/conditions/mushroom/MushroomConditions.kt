@@ -1,20 +1,21 @@
-package io.bennyoe.ai
+package io.bennyoe.ai.conditions.mushroom
 
+import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.ai.core.AbstractCondition
 
-class CanAttack : AbstractCondition() {
+class CanAttack : AbstractCondition<MushroomContext>() {
     override fun condition(): Boolean = entity.canAttack()
 }
 
-class HasPlayerNearby : AbstractCondition() {
+class HasPlayerNearby : AbstractCondition<MushroomContext>() {
     override fun condition(): Boolean = entity.hasPlayerNearby()
 }
 
-class PlayerInChaseRange : AbstractCondition() {
+class PlayerInChaseRange : AbstractCondition<MushroomContext>() {
     override fun condition(): Boolean = entity.isPlayerInChaseRange()
 }
 
-class IsAlive : AbstractCondition() {
+class IsAlive : AbstractCondition<MushroomContext>() {
     override fun condition(): Boolean = entity.isAlive()
 }
 
@@ -28,8 +29,8 @@ class IsAlive : AbstractCondition() {
  * This allows for a hysteresis-like behavior where the mushroom does not immediately stop
  * chasing if the player briefly exits the short-range detection zone.
  */
-class ShouldChase : AbstractCondition() {
+class ShouldChase : AbstractCondition<MushroomContext>() {
     override fun condition(): Boolean =
-        (entity.lastTaskName == "Chase" && entity.isPlayerInChaseRange()) ||
+        (entity.lastTaskName == "MushroomChase" && entity.isPlayerInChaseRange()) ||
             entity.hasPlayerNearby()
 }

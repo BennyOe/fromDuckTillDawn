@@ -6,7 +6,6 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
@@ -19,6 +18,7 @@ import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.addToDebugView
@@ -29,15 +29,12 @@ import ktx.collections.lastIndex
 import ktx.log.logger
 import kotlin.math.abs
 
-const val Y_THRESHOLD = 0.3f
-const val X_THRESHOLD = 0.1f
-
 class MushroomContext(
     entity: Entity,
     world: World,
     stage: Stage,
-    val debugRenderer: DebugRenderer,
-) : AbstractBlackboard(entity, world, stage) {
+    debugRenderer: DebugRenderer,
+) : AbstractBlackboard(entity, world, stage, debugRenderer) {
     val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
@@ -318,9 +315,7 @@ class MushroomContext(
     }
 
     companion object {
-        val logger = logger<MushroomContext>()
+        val logger = logger<MinotaurContext>()
         val TMP_CIRC = Circle()
     }
 }
-
-enum class PlatformRelation { SAME, ABOVE, BELOW }

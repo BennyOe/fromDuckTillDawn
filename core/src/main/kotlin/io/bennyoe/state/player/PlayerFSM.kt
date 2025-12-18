@@ -2,10 +2,10 @@ package io.bennyoe.state.player
 
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g2d.Animation
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackType
 import io.bennyoe.components.BashComponent
 import io.bennyoe.components.HitEffectComponent
+import io.bennyoe.components.animation.PlayerAnimation
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.fire
 import io.bennyoe.state.AbstractFSM
@@ -29,7 +29,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering IDLE" }
-            ctx.setAnimation(AnimationType.IDLE)
+            ctx.setAnimation(PlayerAnimation.IDLE)
             ctx.intentionCmp.wantsToBash = false
         }
 
@@ -67,7 +67,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object WALK : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering WALK ${ctx.physicComponent.floorType}" }
-            ctx.setAnimation(AnimationType.WALK)
+            ctx.setAnimation(PlayerAnimation.WALK)
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -96,7 +96,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.intentionCmp.wantsToJump = false
             ctx.jumpComponent.jumpFromBuffer = false
             ctx.stage.fire(PlaySoundEvent(ctx.entity, SoundType.DAWN_JUMP, .5f))
-            ctx.setAnimation(AnimationType.JUMP)
+            ctx.setAnimation(PlayerAnimation.JUMP)
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -121,7 +121,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.jumpComponent.wantsToJump = true
             ctx.intentionCmp.wantsToJump = false
             ctx.jumpComponent.jumpFromBuffer = false
-            ctx.setAnimation(AnimationType.JUMP)
+            ctx.setAnimation(PlayerAnimation.JUMP)
             doubleJumpFallDelay = DOUBLE_JUMP_FALL_DELAY_DURATION
         }
 
@@ -147,7 +147,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object FALL : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering FALL" }
-            ctx.setAnimation(AnimationType.JUMP)
+            ctx.setAnimation(PlayerAnimation.JUMP)
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -177,7 +177,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object CROUCH_IDLE : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering CROUCH_IDLE" }
-            ctx.setAnimation(AnimationType.CROUCH_IDLE)
+            ctx.setAnimation(PlayerAnimation.CROUCH_IDLE)
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -197,7 +197,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object CROUCH_WALK : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering CROUCH_WALK" }
-            ctx.setAnimation(AnimationType.CROUCH_WALK)
+            ctx.setAnimation(PlayerAnimation.CROUCH_WALK)
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -219,7 +219,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering ATTACK_1" }
             ctx.intentionCmp.wantsToAttack = false
-            ctx.setAnimation(AnimationType.ATTACK_1)
+            ctx.setAnimation(PlayerAnimation.ATTACK_1)
             ctx.attackComponent.appliedAttack = AttackType.SWORD
         }
 
@@ -247,7 +247,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             logger.debug { "Entering ATTACK_2" }
             ctx.intentionCmp.wantsToAttack2 = false
             ctx.intentionCmp.wantsToAttack = false
-            ctx.setAnimation(AnimationType.ATTACK_2)
+            ctx.setAnimation(PlayerAnimation.ATTACK_2)
             ctx.attackComponent.appliedAttack = AttackType.SWORD
         }
 
@@ -275,7 +275,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             logger.debug { "Entering ATTACK_3" }
             ctx.intentionCmp.wantsToAttack3 = false
             ctx.intentionCmp.wantsToAttack = false
-            ctx.setAnimation(AnimationType.ATTACK_3)
+            ctx.setAnimation(PlayerAnimation.ATTACK_3)
             ctx.attackComponent.appliedAttack = AttackType.SWORD
         }
 
@@ -302,7 +302,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
             ctx.jumpComponent.wantsToJump = true
             ctx.intentionCmp.wantsToJump = false
             ctx.jumpComponent.jumpFromBuffer = false
-            ctx.setAnimation(AnimationType.JUMP)
+            ctx.setAnimation(PlayerAnimation.JUMP)
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -319,7 +319,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
 
     data object SWIM : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
-            ctx.setAnimation(AnimationType.SWIM)
+            ctx.setAnimation(PlayerAnimation.SWIM)
             if (ctx.previousState() != DIVE) {
                 ctx.stage.fire(PlaySoundEvent(ctx.entity, SoundType.DAWN_WATER_SPLASH, 1f))
             }
@@ -349,7 +349,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     data object DIVE : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering DIVE" }
-            ctx.setAnimation(AnimationType.SWIM)
+            ctx.setAnimation(PlayerAnimation.SWIM)
         }
 
         override fun update(ctx: PlayerStateContext) {
@@ -367,7 +367,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering BASH" }
             ctx.add(BashComponent())
-            ctx.setAnimation(AnimationType.BASH)
+            ctx.setAnimation(PlayerAnimation.BASH)
             ctx.intentionCmp.wantsToBash = false
         }
 
@@ -386,12 +386,47 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         ): Boolean = super.onMessage(ctx, telegram)
     }
 
+    data object IS_GRABBED : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            logger.debug { "Player is Grabbed" }
+            ctx.setAnimation(PlayerAnimation.HIT, Animation.PlayMode.LOOP, resetStateTime = true)
+            ctx.attackComponent.appliedAttack = AttackType.NONE
+            ctx.isBeingGrabbed()
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            if (!ctx.intentionCmp.isBeingGrabbed) {
+                ctx.changeState(IS_THROWN)
+            }
+        }
+
+        override fun onMessage(
+            ctx: PlayerStateContext,
+            telegram: Telegram,
+        ): Boolean = telegram.message == FsmMessageTypes.PLAYER_IS_HIT.ordinal
+    }
+
+    data object IS_THROWN : PlayerFSM() {
+        override fun enter(ctx: PlayerStateContext) {
+            logger.debug { "Player is Thrown" }
+            ctx.setAnimation(PlayerAnimation.JUMP, Animation.PlayMode.LOOP, resetStateTime = true)
+        }
+
+        override fun update(ctx: PlayerStateContext) {
+            if (hasGroundContact(ctx)) {
+                ctx.moveComponent.lockMovement = false
+                ctx.intentionCmp.isThrown = false
+                ctx.changeState(IDLE)
+            }
+        }
+    }
+
     data object HIT : PlayerFSM() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering HIT" }
             ctx.add(HitEffectComponent())
             ctx.moveComponent.throwBack = true
-            ctx.setAnimation(AnimationType.HIT, resetStateTime = true)
+            ctx.setAnimation(PlayerAnimation.HIT, resetStateTime = true)
             ctx.attackComponent.appliedAttack = AttackType.NONE
             ctx.healthComponent.takenDamage = 0f
         }
@@ -407,7 +442,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering DEATH" }
             ctx.setAnimation(
-                AnimationType.DYING,
+                PlayerAnimation.DYING,
                 Animation.PlayMode.NORMAL,
                 // isReversed has to be set after the first time to prevent flickering because animation is played back reversed in RESURRECT state
                 isReversed = ctx.deathAlreadyEnteredBefore,
@@ -431,7 +466,7 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering RESURRECT" }
             ctx.setAnimation(
-                AnimationType.DYING,
+                PlayerAnimation.DYING,
                 Animation.PlayMode.REVERSED,
                 resetStateTime = true,
                 isReversed = true,
@@ -457,6 +492,10 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     ): Boolean {
         if (telegram.message == FsmMessageTypes.PLAYER_IS_HIT.ordinal) {
             ctx.changeState(HIT)
+            return true
+        }
+        if (telegram.message == FsmMessageTypes.PLAYER_IS_GRABBED.ordinal) {
+            ctx.changeState(IS_GRABBED)
             return true
         }
         return false

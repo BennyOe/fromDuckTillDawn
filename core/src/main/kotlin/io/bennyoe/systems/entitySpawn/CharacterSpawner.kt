@@ -11,12 +11,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
+import io.bennyoe.ai.blackboards.MinotaurContext
 import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AmbienceZoneContactComponent
-import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationModel
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.CharacterTypeComponent
 import io.bennyoe.components.DeadComponent
@@ -40,15 +38,21 @@ import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.animation.AnimationKey
+import io.bennyoe.components.animation.AnimationModel
 import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundProfileComponent
 import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.config.GameConstants
-import io.bennyoe.config.SpawnCfg
+import io.bennyoe.config.GameConstants.UNIT_SCALE
+import io.bennyoe.config.SpawnCfgFactory
 import io.bennyoe.lightEngine.core.LightEffectType
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.state.FsmMessageTypes
+import io.bennyoe.state.minotaur.MinotaurCheckAliveState
+import io.bennyoe.state.minotaur.MinotaurFSM
+import io.bennyoe.state.minotaur.MinotaurStateContext
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
 import io.bennyoe.state.mushroom.MushroomStateContext
@@ -96,18 +100,31 @@ class CharacterSpawner(
         characterObjectsLayer.objects.forEach { characterObj ->
             val characterType =
                 CharacterType.valueOf(characterObj.type?.uppercase() ?: throw IllegalArgumentException("Type must not be null"))
-            val cfg = SpawnCfg.createSpawnCfg(characterType)
-            val relativeSize = size(cfg.animationModel, cfg.animationType)
+            val cfg = SpawnCfgFactory.createSpawnCfg(characterType)
+            val atlasRegionSize = size(cfg.animationModel, cfg.animationType)
             world.entity { entity ->
-                // Add general components
+                // center position directly from tiled (point object)
+                val spawnPosCenter = vec2(characterObj.x * UNIT_SCALE, characterObj.y * UNIT_SCALE)
+
+                // calculate visual size
+                val visualWidth = atlasRegionSize.x * cfg.scaleImage.x
+                val visualHeight = atlasRegionSize.y * cfg.scaleImage.y
+
+                // use visual size for transform
+                val transformCmp =
+                    TransformComponent(
+                        spawnPosCenter,
+                        visualWidth,
+                        visualHeight,
+                    )
+                entity += transformCmp
+
                 val image =
                     // scale sets the image size
-                    ImageComponent(stage, cfg.scaleImage.x, cfg.scaleImage.y, zIndex = layerZIndex + cfg.zIndex).apply {
+                    ImageComponent(stage, zIndex = layerZIndex + cfg.zIndex).apply {
                         image =
                             Image().apply {
-                                setPosition(characterObj.x * GameConstants.UNIT_SCALE, characterObj.y * GameConstants.UNIT_SCALE)
-                                // this size sets the physic box
-                                setSize(relativeSize.x, relativeSize.y)
+                                setPosition(0f, 0f)
                             }
                     }
                 image.image.name = cfg.entityCategory.name
@@ -123,16 +140,19 @@ class CharacterSpawner(
                 entity += CharacterTypeComponent(cfg.characterType)
 
                 val physics =
-                    PhysicComponent.physicsComponentFromImage(
+                    PhysicComponent.physicsComponentFromBox(
                         phyWorld,
                         entity,
-                        image.image,
+                        spawnPosCenter,
+                        visualWidth,
+                        visualHeight,
                         cfg.bodyType,
                         categoryBit = cfg.entityCategory.bit,
                         maskBit = cfg.physicMaskCategory,
                         scalePhysicX = cfg.scalePhysic.x,
                         scalePhysicY = cfg.scalePhysic.y,
                         myFriction = 0f,
+                        offsetX = cfg.offsetPhysic.x,
                         offsetY = cfg.offsetPhysic.y,
                         setUserdata = EntityBodyData(entity, cfg.entityCategory),
                         sensorType = SensorType.HITBOX_SENSOR,
@@ -143,7 +163,7 @@ class CharacterSpawner(
                 physics.body.box(
                     physics.size.x * 0.99f,
                     0.01f,
-                    Vector2(0f, 0f - physics.size.y * 0.5f) + cfg.offsetPhysic.y,
+                    Vector2(physics.offset.x, physics.offset.y - physics.size.y * 0.5f),
                 ) {
                     isSensor = true
                     userData = FixtureSensorData(entity, SensorType.GROUND_TYPE_SENSOR)
@@ -155,7 +175,7 @@ class CharacterSpawner(
                 physics.body.box(
                     physics.size.x * 0.99f,
                     0.01f,
-                    Vector2(0f, 0f + physics.size.y * 0.5f) + cfg.offsetPhysic.y,
+                    Vector2(physics.offset.x, physics.offset.y + physics.size.y * 0.5f),
                 ) {
                     isSensor = true
                     userData = FixtureSensorData(entity, SensorType.UNDER_WATER_SENSOR)
@@ -166,14 +186,6 @@ class CharacterSpawner(
                 entity += physics
 
                 entity += GroundTypeSensorComponent
-
-                val transformCmp =
-                    TransformComponent(
-                        vec2(physics.body.position.x, physics.body.position.y),
-                        physics.size.x,
-                        physics.size.y,
-                    )
-                entity += transformCmp
 
                 entity += HealthComponent()
                 entity +=
@@ -203,20 +215,24 @@ class CharacterSpawner(
 
                 entity += SoundProfileComponent(cfg.soundProfile)
 
-                when (cfg.entityCategory) {
-                    EntityCategory.PLAYER -> spawnPlayerSpecifics(entity, physics)
+                if (cfg.entityCategory == EntityCategory.PLAYER) {
+                    spawnPlayerSpecifics(entity, physics)
+                }
 
-                    EntityCategory.ENEMY -> spawnEnemySpecifics(entity, cfg, transformCmp)
-
-                    else -> throw IllegalArgumentException("Unsupported character type for 'EntityCategory': ${cfg.entityCategory}")
+                if (cfg.entityCategory == EntityCategory.ENEMY) {
+                    when (characterType) {
+                        CharacterType.MUSHROOM -> spawnMushroomSpecifics(entity, cfg, transformCmp)
+                        CharacterType.MINOTAUR -> spawnMinotaurSpecifics(entity, cfg, transformCmp)
+                        else -> gdxError("No spawner for character $characterType found")
+                    }
                 }
             }
         }
     }
 
-    private fun EntityCreateContext.spawnEnemySpecifics(
+    private fun EntityCreateContext.spawnMushroomSpecifics(
         entity: Entity,
-        cfg: SpawnCfg,
+        cfg: SpawnCfgFactory,
         transformCmp: TransformComponent,
     ) {
         entity += IntentionComponent()
@@ -259,7 +275,13 @@ class CharacterSpawner(
             filter.maskBits = EntityCategory.PLAYER.bit
         }
 
-        entity += BasicSensorsComponent(chaseRange = cfg.nearbyEnemiesExtendedSensorRadius, transformCmp)
+        entity +=
+            BasicSensorsComponent(
+                sensorList = cfg.basicSensorList,
+                chaseRange = cfg.nearbyEnemiesExtendedSensorRadius,
+                transformCmp = transformCmp,
+                maxSightRadius = cfg.maxSightRadius,
+            )
 
         entity += RayHitComponent()
 
@@ -276,6 +298,70 @@ class CharacterSpawner(
             )
     }
 
+    private fun EntityCreateContext.spawnMinotaurSpecifics(
+        entity: Entity,
+        cfg: SpawnCfgFactory,
+        transformCmp: TransformComponent,
+    ) {
+        entity += IntentionComponent()
+
+        entity += NearbyEnemiesComponent()
+
+        val state =
+            StateComponent(
+                world = world,
+                owner =
+                    MinotaurStateContext(
+                        entity = entity,
+                        world = world,
+                        phyWorld = phyWorld,
+                        stage = stage,
+                        minotaurAtlas = atlasMap[AnimationModel.ENEMY_MINOTAUR]!!,
+                        debugRenderer = debugRenderer,
+                    ),
+                initialState = MinotaurFSM.IDLE(),
+                globalState = MinotaurCheckAliveState(),
+            )
+        entity += state
+        messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
+
+        val phyCmp = entity[PhysicComponent]
+
+        // create normal nearbyEnemiesSensor
+        phyCmp.body.circle(
+            cfg.nearbyEnemiesDefaultSensorRadius,
+            cfg.nearbyEnemiesSensorOffset,
+        ) {
+            isSensor = true
+            userData = FixtureSensorData(entity, SensorType.NEARBY_ENEMY_SENSOR)
+            filter.categoryBits = EntityCategory.SENSOR.bit
+            filter.maskBits = EntityCategory.PLAYER.bit
+        }
+
+        entity +=
+            BasicSensorsComponent(
+                sensorList = cfg.basicSensorList,
+                chaseRange = cfg.nearbyEnemiesExtendedSensorRadius,
+                transformCmp = transformCmp,
+                maxSightRadius = cfg.maxSightRadius,
+                sightSensorDef = cfg.sightSensorDefinition,
+            )
+
+        entity += RayHitComponent()
+
+        entity +=
+            BehaviorTreeComponent(
+                world = world,
+                stage = stage,
+                treePath = cfg.aiTreePath,
+                // The blackboard must be created via a function reference (or lambda)
+                // because at this point we finally have access to the correct Entity, World, and Stage.
+                createBlackboard = { entity, world, stage ->
+                    MinotaurContext(entity, world, stage, debugRenderer)
+                },
+            )
+    }
+
     private fun EntityCreateContext.spawnPlayerSpecifics(
         entity: Entity,
         physics: PhysicComponent,
@@ -284,7 +370,7 @@ class CharacterSpawner(
         phyCmp.body.box(
             physics.size.x * 0.99f,
             0.01f,
-            Vector2(0f, 0f - physics.size.y * 0.5f),
+            Vector2(physics.offset.x, physics.offset.y - physics.size.y * 0.5f),
         ) {
             isSensor = true
             userData = FixtureSensorData(entity, SensorType.GROUND_DETECT_SENSOR)
@@ -360,6 +446,7 @@ class CharacterSpawner(
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.KILL.ordinal)
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.PLAYER_IS_HIT.ordinal)
+        messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.PLAYER_IS_GRABBED.ordinal)
     }
 
     /**
@@ -371,9 +458,9 @@ class CharacterSpawner(
      */
     private fun size(
         model: AnimationModel,
-        type: AnimationType,
+        type: AnimationKey,
     ): Vector2 {
-        val cacheKey = type.name
+        val cacheKey = "${model.atlasKey}${type.atlasKey}"
         return sizesCache.getOrPut(cacheKey) {
             val atlas =
                 atlasMap[model]
@@ -383,7 +470,7 @@ class CharacterSpawner(
             if (regions.isEmpty) gdxError("No regions for the animation '$type' for model '$model' found")
 
             val firstFrame = regions.first()
-            Vector2(firstFrame.originalWidth * GameConstants.UNIT_SCALE, firstFrame.originalHeight * GameConstants.UNIT_SCALE)
+            Vector2(firstFrame.originalWidth * UNIT_SCALE, firstFrame.originalHeight * UNIT_SCALE)
         }
     }
 }

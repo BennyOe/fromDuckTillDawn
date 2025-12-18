@@ -10,29 +10,29 @@
         "fire.tsx": {
             "dynamicWrapping": false,
             "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInEditor": 1.49
         },
         "groundTiles1.tsx": {
             "dynamicWrapping": false,
-            "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInDock": 2.0146,
+            "scaleInEditor": 1.49
         },
         "lantern.tsx": {
             "dynamicWrapping": true,
             "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInEditor": 1.49
         },
         "testMap.tmx": {
             "expandedGroupLayers": [
-                19,
                 23,
-                30
+                30,
+                19
             ],
-            "scale": 2,
+            "scale": 0.389,
             "selectedLayer": 17,
             "viewCenter": {
-                "x": 445.75,
-                "y": 203.75
+                "x": 1994.858611825193,
+                "y": 442.1593830334191
             }
         }
     },

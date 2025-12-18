@@ -42,9 +42,14 @@ class DoorSpawner(
         doorObjectsLayer.objects.forEach { doorObj ->
             val id = doorObj.properties.get("id") as String
             val textureName = doorObj.properties.get("texture") as? String ?: ""
-            val position = vec2(doorObj.x * UNIT_SCALE, doorObj.y * UNIT_SCALE)
+            val positionBottomLeft = vec2(doorObj.x * UNIT_SCALE, doorObj.y * UNIT_SCALE)
             val width = doorObj.width * UNIT_SCALE
             val height = doorObj.height * UNIT_SCALE
+            val positionCenter =
+                vec2(
+                    positionBottomLeft.x + width * 0.5f,
+                    positionBottomLeft.y + height * 0.5f,
+                )
 
             world.entity {
                 doorTriggerMap[id] = it
@@ -53,17 +58,19 @@ class DoorSpawner(
                 val imageCmp = ImageComponent(stage, zIndex = layerZIndex)
                 imageCmp.image = Image(worldObjectsAtlas.findRegion(textureName))
                 imageCmp.image.setSize(width, height)
-                imageCmp.image.setPosition(position.x, position.y)
+                imageCmp.image.setPosition(positionBottomLeft.x, positionBottomLeft.y)
 
                 it += imageCmp
 
-                it += TransformComponent(position, width, height)
+                it += TransformComponent(positionCenter, width, height)
 
                 it +=
-                    PhysicComponent.physicsComponentFromImage(
+                    PhysicComponent.physicsComponentFromBox(
                         phyWorld = phyWorld,
                         entity = it,
-                        image = imageCmp.image,
+                        positionCenter,
+                        width,
+                        height,
                         bodyType = BodyDef.BodyType.StaticBody,
                         categoryBit = EntityCategory.GROUND.bit,
                         maskBit = EntityCategory.PLAYER.bit or EntityCategory.ENEMY.bit,

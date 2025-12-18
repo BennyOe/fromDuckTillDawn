@@ -10,7 +10,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.ai.blackboards.MushroomContext
-import io.bennyoe.components.AnimationComponent
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
@@ -28,6 +27,7 @@ import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
@@ -124,7 +124,7 @@ class MushroomContextUnitTest {
                 it += healthCmp
                 it += nearbyCmp
                 it += animCmp
-                it += BasicSensorsComponent(7f, transformCmp)
+                it += BasicSensorsComponent(emptyList(), 7f, transformCmp, 23f)
                 it += RayHitComponent()
                 it += phyCmp
                 it +=

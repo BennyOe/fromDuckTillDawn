@@ -30,6 +30,11 @@ data class DoorEvent(
 ) : Event(),
     GameEvent
 
+// --- Game Events ---
+class CameraShakeEvent :
+    Event(),
+    GameEvent
+
 // --- Audio Events ---
 sealed interface AudioEvent : GameEvent
 

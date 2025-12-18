@@ -36,6 +36,6 @@ class BehaviorTreeComponent<T : AbstractBlackboard>(
     }
 
     companion object : ComponentType<BehaviorTreeComponent<*>>() {
-        val NO_TARGET = Entity.Companion.NONE
+        val NO_TARGET = Entity.NONE
     }
 }

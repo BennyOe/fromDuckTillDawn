@@ -13,8 +13,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.assets.TextureAtlases
-import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.HasGroundContact
@@ -26,6 +24,8 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.animation.PlayerAnimation
 import io.bennyoe.lightEngine.core.GameLight
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
@@ -137,7 +137,7 @@ class AnimationSystemIntegrationTest {
         stateCmp.stateMachine.update()
 
         Assertions.assertEquals(
-            AnimationType.IDLE,
+            PlayerAnimation.IDLE,
             animationCmp.nextAnimationType,
             "Entity standing still should play idle animation",
         )
@@ -159,7 +159,7 @@ class AnimationSystemIntegrationTest {
         stateCmp.stateMachine.update()
 
         Assertions.assertEquals(
-            AnimationType.WALK,
+            PlayerAnimation.WALK,
             animationCmp.nextAnimationType,
             "Entity with horizontal movement should enqueue WALK animation",
         )
@@ -183,7 +183,7 @@ class AnimationSystemIntegrationTest {
         stateCmp.stateMachine.update()
 
         Assertions.assertEquals(
-            AnimationType.JUMP,
+            PlayerAnimation.JUMP,
             animationCmp.nextAnimationType,
             "Entity that starts jumping should enqueue JUMP animation",
         )

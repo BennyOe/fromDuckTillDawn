@@ -2,10 +2,10 @@ package io.bennyoe.ai.core
 
 import com.badlogic.gdx.ai.btree.LeafTask
 import com.badlogic.gdx.ai.btree.Task
-import io.bennyoe.ai.blackboards.MushroomContext
+import io.bennyoe.ai.blackboards.AbstractBlackboard
 
-abstract class AbstractCondition : LeafTask<MushroomContext>() {
-    val entity: MushroomContext
+abstract class AbstractCondition<T : AbstractBlackboard> : LeafTask<T>() {
+    val entity: T
         get() = `object`
 
     abstract fun condition(): Boolean
@@ -16,5 +16,5 @@ abstract class AbstractCondition : LeafTask<MushroomContext>() {
             else -> Status.FAILED
         }
 
-    override fun copyTo(task: Task<MushroomContext?>?): Task<MushroomContext?>? = task
+    override fun copyTo(task: Task<T?>?): Task<T?>? = task
 }

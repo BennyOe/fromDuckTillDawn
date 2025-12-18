@@ -1,23 +1,23 @@
-package io.bennyoe.ai.actions
+package io.bennyoe.ai.actions.minotaur
 
 import com.badlogic.gdx.ai.GdxAI
 import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
-import io.bennyoe.ai.blackboards.MushroomContext
+import io.bennyoe.ai.blackboards.MinotaurContext
 import io.bennyoe.ai.core.AbstractAction
 import io.bennyoe.components.GameMood
 import ktx.log.logger
 
-class Idle(
+class MinotaurIdle(
     @JvmField
     @TaskAttribute(required = true)
     var duration: FloatDistribution? = null,
-) : AbstractAction() {
+) : AbstractAction<MinotaurContext>() {
     private var currentDuration = 0f
 
     override fun enter() {
-        Attack.Companion.logger.debug { "Idle Enter" }
+        MinotaurGrabAttack.logger.debug { "Idle Enter" }
         ctx.lastTaskName = this.javaClass.simpleName
         ctx.currentMood = GameMood.NORMAL
         ctx.idle()
@@ -37,12 +37,12 @@ class Idle(
     }
 
     // the copyTo must be overridden when @TaskAttribute is specified
-    override fun copyTo(task: Task<MushroomContext>): Task<MushroomContext> {
-        (task as Idle).duration = duration
+    override fun copyTo(task: Task<MinotaurContext>): Task<MinotaurContext> {
+        (task as MinotaurIdle).duration = duration
         return task
     }
 
     companion object {
-        val logger = logger<Idle>()
+        val logger = logger<MinotaurIdle>()
     }
 }

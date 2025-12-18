@@ -40,6 +40,7 @@ import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
 import io.bennyoe.systems.BasicSensorsSystem
 import io.bennyoe.systems.BehaviorTreeSystem
+import io.bennyoe.systems.CameraShakeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CloudSystem
 import io.bennyoe.systems.CrowSystem
@@ -55,6 +56,7 @@ import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.ParallaxSystem
 import io.bennyoe.systems.ParticleRemoveSystem
+import io.bennyoe.systems.ProjectileSystem
 import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
@@ -212,6 +214,7 @@ class GameScreen(
                 add(CollisionSpawnSystem())
                 add(InputSystem())
                 add(AttackSystem())
+                add(CameraShakeSystem())
                 add(GameStateSystem())
                 add(DamageSystem())
                 add(HitStopSystem())
@@ -221,6 +224,8 @@ class GameScreen(
                 add(WaterSystem())
                 add(CrowSystem())
                 add(PhysicsSystem())
+                add(PhysicTransformSyncSystem())
+                add(TransformVisualSyncSystem())
                 add(AmbienceSystem())
                 add(ReverbSystem())
                 add(CloudSystem())
@@ -237,11 +242,10 @@ class GameScreen(
                 add(TimeSystem())
                 add(IndoorLightSystem())
                 add(DoorSystem())
+                add(ProjectileSystem())
                 add(SkySystem())
                 add(UiDataSystem())
                 add(MoveSystem())
-                add(PhysicTransformSyncSystem())
-                add(TransformVisualSyncSystem())
                 add(ParticleRemoveSystem())
                 add(CameraSystem())
                 add(RenderSystem())

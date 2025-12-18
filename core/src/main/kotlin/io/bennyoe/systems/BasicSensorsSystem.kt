@@ -18,11 +18,11 @@ import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.SensorType
 import ktx.collections.GdxArray
 import ktx.log.logger
 
@@ -44,17 +44,7 @@ class BasicSensorsSystem(
         val bodyPos = phyCmp.body.position
         val bodySize = phyCmp.size
         val flipImg = imageCmp.flipImage
-        val playerBodyPos = playerEntity[PhysicComponent].body.position
         val fixtureCenterPos = bodyPos.cpy().add(phyCmp.offset)
-
-        // update sensor positions
-        updateSensorPositions(
-            basicSensorsCmp,
-            fixtureCenterPos,
-            flipImg,
-            playerBodyPos,
-            bodySize,
-        )
 
         clearLedgeHitArrays(rayHitCmp)
 
@@ -78,15 +68,38 @@ class BasicSensorsSystem(
         rayHitCmp.upperLedgeHits.sort()
         rayHitCmp.lowerLedgeHits.sort()
 
-        val sightSensor = basicSensorsCmp.sightSensor
-        if (dst(sightSensor.from.x, sightSensor.from.y, sightSensor.to.x, sightSensor.to.y) < CHASE_DETECTION_RADIUS) {
-            processSensor(basicSensorsCmp.sightSensor, phyCmp) { rayHitCmp.sightIsBlocked = it }
+        basicSensorsCmp.sightSensorDef?.let { sightSensor ->
+            val playerBodyPos = playerEntity[PhysicComponent].body.position
+            sightSensor.updateSightSensor(fixtureCenterPos, playerBodyPos)
+
+            if (dst(sightSensor.from.x, sightSensor.from.y, sightSensor.to.x, sightSensor.to.y) < basicSensorsCmp.maxSightRadius) {
+                // when sight is not blocked player can be seen. If sight is blocked but still in range player is in throwRange
+                processSensor(sightSensor, phyCmp) { rayHitCmp.seesPlayer = !it }
+                rayHitCmp.playerInThrowRange = true
+            } else {
+                rayHitCmp.playerInThrowRange = false
+                rayHitCmp.seesPlayer = false
+            }
         }
-        processSensor(basicSensorsCmp.wallSensor, phyCmp) { rayHitCmp.wallHit = it }
-        processSensor(basicSensorsCmp.wallHeightSensor, phyCmp) { rayHitCmp.wallHeightHit = it }
-        processSensor(basicSensorsCmp.groundSensor, phyCmp) { rayHitCmp.groundHit = it }
-        processSensor(basicSensorsCmp.jumpSensor, phyCmp) { rayHitCmp.jumpHit = it }
-        processSensor(basicSensorsCmp.attackSensor, phyCmp) { rayHitCmp.canAttack = it }
+
+        basicSensorsCmp.sensorList.forEach { sensor ->
+            sensor.updateAbsolutePositions(
+                fixtureCenterPos,
+                flipImg,
+                phyCmp.size,
+            )
+
+            processSensor(sensor, phyCmp) { isHit ->
+                when (sensor.type) {
+                    SensorType.WALL_SENSOR -> rayHitCmp.wallHit = isHit
+                    SensorType.WALL_HEIGHT_SENSOR -> rayHitCmp.wallHeightHit = isHit
+                    SensorType.GROUND_DETECT_SENSOR -> rayHitCmp.groundHit = isHit
+                    SensorType.JUMP_SENSOR -> rayHitCmp.jumpHit = isHit
+                    SensorType.ATTACK_SENSOR -> rayHitCmp.canAttack = isHit
+                    else -> Unit
+                }
+            }
+        }
     }
 
     private fun processSensor(
@@ -184,21 +197,6 @@ class BasicSensorsSystem(
     private fun clearLedgeHitArrays(rayHitCmp: RayHitComponent) {
         rayHitCmp.upperLedgeHits.clear()
         rayHitCmp.lowerLedgeHits.clear()
-    }
-
-    private fun updateSensorPositions(
-        basicSensorsCmp: BasicSensorsComponent,
-        bodyPos: Vector2,
-        flipImg: Boolean,
-        playerBodyPos: Vector2,
-        bodySize: Vector2,
-    ) {
-        basicSensorsCmp.wallSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
-        basicSensorsCmp.wallHeightSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
-        basicSensorsCmp.groundSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
-        basicSensorsCmp.jumpSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
-        basicSensorsCmp.attackSensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
-        basicSensorsCmp.sightSensor.updateSightSensor(bodyPos, playerBodyPos)
     }
 
     companion object {

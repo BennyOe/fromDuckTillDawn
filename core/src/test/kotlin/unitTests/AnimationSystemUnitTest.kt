@@ -10,12 +10,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
 import io.bennyoe.assets.TextureAtlases
-import io.bennyoe.components.AnimationComponent
-import io.bennyoe.components.AnimationType
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.animation.NoAnimationKey
+import io.bennyoe.components.animation.PlayerAnimation
 import io.bennyoe.systems.AnimationSystem
 import io.mockk.Runs
 import io.mockk.every
@@ -109,14 +110,14 @@ class AnimationSystemUnitTest {
     @Test
     fun `nextAnimation triggers applyNextAnimation and resets flags`() {
         aniCmp.nextAnimation(
-            AnimationType.WALK,
+            PlayerAnimation.WALK,
         )
 
         world.update(0f)
 
         // after update the "next" flags should be cleared
         assertEquals(
-            AnimationType.NONE,
+            NoAnimationKey,
             aniCmp.nextAnimationType,
             "nextAnimationType should be cleared after applyNextAnimation()",
         )

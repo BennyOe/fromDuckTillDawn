@@ -15,9 +15,11 @@ import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.DoorTriggerComponent
 import io.bennyoe.components.GroundTypeSensorComponent
 import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IsIndoorComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.PhysicComponent
+import io.bennyoe.components.ProjectileComponent
 import io.bennyoe.components.WaterComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.audio.AmbienceSoundComponent
@@ -37,6 +39,7 @@ import io.bennyoe.utility.SensorType
 import io.bennyoe.utility.bodyData
 import io.bennyoe.utility.fixtureData
 import ktx.log.logger
+import ktx.math.vec2
 
 fun Fixture.hasSensorType(type: SensorType): Boolean = this.fixtureData?.sensorType == type
 
@@ -66,7 +69,8 @@ class ContactHandlerSystem(
         handleGroundTypeBegin(parts)
         handleInWaterBegin(parts)
         handleUnderWaterBegin(parts)
-        doorSensorZoneBegin(parts)
+        handleDoorSensorZoneBegin(parts)
+        handlePlayerEnemyProjectileBegin(parts)
     }
 
     override fun endContact(contact: Contact) {
@@ -85,7 +89,7 @@ class ContactHandlerSystem(
         oldManifold: Manifold,
     ) {
         val parts = contact.partsOrNull() ?: return
-        if (parts.isPlayerEnemyCategories()) {
+        if (parts.isPlayerEnemyCategories() || parts.isPlayerEnemyProjectileCategories()) {
             // Player and Enemy bodies should not physically collide (sensors still fine).
             contact.isEnabled = false
         }
@@ -274,10 +278,18 @@ class ContactHandlerSystem(
     }
 
     private fun handleGroundBegin(p: Parts) {
-        // GROUND_DETECT_SENSOR overlaps GROUND -> increase ground contacts if PLAYER
-        val player = p.entityWithSensorWhenTouchingGround(SensorType.GROUND_DETECT_SENSOR) ?: return
-        if (player.entityCategory == EntityCategory.PLAYER) {
+        // 1) Player-Ground-Sensor vs Ground
+        val player = p.entityWithSensorWhenTouchingGround(SensorType.GROUND_DETECT_SENSOR)
+        if (player?.entityCategory == EntityCategory.PLAYER) {
             with(world) { player.entity[PhysicComponent].activeGroundContacts++ }
+        }
+
+        // 2) Enemy-Projectile vs Ground
+        val enemyProjectile = p.enemyProjectileAndGround()?.first
+        if (enemyProjectile != null) {
+            // TODO play destroy animation where the rock "explodes" and then remove it
+            enemyProjectile.entity[PhysicComponent].body.linearVelocity = vec2(0f, 0f)
+            enemyProjectile.entity[ProjectileComponent].hitGround = true
         }
     }
 
@@ -291,6 +303,14 @@ class ContactHandlerSystem(
                 }
             }
         }
+    }
+
+    private fun handlePlayerEnemyProjectileBegin(p: Parts) {
+        val projectileAndPlayer = p.enemyProjectileAndPlayer() ?: return
+        val projectile = projectileAndPlayer.first
+        val player = projectileAndPlayer.second
+
+        player.entity[HealthComponent].takenDamage = projectile.entity[ProjectileComponent].damage
     }
 
     private fun handleNearbyEnemiesBegin(p: Parts) {
@@ -321,6 +341,7 @@ class ContactHandlerSystem(
         with(world) {
             val attackCmp = enemy.entity[AttackComponent]
             val healthCmp = player.entity[HealthComponent]
+            val playerImageCmp = player.entity[ImageComponent]
 
             val playerX =
                 player.entity[PhysicComponent]
@@ -329,12 +350,20 @@ class ContactHandlerSystem(
                 enemy.entity[PhysicComponent]
                     .body.position.x
 
-            healthCmp.attackedFromBehind = playerX > enemyX
+            // Check if enemy is to the right of the player
+            val isEnemyRight = enemyX > playerX
+            // Player faces right if flipImage is false
+            val isPlayerFacingRight = !playerImageCmp.flipImage
+
+            // Back attack logic:
+            // 1. Player faces Right AND Enemy is Left (not Right)
+            // 2. Player faces Left AND Enemy is Right
+            healthCmp.attackedFromBehind = (isPlayerFacingRight && !isEnemyRight) || (!isPlayerFacingRight && isEnemyRight)
             healthCmp.takenDamage = attackCmp.attackMap[attackCmp.appliedAttack]?.maxDamage ?: 0f
         }
     }
 
-    private fun doorSensorZoneBegin(parts: Parts) {
+    private fun handleDoorSensorZoneBegin(parts: Parts) {
         val sensorOwner = parts.sensorOwnerWhenPlayerTouches(SensorType.DOOR_TRIGGER_SENSOR)
         val doorTriggerCmp = sensorOwner?.entity?.getOrNull(DoorTriggerComponent) ?: return
 
@@ -356,12 +385,30 @@ class ContactHandlerSystem(
             (aCategory == EntityCategory.PLAYER && bCategory == EntityCategory.ENEMY) ||
                 (aCategory == EntityCategory.ENEMY && bCategory == EntityCategory.PLAYER)
 
+        fun isPlayerEnemyProjectileCategories(): Boolean =
+            (aCategory == EntityCategory.PLAYER && bCategory == EntityCategory.ENEMY_PROJECTILE) ||
+                (aCategory == EntityCategory.ENEMY_PROJECTILE && bCategory == EntityCategory.PLAYER)
+
         fun bothHitboxes(): Boolean = aFixture.hasSensorType(SensorType.HITBOX_SENSOR) && bFixture.hasSensorType(SensorType.HITBOX_SENSOR)
 
         fun playerAndEnemyOrNull(): Pair<EntityBodyData, EntityBodyData>? =
             when {
                 aCategory == EntityCategory.PLAYER && bCategory == EntityCategory.ENEMY -> aBody to bBody
                 aCategory == EntityCategory.ENEMY && bCategory == EntityCategory.PLAYER -> bBody to aBody
+                else -> null
+            }
+
+        fun enemyProjectileAndGround(): Pair<EntityBodyData, EntityBodyData>? =
+            when {
+                aCategory == EntityCategory.ENEMY_PROJECTILE && bCategory == EntityCategory.GROUND -> aBody to bBody
+                aCategory == EntityCategory.GROUND && bCategory == EntityCategory.ENEMY_PROJECTILE -> bBody to aBody
+                else -> null
+            }
+
+        fun enemyProjectileAndPlayer(): Pair<EntityBodyData, EntityBodyData>? =
+            when {
+                aCategory == EntityCategory.ENEMY_PROJECTILE && bCategory == EntityCategory.PLAYER -> aBody to bBody
+                aCategory == EntityCategory.PLAYER && bCategory == EntityCategory.ENEMY_PROJECTILE -> bBody to aBody
                 else -> null
             }
 
@@ -384,8 +431,12 @@ class ContactHandlerSystem(
             val bIsZone = bFixture.hasSensorType(SensorType.SOUND_AMBIENCE_SENSOR)
 
             return when {
-                aIsZone && !bIsZone -> bBody to aBody // b is the moving entity, a is the zone
-                bIsZone && !aIsZone -> aBody to bBody // a is the moving entity, b is the zone
+                aIsZone && !bIsZone -> bBody to aBody
+
+                // b is the moving entity, a is the zone
+                bIsZone && !aIsZone -> aBody to bBody
+
+                // a is the moving entity, b is the zone
                 else -> null
             }
         }
@@ -418,13 +469,17 @@ class ContactHandlerSystem(
             playerSensor: SensorType,
         ): Pair<EntityBodyData, EntityBodyData>? =
             when {
-                aFixture.hasSensorType(sensorType) && bCategory == EntityCategory.PLAYER && bFixture.hasSensorType(playerSensor) ->
+                aFixture.hasSensorType(sensorType) && bCategory == EntityCategory.PLAYER && bFixture.hasSensorType(playerSensor) -> {
                     bBody to aBody
+                }
 
-                bFixture.hasSensorType(sensorType) && aCategory == EntityCategory.PLAYER && aFixture.hasSensorType(playerSensor) ->
+                bFixture.hasSensorType(sensorType) && aCategory == EntityCategory.PLAYER && aFixture.hasSensorType(playerSensor) -> {
                     aBody to bBody
+                }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
 
         fun waterAndObjectFixturesOrNull(): Pair<Fixture, Fixture>? {

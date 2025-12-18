@@ -62,7 +62,7 @@ class DoorSystem(
 
         val currentPos = physicCmp.body.position
 
-        val newY = MathUtils.lerp(currentPos.y, doorCmp.targetY!! + transformCmp.height / 2, deltaTime * DOOR_SPEED)
+        val newY = MathUtils.lerp(currentPos.y, doorCmp.targetY!!, deltaTime * DOOR_SPEED)
 
         physicCmp.body.setTransform(currentPos.x, newY, physicCmp.body.angle)
     }

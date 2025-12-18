@@ -10,7 +10,7 @@ buildscript {
   }
   dependencies {
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-    classpath "org.jlleitschuh.gradle:ktlint-gradle:12.2.0" // aktuelle Version prüfen
+    classpath "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin:12.2.0"
   }
 }
 

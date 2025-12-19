@@ -6,7 +6,7 @@ import com.github.quillraven.fleks.ComponentType
 class FieldOfViewResultComponent : Component<FieldOfViewResultComponent> {
     var raysHitting: Int = 0
     var distanceToPlayer: Float = 0f
-    var illuminationOfPlayer: Double = 0.0
+    var illuminationOfPlayer: Float = 0f
 
     override fun type() = FieldOfViewResultComponent
 

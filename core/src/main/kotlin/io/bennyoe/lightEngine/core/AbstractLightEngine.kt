@@ -647,11 +647,11 @@ abstract class AbstractLightEngine(
      * @return The estimated brightness as a value between 0.0 and 1.0.
      * @throws IllegalStateException if the `world` property is null.
      */
-    fun estimateBrightnessAtPoint(pos: Vector2): Double {
+    fun estimateBrightnessAtPoint(pos: Vector2): Float {
         requireNotNull(world) { "The 'world' property must not be null when calling 'estimateBrightnessAtPoint()'" }
 
         // 1. Base Ambient Brightness
-        var totalBrightness = (box2dAmbientColor.r * 0.299f + box2dAmbientColor.g * 0.587f + box2dAmbientColor.b * 0.114f).toDouble()
+        var totalBrightness = (box2dAmbientColor.r * 0.299f + box2dAmbientColor.g * 0.587f + box2dAmbientColor.b * 0.114f)
 
         // 2. Check Active Lights
         for (gameLight in activeLights) {
@@ -663,12 +663,12 @@ abstract class AbstractLightEngine(
                     is DirectionalLight -> calculateDirectionalContribution(b2dLight, pos)
                     is ConeLight -> calculateConeContribution(b2dLight, pos) * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
                     is PointLight -> calculatePointContribution(b2dLight, pos) * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
-                    else -> 0.0
+                    else -> 0f
                 }
             totalBrightness += intensity
         }
 
-        return totalBrightness.coerceIn(0.0, 1.0)
+        return totalBrightness.coerceIn(0f, 1f)
     }
 
     /**
@@ -689,7 +689,7 @@ abstract class AbstractLightEngine(
     fun estimateBrightnessForPlane(
         center: Vector2,
         size: Vector2,
-    ): Double {
+    ): Float {
         requireNotNull(world) {
             "The 'world' property must not be null when calling 'estimateBrightnessForPlane()'"
         }
@@ -708,7 +708,7 @@ abstract class AbstractLightEngine(
                 box2dAmbientColor.r * 0.299f +
                     box2dAmbientColor.g * 0.587f +
                     box2dAmbientColor.b * 0.114f
-            ).toDouble()
+            )
 
         // 2. Sample lights
         for (gameLight in activeLights) {
@@ -724,7 +724,7 @@ abstract class AbstractLightEngine(
                                 calculateDirectionalContribution(b2dLight, lowerLeft) +
                                 calculateDirectionalContribution(b2dLight, lowerRight) +
                                 calculateDirectionalContribution(b2dLight, center)
-                        ) / 5.0
+                        ) / 5f
 
                     is ConeLight ->
                         (
@@ -733,7 +733,7 @@ abstract class AbstractLightEngine(
                                 calculateConeContribution(b2dLight, lowerLeft) +
                                 calculateConeContribution(b2dLight, lowerRight) +
                                 calculateConeContribution(b2dLight, center)
-                        ) / 5.0 * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
+                        ) / 5f * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
 
                     is PointLight ->
                         (
@@ -742,21 +742,21 @@ abstract class AbstractLightEngine(
                                 calculatePointContribution(b2dLight, lowerLeft) +
                                 calculatePointContribution(b2dLight, lowerRight) +
                                 calculatePointContribution(b2dLight, center)
-                        ) / 5.0 * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
+                        ) / 5f * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
 
-                    else -> 0.0
+                    else -> 0f
                 }
 
             totalBrightness = saturatingAdd(totalBrightness, intensity)
         }
 
-        return totalBrightness.coerceIn(0.0, 1.0)
+        return totalBrightness.coerceIn(0f, 1f)
     }
 
     private fun calculateDirectionalContribution(
         light: DirectionalLight,
         pos: Vector2,
-    ): Double {
+    ): Float {
         // direction is the angle the light travels TOWARDS.
         val lightDirRad = Math.toRadians(light.direction.toDouble())
         val rayDirX = -cos(lightDirRad).toFloat()
@@ -767,24 +767,24 @@ abstract class AbstractLightEngine(
         val endX = pos.x + rayDirX * checkDist
         val endY = pos.y + rayDirY * checkDist
 
-        if (isOccluded(pos.x, pos.y, endX, endY)) return 0.0
+        if (isOccluded(pos.x, pos.y, endX, endY)) return 0f
 
         // light is visible, calculate intensity (Luma * Alpha/Strength)
         val color = light.color
         val luma = (color.r * 0.299f + color.g * 0.587f + color.b * 0.114f)
-        return (luma * color.a).toDouble()
+        return (luma * color.a)
     }
 
     private fun calculateConeContribution(
         light: ConeLight,
         pos: Vector2,
-    ): Double {
+    ): Float {
         val lightPos = Vector2(light.x, light.y)
         val dst2 = pos.dst2(lightPos)
         val r2 = light.distance * light.distance
 
         // distance-check
-        if (dst2 > r2) return 0.0
+        if (dst2 > r2) return 0f
 
         // angle-check (Cone Logic)
         val dx = pos.x - light.x
@@ -794,7 +794,7 @@ abstract class AbstractLightEngine(
         // normalize angle to find the shortest direction
         val diff = kotlin.math.abs((angleToTarget - light.direction + 540) % 360 - 180)
 
-        if (diff > light.coneDegree) return 0.0
+        if (diff > light.coneDegree) return 0f
 
         return calculateBrightness(pos, lightPos, dst2, light)
     }
@@ -802,12 +802,12 @@ abstract class AbstractLightEngine(
     private fun calculatePointContribution(
         light: PointLight,
         pos: Vector2,
-    ): Double {
+    ): Float {
         val lightPos = Vector2(light.x, light.y)
         val dst2 = pos.dst2(lightPos)
         val r2 = light.distance * light.distance
 
-        if (dst2 > r2) return 0.0
+        if (dst2 > r2) return 0f
 
         return calculateBrightness(pos, lightPos, dst2, light)
     }
@@ -817,29 +817,29 @@ abstract class AbstractLightEngine(
         lightPos: Vector2,
         dst2: Float,
         light: PositionalLight,
-    ): Double {
-        if (isOccluded(pos.x, pos.y, lightPos.x, lightPos.y)) return 0.0
+    ): Float {
+        if (isOccluded(pos.x, pos.y, lightPos.x, lightPos.y)) return 0f
 
-        val distance = sqrt(dst2.toDouble())
+        val distance = sqrt(dst2)
         val normalizedDist = distance / light.distance
 
-        val linearFactor = (1.0 - normalizedDist).coerceIn(0.0, 1.0)
+        val linearFactor = (1f - normalizedDist).coerceIn(0f, 1f)
         val falloff = linearFactor * linearFactor
 
-        if (falloff <= 0) return 0.0
+        if (falloff <= 0f) return 0f
 
         val color = light.color
         val luma = (color.r * 0.299f + color.g * 0.587f + color.b * 0.114f)
-        return (luma * color.a * falloff)
+        return luma * color.a * falloff
     }
 
     private fun saturatingAdd(
-        base: Double,
-        add: Double,
-    ): Double {
-        val b = base.coerceIn(0.0, 1.0)
-        val a = add.coerceIn(0.0, 1.0)
-        return 1.0 - (1.0 - b) * (1.0 - a)
+        base: Float,
+        add: Float,
+    ): Float {
+        val b = base.coerceIn(0f, 1f)
+        val a = add.coerceIn(0f, 1f)
+        return 1f - (1f - b) * (1f - a)
     }
 
     // Helper to perform the RayCast safely

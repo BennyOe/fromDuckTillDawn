@@ -688,15 +688,14 @@ abstract class AbstractLightEngine(
      */
     fun estimateBrightnessForPlane(
         center: Vector2,
-        width: Float,
-        height: Float,
+        size: Vector2,
     ): Double {
         requireNotNull(world) {
             "The 'world' property must not be null when calling 'estimateBrightnessForPlane()'"
         }
 
-        val halfW = width * 0.5f
-        val halfH = height * 0.5f
+        val halfW = size.x * 0.5f
+        val halfH = size.y * 0.5f
 
         val upperLeft = vec2(center.x - halfW, center.y + halfH)
         val upperRight = vec2(center.x + halfW, center.y + halfH)

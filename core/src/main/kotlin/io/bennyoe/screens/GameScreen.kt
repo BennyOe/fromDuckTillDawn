@@ -96,8 +96,6 @@ import ktx.box2d.createWorld
 import ktx.inject.Context
 import ktx.log.logger
 import ktx.scene2d.Scene2DSkin
-import kotlin.experimental.and
-import kotlin.experimental.inv
 
 class GameScreen(
     context: Context,

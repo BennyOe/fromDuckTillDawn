@@ -118,9 +118,9 @@ class CharacterSpawner(
                 // use visual size for transform
                 val transformCmp =
                     TransformComponent(
-                        spawnPosCenter,
-                        visualWidth,
-                        visualHeight,
+                        position = spawnPosCenter,
+                        width = visualWidth,
+                        height = visualHeight,
                     )
                 entity += transformCmp
 

@@ -19,8 +19,10 @@ import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.FieldOfViewComponent
+import io.bennyoe.components.ai.FieldOfViewResultComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
+import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.addToDebugView
@@ -35,9 +37,12 @@ private const val PLAYER_HEIGHT_OFFSET = 0.8f
 class FieldOfViewSystem(
     private val phyWorld: World = inject("phyWorld"),
     private val debugRenderingService: DefaultDebugRenderService = inject("debugRenderService"),
+    private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
 ) : IteratingSystem(family { all(FieldOfViewComponent) }) {
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
     private val fovPoly = Polygon()
+
+    private var numberOfRaysHitting: Int = 0
 
     // Pre-allocate vectors to prevent Garbage Collection issues during game loop
     private val rayStart = Vector2()
@@ -76,8 +81,10 @@ class FieldOfViewSystem(
 
     override fun onTickEntity(entity: Entity) {
         val playerTransformCmp = playerEntity[TransformComponent]
+        val playerPhysicCmp = playerEntity[PhysicComponent]
         val phyCmp = entity[PhysicComponent]
         val fieldOfViewCmp = entity[FieldOfViewComponent]
+        val fieldOfViewResultCmp = entity[FieldOfViewResultComponent]
 
         val lookingDir = if (entity[ImageComponent].flipImage) lookingDirVec.set(-1f, 0f) else lookingDirVec.set(1f, 0f)
 
@@ -98,7 +105,9 @@ class FieldOfViewSystem(
         }
 
         // 2) range check
-        if (dx * dx + min(dyTop, dyBott) * min(dyTop, dyBott) > fieldOfViewCmp.maxDistance) {
+        val distanceToPlayer = dx * dx + min(dyTop, dyBott) * min(dyTop, dyBott)
+
+        if (distanceToPlayer > fieldOfViewCmp.maxDistance) {
             return
         }
 
@@ -123,7 +132,14 @@ class FieldOfViewSystem(
         drawDebugFieldOfView(fieldOfViewCmp, enemyEyePosX, enemyEyePosY, lookingDir, entity)
 
         if (processRaycast(playerTransformCmp, fieldOfViewCmp, phyCmp)) {
-            logger.debug { "IN SIGHT (inside triangle + at least one ray hit)" }
+            fieldOfViewResultCmp.distanceToPlayer = distanceToPlayer
+            fieldOfViewResultCmp.raysHitting = numberOfRaysHitting
+            fieldOfViewResultCmp.illuminationOfPlayer =
+                lightEngine.estimateBrightnessForPlane(playerPhysicCmp.body.position, playerPhysicCmp.size)
+
+            logger.debug {
+                "The Brightness of the player is: ${fieldOfViewResultCmp.illuminationOfPlayer}"
+            }
         }
     }
 
@@ -180,6 +196,7 @@ class FieldOfViewSystem(
 
         // Set context for the callback
         currentOwnerBody = phyCmp.body
+        numberOfRaysHitting = 0
 
         val targetHeight = playerTransformCmp.height * PLAYER_HEIGHT_OFFSET
         val playerTop = playerTransformCmp.position.y + targetHeight * 0.5f
@@ -208,14 +225,14 @@ class FieldOfViewSystem(
                     debugRenderingService,
                     rayColor,
                     debugType = DebugType.ENEMY,
-                    label = "fov_ray_$index",
                 )
             }
 
-            if (!isCurrentRayBlocked) return true
+            if (!isCurrentRayBlocked) {
+                numberOfRaysHitting++
+            }
         }
-
-        return false
+        return numberOfRaysHitting > 0
     }
 
     companion object {

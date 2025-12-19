@@ -174,9 +174,13 @@ class GameScreen(
             viewport = stage.viewport,
             stage = stage,
             entityCategory = EntityCategory.LIGHT.bit,
-            entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv() and EntityCategory.SENSOR.bit.inv()),
+            entityMask = (
+                EntityCategory.GROUND.bit
+            ),
             lightActivationRadius = 25f,
             lightViewportScale = 4f,
+            world = phyWorld,
+            debugRenderer = debugRenderService,
             refreshRateHz = 75f,
         )
     private val entityWorld by lazy {

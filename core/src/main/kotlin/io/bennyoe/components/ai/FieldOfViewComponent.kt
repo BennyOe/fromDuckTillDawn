@@ -19,11 +19,7 @@ class FieldOfViewComponent(
         // using squared distance
         maxDistance *= maxDistance
         maxVerticalDistance *= maxVerticalDistance
-        try {
-            require(numberOfRays >= 3)
-        } catch (_: IllegalArgumentException) {
-            throw IllegalArgumentException("The numberOfRays for the field of view has to be 3 or greater")
-        }
+        require(numberOfRays >= 3) { "The numberOfRays for the field of view has to be >= 3" }
     }
 
     override fun type() = FieldOfViewComponent

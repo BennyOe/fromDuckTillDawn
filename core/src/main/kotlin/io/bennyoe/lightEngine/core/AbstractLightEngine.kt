@@ -13,6 +13,8 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.MathUtils.atan2
+import com.badlogic.gdx.math.MathUtils.radiansToDegrees
 import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Filter
@@ -28,6 +30,7 @@ import ktx.assets.disposeSafely
 import ktx.math.vec2
 import ktx.math.vec3
 import ktx.math.vec4
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -789,10 +792,10 @@ abstract class AbstractLightEngine(
         // angle-check (Cone Logic)
         val dx = pos.x - light.x
         val dy = pos.y - light.y
-        val angleToTarget = MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees
+        val angleToTarget = atan2(dy, dx) * radiansToDegrees
 
         // normalize angle to find the shortest direction
-        val diff = kotlin.math.abs((angleToTarget - light.direction + 540) % 360 - 180)
+        val diff = abs((angleToTarget - light.direction + 540) % 360 - 180)
 
         if (diff > light.coneDegree) return 0f
 
@@ -818,6 +821,15 @@ abstract class AbstractLightEngine(
         dst2: Float,
         light: PositionalLight,
     ): Float {
+        // If the light is (almost) at the same position as the sample point (e.g. flashlight attached to player),
+        // Box2D rayCast would assert on a zero-length segment. In this case, treat it as not occluded.
+        val minRayLength2 = 1e-6f
+        if (dst2 <= minRayLength2) {
+            val color = light.color
+            val luma = (color.r * 0.299f + color.g * 0.587f + color.b * 0.114f)
+            return luma * color.a
+        }
+
         if (isOccluded(pos.x, pos.y, lightPos.x, lightPos.y)) return 0f
 
         val distance = sqrt(dst2)
@@ -849,7 +861,14 @@ abstract class AbstractLightEngine(
         endX: Float,
         endY: Float,
     ): Boolean {
+        // Box2D asserts if the ray segment length is zero.
+        val dx = endX - startX
+        val dy = endY - startY
+        val minRayLength2 = 1e-6f
+        if (dx * dx + dy * dy <= minRayLength2) return false
+
         var hit = false
+
         world!!.rayCast({ fixture, _, _, _ ->
             if (fixture.isSensor) return@rayCast -1f
 

@@ -3,7 +3,6 @@ package io.bennyoe.systems.ai
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
-import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.PlayerStealthComponent
 import io.bennyoe.components.TransformComponent

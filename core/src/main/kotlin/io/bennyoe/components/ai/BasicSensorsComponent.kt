@@ -5,11 +5,8 @@ import com.badlogic.gdx.math.Vector2
 import com.github.quillraven.fleks.Component
 import com.github.quillraven.fleks.ComponentType
 import io.bennyoe.components.TransformComponent
-import io.bennyoe.config.EntityCategory
 import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.SensorType
-import ktx.collections.gdxArrayOf
-import ktx.math.vec2
 
 class BasicSensorsComponent(
     val sensorList: List<SensorDef>,
@@ -20,39 +17,6 @@ class BasicSensorsComponent(
 ) : Component<BasicSensorsComponent> {
     var from = Vector2()
     var to = Vector2()
-    val upperLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
-    val lowerLedgeSensorArray = gdxArrayOf<SensorDef>(ordered = true)
-
-    init {
-        createUpperLedgeSensors()
-    }
-
-    private fun createUpperLedgeSensors() {
-        for (i in -10..10) {
-            upperLedgeSensorArray.add(
-                SensorDef(
-                    bodyAnchorPoint = vec2(i / 2f, 0f),
-                    rayLengthOffset = vec2(0f, 2f),
-                    type = SensorType.UPPER_LEDGE_SENSOR,
-                    isHorizontal = false,
-                    name = "upper ledge sensor",
-                    hitFilter = { it.entityCategory == EntityCategory.GROUND },
-                ),
-            )
-            lowerLedgeSensorArray.add(
-                SensorDef(
-                    vec2(
-                        i / 2f,
-                        -2f,
-                    ),
-                    vec2(0f, 2f),
-                    SensorType.LOWER_LEDGE_SENSOR,
-                    false,
-                    "lower ledge sensor",
-                ),
-            )
-        }
-    }
 
     override fun type() = BasicSensorsComponent
 
@@ -73,7 +37,6 @@ data class SensorDef(
      */
     val rayLengthOffset: Vector2,
     val type: SensorType,
-    val isHorizontal: Boolean,
     val name: String,
     val color: Color = Color.BLUE,
     val highlightColor: Color = Color.RED,

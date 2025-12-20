@@ -1,8 +1,6 @@
-package io.bennyoe.systems
+package io.bennyoe.systems.ai
 
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Polyline
-import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector2.dst
 import com.badlogic.gdx.physics.box2d.World
 import com.github.quillraven.fleks.Entity
@@ -10,63 +8,36 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
-import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
-import io.bennyoe.components.ai.LedgeHitData
-import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.SensorDef
-import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.EntityBodyData
-import io.bennyoe.utility.SensorType
-import ktx.collections.GdxArray
+import io.bennyoe.utility.SensorType.PLAYER_IN_THROW_RANGE_SENSOR
+import io.bennyoe.utility.SensorType.SIGHT_SENSOR
 import ktx.log.logger
 
 class BasicSensorsSystem(
     private val phyWorld: World = inject("phyWorld"),
     private val debugRenderingService: DefaultDebugRenderService = inject("debugRenderService"),
 ) : IteratingSystem(
-        family { all(BasicSensorsComponent, RayHitComponent) },
+        family { all(BasicSensorsComponent, BasicSensorsHitComponent) },
 //        interval = Fixed(PHYSIC_TIME_STEP * 3),
     ) {
     private val playerEntity by lazy { world.family { all(PlayerComponent, PhysicComponent) }.first() }
 
     override fun onTickEntity(entity: Entity) {
         val basicSensorsCmp = entity[BasicSensorsComponent]
-        val rayHitCmp = entity[RayHitComponent]
+        val rayHitCmp = entity[BasicSensorsHitComponent]
         val phyCmp = entity[PhysicComponent]
         val imageCmp = entity[ImageComponent]
-        val intentionCmp = entity[IntentionComponent]
         val bodyPos = phyCmp.body.position
-        val bodySize = phyCmp.size
         val flipImg = imageCmp.flipImage
         val fixtureCenterPos = bodyPos.cpy().add(phyCmp.offset)
-
-        clearLedgeHitArrays(rayHitCmp)
-
-        // update upper ledge sensor positions
-        createLedgeSensors(
-            basicSensorsCmp.upperLedgeSensorArray,
-            intentionCmp,
-            fixtureCenterPos,
-            flipImg,
-            rayHitCmp.upperLedgeHits,
-            bodySize,
-        )
-        createLedgeSensors(
-            basicSensorsCmp.lowerLedgeSensorArray,
-            intentionCmp,
-            fixtureCenterPos,
-            flipImg,
-            rayHitCmp.lowerLedgeHits,
-            bodySize,
-        )
-        rayHitCmp.upperLedgeHits.sort()
-        rayHitCmp.lowerLedgeHits.sort()
 
         basicSensorsCmp.sightSensorDef?.let { sightSensor ->
             val playerBodyPos = playerEntity[PhysicComponent].body.position
@@ -74,11 +45,11 @@ class BasicSensorsSystem(
 
             if (dst(sightSensor.from.x, sightSensor.from.y, sightSensor.to.x, sightSensor.to.y) < basicSensorsCmp.maxSightRadius) {
                 // when sight is not blocked player can be seen. If sight is blocked but still in range player is in throwRange
-                processSensor(sightSensor, phyCmp) { rayHitCmp.seesPlayer = !it }
-                rayHitCmp.playerInThrowRange = true
+                processSensor(sightSensor, phyCmp) { rayHitCmp.setSensorHit(SIGHT_SENSOR, !it) }
+                rayHitCmp.setSensorHit(PLAYER_IN_THROW_RANGE_SENSOR, true)
             } else {
-                rayHitCmp.playerInThrowRange = false
-                rayHitCmp.seesPlayer = false
+                rayHitCmp.setSensorHit(PLAYER_IN_THROW_RANGE_SENSOR, false)
+                rayHitCmp.setSensorHit(SIGHT_SENSOR, false)
             }
         }
 
@@ -90,14 +61,7 @@ class BasicSensorsSystem(
             )
 
             processSensor(sensor, phyCmp) { isHit ->
-                when (sensor.type) {
-                    SensorType.WALL_SENSOR -> rayHitCmp.wallHit = isHit
-                    SensorType.WALL_HEIGHT_SENSOR -> rayHitCmp.wallHeightHit = isHit
-                    SensorType.GROUND_DETECT_SENSOR -> rayHitCmp.groundHit = isHit
-                    SensorType.JUMP_SENSOR -> rayHitCmp.jumpHit = isHit
-                    SensorType.ATTACK_SENSOR -> rayHitCmp.canAttack = isHit
-                    else -> Unit
-                }
+                rayHitCmp.setSensorHit(sensor.type, isHit)
             }
         }
     }
@@ -145,58 +109,6 @@ class BasicSensorsSystem(
                 label = sensor.name,
             )
         }
-    }
-
-    private fun createLedgeSensors(
-        sensorArray: GdxArray<SensorDef>,
-        intentionCmp: IntentionComponent,
-        bodyPos: Vector2,
-        flipImg: Boolean,
-        rayHitArray: GdxArray<LedgeHitData>,
-        bodySize: Vector2,
-    ) {
-        sensorArray.forEach { sensor ->
-            if (!intentionCmp.wantsToChase) return@forEach
-            sensor.updateAbsolutePositions(bodyPos, flipImg, bodySize)
-
-            var hitGroundThisTick = false
-
-            phyWorld.rayCast(
-                { fixture, point, normal, fraction ->
-                    val bodyData = fixture.body.userData as EntityBodyData?
-                    if (bodyData?.entityCategory == EntityCategory.GROUND) {
-                        rayHitArray.add(LedgeHitData(true, sensor.from.x))
-                        hitGroundThisTick = true
-                        return@rayCast 1f
-                    }
-                    1f
-                },
-                sensor.from,
-                sensor.to,
-            )
-
-            if (!hitGroundThisTick) {
-                rayHitArray.add(LedgeHitData(false, sensor.from.x))
-            }
-
-            Polyline(
-                floatArrayOf(
-                    sensor.from.x,
-                    sensor.from.y,
-                    sensor.to.x,
-                    sensor.to.y,
-                ),
-            ).addToDebugView(
-                debugRenderingService,
-                if (hitGroundThisTick) Color.RED else Color.BLUE,
-                debugType = DebugType.ENEMY,
-            )
-        }
-    }
-
-    private fun clearLedgeHitArrays(rayHitCmp: RayHitComponent) {
-        rayHitCmp.upperLedgeHits.clear()
-        rayHitCmp.lowerLedgeHits.clear()
     }
 
     companion object {

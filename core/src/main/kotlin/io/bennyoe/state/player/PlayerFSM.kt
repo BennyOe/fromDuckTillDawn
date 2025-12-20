@@ -36,14 +36,22 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun update(ctx: PlayerStateContext) {
             when {
                 ctx.wantsToCrouch && ctx.wantsToWalk -> ctx.changeState(CROUCH_WALK)
+
                 // because state changes for a fraction while JUMP to IDLE before FALL, also need to check for groundContact
                 ctx.wantsToJump && hasGroundContact(ctx) -> ctx.changeState(JUMP)
+
                 ctx.jumpComponent.jumpFromBuffer -> ctx.changeState(JUMP)
+
                 ctx.wantsToCrouch -> ctx.changeState(CROUCH_IDLE)
+
                 ctx.wantsToWalk -> ctx.changeState(WALK)
+
                 ctx.wantsToAttack -> ctx.changeState(ATTACK_1)
+
                 ctx.wantsToBash -> ctx.changeState(BASH)
+
                 isFalling(ctx) -> ctx.changeState(FALL)
+
                 hasWaterContact(ctx) -> ctx.changeState(SWIM)
             }
         }
@@ -73,12 +81,18 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
         override fun update(ctx: PlayerStateContext) {
             when {
                 ctx.wantsToBash -> ctx.changeState(BASH)
+
                 ctx.wantsToAttack -> ctx.changeState(ATTACK_1)
+
                 ctx.wantsToIdle -> ctx.changeState(IDLE)
+
                 // because state changes for a fraction while JUMP to WALK before FALL when pressing walk-key, also need to check for groundContact
                 ctx.wantsToJump && hasGroundContact(ctx) -> ctx.changeState(JUMP)
+
                 ctx.wantsToCrouch -> ctx.changeState(CROUCH_WALK)
+
                 isFalling(ctx) -> ctx.changeState(FALL)
+
                 hasWaterContact(ctx) -> ctx.changeState(SWIM)
             }
         }
@@ -158,13 +172,27 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
                     ctx.intentionCmp.wantsToJump = false
                 }
 
-                ctx.wantsToBash -> ctx.changeState(BASH)
+                ctx.wantsToBash -> {
+                    ctx.changeState(BASH)
+                }
+
                 // Land only when we actually touch the ground *and* vertical speed is ~0
-                hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE)
-                hasWaterContact(ctx) && velY <= 0 -> ctx.changeState(SWIM)
-                isDiving(ctx) -> ctx.changeState(DIVE)
+                hasGroundContact(ctx) && abs(velY) <= LANDING_VELOCITY_EPS -> {
+                    ctx.changeState(IDLE)
+                }
+
+                hasWaterContact(ctx) && velY <= 0 -> {
+                    ctx.changeState(SWIM)
+                }
+
+                isDiving(ctx) -> {
+                    ctx.changeState(DIVE)
+                }
+
                 // otherwise remain in FALL
-                else -> ctx.intentionCmp.wantsToJump = false
+                else -> {
+                    ctx.intentionCmp.wantsToJump = false
+                }
             }
         }
 

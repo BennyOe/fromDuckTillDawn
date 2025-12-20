@@ -21,7 +21,7 @@ import io.bennyoe.components.ai.LedgeSensorsComponent
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.config.EntityCategory
-import io.bennyoe.systems.ai.BasicSensorsSystem
+import io.bennyoe.systems.ai.LedgeSensorsSystem
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.SensorType
@@ -30,10 +30,9 @@ import io.mockk.mockk
 import ktx.math.vec2
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class BasicSensorsSystemUnitTest {
+class LedgeSensorsSystemUnitTest {
     private lateinit var ecsWorld: World
     private lateinit var phyWorld: com.badlogic.gdx.physics.box2d.World
     private lateinit var enemy: Entity
@@ -61,7 +60,7 @@ class BasicSensorsSystemUnitTest {
                     add("debugRenderService", debugRenderService)
                 }
                 systems {
-                    add(BasicSensorsSystem())
+                    add(LedgeSensorsSystem())
                 }
             }
 
@@ -106,40 +105,22 @@ class BasicSensorsSystemUnitTest {
     }
 
     @Test
-    fun `sensor system sets ray hits correctly`() {
-        // simulate a fixture that will pass the wall sensor's filter
-        val fixture = mockk<Fixture>()
-        val fixtureBody = mockk<Body>()
-        every { fixture.body } returns fixtureBody
-        every { fixtureBody.userData } returns EntityBodyData(entityCategory = EntityCategory.GROUND, entity = enemy)
-
-        // stub rayCast to trigger hit
-        every { phyWorld.rayCast(any(), any(), any()) } answers {
-            val callback = firstArg<RayCastCallback>()
-            callback.reportRayFixture(fixture, Vector2.Zero, Vector2.X, 1f)
-        }
-
-        ecsWorld.update(1f)
-
-        val rayHitCmp = with(ecsWorld) { enemy[BasicSensorsHitComponent] }
-        assertTrue(rayHitCmp.getSensorHit(SensorType.WALL_SENSOR), "Wall sensor should detect ground fixture")
-    }
-
-    @Test
-    fun `sight sensor sets sightIsBlocked if something is hit`() {
-        val sightFixture = mockk<Fixture>()
-        val sightBody = mockk<Body>()
-        every { sightFixture.body } returns sightBody
-        every { sightBody.userData } returns EntityBodyData(entityCategory = EntityCategory.GROUND, entity = enemy)
+    fun `ledge sensors add LedgeHitData`() {
+        val ledgeFixture = mockk<Fixture>()
+        val ledgeBody = mockk<Body>()
+        val groundEntity = mockk<Entity>()
+        every { ledgeFixture.body } returns ledgeBody
+        every { ledgeBody.userData } returns EntityBodyData(entityCategory = EntityCategory.GROUND, entity = groundEntity)
 
         every { phyWorld.rayCast(any(), any(), any()) } answers {
             val cb = firstArg<RayCastCallback>()
-            cb.reportRayFixture(sightFixture, Vector2.Zero, Vector2.X, 1f)
+            cb.reportRayFixture(ledgeFixture, Vector2.Zero, Vector2.Y, 0.5f)
         }
 
         ecsWorld.update(1f)
 
-        val rayHitCmp = with(ecsWorld) { enemy[BasicSensorsHitComponent] }
-        assertFalse(rayHitCmp.getSensorHit(SensorType.SIGHT_SENSOR), "Sight sensor should detect obstruction")
+        val ledgeSensorsHitCmp = with(ecsWorld) { enemy[LedgeSensorsHitComponent] }
+        assertTrue(ledgeSensorsHitCmp.upperLedgeHits.any { it.hit }, "Upper ledge sensor should detect ground")
+        assertTrue(ledgeSensorsHitCmp.lowerLedgeHits.any { it.hit }, "Lower ledge sensor should detect ground")
     }
 }

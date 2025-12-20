@@ -110,7 +110,9 @@ class PlayerInputProcessor(
                     logger.debug { "Camera zoom: ${cameraCmp.zoomFactor}" }
                 }
 
-                else -> Unit
+                else -> {
+                    Unit
+                }
             }
         }
         inputEntities.forEach { input ->
@@ -142,36 +144,53 @@ class PlayerInputProcessor(
                     }
                 }
 
-                Action.ATTACK -> inputCmp.attackJustPressed = pressed
-                Action.BASH -> inputCmp.bashJustPressed = pressed
+                Action.ATTACK -> {
+                    inputCmp.attackJustPressed = pressed
+                }
 
-                Action.MOVE_LEFT -> inputCmp.walkLeftJustPressed = pressed
-                Action.MOVE_RIGHT -> inputCmp.walkRightJustPressed = pressed
+                Action.BASH -> {
+                    inputCmp.bashJustPressed = pressed
+                }
 
-                Action.TOGGLE_FLASHLIGHT -> inputCmp.flashlightToggleJustPressed = pressed
+                Action.MOVE_LEFT -> {
+                    inputCmp.walkLeftJustPressed = pressed
+                }
 
-                Action.MESSAGE ->
+                Action.MOVE_RIGHT -> {
+                    inputCmp.walkRightJustPressed = pressed
+                }
+
+                Action.TOGGLE_FLASHLIGHT -> {
+                    inputCmp.flashlightToggleJustPressed = pressed
+                }
+
+                Action.MESSAGE -> {
                     messageDispatcher.dispatchMessage(
                         0f,
                         FsmMessageTypes.HEAL.ordinal,
                         pressed,
                     )
+                }
 
-                Action.MESSAGE2 ->
+                Action.MESSAGE2 -> {
                     messageDispatcher.dispatchMessage(
                         1f,
                         FsmMessageTypes.ATTACK.ordinal,
                         pressed,
                     )
+                }
 
-                Action.KILL ->
+                Action.KILL -> {
                     messageDispatcher.dispatchMessage(
                         0f,
                         FsmMessageTypes.KILL.ordinal,
                         pressed,
                     )
+                }
 
-                else -> Unit
+                else -> {
+                    Unit
+                }
             }
         }
     }

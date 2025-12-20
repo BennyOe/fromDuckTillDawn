@@ -78,6 +78,11 @@ fun createSkin() {
                 knobBefore = this@skin.getDrawable(Drawables.AIR_BAR.atlasKey)
             }
 
+            progressBar("sight-bar") {
+                background = this@skin.getDrawable(Drawables.BAR_BG.atlasKey)
+                knobBefore = this@skin.getDrawable(Drawables.AIR_BAR.atlasKey)
+            }
+
             textField("default") {
                 this.font = this@skin.getFont("default-font")
                 fontColor = color(0f, 0f, 0f, 1f)

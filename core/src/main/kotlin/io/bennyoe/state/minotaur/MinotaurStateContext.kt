@@ -22,7 +22,7 @@ import io.bennyoe.components.ProjectileComponent
 import io.bennyoe.components.ProjectileType
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
-import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.event.CameraShakeEvent
@@ -32,6 +32,8 @@ import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.SensorType.ATTACK_SENSOR
+import io.bennyoe.utility.SensorType.WALL_SENSOR
 import ktx.math.vec2
 import kotlin.experimental.or
 import com.badlogic.gdx.physics.box2d.World as PhyWorld
@@ -58,7 +60,7 @@ class MinotaurStateContext(
     val attackCmp: AttackComponent by lazy { with(world) { entity[AttackComponent] } }
     val imageCmp: ImageComponent by lazy { with(world) { entity[ImageComponent] } }
     val playerEntity = world.family { all(PlayerComponent, PhysicComponent) }.first()
-    val rayHitCmp: RayHitComponent by lazy { with(world) { entity[RayHitComponent] } }
+    val rayHitCmp: BasicSensorsHitComponent by lazy { with(world) { entity[BasicSensorsHitComponent] } }
 
     override val wantsToJump get() = intentionCmp.wantsToJump
     override val wantsToAttack get() = intentionCmp.wantsToAttack
@@ -88,13 +90,13 @@ class MinotaurStateContext(
         intentionCmp.walkDirection = WalkDirection.NONE
     }
 
-    fun runIntoWall(): Boolean = rayHitCmp.wallHit
+    fun runIntoWall(): Boolean = rayHitCmp.getSensorHit(WALL_SENSOR)
 
     fun resetAllIntentions() {
         intentionCmp.resetAllIntentions()
     }
 
-    fun runIntoPlayer(): Boolean = rayHitCmp.canAttack
+    fun runIntoPlayer(): Boolean = rayHitCmp.getSensorHit(ATTACK_SENSOR)
 
     fun spawnShockwave(playerPos: Vector2) {
         val spawnPos = transformCmp.position.cpy().add(0f, -5.5f)

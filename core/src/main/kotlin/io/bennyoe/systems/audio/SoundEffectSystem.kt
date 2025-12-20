@@ -90,7 +90,10 @@ class SoundEffectSystem(
         val gameStateCmp = gameStateEntity.getOrNull(GameStateComponent)
         val buzzVolume = gameStateCmp?.let { it.sfxVolume * 0.1f } ?: 0f
         when (event) {
-            is LightningEvent -> thunderTriggered = true
+            is LightningEvent -> {
+                thunderTriggered = true
+            }
+
             is FaultyLightEvent -> {
                 if (event.lightIsOn) {
                     buzzSound.volume = buzzVolume
@@ -103,7 +106,9 @@ class SoundEffectSystem(
                 }
             }
 
-            else -> Unit
+            else -> {
+                Unit
+            }
         }
     }
 
@@ -285,7 +290,9 @@ class SoundEffectSystem(
                 true
             }
 
-            else -> false
+            else -> {
+                false
+            }
         }
     }
 }

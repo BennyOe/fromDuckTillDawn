@@ -258,7 +258,9 @@ class SkySpawner(
                     }
                 }
 
-                else -> Unit
+                else -> {
+                    Unit
+                }
             }
         }
     }

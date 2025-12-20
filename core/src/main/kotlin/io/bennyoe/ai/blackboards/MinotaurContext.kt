@@ -13,11 +13,14 @@ import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.state.minotaur.MinotaurFSM
 import io.bennyoe.systems.debug.DebugRenderer
+import io.bennyoe.utility.SensorType.ATTACK_SENSOR
+import io.bennyoe.utility.SensorType.PLAYER_IN_THROW_RANGE_SENSOR
+import io.bennyoe.utility.SensorType.SIGHT_SENSOR
 import ktx.log.logger
 import kotlin.math.abs
 
@@ -35,7 +38,7 @@ class MinotaurContext(
     val transformCmp: TransformComponent
     val animCmp: AnimationComponent
     val intentionCmp: IntentionComponent
-    val rayHitCmp: RayHitComponent
+    val basicSensorsHitCmp: BasicSensorsHitComponent
     val healthCmp: HealthComponent
     val stateCmp: StateComponent<*, *>
     val basicSensorsCmp: BasicSensorsComponent
@@ -49,7 +52,7 @@ class MinotaurContext(
             animCmp = entity[AnimationComponent]
             healthCmp = entity[HealthComponent]
             intentionCmp = entity[IntentionComponent]
-            rayHitCmp = entity[RayHitComponent]
+            basicSensorsHitCmp = entity[BasicSensorsHitComponent]
             stateCmp = entity[StateComponent]
             basicSensorsCmp = entity[BasicSensorsComponent]
         }
@@ -59,7 +62,7 @@ class MinotaurContext(
 
     fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
 
-    fun canAttack(): Boolean = rayHitCmp.canAttack
+    fun canAttack(): Boolean = basicSensorsHitCmp.getSensorHit(ATTACK_SENSOR)
 
     fun stopMovement() {
         intentionCmp.walkDirection = WalkDirection.NONE
@@ -84,7 +87,7 @@ class MinotaurContext(
         stopAttack()
     }
 
-    fun seesPlayer(): Boolean = rayHitCmp.seesPlayer && !with(world) { playerEntity[HealthComponent].isDead }
+    fun seesPlayer(): Boolean = basicSensorsHitCmp.getSensorHit(SIGHT_SENSOR) && !with(world) { playerEntity[HealthComponent].isDead }
 
     fun playerInGrabRange(): Boolean {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
@@ -104,7 +107,7 @@ class MinotaurContext(
 
     fun playerInThrowRange(): Boolean {
         logger.debug { "CHECKING FOR PLAYER IN THROW RANGE" }
-        return rayHitCmp.playerInThrowRange
+        return basicSensorsHitCmp.getSensorHit(PLAYER_IN_THROW_RANGE_SENSOR)
     }
 
     fun startThrowAttack() {

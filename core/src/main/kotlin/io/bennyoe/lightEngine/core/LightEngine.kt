@@ -5,7 +5,9 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.utils.viewport.Viewport
+import io.bennyoe.systems.debug.DebugRenderer
 import ktx.math.vec2
 
 /**
@@ -40,19 +42,23 @@ class LightEngine(
     entityCategory: Short = 0x0001,
     entityMask: Short = -1,
     lightActivationRadius: Float = -1f,
+    world: World? = null,
+    debugRenderer: DebugRenderer,
     refreshRateHz: Float? = null,
 ) : AbstractLightEngine(
-        rayHandler,
-        cam,
-        batch,
-        viewport,
-        useDiffuseLight,
-        maxShaderLights,
-        entityCategory,
-        entityMask,
-        lightActivationRadius,
-        lightViewportScale,
-        refreshRateHz,
+        rayHandler = rayHandler,
+        cam = cam,
+        batch = batch,
+        viewport = viewport,
+        useDiffuseLight = useDiffuseLight,
+        maxShaderLights = maxShaderLights,
+        entityCategory = entityCategory,
+        entityMask = entityMask,
+        lightActivationRadius = lightActivationRadius,
+        lightViewportScale = lightViewportScale,
+        world = world,
+        debugRenderService = debugRenderer,
+        refreshRateHz = refreshRateHz,
     ) {
     /**
      * Performs the complete lighting render pass using normal mapping and Box2D shadows.

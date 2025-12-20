@@ -86,8 +86,14 @@ class IndoorLightSystem : IteratingSystem(family { all(LightComponent) }) {
             GlobalState.ON -> {
                 gameLight.setOn(true)
                 when (gameLight) {
-                    is GameLight.Point -> gameLight.distance = gameLight.baseDistance
-                    is GameLight.Spot -> gameLight.distance = gameLight.baseDistance
+                    is GameLight.Point -> {
+                        gameLight.distance = gameLight.baseDistance
+                    }
+
+                    is GameLight.Spot -> {
+                        gameLight.distance = gameLight.baseDistance
+                    }
+
                     else -> {}
                 }
             }
@@ -96,8 +102,14 @@ class IndoorLightSystem : IteratingSystem(family { all(LightComponent) }) {
                 gameLight.setOn(true)
                 val fadedDistance = Interpolation.slowFast.apply(0f, gameLight.baseDistance, alpha)
                 when (gameLight) {
-                    is GameLight.Point -> gameLight.distance = fadedDistance
-                    is GameLight.Spot -> gameLight.distance = fadedDistance
+                    is GameLight.Point -> {
+                        gameLight.distance = fadedDistance
+                    }
+
+                    is GameLight.Spot -> {
+                        gameLight.distance = fadedDistance
+                    }
+
                     else -> {}
                 }
             }
@@ -106,8 +118,14 @@ class IndoorLightSystem : IteratingSystem(family { all(LightComponent) }) {
                 gameLight.setOn(true)
                 val fadedDistance = Interpolation.fade.apply(0f, gameLight.baseDistance, alpha)
                 when (gameLight) {
-                    is GameLight.Point -> gameLight.distance = fadedDistance
-                    is GameLight.Spot -> gameLight.distance = fadedDistance
+                    is GameLight.Point -> {
+                        gameLight.distance = fadedDistance
+                    }
+
+                    is GameLight.Spot -> {
+                        gameLight.distance = fadedDistance
+                    }
+
                     else -> {}
                 }
             }

@@ -45,6 +45,7 @@ data class SpawnCfgFactory(
     val soundProfile: SoundProfile = SoundProfile(),
     val basicSensorList: List<SensorDef> = emptyList(),
     val sightSensorDefinition: SensorDef? = null,
+    val fieldOfViewSensorDef: SensorDef? = null,
 ) {
     companion object {
         val cachedSpawnCfgsFactory = mutableMapOf<CharacterType, SpawnCfgFactory>()
@@ -53,9 +54,7 @@ data class SpawnCfgFactory(
             cachedSpawnCfgsFactory.getOrPut(characterType) {
                 return when (characterType) {
                     CharacterType.PLAYER -> PlayerCfg.config
-
                     CharacterType.MUSHROOM -> MushroomCfg.config
-
                     CharacterType.MINOTAUR -> MinotaurCfg.config
                 }
             }

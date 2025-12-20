@@ -19,8 +19,14 @@ class LightActor(
         super.act(delta)
 
         when (light) {
-            is GameLight.Point -> light.position = vec2(x, y)
-            is GameLight.Spot -> light.position = vec2(x, y)
+            is GameLight.Point -> {
+                light.position = vec2(x, y)
+            }
+
+            is GameLight.Spot -> {
+                light.position = vec2(x, y)
+            }
+
             else -> {}
         }
 

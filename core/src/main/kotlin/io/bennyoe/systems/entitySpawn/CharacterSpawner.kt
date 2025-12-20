@@ -12,7 +12,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.blackboards.MinotaurContext
-import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AmbienceZoneContactComponent
 import io.bennyoe.components.AttackComponent
@@ -31,13 +30,19 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.PlayerStealthComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.ai.FieldOfViewComponent
+import io.bennyoe.components.ai.FieldOfViewResultComponent
+import io.bennyoe.components.ai.LedgeSensorsComponent
+import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.animation.AnimationKey
 import io.bennyoe.components.animation.AnimationModel
@@ -113,9 +118,9 @@ class CharacterSpawner(
                 // use visual size for transform
                 val transformCmp =
                     TransformComponent(
-                        spawnPosCenter,
-                        visualWidth,
-                        visualHeight,
+                        position = spawnPosCenter,
+                        width = visualWidth,
+                        height = visualHeight,
                     )
                 entity += transformCmp
 
@@ -283,19 +288,35 @@ class CharacterSpawner(
                 maxSightRadius = cfg.maxSightRadius,
             )
 
-        entity += RayHitComponent()
+        entity += LedgeSensorsComponent()
+        entity += LedgeSensorsHitComponent()
+
+        entity += BasicSensorsHitComponent()
+
+        entity += FieldOfViewResultComponent()
 
         entity +=
-            BehaviorTreeComponent(
-                world = world,
-                stage = stage,
-                treePath = cfg.aiTreePath,
-                // The blackboard must be created via a function reference (or lambda)
-                // because at this point we finally have access to the correct Entity, World, and Stage.
-                createBlackboard = { entity, world, stage ->
-                    MushroomContext(entity, world, stage, debugRenderer)
-                },
+            FieldOfViewComponent(
+                transformCmp,
+                14f,
+                relativeEyePos = 0.8f,
+                numberOfRays = 9,
+                viewAngle = 45f,
             )
+
+        entity += SuspicionComponent()
+
+//        entity +=
+//            BehaviorTreeComponent(
+//                world = world,
+//                stage = stage,
+//                treePath = cfg.aiTreePath,
+//                // The blackboard must be created via a function reference (or lambda)
+//                // because at this point we finally have access to the correct Entity, World, and Stage.
+//                createBlackboard = { entity, world, stage ->
+//                    MushroomContext(entity, world, stage, debugRenderer)
+//                },
+//            )
     }
 
     private fun EntityCreateContext.spawnMinotaurSpecifics(
@@ -347,7 +368,7 @@ class CharacterSpawner(
                 sightSensorDef = cfg.sightSensorDefinition,
             )
 
-        entity += RayHitComponent()
+        entity += BasicSensorsHitComponent()
 
         entity +=
             BehaviorTreeComponent(
@@ -404,6 +425,8 @@ class CharacterSpawner(
                 ).apply {
                     setOn(false)
                 }
+
+        entity += PlayerStealthComponent()
 
         entity += FlashlightComponent(flashlightSpot, flashLightHalo)
 

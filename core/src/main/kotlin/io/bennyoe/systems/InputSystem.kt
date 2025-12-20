@@ -41,8 +41,7 @@ class InputSystem : IteratingSystem(family { all(InputComponent, IntentionCompon
             }
 
             if (flashlightToggleJustPressed) {
-                flashlightComponent.spotlight.toggle()
-                flashlightComponent.pointLight.toggle()
+                flashlightComponent.toggleFlashlight()
                 flashlightToggleJustPressed = false
             }
 

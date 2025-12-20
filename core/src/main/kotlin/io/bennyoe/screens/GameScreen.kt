@@ -54,6 +54,7 @@ import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
 import io.bennyoe.systems.ParallaxSystem
 import io.bennyoe.systems.ParticleRemoveSystem
+import io.bennyoe.systems.PlayerStealthSystem
 import io.bennyoe.systems.ProjectileSystem
 import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
@@ -64,6 +65,7 @@ import io.bennyoe.systems.ai.BasicSensorsSystem
 import io.bennyoe.systems.ai.BehaviorTreeSystem
 import io.bennyoe.systems.ai.FieldOfViewSystem
 import io.bennyoe.systems.ai.LedgeSensorsSystem
+import io.bennyoe.systems.ai.SuspicionSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem
@@ -241,6 +243,8 @@ class GameScreen(
                 add(BasicSensorsSystem())
                 add(LedgeSensorsSystem())
                 add(FieldOfViewSystem())
+                add(PlayerStealthSystem())
+                add(SuspicionSystem())
                 add(StateSystem())
                 add(ParallaxSystem())
                 add(BehaviorTreeSystem())

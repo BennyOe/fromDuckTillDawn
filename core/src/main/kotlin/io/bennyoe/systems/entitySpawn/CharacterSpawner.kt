@@ -30,6 +30,7 @@ import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.PlayerStealthComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
@@ -305,17 +306,17 @@ class CharacterSpawner(
 
         entity += SuspicionComponent()
 
-        entity +=
-            BehaviorTreeComponent(
-                world = world,
-                stage = stage,
-                treePath = cfg.aiTreePath,
-                // The blackboard must be created via a function reference (or lambda)
-                // because at this point we finally have access to the correct Entity, World, and Stage.
-                createBlackboard = { entity, world, stage ->
-                    MushroomContext(entity, world, stage, debugRenderer)
-                },
-            )
+//        entity +=
+//            BehaviorTreeComponent(
+//                world = world,
+//                stage = stage,
+//                treePath = cfg.aiTreePath,
+//                // The blackboard must be created via a function reference (or lambda)
+//                // because at this point we finally have access to the correct Entity, World, and Stage.
+//                createBlackboard = { entity, world, stage ->
+//                    MushroomContext(entity, world, stage, debugRenderer)
+//                },
+//            )
     }
 
     private fun EntityCreateContext.spawnMinotaurSpecifics(
@@ -424,6 +425,8 @@ class CharacterSpawner(
                 ).apply {
                     setOn(false)
                 }
+
+        entity += PlayerStealthComponent()
 
         entity += FlashlightComponent(flashlightSpot, flashLightHalo)
 

@@ -63,12 +63,21 @@ class ShockwaveRenderSystem(
         stage.batch.use {
             stage.batch.shader = shockwaveShader
 
+            shockwaveShader.setUniformf(
+                "u_resolution_px",
+                Gdx.graphics.backBufferWidth.toFloat(),
+                Gdx.graphics.backBufferHeight.toFloat(),
+            )
+
             shockwaveQueue.forEach { shockwave ->
-                // world -> screen (pixel)
+                // world -> screen (logical pixels)
                 val screenPos = Vector2(shockwave.pos)
                 stage.viewport.project(screenPos)
 
-                shockwaveShader.setUniformf("u_center_px", screenPos.x, screenPos.y)
+                val centerUvX = screenPos.x / Gdx.graphics.width
+                val centerUvY = screenPos.y / Gdx.graphics.height
+
+                shockwaveShader.setUniformf("u_center_uv", centerUvX, centerUvY)
                 shockwaveShader.setUniformf("u_radius_px", radiusPx)
 
                 stage.batch.draw(

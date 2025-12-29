@@ -541,7 +541,7 @@
   <properties>
    <property name="zIndex" type="int" value="9000"/>
   </properties>
-  <object id="97" name="mushroom" x="673.099" y="392.477">
+  <object id="97" name="mushroom" x="856.981" y="389.604">
    <properties>
     <property name="type" value="mushroom"/>
    </properties>

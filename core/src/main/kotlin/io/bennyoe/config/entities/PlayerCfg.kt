@@ -4,6 +4,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef
 import io.bennyoe.assets.SoundAssets
 import io.bennyoe.components.Attack
 import io.bennyoe.components.AttackType
+import io.bennyoe.components.NoiseSettings
 import io.bennyoe.components.animation.AnimationModel
 import io.bennyoe.components.animation.PlayerAnimation
 import io.bennyoe.config.CharacterType
@@ -75,10 +76,6 @@ object PlayerCfg {
                         mapOf(
                             1 to SoundType.DAWN_ATTACK_3,
                         ),
-//                                    AnimationType.JUMP to
-//                                        mapOf(
-//                                            1 to SoundType.DAWN_JUMP,
-//                                        ),
                     PlayerAnimation.BASH to
                         mapOf(
                             2 to SoundType.DAWN_BASH,
@@ -110,6 +107,14 @@ object PlayerCfg {
                         mapOf(
                             FloorType.STONE to listOf(SoundAssets.DAWN_FOOTSTEPS_STONE),
                             FloorType.GRASS to listOf(SoundAssets.DAWN_FOOTSTEPS_GRASS),
+                        ),
+                ),
+            noiseProfile =
+                mapOf(
+                    SoundType.DAWN_FOOTSTEPS to
+                        NoiseSettings(
+                            range = 4f,
+                            loudness = 1f,
                         ),
                 ),
         )

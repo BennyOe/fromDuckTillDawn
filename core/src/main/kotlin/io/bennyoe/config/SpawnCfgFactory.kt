@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.BodyDef
 import io.bennyoe.components.Attack
 import io.bennyoe.components.AttackType
+import io.bennyoe.components.NoiseSettings
 import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.components.animation.AnimationKey
 import io.bennyoe.components.animation.AnimationModel
@@ -43,6 +44,7 @@ data class SpawnCfgFactory(
     // the soundTrigger is a map of <AnimationType, <FrameWhereSoundIsTriggered, SoundType>>
     val soundTrigger: Map<AnimationKey, Map<Int, SoundType>> = emptyMap(),
     val soundProfile: SoundProfile = SoundProfile(),
+    val noiseProfile: Map<SoundType, NoiseSettings> = emptyMap(),
     val basicSensorList: List<SensorDef> = emptyList(),
     val sightSensorDefinition: SensorDef? = null,
     val fieldOfViewSensorDef: SensorDef? = null,

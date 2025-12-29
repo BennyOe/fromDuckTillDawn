@@ -26,6 +26,7 @@ import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.NoiseProfileComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.PhysicComponent
@@ -221,7 +222,7 @@ class CharacterSpawner(
                 entity += SoundProfileComponent(cfg.soundProfile)
 
                 if (cfg.entityCategory == EntityCategory.PLAYER) {
-                    spawnPlayerSpecifics(entity, physics)
+                    spawnPlayerSpecifics(entity, physics, cfg)
                 }
 
                 if (cfg.entityCategory == EntityCategory.ENEMY) {
@@ -386,6 +387,7 @@ class CharacterSpawner(
     private fun EntityCreateContext.spawnPlayerSpecifics(
         entity: Entity,
         physics: PhysicComponent,
+        cfg: SpawnCfgFactory,
     ) {
         val phyCmp = entity[PhysicComponent]
         phyCmp.body.box(
@@ -464,6 +466,11 @@ class CharacterSpawner(
                 type = ParticleType.AIR_BUBBLES,
             )
         entity += particle
+
+        entity +=
+            NoiseProfileComponent(
+                noises = cfg.noiseProfile,
+            )
 
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)

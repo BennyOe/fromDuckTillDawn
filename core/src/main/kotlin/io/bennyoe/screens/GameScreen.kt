@@ -52,6 +52,7 @@ import io.bennyoe.systems.HitStopSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.NoiseEmitterSystem
 import io.bennyoe.systems.ParallaxSystem
 import io.bennyoe.systems.ParticleRemoveSystem
 import io.bennyoe.systems.PlayerStealthSystem
@@ -89,6 +90,7 @@ import io.bennyoe.systems.physic.PhysicsSystem
 import io.bennyoe.systems.physic.WaterSystem
 import io.bennyoe.systems.render.PhysicTransformSyncSystem
 import io.bennyoe.systems.render.RenderSystem
+import io.bennyoe.systems.render.ShockwaveRenderSystem
 import io.bennyoe.systems.render.TransformVisualSyncSystem
 import io.bennyoe.systems.render.UiRenderSystem
 import io.bennyoe.ui.GameView
@@ -237,6 +239,7 @@ class GameScreen(
                 add(CloudSystem())
                 add(DivingSystem())
                 add(RainSystem())
+                add(NoiseEmitterSystem())
                 add(UnderWaterSoundSystem())
                 add(SoundEffectSystem())
                 add(MusicSystem())

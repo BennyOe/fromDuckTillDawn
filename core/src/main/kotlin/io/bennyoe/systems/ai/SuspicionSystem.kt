@@ -1,5 +1,7 @@
 package io.bennyoe.systems.ai
 
+import com.badlogic.gdx.scenes.scene2d.Event
+import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
@@ -9,9 +11,16 @@ import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.FieldOfViewComponent
 import io.bennyoe.components.ai.FieldOfViewResultComponent
 import io.bennyoe.components.ai.SuspicionComponent
+import io.bennyoe.event.NoiseEvent
 import ktx.log.logger
 
-class SuspicionSystem : IteratingSystem(family { all(SuspicionComponent, FieldOfViewResultComponent, FieldOfViewComponent) }) {
+class SuspicionSystem :
+    IteratingSystem(
+        family {
+            all(SuspicionComponent, FieldOfViewResultComponent, FieldOfViewComponent)
+        },
+    ),
+    EventListener {
     private val playerEntity by lazy { world.family { all(PlayerComponent, PlayerStealthComponent) }.first() }
     private var detectionStrength = 0f
 
@@ -25,7 +34,7 @@ class SuspicionSystem : IteratingSystem(family { all(SuspicionComponent, FieldOf
         if (!fieldOfViewResultCmp.isSeeingPlayer) {
             suspicionCmp.suspiciousLevel = 0f
             detectionStrength = 0f
-            logger.debug { "Player is last seen at ${suspicionCmp.lastKnownPlayerPos}" }
+//            logger.debug { "Player is last seen at ${suspicionCmp.lastKnownPlayerPos}" }
             return
         }
         // normalized values
@@ -41,9 +50,19 @@ class SuspicionSystem : IteratingSystem(family { all(SuspicionComponent, FieldOf
         val baseSeen = raysHittingPlayerNorm * distanceToPlayerNorm
         val lightingBoost = illuminationOfPlayerNorm // min 0.25, max 1.0
         detectionStrength = (baseSeen * lightingBoost).coerceIn(0f, 1f)
-
-        logger.debug { "Detection Strength is: $detectionStrength" }
     }
+
+    override fun handle(event: Event): Boolean =
+        when (event) {
+            is NoiseEvent -> {
+                logger.debug {
+                    "Noise event is fired with pos: ${event.pos} range: ${event.range} loudness: ${event.loudness} and type: ${event.type}"
+                }
+                true
+            }
+
+            else -> false
+        }
 
     companion object {
         val logger = logger<SuspicionSystem>()

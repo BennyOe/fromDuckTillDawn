@@ -185,9 +185,13 @@ class GameScreen(
             debugRenderer = debugRenderService,
             refreshRateHz = 75f,
         )
+    private val shockwaveRenderSystem: ShockwaveRenderSystem by
+        lazy { ShockwaveRenderSystem(stage) }
+
     private val entityWorld by lazy {
         configureWorld {
             injectables {
+                add("shockwaveRenderSystem", shockwaveRenderSystem)
                 add("audio", audio)
                 add("assetManager", assets)
                 add("phyWorld", phyWorld)
@@ -240,6 +244,7 @@ class GameScreen(
                 add(DivingSystem())
                 add(RainSystem())
                 add(NoiseEmitterSystem())
+                add(shockwaveRenderSystem)
                 add(UnderWaterSoundSystem())
                 add(SoundEffectSystem())
                 add(MusicSystem())

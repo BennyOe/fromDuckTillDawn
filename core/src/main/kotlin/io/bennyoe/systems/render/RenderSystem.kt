@@ -47,6 +47,7 @@ class RenderSystem(
     private val stage: Stage = inject("stage"),
     private val lightEngine: Scene2dLightEngine = inject("lightEngine"),
     private val renderTargets: RenderTargets = inject("renderTargets"),
+    private val shockwaveRenderSystem: ShockwaveRenderSystem = inject("shockwaveRenderSystem"),
     polygonSpriteBatch: PolygonSpriteBatch = inject("polygonSpriteBatch"),
     waterAtlas: TextureAtlas = inject("waterAtlas"),
 ) : IntervalSystem(
@@ -81,7 +82,7 @@ class RenderSystem(
     private val waterRenderer = WaterRenderer(stage, polygonSpriteBatch, waterAtlas)
     private val lightingRenderer = LightingRenderer(stage, world, lightEngine, mapRenderer, shaderService)
 
-    override fun handle(event: Event?): Boolean {
+    override fun handle(event: Event): Boolean {
         when (event) {
             is MapChangedEvent -> {
                 // Clear and store map layers with their zIndex
@@ -129,6 +130,9 @@ class RenderSystem(
             stage.batch.draw(tex, x, y, w, h, 0, 0, tex.width, tex.height, false, true)
             stage.batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         }
+
+        // --- 3.5 RENDER SHOCKWAVE ---
+        shockwaveRenderSystem.render(tex)
 
         // --- 4. RENDER WATER SHADER (on top of the final image) ---
         val waterFamily = world.family { all(WaterComponent, TransformComponent) }

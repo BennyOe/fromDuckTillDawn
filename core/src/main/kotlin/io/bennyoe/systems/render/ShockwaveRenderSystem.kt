@@ -17,6 +17,7 @@ import ktx.graphics.use
 import ktx.log.logger
 
 const val SHOCKWAVE_DURATION = 1f
+const val MAX_SHOCKWAVES = 10
 
 class ShockwaveRenderSystem(
     val stage: Stage = inject("stage"),
@@ -29,15 +30,17 @@ class ShockwaveRenderSystem(
     override fun handle(event: Event?): Boolean {
         when (event) {
             is NoiseEvent -> {
-                shockwaveQueue.add(
-                    Shockwave(
-                        event.pos,
-                        event.range,
-                        event.loudness,
-                        event.type,
-                    ),
-                )
-                return true
+                if (shockwaveQueue.size < MAX_SHOCKWAVES) {
+                    shockwaveQueue.add(
+                        Shockwave(
+                            pos = Vector2(event.pos),
+                            range = event.range,
+                            loudness = event.loudness,
+                            type = event.type,
+                        ),
+                    )
+                    return true
+                }
             }
         }
         return false
@@ -60,6 +63,23 @@ class ShockwaveRenderSystem(
         val minDim = minOf(Gdx.graphics.backBufferWidth.toFloat(), Gdx.graphics.backBufferHeight.toFloat())
         val radiusPx = 0.01f * minDim
 
+        val activeCount = minOf(shockwaveQueue.size, MAX_SHOCKWAVES)
+
+        // centers: [x0,y0, x1,y1, ...]
+        val centersUv = FloatArray(MAX_SHOCKWAVES * 2)
+        val radiiPx = FloatArray(MAX_SHOCKWAVES)
+
+        for (i in 0 until activeCount) {
+            val shockwave = shockwaveQueue[i]
+
+            val screenPos = Vector2(shockwave.pos)
+            stage.viewport.project(screenPos)
+
+            centersUv[i * 2] = screenPos.x / Gdx.graphics.width
+            centersUv[i * 2 + 1] = screenPos.y / Gdx.graphics.height
+            radiiPx[i] = radiusPx
+        }
+
         stage.batch.use {
             stage.batch.shader = shockwaveShader
 
@@ -69,31 +89,24 @@ class ShockwaveRenderSystem(
                 Gdx.graphics.backBufferHeight.toFloat(),
             )
 
-            shockwaveQueue.forEach { shockwave ->
-                // world -> screen (logical pixels)
-                val screenPos = Vector2(shockwave.pos)
-                stage.viewport.project(screenPos)
+            shockwaveShader.setUniformi("u_shockwave_count", activeCount)
 
-                val centerUvX = screenPos.x / Gdx.graphics.width
-                val centerUvY = screenPos.y / Gdx.graphics.height
+            shockwaveShader.setUniform2fv("u_center_uv", centersUv, 0, activeCount * 2)
+            shockwaveShader.setUniform1fv("u_radius_px", radiiPx, 0, activeCount)
 
-                shockwaveShader.setUniformf("u_center_uv", centerUvX, centerUvY)
-                shockwaveShader.setUniformf("u_radius_px", radiusPx)
-
-                stage.batch.draw(
-                    texture,
-                    x,
-                    y,
-                    w,
-                    h,
-                    0,
-                    0,
-                    texture.width,
-                    texture.height,
-                    false,
-                    true,
-                )
-            }
+            stage.batch.draw(
+                texture,
+                x,
+                y,
+                w,
+                h,
+                0,
+                0,
+                texture.width,
+                texture.height,
+                false,
+                true,
+            )
 
             stage.batch.shader = null
         }
@@ -105,9 +118,13 @@ class ShockwaveRenderSystem(
 }
 
 data class Shockwave(
-    val pos: Vector2,
+    var pos: Vector2,
     val range: Float,
     val loudness: Float,
     val type: NoiseType,
     var time: Float = 0f,
-)
+) {
+    init {
+        pos = Vector2(pos)
+    }
+}

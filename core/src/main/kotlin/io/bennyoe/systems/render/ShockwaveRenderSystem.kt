@@ -16,7 +16,7 @@ import io.bennyoe.utility.setupShader
 import ktx.graphics.use
 import ktx.log.logger
 
-const val SHOCKWAVE_DURATION = 1f
+const val SHOCKWAVE_DURATION = 4f
 const val MAX_SHOCKWAVES = 10
 
 class ShockwaveRenderSystem(
@@ -68,9 +68,11 @@ class ShockwaveRenderSystem(
         // centers: [x0,y0, x1,y1, ...]
         val centersUv = FloatArray(MAX_SHOCKWAVES * 2)
         val radiiPx = FloatArray(MAX_SHOCKWAVES)
+        val times = FloatArray(MAX_SHOCKWAVES)
 
         for (i in 0 until activeCount) {
             val shockwave = shockwaveQueue[i]
+            times[i] = shockwave.time
 
             val screenPos = Vector2(shockwave.pos)
             stage.viewport.project(screenPos)
@@ -88,6 +90,8 @@ class ShockwaveRenderSystem(
                 Gdx.graphics.backBufferWidth.toFloat(),
                 Gdx.graphics.backBufferHeight.toFloat(),
             )
+
+            shockwaveShader.setUniform1fv("u_times", times, 0, activeCount)
 
             shockwaveShader.setUniformi("u_shockwave_count", activeCount)
 

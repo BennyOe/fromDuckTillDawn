@@ -115,6 +115,7 @@ object PlayerCfg {
                         NoiseSettings(
                             range = 4f,
                             loudness = 1f,
+                            continuous = true,
                         ),
                     SoundType.DAWN_JUMP to
                         NoiseSettings(

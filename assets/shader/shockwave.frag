@@ -14,13 +14,16 @@ uniform float u_times[MAX_SHOCKWAVES];
 uniform float u_radius_px[MAX_SHOCKWAVES];
 
 float getOffsetStrength(float t, float dist, float maxRad) {
-    float ripplePos = t * maxRad * 0.01; // TODO tweak speed factor
+    float ripplePos = t * maxRad * 0.01;
     float d = dist - ripplePos;
 
     // Ring mask logic
     float strength = 1.0 - smoothstep(0.0, 0.035, abs(d));
 
-    // Smooth intro and outro fades
+    // centerMask so the area directly at the source stays undistorted
+    float centerMask = smoothstep(0.0, 0.015, dist);
+    strength *= centerMask;
+
     strength *= smoothstep(0.0, 0.3, t);
     strength *= 1.0 - smoothstep(0.5, 1.0, t);
 
@@ -36,12 +39,10 @@ void main() {
     float totalShading = 0.0;
 
     for (int i = 0; i < MAX_SHOCKWAVES; i++) {
-        // CHANGED: Breaking early based on uniform count
         if (i >= u_shockwave_count) break;
 
         float t = u_times[i];
         vec2 center = u_center_uv[i];
-
         vec2 dir = v_texCoord - center;
 
         // Correcting distance for aspect ratio
@@ -63,7 +64,6 @@ void main() {
         totalShading += gS * 2.0;
     }
 
-    // CHANGED: Using texture2D and gl_FragColor for WebGL 1
     float r = texture2D(u_texture, v_texCoord - dispR).r;
     float g = texture2D(u_texture, v_texCoord - dispG).g;
     float b = texture2D(u_texture, v_texCoord - dispB).b;

@@ -15,7 +15,7 @@ class GameMoodSystem : IteratingSystem(family { all(BehaviorTreeComponent) }) {
     private var highestMoodThisTick = GameMood.NORMAL
 
     override fun onTick() {
-        highestMoodThisTick = GameMood.NORMAL
+        highestMoodThisTick = GameMood.STEALTH // TODO make this configurable
 
         val playerHealthCmp = playerEntity[HealthComponent]
         if (playerHealthCmp.isDead) {

@@ -5,6 +5,8 @@ import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.IntervalSystem
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.components.GameMood
+import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.NoiseProfileComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.event.NoiseEvent
@@ -21,8 +23,11 @@ class NoiseEmitterSystem(
     val stage: Stage = inject("stage"),
 ) : IntervalSystem(),
     EventListener {
-    override fun handle(event: Event): Boolean =
-        when (event) {
+    private val gameStateCmp by lazy { world.family { all(GameStateComponent) }.first()[GameStateComponent] }
+
+    override fun handle(event: Event): Boolean {
+        if (gameStateCmp.gameMood != GameMood.STEALTH) return false
+        return when (event) {
             is PlaySoundEvent -> {
                 val noiseProfileCmp = event.entity.getOrNull(NoiseProfileComponent)
                 val transformCmp = event.entity.getOrNull(TransformComponent)
@@ -42,6 +47,7 @@ class NoiseEmitterSystem(
                                     range = finalRange,
                                     loudness = finalLoudness,
                                     type = settings.type,
+                                    continuous = settings.continuous,
                                 ),
                             )
                         }
@@ -52,6 +58,7 @@ class NoiseEmitterSystem(
 
             else -> false
         }
+    }
 
     override fun onTick() {
     }

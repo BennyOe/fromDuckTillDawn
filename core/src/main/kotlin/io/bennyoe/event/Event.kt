@@ -43,6 +43,7 @@ data class NoiseEvent(
     val range: Float,
     val loudness: Float,
     val type: NoiseType,
+    val continuous: Boolean = false,
 ) : Event(),
     GameEvent
 

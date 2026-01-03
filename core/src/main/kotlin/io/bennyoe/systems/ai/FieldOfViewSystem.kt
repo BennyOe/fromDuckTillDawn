@@ -29,6 +29,7 @@ import io.bennyoe.utility.bodyData
 import ktx.log.logger
 import kotlin.math.abs
 import kotlin.math.min
+import kotlin.math.sign
 import kotlin.math.sqrt
 
 private const val PLAYER_HEIGHT_OFFSET = 0.8f
@@ -100,7 +101,7 @@ class FieldOfViewSystem(
         val dyTop = playerPosYTop - enemyEyePosY
         val dyBott = playerPosYBott - enemyEyePosY
 
-        // 1) vertical gate
+        // 1) vertical gate (is player too high or too low)
         if (abs(dyBott) > fieldOfViewCmp.maxVerticalDistance) {
             return
         }
@@ -110,6 +111,17 @@ class FieldOfViewSystem(
 
         if (distanceToPlayer > fieldOfViewCmp.maxDistance) {
             return
+        }
+
+        // 3) check for close range (2.1 meters) and do the raycast if player is close. This ensures that the FOV check is skipped for too short
+        // distances and ignores the player due to a too steep viewing angle.
+        val closeRangeSq = 2.1f * 2.1f
+        if (distanceToPlayer <= closeRangeSq && dx.sign == lookingDir.x.sign) {
+            if (processRaycast(playerTransformCmp, fieldOfViewCmp, phyCmp)) {
+                fieldOfViewResultCmp.distanceToPlayer = distanceToPlayer
+                fieldOfViewResultCmp.raysHitting = numberOfRaysHitting
+                return
+            }
         }
 
         // 3) FOV angle check

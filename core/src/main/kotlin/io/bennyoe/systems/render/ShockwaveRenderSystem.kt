@@ -44,7 +44,6 @@ class ShockwaveRenderSystem(
                             entity = event.entity,
                             pos = Vector2(event.pos),
                             range = event.range,
-                            loudness = event.loudness,
                             type = event.type,
                             continuous = event.continuous,
                         ),
@@ -94,9 +93,23 @@ class ShockwaveRenderSystem(
             scratchVec.set(worldPos)
             stage.viewport.project(scratchVec)
 
-            centersUv[i * 2] = scratchVec.x / Gdx.graphics.width
+            // 1. Project center to screen UV
+            scratchVec.set(worldPos)
+            stage.viewport.project(scratchVec)
+            val centerX = scratchVec.x
+            centersUv[i * 2] = centerX / Gdx.graphics.width
             centersUv[i * 2 + 1] = scratchVec.y / Gdx.graphics.height
-            radiiPx[i] = radiusPx * shockwave.range * 0.3f
+
+            // 2. Project a point at 'range' distance to calculate visual radius
+            // This automatically handles camera zoom and viewport scaling
+            scratchVec.set(worldPos.x + shockwave.range, worldPos.y)
+            stage.viewport.project(scratchVec)
+            val edgeX = scratchVec.x
+
+            // 3. Convert pixel distance to UV-space distance adjusted by aspect ratio
+            // The shader uses: length(dir * vec2(aspect, 1.0))
+            val aspect = Gdx.graphics.width.toFloat() / Gdx.graphics.height.toFloat()
+            radiiPx[i] = (kotlin.math.abs(edgeX - centerX) / Gdx.graphics.width) * aspect
         }
 
         stage.batch.use {
@@ -142,7 +155,6 @@ data class Shockwave(
     val entity: Entity,
     var pos: Vector2,
     val range: Float,
-    val loudness: Float,
     val type: NoiseType,
     var time: Float = 0f,
     val continuous: Boolean = false,

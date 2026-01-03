@@ -6,10 +6,7 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.StealthLabelComponent
-import io.bennyoe.systems.DamageSystem
-import ktx.log.logger
 import ktx.math.vec2
 
 class StealthLabelSystem(

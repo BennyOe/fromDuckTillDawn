@@ -14,20 +14,22 @@ uniform float u_times[MAX_SHOCKWAVES];
 uniform float u_radius_px[MAX_SHOCKWAVES];
 
 float getOffsetStrength(float t, float dist, float maxRad) {
-    float ripplePos = t * maxRad * 0.01;
+    // ripplePos should reach maxRad when t is 1.0
+    float ripplePos = t * maxRad;
+
     float d = dist - ripplePos;
 
     // Ring mask logic
-    float strength = 1.0 - smoothstep(0.0, 0.035, abs(d));
+    float strength = 1.0 - smoothstep(0.0, 0.015, abs(d));
 
     // centerMask so the area directly at the source stays undistorted
-    float centerMask = smoothstep(0.0, 0.015, dist);
+    float centerMask = smoothstep(0.0, 0.15, dist);
     strength *= centerMask;
 
     strength *= smoothstep(0.0, 0.3, t);
     strength *= 1.0 - smoothstep(0.5, 1.0, t);
 
-    return strength * 0.017; // Base distortion intensity
+    return strength;
 }
 
 void main() {
@@ -57,11 +59,12 @@ void main() {
         float bS = getOffsetStrength(t - tOffset, dist, u_radius_px[i]);
 
         // Accumulating displacement vectors per channel
-        dispR += normDir * rS;
-        dispG += normDir * gS;
-        dispB += normDir * bS;
+        float distortionIntensity = 0.027;
+        dispR += normDir * rS * distortionIntensity;
+        dispG += normDir * gS * distortionIntensity;
+        dispB += normDir * bS * distortionIntensity;
 
-        totalShading += gS * 2.0;
+        totalShading += gS * 0.4;
     }
 
     float r = texture2D(u_texture, v_texCoord - dispR).r;
@@ -69,5 +72,7 @@ void main() {
     float b = texture2D(u_texture, v_texCoord - dispB).b;
 
     gl_FragColor = vec4(r, g, b, 1.0);
-    gl_FragColor.rgb += totalShading;
+
+    vec3 waveColor = vec3(0.4, 0.2, 0.2);
+    gl_FragColor.rgb += totalShading * waveColor;
 }

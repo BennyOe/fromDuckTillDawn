@@ -15,7 +15,10 @@ import io.bennyoe.components.ai.StealthLabelComponent
 import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.event.NoiseEvent
 import ktx.log.logger
+
 const val NOISE_REMEMBER_TIME = 2f
+private const val HEARD_WEIGHT_FACTOR = 0.6f
+private const val SEE_WEIGHT_FACTOR = 0.8f
 
 class SuspicionSystem :
     IteratingSystem(
@@ -27,6 +30,12 @@ class SuspicionSystem :
     private val playerEntity by lazy { world.family { all(PlayerComponent, PlayerStealthComponent) }.first() }
     private var detectionStrength = 0f
     private var heardNoise = 0f
+    private var noiseRememberCounter = 0f
+    private var heardStrength = 0f
+    private var visionStrength = 0f
+
+    // TODO implement a memory of the suspicion
+
     private val hearingFamily = world.family { all(SuspicionComponent, HearingComponent, TransformComponent, StealthLabelComponent) }
 
     override fun onTickEntity(entity: Entity) {
@@ -71,25 +80,33 @@ class SuspicionSystem :
             // no noise currently remembered
             noiseRememberCounter = 0f
 
-        if (!fieldOfViewResultCmp.isSeeingPlayer) {
-            suspicionCmp.suspiciousLevel = 0f
-            detectionStrength = 0f
-//            logger.debug { "Player is last seen at ${suspicionCmp.lastKnownPlayerPos}" }
-            return
+            if (!fieldOfViewResultCmp.isSeeingPlayer) {
+                suspicionCmp.suspiciousLevel = 0f
+                detectionStrength = 0f
+                return
+            }
         }
-        // normalized values
-        val distanceToPlayerNorm = (1f - (fieldOfViewResultCmp.distanceToPlayer / fieldOfViewCmp.maxDistance)).coerceIn(0f, 1f)
-        val raysHittingPlayerNorm = (fieldOfViewResultCmp.raysHitting / fieldOfViewCmp.numberOfRays.toFloat()).coerceIn(0f, 1f)
 
-        // if flashlight is on -> player is fully illuminated
+        // --- vision calculation ---
+        val distanceToPlayerNorm =
+            (1f - (fieldOfViewResultCmp.distanceToPlayer / fieldOfViewCmp.maxDistance)).coerceIn(0f, 1f)
+        val raysHittingPlayerNorm =
+            (fieldOfViewResultCmp.raysHitting / fieldOfViewCmp.numberOfRays.toFloat()).coerceIn(0f, 1f)
+
         val illuminationOfPlayerNorm = playerStealthCmp.illumination
-        // TODO: here is the noise level of the player
 
         suspicionCmp.lastKnownPlayerPos = playerTransformCmp.position.cpy()
 
         val baseSeen = raysHittingPlayerNorm * distanceToPlayerNorm
-        val lightingBoost = illuminationOfPlayerNorm // min 0.25, max 1.0
-        detectionStrength = (baseSeen * lightingBoost).coerceIn(0f, 1f)
+        val lightingBoost = illuminationOfPlayerNorm
+        visionStrength = (baseSeen * lightingBoost).coerceIn(0f, 1f)
+
+        // --- Combine hearing + vision into final detectionStrength ---
+        val rememberFactor = (1f - (noiseRememberCounter / NOISE_REMEMBER_TIME)).coerceIn(0f, 1f)
+        heardStrength = (heardNoise * rememberFactor).coerceIn(0f, 1f)
+
+        detectionStrength = (visionStrength * SEE_WEIGHT_FACTOR + heardStrength * HEARD_WEIGHT_FACTOR).coerceIn(0f, 1f)
+
         stealthLabelCmp.label.setText(
             "Detection Strength is ${"%.2f".format(detectionStrength)} " +
                 "| vision=${"%.2f".format(visionStrength)} " +

@@ -6,7 +6,7 @@ import io.bennyoe.components.Attack
 import io.bennyoe.components.AttackType
 import io.bennyoe.components.ai.SensorDef
 import io.bennyoe.components.animation.AnimationModel
-import io.bennyoe.components.animation.MushroomAnimation
+import io.bennyoe.components.animation.SpectorAnimation
 import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.CHASE_DETECTION_RADIUS
@@ -30,7 +30,7 @@ object SpectorCfg {
                     EntityCategory.SENSOR.bit
             ),
             animationModel = AnimationModel.ENEMY_SPECTOR,
-            animationType = MushroomAnimation.IDLE,
+            animationType = SpectorAnimation.IDLE,
             bodyType = BodyDef.BodyType.DynamicBody,
             characterType = CharacterType.SPECTOR,
             canAttack = true,
@@ -66,7 +66,7 @@ object SpectorCfg {
                         bodyAnchorPoint = vec2(1f, -0.8f),
                         rayLengthOffset = vec2(0.5f, 0f),
                         type = SensorType.WALL_SENSOR,
-                        name = "mushroom_wall",
+                        name = "spector_wall",
                         color = Color.BLUE,
                         hitFilter = {
                             it.entityCategory == EntityCategory.GROUND ||
@@ -78,7 +78,7 @@ object SpectorCfg {
                         bodyAnchorPoint = vec2(1f, 1.5f),
                         rayLengthOffset = vec2(0.5f, 0f),
                         type = SensorType.WALL_HEIGHT_SENSOR,
-                        name = "mushroom_wall_height",
+                        name = "spector_wall_height",
                         color = Color.BLUE,
                         hitFilter = { it.entityCategory == EntityCategory.GROUND },
                     ),
@@ -87,7 +87,7 @@ object SpectorCfg {
                         bodyAnchorPoint = vec2(1f, -1f),
                         rayLengthOffset = vec2(0f, -1.4f),
                         type = SensorType.GROUND_DETECT_SENSOR,
-                        name = "mushroom_ground",
+                        name = "spector_ground",
                         color = Color.GREEN,
                     ),
                     // Jump Sensor: Checks for a landing spot across a gap
@@ -95,7 +95,7 @@ object SpectorCfg {
                         bodyAnchorPoint = vec2(3.2f, -1f),
                         rayLengthOffset = vec2(0f, -1.4f),
                         type = SensorType.JUMP_SENSOR,
-                        name = "mushroom_jump",
+                        name = "spector_jump",
                         color = Color.GREEN,
                     ),
                     // Attack Sensor: Detects the player in melee range
@@ -103,7 +103,7 @@ object SpectorCfg {
                         bodyAnchorPoint = vec2(1f, -0.7f),
                         rayLengthOffset = vec2(1f, 0f),
                         type = SensorType.ATTACK_SENSOR,
-                        name = "mushroom_attack",
+                        name = "spector_attack",
                         color = Color.ORANGE,
                         hitFilter = { it.entityCategory == EntityCategory.PLAYER },
                     ),

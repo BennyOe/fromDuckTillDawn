@@ -11,6 +11,7 @@ import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.FieldOfViewComponent
 import io.bennyoe.components.ai.FieldOfViewResultComponent
 import io.bennyoe.components.ai.HearingComponent
+import io.bennyoe.components.ai.StealthLabelComponent
 import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.event.NoiseEvent
 import ktx.log.logger
@@ -89,6 +90,11 @@ class SuspicionSystem :
         val baseSeen = raysHittingPlayerNorm * distanceToPlayerNorm
         val lightingBoost = illuminationOfPlayerNorm // min 0.25, max 1.0
         detectionStrength = (baseSeen * lightingBoost).coerceIn(0f, 1f)
+        stealthLabelCmp.label.setText(
+            "Detection Strength is ${"%.2f".format(detectionStrength)} " +
+                "| vision=${"%.2f".format(visionStrength)} " +
+                "| heard=${"%.2f".format(heardStrength)}",
+        )
     }
 
     override fun handle(event: Event): Boolean =

@@ -66,6 +66,7 @@ import io.bennyoe.systems.ai.BasicSensorsSystem
 import io.bennyoe.systems.ai.BehaviorTreeSystem
 import io.bennyoe.systems.ai.FieldOfViewSystem
 import io.bennyoe.systems.ai.LedgeSensorsSystem
+import io.bennyoe.systems.ai.StealthLabelSystem
 import io.bennyoe.systems.ai.SuspicionSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
@@ -231,6 +232,7 @@ class GameScreen(
                 add(DamageSystem())
                 add(HitStopSystem())
                 add(DamageTextSystem())
+                add(StealthLabelSystem())
                 add(JumpSystem())
                 add(ContactHandlerSystem())
                 add(WaterSystem())

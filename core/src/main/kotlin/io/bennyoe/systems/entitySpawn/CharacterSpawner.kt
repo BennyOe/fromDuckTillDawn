@@ -44,6 +44,7 @@ import io.bennyoe.components.ai.HearingComponent
 import io.bennyoe.components.ai.LedgeSensorsComponent
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
+import io.bennyoe.components.ai.StealthLabelComponent
 import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.animation.AnimationKey
@@ -85,6 +86,7 @@ class CharacterSpawner(
     val phyWorld: com.badlogic.gdx.physics.box2d.World,
     val lightEngine: Scene2dLightEngine,
     val stage: Stage,
+    val uiStage: Stage,
     val debugRenderer: DebugRenderer,
     dawnAtlases: TextureAtlases,
     mushroomAtlases: TextureAtlases,
@@ -307,7 +309,9 @@ class CharacterSpawner(
             )
 
         entity += SuspicionComponent()
+
         entity += HearingComponent(cfg.hearingRadius)
+        entity += StealthLabelComponent(uiStage)
 
 //        entity +=
 //            BehaviorTreeComponent(

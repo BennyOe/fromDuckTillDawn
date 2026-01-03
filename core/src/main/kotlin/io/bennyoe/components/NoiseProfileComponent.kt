@@ -19,7 +19,6 @@ class NoiseProfileComponent(
 
 data class NoiseSettings(
     val range: Float,
-    val loudness: Float = 0.5f,
     val type: NoiseType = NoiseType.SUSPICIOUS,
     val continuous: Boolean = false,
 )

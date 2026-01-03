@@ -114,13 +114,11 @@ object PlayerCfg {
                     SoundType.DAWN_FOOTSTEPS to
                         NoiseSettings(
                             range = 4f,
-                            loudness = 1f,
                             continuous = true,
                         ),
                     SoundType.DAWN_JUMP to
                         NoiseSettings(
                             range = 9f,
-                            loudness = 3f,
                         ),
                 ),
         )

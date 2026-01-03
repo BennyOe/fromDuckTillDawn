@@ -104,6 +104,7 @@ object MushroomCfg {
                             FloorType.GRASS to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_GRASS),
                         ),
                 ),
+            hearingRadius = 10f,
             basicSensorList =
                 listOf(
                     // Wall Sensor: Checks for walls in front of the entity

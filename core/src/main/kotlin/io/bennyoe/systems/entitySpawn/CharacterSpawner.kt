@@ -40,6 +40,7 @@ import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.FieldOfViewComponent
 import io.bennyoe.components.ai.FieldOfViewResultComponent
+import io.bennyoe.components.ai.HearingComponent
 import io.bennyoe.components.ai.LedgeSensorsComponent
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
@@ -306,6 +307,7 @@ class CharacterSpawner(
             )
 
         entity += SuspicionComponent()
+        entity += HearingComponent(cfg.hearingRadius)
 
 //        entity +=
 //            BehaviorTreeComponent(

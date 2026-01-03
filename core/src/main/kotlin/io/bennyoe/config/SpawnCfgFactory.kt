@@ -45,6 +45,7 @@ data class SpawnCfgFactory(
     val soundTrigger: Map<AnimationKey, Map<Int, SoundType>> = emptyMap(),
     val soundProfile: SoundProfile = SoundProfile(),
     val noiseProfile: Map<SoundType, NoiseSettings> = emptyMap(),
+    val hearingRadius: Float = 3f,
     val basicSensorList: List<SensorDef> = emptyList(),
     val sightSensorDefinition: SensorDef? = null,
     val fieldOfViewSensorDef: SensorDef? = null,

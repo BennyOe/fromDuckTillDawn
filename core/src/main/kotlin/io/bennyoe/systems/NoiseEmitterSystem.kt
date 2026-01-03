@@ -37,7 +37,6 @@ class NoiseEmitterSystem(
                     noiseProfileCmp.noises[event.soundType]?.let { settings ->
 
                         val finalRange = settings.range * noiseProfileCmp.noiseMultiplier
-                        val finalLoudness = settings.loudness * noiseProfileCmp.noiseMultiplier
 
                         if (finalRange > 0) {
                             stage.fire(
@@ -45,7 +44,6 @@ class NoiseEmitterSystem(
                                     entity = event.entity,
                                     pos = pos,
                                     range = finalRange,
-                                    loudness = finalLoudness,
                                     type = settings.type,
                                     continuous = settings.continuous,
                                 ),

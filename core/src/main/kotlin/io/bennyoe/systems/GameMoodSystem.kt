@@ -26,7 +26,7 @@ class GameMoodSystem : IteratingSystem(family { all(BehaviorTreeComponent) }) {
 
         val gameStateCmp = with(world) { gameStateEntity[GameStateComponent] }
         if (gameStateCmp.gameMood != highestMoodThisTick) {
-            gameStateCmp.setGameMoodWithPriority(highestMoodThisTick)
+            gameStateCmp.forceSetGameMood(highestMoodThisTick)
         }
     }
 

@@ -41,7 +41,6 @@ data class NoiseEvent(
     val entity: Entity,
     val pos: Vector2,
     val range: Float,
-    val loudness: Float,
     val type: NoiseType,
     val continuous: Boolean = false,
 ) : Event(),

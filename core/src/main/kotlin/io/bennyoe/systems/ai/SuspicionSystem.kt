@@ -16,7 +16,8 @@ import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.event.NoiseEvent
 import ktx.log.logger
 
-const val NOISE_REMEMBER_TIME = 2f
+private const val NOISE_REMEMBER_TIME = 2f
+private const val SUSPICION_REMEMBER_TIME = 3f
 private const val HEARD_WEIGHT_FACTOR = 0.6f
 private const val SEE_WEIGHT_FACTOR = 0.8f
 
@@ -31,10 +32,9 @@ class SuspicionSystem :
     private var detectionStrength = 0f
     private var heardNoise = 0f
     private var noiseRememberCounter = 0f
+    private var suspicionRememberCounter = 0f
     private var heardStrength = 0f
     private var visionStrength = 0f
-
-    // TODO implement a memory of the suspicion
 
     private val hearingFamily = world.family { all(SuspicionComponent, HearingComponent, TransformComponent, StealthLabelComponent) }
 
@@ -46,14 +46,8 @@ class SuspicionSystem :
         val suspicionCmp = entity[SuspicionComponent]
         val stealthLabelCmp = entity[StealthLabelComponent]
 
-        if (heardNoise == 0f && visionStrength == 0f && detectionStrength == 0f) stealthLabelCmp.label.setText("")
-
         if (heardNoise > 0f) {
             noiseRememberCounter += deltaTime
-
-            // linear decay from 1..0 over NOISE_REMEMBER_TIME
-            val rememberFactor = (1f - (noiseRememberCounter / NOISE_REMEMBER_TIME)).coerceIn(0f, 1f)
-            val heardStrength = (heardNoise * rememberFactor).coerceIn(0f, 1f)
 
             // If time is over -> forget noise completely
             if (noiseRememberCounter >= NOISE_REMEMBER_TIME) {
@@ -63,55 +57,63 @@ class SuspicionSystem :
 
             // keep last known player pos even if only heard
             suspicionCmp.lastKnownPlayerPos = playerTransformCmp.position.cpy()
-
-            // If we don't see the player, we still want hearing to contribute
-            if (!fieldOfViewResultCmp.isSeeingPlayer) {
-                val detectionFromHearing = (heardStrength * HEARD_WEIGHT_FACTOR).coerceIn(0f, 1f)
-                detectionStrength = detectionFromHearing
-
-                stealthLabelCmp.label.setText(
-                    "Detection Strength is ${"%.2f".format(detectionStrength)} " +
-                        "| vision=${"%.2f".format(visionStrength)} " +
-                        "| heard=${"%.2f".format(heardStrength)}",
-                )
-                return
-            }
         } else {
             // no noise currently remembered
             noiseRememberCounter = 0f
-
-            if (!fieldOfViewResultCmp.isSeeingPlayer) {
-                suspicionCmp.suspiciousLevel = 0f
-                detectionStrength = 0f
-                return
-            }
         }
 
         // --- vision calculation ---
-        val distanceToPlayerNorm =
-            (1f - (fieldOfViewResultCmp.distanceToPlayer / fieldOfViewCmp.maxDistance)).coerceIn(0f, 1f)
-        val raysHittingPlayerNorm =
-            (fieldOfViewResultCmp.raysHitting / fieldOfViewCmp.numberOfRays.toFloat()).coerceIn(0f, 1f)
+        if (fieldOfViewResultCmp.isSeeingPlayer) {
+            val distanceToPlayerNorm =
+                (1f - (fieldOfViewResultCmp.distanceToPlayer / fieldOfViewCmp.maxDistance)).coerceIn(0f, 1f)
+            val raysHittingPlayerNorm =
+                (fieldOfViewResultCmp.raysHitting / fieldOfViewCmp.numberOfRays.toFloat()).coerceIn(0f, 1f)
 
-        val illuminationOfPlayerNorm = playerStealthCmp.illumination
+            val illuminationOfPlayerNorm = playerStealthCmp.illumination
 
-        suspicionCmp.lastKnownPlayerPos = playerTransformCmp.position.cpy()
+            suspicionCmp.lastKnownPlayerPos = playerTransformCmp.position.cpy()
 
-        val baseSeen = raysHittingPlayerNorm * distanceToPlayerNorm
-        val lightingBoost = illuminationOfPlayerNorm
-        visionStrength = (baseSeen * lightingBoost).coerceIn(0f, 1f)
+            val baseSeen = raysHittingPlayerNorm * distanceToPlayerNorm
+            visionStrength = (baseSeen * illuminationOfPlayerNorm).coerceIn(0f, 1f)
+        } else {
+            visionStrength = 0f
+        }
 
         // --- Combine hearing + vision into final detectionStrength ---
-        val rememberFactor = (1f - (noiseRememberCounter / NOISE_REMEMBER_TIME)).coerceIn(0f, 1f)
-        heardStrength = (heardNoise * rememberFactor).coerceIn(0f, 1f)
+        val hearRememberFactor = (1f - (noiseRememberCounter / NOISE_REMEMBER_TIME)).coerceIn(0f, 1f)
+        heardStrength = (heardNoise * hearRememberFactor).coerceIn(0f, 1f)
 
-        detectionStrength = (visionStrength * SEE_WEIGHT_FACTOR + heardStrength * HEARD_WEIGHT_FACTOR).coerceIn(0f, 1f)
+        val newDetectionStrength = (visionStrength * SEE_WEIGHT_FACTOR + heardStrength * HEARD_WEIGHT_FACTOR).coerceIn(0f, 1f)
 
-        stealthLabelCmp.label.setText(
-            "Detection Strength is ${"%.2f".format(detectionStrength)} " +
-                "| vision=${"%.2f".format(visionStrength)} " +
-                "| heard=${"%.2f".format(heardStrength)}",
-        )
+        val decaySpeedPerSecond = 0.35f
+
+        if (newDetectionStrength > detectionStrength) {
+            // rising -> follow immediately and reset hold timer
+            detectionStrength = newDetectionStrength
+            suspicionRememberCounter = 0f
+        } else if (newDetectionStrength < detectionStrength) {
+            // falling -> hold first, then decay down
+            if (suspicionRememberCounter < SUSPICION_REMEMBER_TIME) {
+                suspicionRememberCounter += deltaTime
+                // hold: keep detectionStrength as-is
+            } else {
+                // decay towards newDetectionStrength, but never go below it
+                val decayed = detectionStrength - decaySpeedPerSecond * deltaTime
+                detectionStrength = maxOf(newDetectionStrength, decayed)
+            }
+        } else {
+            suspicionRememberCounter = 0f
+        }
+
+        if (heardNoise == 0f && visionStrength == 0f && detectionStrength == 0f) {
+            stealthLabelCmp.label.setText("")
+        } else {
+            stealthLabelCmp.label.setText(
+                "Detection Strength is ${"%.2f".format(detectionStrength)} " +
+                    "| vision=${"%.2f".format(visionStrength)} " +
+                    "| heard=${"%.2f".format(heardStrength)}",
+            )
+        }
     }
 
     override fun handle(event: Event): Boolean =

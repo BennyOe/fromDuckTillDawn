@@ -69,8 +69,6 @@ class ShockwaveRenderSystem(
         val h = orthoCam.viewportHeight * orthoCam.zoom
         val x = orthoCam.position.x - w * 0.5f
         val y = orthoCam.position.y - h * 0.5f
-        val minDim = minOf(Gdx.graphics.backBufferWidth.toFloat(), Gdx.graphics.backBufferHeight.toFloat())
-        val radiusPx = 0.01f * minDim
 
         val activeCount = minOf(shockwaveQueue.size, MAX_SHOCKWAVES)
 

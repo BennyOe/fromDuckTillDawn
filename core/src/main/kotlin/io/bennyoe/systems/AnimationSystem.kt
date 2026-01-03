@@ -45,6 +45,7 @@ class AnimationSystem(
     dawnAtlases: TextureAtlases = inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
     minotaurAtlases: TextureAtlases = inject("minotaurAtlases"),
+    spectorAtlases: TextureAtlases = inject("spectorAtlases"),
     crowAtlases: TextureAtlases = inject("crowAtlases"),
     val stage: Stage = inject("stage"),
 ) : IteratingSystem(family { all(AnimationComponent, ImageComponent, TransformComponent) }),
@@ -56,6 +57,7 @@ class AnimationSystem(
             AnimationModel.PLAYER_DAWN to dawnAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MINOTAUR to minotaurAtlases.diffuseAtlas,
+            AnimationModel.ENEMY_SPECTOR to spectorAtlases.diffuseAtlas,
             AnimationModel.CROW to crowAtlases.diffuseAtlas,
         )
 

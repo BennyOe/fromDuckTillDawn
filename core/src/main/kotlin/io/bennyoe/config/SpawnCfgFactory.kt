@@ -12,6 +12,7 @@ import io.bennyoe.components.animation.NoAnimationKey
 import io.bennyoe.config.entities.MinotaurCfg
 import io.bennyoe.config.entities.MushroomCfg
 import io.bennyoe.config.entities.PlayerCfg
+import io.bennyoe.config.entities.SpectorCfg
 import io.bennyoe.systems.audio.SoundProfile
 import io.bennyoe.systems.audio.SoundType
 import io.bennyoe.systems.render.ZIndex
@@ -59,6 +60,7 @@ data class SpawnCfgFactory(
                     CharacterType.PLAYER -> PlayerCfg.config
                     CharacterType.MUSHROOM -> MushroomCfg.config
                     CharacterType.MINOTAUR -> MinotaurCfg.config
+                    CharacterType.SPECTOR -> SpectorCfg.config
                 }
             }
     }

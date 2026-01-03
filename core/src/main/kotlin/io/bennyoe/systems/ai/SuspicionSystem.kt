@@ -21,6 +21,14 @@ private const val SUSPICION_REMEMBER_TIME = 3f
 private const val HEARD_WEIGHT_FACTOR = 0.6f
 private const val SEE_WEIGHT_FACTOR = 0.8f
 
+/**
+ * System responsible for managing AI suspicion logic.
+ *
+ * Combines vision and hearing inputs to calculate detection strength for entities
+ * with `SuspicionComponent`. Handles noise events, updates last known player position,
+ * and manages detection decay and UI label updates.
+ *
+ */
 class SuspicionSystem :
     IteratingSystem(
         family {

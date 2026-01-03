@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="70" tilewidth="16" tileheight="16" infinite="0" nextlayerid="39" nextobjectid="226">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="170" height="70" tilewidth="16" tileheight="16" infinite="0" nextlayerid="39" nextobjectid="227">
  <properties>
   <property name="bgMusic" value="sound/music/bgMusic.mp3"/>
   <property name="chaseMusic" value="sound/music/chaseMusic.mp3"/>
@@ -550,6 +550,12 @@
   <object id="209" name="minotaur" x="2350" y="350.279">
    <properties>
     <property name="type" value="minotaur"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="226" name="spector" x="958.196" y="387.875">
+   <properties>
+    <property name="type" value="spector"/>
    </properties>
    <point/>
   </object>

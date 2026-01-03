@@ -12,6 +12,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.blackboards.MinotaurContext
+import io.bennyoe.ai.blackboards.SpectorContext
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AmbienceZoneContactComponent
 import io.bennyoe.components.AttackComponent
@@ -67,6 +68,9 @@ import io.bennyoe.state.mushroom.MushroomStateContext
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
+import io.bennyoe.state.spector.SpectorCheckAliveState
+import io.bennyoe.state.spector.SpectorFSM
+import io.bennyoe.state.spector.SpectorStateContext
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.EntityBodyData
@@ -91,12 +95,14 @@ class CharacterSpawner(
     dawnAtlases: TextureAtlases,
     mushroomAtlases: TextureAtlases,
     minotaurAtlases: TextureAtlases,
+    spectorAtlases: TextureAtlases,
 ) {
     private val atlasMap: Map<AnimationModel, TextureAtlas> =
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MINOTAUR to minotaurAtlases.diffuseAtlas,
+            AnimationModel.ENEMY_SPECTOR to spectorAtlases.diffuseAtlas,
         )
 
     private val sizesCache = mutableMapOf<String, Vector2>()
@@ -232,6 +238,7 @@ class CharacterSpawner(
                     when (characterType) {
                         CharacterType.MUSHROOM -> spawnMushroomSpecifics(entity, cfg, transformCmp)
                         CharacterType.MINOTAUR -> spawnMinotaurSpecifics(entity, cfg, transformCmp)
+                        CharacterType.SPECTOR -> spawnSpectorSpecifics(entity, cfg, transformCmp)
                         else -> gdxError("No spawner for character $characterType found")
                     }
                 }
@@ -386,6 +393,80 @@ class CharacterSpawner(
                 // because at this point we finally have access to the correct Entity, World, and Stage.
                 createBlackboard = { entity, world, stage ->
                     MinotaurContext(entity, world, stage, debugRenderer)
+                },
+            )
+    }
+
+    private fun EntityCreateContext.spawnSpectorSpecifics(
+        entity: Entity,
+        cfg: SpawnCfgFactory,
+        transformCmp: TransformComponent,
+    ) {
+        entity += IntentionComponent()
+
+        entity += NearbyEnemiesComponent()
+
+        val state =
+            StateComponent(
+                world = world,
+                owner = SpectorStateContext(entity, world, stage),
+                initialState = SpectorFSM.IDLE(),
+                globalState = SpectorCheckAliveState(),
+            )
+        entity += state
+        messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
+
+        val phyCmp = entity[PhysicComponent]
+
+        // create normal nearbyEnemiesSensor
+        phyCmp.body.circle(
+            cfg.nearbyEnemiesDefaultSensorRadius,
+            cfg.nearbyEnemiesSensorOffset,
+        ) {
+            isSensor = true
+            userData = FixtureSensorData(entity, SensorType.NEARBY_ENEMY_SENSOR)
+            filter.categoryBits = EntityCategory.SENSOR.bit
+            filter.maskBits = EntityCategory.PLAYER.bit
+        }
+
+        entity +=
+            BasicSensorsComponent(
+                sensorList = cfg.basicSensorList,
+                chaseRange = cfg.nearbyEnemiesExtendedSensorRadius,
+                transformCmp = transformCmp,
+                maxSightRadius = cfg.maxSightRadius,
+            )
+
+        entity += LedgeSensorsComponent()
+        entity += LedgeSensorsHitComponent()
+
+        entity += BasicSensorsHitComponent()
+
+        entity += FieldOfViewResultComponent()
+
+        entity +=
+            FieldOfViewComponent(
+                transformCmp,
+                14f,
+                relativeEyePos = 0.8f,
+                numberOfRays = 9,
+                viewAngle = 45f,
+            )
+
+        entity += SuspicionComponent()
+
+        entity += HearingComponent(cfg.hearingRadius)
+        entity += StealthLabelComponent(uiStage)
+
+        entity +=
+            BehaviorTreeComponent(
+                world = world,
+                stage = stage,
+                treePath = cfg.aiTreePath,
+                // The blackboard must be created via a function reference (or lambda)
+                // because at this point we finally have access to the correct Entity, World, and Stage.
+                createBlackboard = { entity, world, stage ->
+                    SpectorContext(entity, world, stage, debugRenderer)
                 },
             )
     }

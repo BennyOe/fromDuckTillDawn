@@ -49,5 +49,6 @@ enum class AnimationModel(
     PLAYER_DAWN("player/dawn/"),
     ENEMY_MUSHROOM("enemy/mushroom/"),
     ENEMY_MINOTAUR("enemy/minotaur/"),
+    ENEMY_SPECTOR("enemy/spector/"),
     CROW("crow"),
 }

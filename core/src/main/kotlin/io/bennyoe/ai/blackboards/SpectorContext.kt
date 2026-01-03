@@ -36,7 +36,7 @@ import ktx.collections.lastIndex
 import ktx.log.logger
 import kotlin.math.abs
 
-class MushroomContext(
+class SpectorContext(
     entity: Entity,
     world: World,
     stage: Stage,

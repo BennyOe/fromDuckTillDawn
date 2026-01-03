@@ -29,6 +29,7 @@ class EntitySpawnSystem(
     dawnAtlases: TextureAtlases = inject("dawnAtlases"),
     mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
     minotaurAtlases: TextureAtlases = inject("minotaurAtlases"),
+    spectorAtlases: TextureAtlases = inject("spectorAtlases"),
     bgNormalAtlases: TextureAtlases = inject("bgNormalAtlases"),
     foregroundAtlas: TextureAtlas = inject("foregroundAtlas"),
     animatedBgAtlas: TextureAtlas = inject("animatedBgAtlas"),
@@ -40,7 +41,18 @@ class EntitySpawnSystem(
     private val skySpawner = SkySpawner(world, lightEngine, stage, worldObjectsAtlas)
     private val mapObjectSpawner = MapObjectSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
     private val characterSpawner =
-        CharacterSpawner(world, phyWorld, lightEngine, stage, uiStage, debugRenderService, dawnAtlases, mushroomAtlases, minotaurAtlases)
+        CharacterSpawner(
+            world = world,
+            phyWorld = phyWorld,
+            lightEngine = lightEngine,
+            stage = stage,
+            uiStage = uiStage,
+            debugRenderer = debugRenderService,
+            dawnAtlases = dawnAtlases,
+            mushroomAtlases = mushroomAtlases,
+            minotaurAtlases = minotaurAtlases,
+            spectorAtlases = spectorAtlases,
+        )
     private val rainMaskSpawner = RainMaskSpawner(world, stage)
     private val waterSpawner = WaterSpawner(world, phyWorld)
     private val bgNormalSpawner = BgNormalSpawner(world, stage, bgNormalAtlases)

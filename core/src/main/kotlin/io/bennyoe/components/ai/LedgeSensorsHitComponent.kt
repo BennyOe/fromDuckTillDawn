@@ -5,20 +5,13 @@ import com.github.quillraven.fleks.ComponentType
 import ktx.collections.GdxArray
 import ktx.collections.gdxArrayOf
 
-class RayHitComponent : Component<RayHitComponent> {
-    var canAttack = false
-    var wallHit = false
-    var groundHit = false
-    var jumpHit = false
-    var wallHeightHit = false
-    var seesPlayer = false
-    var playerInThrowRange = false
+class LedgeSensorsHitComponent : Component<LedgeSensorsHitComponent> {
     val upperLedgeHits: GdxArray<LedgeHitData> = gdxArrayOf(ordered = true)
     val lowerLedgeHits: GdxArray<LedgeHitData> = gdxArrayOf(ordered = true)
 
-    override fun type() = RayHitComponent
+    override fun type() = LedgeSensorsHitComponent
 
-    companion object : ComponentType<RayHitComponent>()
+    companion object : ComponentType<LedgeSensorsHitComponent>()
 }
 
 data class LedgeHitData(

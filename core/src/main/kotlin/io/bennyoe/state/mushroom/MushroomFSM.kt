@@ -75,8 +75,10 @@ sealed class MushroomFSM : AbstractFSM<MushroomStateContext>() {
             val velY = ctx.physicComponent.body.linearVelocity.y
             when {
                 hasWaterContact(ctx) -> ctx.changeState(DEATH())
+
                 // Land only when we actually touch the ground *and* vertical speed is ~0
                 abs(velY) <= LANDING_VELOCITY_EPS -> ctx.changeState(IDLE())
+
                 // otherwise remain in FALL
                 else -> ctx.intentionCmp.wantsToJump = false
             }

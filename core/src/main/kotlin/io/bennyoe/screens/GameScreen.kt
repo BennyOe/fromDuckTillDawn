@@ -38,8 +38,6 @@ import io.bennyoe.event.fire
 import io.bennyoe.lightEngine.core.Scene2dLightEngine
 import io.bennyoe.systems.AnimationSystem
 import io.bennyoe.systems.AttackSystem
-import io.bennyoe.systems.BasicSensorsSystem
-import io.bennyoe.systems.BehaviorTreeSystem
 import io.bennyoe.systems.CameraShakeSystem
 import io.bennyoe.systems.CameraSystem
 import io.bennyoe.systems.CloudSystem
@@ -54,14 +52,22 @@ import io.bennyoe.systems.HitStopSystem
 import io.bennyoe.systems.InputSystem
 import io.bennyoe.systems.JumpSystem
 import io.bennyoe.systems.MoveSystem
+import io.bennyoe.systems.NoiseEmitterSystem
 import io.bennyoe.systems.ParallaxSystem
 import io.bennyoe.systems.ParticleRemoveSystem
+import io.bennyoe.systems.PlayerStealthSystem
 import io.bennyoe.systems.ProjectileSystem
 import io.bennyoe.systems.RainSystem
 import io.bennyoe.systems.SkySystem
 import io.bennyoe.systems.StateSystem
 import io.bennyoe.systems.TimeSystem
 import io.bennyoe.systems.UiDataSystem
+import io.bennyoe.systems.ai.BasicSensorsSystem
+import io.bennyoe.systems.ai.BehaviorTreeSystem
+import io.bennyoe.systems.ai.FieldOfViewSystem
+import io.bennyoe.systems.ai.LedgeSensorsSystem
+import io.bennyoe.systems.ai.StealthLabelSystem
+import io.bennyoe.systems.ai.SuspicionSystem
 import io.bennyoe.systems.audio.AmbienceSystem
 import io.bennyoe.systems.audio.MusicSystem
 import io.bennyoe.systems.audio.ReverbSystem
@@ -85,6 +91,7 @@ import io.bennyoe.systems.physic.PhysicsSystem
 import io.bennyoe.systems.physic.WaterSystem
 import io.bennyoe.systems.render.PhysicTransformSyncSystem
 import io.bennyoe.systems.render.RenderSystem
+import io.bennyoe.systems.render.ShockwaveRenderSystem
 import io.bennyoe.systems.render.TransformVisualSyncSystem
 import io.bennyoe.systems.render.UiRenderSystem
 import io.bennyoe.ui.GameView
@@ -94,8 +101,6 @@ import ktx.box2d.createWorld
 import ktx.inject.Context
 import ktx.log.logger
 import ktx.scene2d.Scene2DSkin
-import kotlin.experimental.and
-import kotlin.experimental.inv
 
 class GameScreen(
     context: Context,
@@ -172,14 +177,22 @@ class GameScreen(
             viewport = stage.viewport,
             stage = stage,
             entityCategory = EntityCategory.LIGHT.bit,
-            entityMask = (EntityCategory.ALL.bit and EntityCategory.WORLD_BOUNDARY.bit.inv() and EntityCategory.SENSOR.bit.inv()),
+            entityMask = (
+                EntityCategory.GROUND.bit
+            ),
             lightActivationRadius = 25f,
             lightViewportScale = 4f,
+            world = phyWorld,
+            debugRenderer = debugRenderService,
             refreshRateHz = 75f,
         )
+    private val shockwaveRenderSystem: ShockwaveRenderSystem by
+        lazy { ShockwaveRenderSystem(stage) }
+
     private val entityWorld by lazy {
         configureWorld {
             injectables {
+                add("shockwaveRenderSystem", shockwaveRenderSystem)
                 add("audio", audio)
                 add("assetManager", assets)
                 add("phyWorld", phyWorld)
@@ -219,6 +232,7 @@ class GameScreen(
                 add(DamageSystem())
                 add(HitStopSystem())
                 add(DamageTextSystem())
+                add(StealthLabelSystem())
                 add(JumpSystem())
                 add(ContactHandlerSystem())
                 add(WaterSystem())
@@ -231,10 +245,16 @@ class GameScreen(
                 add(CloudSystem())
                 add(DivingSystem())
                 add(RainSystem())
+                add(NoiseEmitterSystem())
+                add(shockwaveRenderSystem)
                 add(UnderWaterSoundSystem())
                 add(SoundEffectSystem())
                 add(MusicSystem())
                 add(BasicSensorsSystem())
+                add(LedgeSensorsSystem())
+                add(FieldOfViewSystem())
+                add(PlayerStealthSystem())
+                add(SuspicionSystem())
                 add(StateSystem())
                 add(ParallaxSystem())
                 add(BehaviorTreeSystem())

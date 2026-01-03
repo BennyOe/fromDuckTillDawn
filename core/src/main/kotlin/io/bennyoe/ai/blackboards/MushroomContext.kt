@@ -14,15 +14,21 @@ import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
+import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.SensorType.ATTACK_SENSOR
+import io.bennyoe.utility.SensorType.GROUND_DETECT_SENSOR
+import io.bennyoe.utility.SensorType.JUMP_SENSOR
+import io.bennyoe.utility.SensorType.WALL_HEIGHT_SENSOR
+import io.bennyoe.utility.SensorType.WALL_SENSOR
 import ktx.collections.GdxArray
 import ktx.collections.isNotEmpty
 import ktx.collections.lastIndex
@@ -39,7 +45,8 @@ class MushroomContext(
     val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
     val intentionCmp: IntentionComponent
-    val rayHitCmp: RayHitComponent
+    val basicSensorsHitCmp: BasicSensorsHitComponent
+    val ledgeSensorsHitCmp: LedgeSensorsHitComponent
     val healthCmp: HealthComponent
     val stateCmp: StateComponent<*, *>
     val basicSensorsCmp: BasicSensorsComponent
@@ -56,7 +63,8 @@ class MushroomContext(
             animCmp = entity[AnimationComponent]
             healthCmp = entity[HealthComponent]
             intentionCmp = entity[IntentionComponent]
-            rayHitCmp = entity[RayHitComponent]
+            basicSensorsHitCmp = entity[BasicSensorsHitComponent]
+            ledgeSensorsHitCmp = entity[LedgeSensorsHitComponent]
             stateCmp = entity[StateComponent]
             basicSensorsCmp = entity[BasicSensorsComponent]
         }
@@ -66,7 +74,7 @@ class MushroomContext(
 
     fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
 
-    fun canAttack(): Boolean = rayHitCmp.canAttack
+    fun canAttack(): Boolean = basicSensorsHitCmp.getSensorHit(ATTACK_SENSOR)
 
     fun hasPlayerNearby(): Boolean {
         with(world) {
@@ -117,7 +125,7 @@ class MushroomContext(
     }
 
     fun patrol() {
-        if (rayHitCmp.wallHit || !rayHitCmp.groundHit) {
+        if (basicSensorsHitCmp.getSensorHit(WALL_SENSOR) || !basicSensorsHitCmp.getSensorHit(GROUND_DETECT_SENSOR)) {
             intentionCmp.walkDirection =
                 when (intentionCmp.walkDirection) {
                     WalkDirection.LEFT -> WalkDirection.RIGHT
@@ -150,9 +158,9 @@ class MushroomContext(
         changePlatform(playerPos)
 
         if (platformRelation == PlatformRelation.BELOW) {
-            calculateNearestPlatformEdgeOffset(rayHitCmp.upperLedgeHits)
+            calculateNearestPlatformEdgeOffset(ledgeSensorsHitCmp.upperLedgeHits)
         } else if (platformRelation == PlatformRelation.ABOVE) {
-            calculateNearestPlatformEdgeOffset(rayHitCmp.lowerLedgeHits)
+            calculateNearestPlatformEdgeOffset(ledgeSensorsHitCmp.lowerLedgeHits)
         }
 
         walkToPosition()
@@ -193,24 +201,26 @@ class MushroomContext(
         nearestPlatformLedge =
             when (platformRelation) {
                 PlatformRelation.BELOW -> {
-                    if (rayHitCmp.upperLedgeHits.size == rayHitCmp.lowerLedgeHits.size &&
-                        rayHitCmp.upperLedgeHits.isNotEmpty()
+                    if (ledgeSensorsHitCmp.upperLedgeHits.size == ledgeSensorsHitCmp.lowerLedgeHits.size &&
+                        ledgeSensorsHitCmp.upperLedgeHits.isNotEmpty()
                     ) {
-                        findLedgeToJumpUp(rayHitCmp.upperLedgeHits, rayHitCmp.lowerLedgeHits, playerPos.x)
+                        findLedgeToJumpUp(ledgeSensorsHitCmp.upperLedgeHits, ledgeSensorsHitCmp.lowerLedgeHits, playerPos.x)
                     } else {
                         null
                     }
                 }
 
                 PlatformRelation.ABOVE -> {
-                    if (rayHitCmp.lowerLedgeHits.isNotEmpty()) {
-                        findLedgeToDropDown(rayHitCmp.lowerLedgeHits, playerPos.x)
+                    if (ledgeSensorsHitCmp.lowerLedgeHits.isNotEmpty()) {
+                        findLedgeToDropDown(ledgeSensorsHitCmp.lowerLedgeHits, playerPos.x)
                     } else {
                         null
                     }
                 }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
     }
 
@@ -283,18 +293,20 @@ class MushroomContext(
                 intentionCmp.walkDirection = if (dist < 0f) WalkDirection.RIGHT else WalkDirection.LEFT
             }
 
-            else -> intentionCmp.walkDirection = WalkDirection.NONE
+            else -> {
+                intentionCmp.walkDirection = WalkDirection.NONE
+            }
         }
     }
 
     private fun jumpOverGap() {
-        if (!rayHitCmp.groundHit && rayHitCmp.jumpHit) {
+        if (!basicSensorsHitCmp.getSensorHit(GROUND_DETECT_SENSOR) && basicSensorsHitCmp.getSensorHit(JUMP_SENSOR)) {
             intentionCmp.wantsToJump = true
         }
     }
 
     private fun jumpOverWall() {
-        if (rayHitCmp.wallHit && !rayHitCmp.wallHeightHit) {
+        if (basicSensorsHitCmp.getSensorHit(WALL_SENSOR) && !basicSensorsHitCmp.getSensorHit(WALL_HEIGHT_SENSOR)) {
             intentionCmp.wantsToJump = true
         }
     }

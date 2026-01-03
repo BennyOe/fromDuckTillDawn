@@ -9,7 +9,7 @@ import io.bennyoe.systems.render.ZIndex
 
 class GameStateComponent(
     var isPaused: Boolean = false,
-    var gameMood: GameMood = GameMood.NORMAL,
+    gameMood: GameMood = GameMood.NORMAL,
     var isTriggerTimeOfDayJustPressed: Boolean = false,
     var timeOfDay: Float = INITIAL_TIME_OF_DAY,
     var isTriggerWeatherJustPressed: Boolean = false,
@@ -21,6 +21,17 @@ class GameStateComponent(
     var playerIsIndoor: Boolean = false,
 ) : Component<GameStateComponent> {
     private var alreadyChanged: Boolean = false
+
+    var gameMood: GameMood = gameMood
+        private set
+
+    fun setGameMoodWithPriority(newMood: GameMood) {
+        if (newMood.priority >= gameMood.priority) gameMood = newMood
+    }
+
+    fun forceSetGameMood(newMood: GameMood) {
+        gameMood = newMood
+    }
 
     fun getTimeOfDay(): TimeOfDay =
         if (timeOfDay in 6f..18f) {
@@ -85,6 +96,7 @@ enum class GameMood(
     val priority: Int,
 ) {
     NORMAL(0),
+    STEALTH(0),
     CHASE(1),
     PLAYER_DEAD(100),
 }

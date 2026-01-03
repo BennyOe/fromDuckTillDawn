@@ -64,7 +64,9 @@ class AmbienceSystem :
                 true
             }
 
-            else -> false
+            else -> {
+                false
+            }
         }
 
     override fun onTick() {

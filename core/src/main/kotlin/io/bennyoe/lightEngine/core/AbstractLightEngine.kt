@@ -3,6 +3,7 @@ package io.bennyoe.lightEngine.core
 import box2dLight.ConeLight
 import box2dLight.DirectionalLight
 import box2dLight.PointLight
+import box2dLight.PositionalLight
 import box2dLight.RayHandler
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
@@ -11,16 +12,29 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
+import com.badlogic.gdx.math.MathUtils.atan2
+import com.badlogic.gdx.math.MathUtils.radiansToDegrees
+import com.badlogic.gdx.math.Polyline
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Filter
+import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.utils.GdxRuntimeException
 import com.badlogic.gdx.utils.viewport.Viewport
+import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.lightEngine.core.utils.worldToScreenSpace
+import io.bennyoe.systems.debug.DebugRenderer
+import io.bennyoe.systems.debug.DebugType
+import io.bennyoe.systems.debug.addToDebugView
 import ktx.assets.disposeSafely
+import ktx.math.vec2
 import ktx.math.vec3
 import ktx.math.vec4
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
+
+const val DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER = 3f
 
 /**
  * Abstract base class for 2D lighting engines combining normal mapping shaders with Box2D shadows.
@@ -56,6 +70,8 @@ abstract class AbstractLightEngine(
     val entityMask: Short = -1,
     val lightActivationRadius: Float = -1f,
     val lightViewportScale: Float = 2f,
+    val world: World? = null,
+    val debugRenderService: DebugRenderer? = null,
     refreshRateHz: Float? = null,
 ) {
     protected val vertShader: FileHandle = Gdx.files.internal("shader/light.vert")
@@ -75,12 +91,14 @@ abstract class AbstractLightEngine(
     private val lightCam = OrthographicCamera()
     private var lightAcc = 0f
     private var refreshStep: Float? = refreshRateHz?.let { 1f / it }
+    private var box2dAmbientColor: Color = Color(0.1f, 0.1f, 0.1f, 0.1f)
 
     init {
         setupShader()
         RayHandler.useDiffuseLight(useDiffuseLight)
         updateShaderAmbientColor(Color(1f, 1f, 1f, 1.0f))
         rayHandler.setAmbientLight(.1f, .1f, .1f, .1f)
+        setBox2dAmbientLight(box2dAmbientColor)
     }
 
     /**
@@ -228,15 +246,16 @@ abstract class AbstractLightEngine(
 
         val newB2dLight =
             when (light) {
-                is GameLight.Directional ->
+                is GameLight.Directional -> {
                     DirectionalLight(
                         rayHandler,
                         light.b2dLight.rayNum,
                         light.b2dLight.color,
                         light.b2dLight.direction,
                     )
+                }
 
-                is GameLight.Point ->
+                is GameLight.Point -> {
                     PointLight(
                         rayHandler,
                         light.b2dLight.rayNum,
@@ -246,8 +265,9 @@ abstract class AbstractLightEngine(
                             .position.x,
                         light.b2dLight.position.y,
                     )
+                }
 
-                is GameLight.Spot ->
+                is GameLight.Spot -> {
                     ConeLight(
                         rayHandler,
                         light.b2dLight.rayNum,
@@ -258,6 +278,7 @@ abstract class AbstractLightEngine(
                         light.b2dLight.direction,
                         (light.b2dLight as ConeLight).coneDegree,
                     )
+                }
             }
 
         light.b2dLight.apply {
@@ -613,48 +634,264 @@ abstract class AbstractLightEngine(
     }
 
     /**
-     * Estimates the combined brightness at a given world position based on all point and spotlights.
+     * Estimates the brightness at a specific point in the world based on the active lights.
      *
-     * This function sums the contributions of all [GameLight.Point] and [GameLight.Spot] lights at the specified position,
-     * using a simple quadratic attenuation model: `attenuation = 1 / (1 + distance^2)`.
-     * For spotlights, the contribution is only added if the point is within the cone angle.
-     * The result is clamped between 0.0 and 1.0.
+     * This method calculates the combined brightness at the given position by summing the contributions
+     * of all active lights (directional, point, and cone lights) and the ambient light. The brightness
+     * is clamped between 0.0 (completely dark) and 1.0 (fully lit).
      *
-     * @param pos The world position to estimate brightness for.
-     * @return The estimated brightness as a value between 0.0 (dark) and 1.0 (fully lit).
+     * The calculation includes:
+     * - Ambient light contribution.
+     * - Light contributions based on their type, distance, and visibility.
+     * - Dynamic light brightness multiplier for point and cone lights.
+     *
+     * @param pos The world position to estimate brightness at.
+     * @return The estimated brightness as a value between 0.0 and 1.0.
+     * @throws IllegalStateException if the `world` property is null.
      */
-    fun estimateBrightness(pos: Vector2): Double =
-        activeLights
-            .sumOf { light ->
-                when (light) {
-                    is GameLight.Point -> {
-                        val dist = light.shaderLight.position.dst(pos)
-                        val attenuation = 1f / (1f + dist * dist)
-                        (light.shaderLight.intensity * attenuation).toDouble()
-                    }
+    fun estimateBrightnessAtPoint(pos: Vector2): Float {
+        requireNotNull(world) { "The 'world' property must not be null when calling 'estimateBrightnessAtPoint()'" }
 
-                    is GameLight.Spot -> {
-                        val shaderLight = light.shaderLight
-                        val dist = shaderLight.position.dst(pos)
+        // 1. Base Ambient Brightness
+        var totalBrightness = (box2dAmbientColor.r * 0.299f + box2dAmbientColor.g * 0.587f + box2dAmbientColor.b * 0.114f)
 
-                        val directionRad = Math.toRadians(shaderLight.directionDegree.toDouble()).toFloat()
-                        val lightDir = Vector2(cos(directionRad), sin(directionRad)).nor()
-                        val toPoint = pos.cpy().sub(shaderLight.position).nor()
+        // 2. Check Active Lights
+        for (gameLight in activeLights) {
+            val b2dLight = gameLight.b2dLight
+            if (!b2dLight.isActive) continue
 
-                        val dot = lightDir.dot(toPoint)
-                        val coneHalfAngleRad = Math.toRadians(shaderLight.coneDegree.toDouble() * 0.5)
-
-                        if (dot > cos(coneHalfAngleRad)) {
-                            val attenuation = 1f / (1f + dist * dist)
-                            (shaderLight.intensity * attenuation).toDouble()
-                        } else {
-                            0.0
-                        }
-                    }
-
-                    else -> 0.0
+            val intensity =
+                when (b2dLight) {
+                    is DirectionalLight -> calculateDirectionalContribution(b2dLight, pos)
+                    is ConeLight -> calculateConeContribution(b2dLight, pos) * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
+                    is PointLight -> calculatePointContribution(b2dLight, pos) * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
+                    else -> 0f
                 }
-            }.coerceIn(0.0, 1.0)
+            totalBrightness += intensity
+        }
+
+        return totalBrightness.coerceIn(0f, 1f)
+    }
+
+    /**
+     * Estimates the combined brightness over a rectangular plane based on all active lights.
+     *
+     * This function calculates the average brightness at five sample points: the center and the four corners
+     * of the specified plane. The brightness is determined by summing the contributions of all active lights
+     * (point, spot, and directional) using their respective attenuation models and visibility checks.
+     *
+     * The result is clamped between 0.0 (completely dark) and 1.0 (fully lit).
+     *
+     * @param center The center position of the plane in world coordinates.
+     * @param width The width of the plane.
+     * @param height The height of the plane.
+     * @return The estimated average brightness over the plane as a value between 0.0 and 1.0.
+     * @throws IllegalStateException if the `world` property is null.
+     */
+    fun estimateBrightnessForPlane(
+        center: Vector2,
+        size: Vector2,
+    ): Float {
+        requireNotNull(world) {
+            "The 'world' property must not be null when calling 'estimateBrightnessForPlane()'"
+        }
+
+        val halfW = size.x * 0.5f
+        val halfH = size.y * 0.5f
+
+        val upperLeft = vec2(center.x - halfW, center.y + halfH)
+        val upperRight = vec2(center.x + halfW, center.y + halfH)
+        val lowerLeft = vec2(center.x - halfW, center.y - halfH)
+        val lowerRight = vec2(center.x + halfW, center.y - halfH)
+
+        // 1. Base Ambient Brightness
+        var totalBrightness =
+            (
+                box2dAmbientColor.r * 0.299f +
+                    box2dAmbientColor.g * 0.587f +
+                    box2dAmbientColor.b * 0.114f
+            )
+
+        // 2. Sample lights
+        for (gameLight in activeLights) {
+            val b2dLight = gameLight.b2dLight
+            if (!b2dLight.isActive) continue
+
+            val intensity =
+                when (b2dLight) {
+                    is DirectionalLight ->
+                        (
+                            calculateDirectionalContribution(b2dLight, upperLeft) +
+                                calculateDirectionalContribution(b2dLight, upperRight) +
+                                calculateDirectionalContribution(b2dLight, lowerLeft) +
+                                calculateDirectionalContribution(b2dLight, lowerRight) +
+                                calculateDirectionalContribution(b2dLight, center)
+                        ) / 5f
+
+                    is ConeLight ->
+                        (
+                            calculateConeContribution(b2dLight, upperLeft) +
+                                calculateConeContribution(b2dLight, upperRight) +
+                                calculateConeContribution(b2dLight, lowerLeft) +
+                                calculateConeContribution(b2dLight, lowerRight) +
+                                calculateConeContribution(b2dLight, center)
+                        ) / 5f * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
+
+                    is PointLight ->
+                        (
+                            calculatePointContribution(b2dLight, upperLeft) +
+                                calculatePointContribution(b2dLight, upperRight) +
+                                calculatePointContribution(b2dLight, lowerLeft) +
+                                calculatePointContribution(b2dLight, lowerRight) +
+                                calculatePointContribution(b2dLight, center)
+                        ) / 5f * DYNAMIC_LIGHT_BRIGHTNESS_MULTIPLIER
+
+                    else -> 0f
+                }
+
+            totalBrightness = saturatingAdd(totalBrightness, intensity)
+        }
+
+        return totalBrightness.coerceIn(0f, 1f)
+    }
+
+    private fun calculateDirectionalContribution(
+        light: DirectionalLight,
+        pos: Vector2,
+    ): Float {
+        // direction is the angle the light travels TOWARDS.
+        val lightDirRad = Math.toRadians(light.direction.toDouble())
+        val rayDirX = -cos(lightDirRad).toFloat()
+        val rayDirY = -sin(lightDirRad).toFloat()
+
+        // cast far enough to clear the map or local geometry (e.g., 50m)
+        val checkDist = 50f
+        val endX = pos.x + rayDirX * checkDist
+        val endY = pos.y + rayDirY * checkDist
+
+        if (isOccluded(pos.x, pos.y, endX, endY)) return 0f
+
+        // light is visible, calculate intensity (Luma * Alpha/Strength)
+        val color = light.color
+        val luma = (color.r * 0.299f + color.g * 0.587f + color.b * 0.114f)
+        return (luma * color.a)
+    }
+
+    private fun calculateConeContribution(
+        light: ConeLight,
+        pos: Vector2,
+    ): Float {
+        val lightPos = Vector2(light.x, light.y)
+        val dst2 = pos.dst2(lightPos)
+        val r2 = light.distance * light.distance
+
+        // distance-check
+        if (dst2 > r2) return 0f
+
+        // angle-check (Cone Logic)
+        val dx = pos.x - light.x
+        val dy = pos.y - light.y
+        val angleToTarget = atan2(dy, dx) * radiansToDegrees
+
+        // normalize angle to find the shortest direction
+        val diff = abs((angleToTarget - light.direction + 540) % 360 - 180)
+
+        if (diff > light.coneDegree) return 0f
+
+        return calculateBrightness(pos, lightPos, dst2, light)
+    }
+
+    private fun calculatePointContribution(
+        light: PointLight,
+        pos: Vector2,
+    ): Float {
+        val lightPos = Vector2(light.x, light.y)
+        val dst2 = pos.dst2(lightPos)
+        val r2 = light.distance * light.distance
+
+        if (dst2 > r2) return 0f
+
+        return calculateBrightness(pos, lightPos, dst2, light)
+    }
+
+    private fun calculateBrightness(
+        pos: Vector2,
+        lightPos: Vector2,
+        dst2: Float,
+        light: PositionalLight,
+    ): Float {
+        // If the light is (almost) at the same position as the sample point (e.g. flashlight attached to player),
+        // Box2D rayCast would assert on a zero-length segment. In this case, treat it as not occluded.
+        val minRayLength2 = 1e-6f
+        if (dst2 <= minRayLength2) {
+            val color = light.color
+            val luma = (color.r * 0.299f + color.g * 0.587f + color.b * 0.114f)
+            return luma * color.a
+        }
+
+        if (isOccluded(pos.x, pos.y, lightPos.x, lightPos.y)) return 0f
+
+        val distance = sqrt(dst2)
+        val normalizedDist = distance / light.distance
+
+        val linearFactor = (1f - normalizedDist).coerceIn(0f, 1f)
+        val falloff = linearFactor * linearFactor
+
+        if (falloff <= 0f) return 0f
+
+        val color = light.color
+        val luma = (color.r * 0.299f + color.g * 0.587f + color.b * 0.114f)
+        return luma * color.a * falloff
+    }
+
+    private fun saturatingAdd(
+        base: Float,
+        add: Float,
+    ): Float {
+        val b = base.coerceIn(0f, 1f)
+        val a = add.coerceIn(0f, 1f)
+        return 1f - (1f - b) * (1f - a)
+    }
+
+    // Helper to perform the RayCast safely
+    private fun isOccluded(
+        startX: Float,
+        startY: Float,
+        endX: Float,
+        endY: Float,
+    ): Boolean {
+        // Box2D asserts if the ray segment length is zero.
+        val dx = endX - startX
+        val dy = endY - startY
+        val minRayLength2 = 1e-6f
+        if (dx * dx + dy * dy <= minRayLength2) return false
+
+        var hit = false
+
+        world!!.rayCast({ fixture, _, _, _ ->
+            if (fixture.isSensor) return@rayCast -1f
+
+            // Check collision filter - does this object block light?
+            val filter = fixture.filterData
+            // Use the engine's entityMask to determine what blocks light
+            if ((filter.categoryBits.toInt() and entityMask.toInt()) != 0) {
+                hit = true
+                return@rayCast 0f // Stop ray
+            }
+            return@rayCast -1f // Continue
+        }, startX, startY, endX, endY)
+
+        val rayColor = if (hit) Color.RED else Color.GREEN
+
+        if (ENABLE_DEBUG) {
+            Polyline(floatArrayOf(startX, startY, endX, endY)).addToDebugView(
+                debugRenderService!!,
+                rayColor,
+                debugType = DebugType.PLAYER,
+            )
+        }
+        return hit
+    }
 
     /**
      * Removes all dynamic lights from the engine.
@@ -684,6 +921,7 @@ abstract class AbstractLightEngine(
      * @param ambient The [Color] to use for ambient light. The color's alpha component acts as the intensity (only when diffuseLight is false).
      */
     fun setBox2dAmbientLight(ambient: Color) {
+        box2dAmbientColor.set(ambient)
         rayHandler.setAmbientLight(ambient)
     }
 

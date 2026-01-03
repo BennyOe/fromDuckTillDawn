@@ -23,10 +23,11 @@ import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
+import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.RayHitComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
@@ -37,6 +38,7 @@ import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
 import io.bennyoe.systems.debug.NoOpDebugRenderService
 import io.bennyoe.utility.EntityBodyData
+import io.bennyoe.utility.SensorType
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
@@ -124,8 +126,9 @@ class MushroomContextUnitTest {
                 it += healthCmp
                 it += nearbyCmp
                 it += animCmp
+                it += LedgeSensorsHitComponent()
                 it += BasicSensorsComponent(emptyList(), 7f, transformCmp, 23f)
-                it += RayHitComponent()
+                it += BasicSensorsHitComponent()
                 it += phyCmp
                 it +=
                     StateComponent(
@@ -160,8 +163,8 @@ class MushroomContextUnitTest {
 
     @Test
     fun `canAttack delegates to rayHitComponent`() {
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
-        rayHitCmp.canAttack = true
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
+        rayHitCmp.setSensorHit(SensorType.ATTACK_SENSOR, true)
         assertTrue(ctx.canAttack())
     }
 
@@ -226,14 +229,14 @@ class MushroomContextUnitTest {
 
     @Test
     fun `patrol reverses the walk direction when hitting wall or gap in ground`() {
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
         intentionCmp.walkDirection = WalkDirection.LEFT
-        rayHitCmp.wallHit = true
+        rayHitCmp.setSensorHit(SensorType.WALL_SENSOR, true)
 
         ctx.patrol()
         assertEquals(intentionCmp.walkDirection, WalkDirection.RIGHT)
 
-        rayHitCmp.groundHit = false
+        rayHitCmp.setSensorHit(SensorType.GROUND_DETECT_SENSOR, false)
         ctx.patrol()
         assertEquals(intentionCmp.walkDirection, WalkDirection.LEFT)
     }
@@ -255,11 +258,11 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer triggers jump when player is below and jump is needed`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2, phyCmp.body.position.y + 2)
 
-        rayHitCmp.groundHit = false
-        rayHitCmp.jumpHit = true
+        rayHitCmp.setSensorHit(SensorType.GROUND_DETECT_SENSOR, false)
+        rayHitCmp.setSensorHit(SensorType.JUMP_SENSOR, true)
 
         ctx.chasePlayer()
 
@@ -270,10 +273,10 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer finds ledge when player is above`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val ledgeSensorsHitCmp = with(world) { mushroomEntity[LedgeSensorsHitComponent] }
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2, phyCmp.body.position.y - 2)
 
-        rayHitCmp.lowerLedgeHits.addAll(
+        ledgeSensorsHitCmp.lowerLedgeHits.addAll(
             gdxArrayOf(
                 LedgeHitData(true, 2f),
                 LedgeHitData(true, 3f),
@@ -316,10 +319,10 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer does not find drop ledge when none are valid`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val ledgeSensorsHitCmp = with(world) { mushroomEntity[LedgeSensorsHitComponent] }
 
         playerPhysicCmp.body.position.set(phyCmp.body.position.x - 2f, phyCmp.body.position.y - 2f)
-        rayHitCmp.lowerLedgeHits.addAll(
+        ledgeSensorsHitCmp.lowerLedgeHits.addAll(
             gdxArrayOf(
                 LedgeHitData(true, 1f),
                 LedgeHitData(true, 2f),
@@ -339,11 +342,11 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer jumps when below and ledge is set but no walk direction`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val ledgeSensorsHitCmp = with(world) { mushroomEntity[LedgeSensorsHitComponent] }
 
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2f, phyCmp.body.position.y + 2f)
 
-        rayHitCmp.upperLedgeHits.addAll(
+        ledgeSensorsHitCmp.upperLedgeHits.addAll(
             gdxArrayOf(
                 LedgeHitData(true, 2f),
                 LedgeHitData(true, 3f),
@@ -354,7 +357,7 @@ class MushroomContextUnitTest {
                 LedgeHitData(false, 7f),
             ),
         )
-        rayHitCmp.lowerLedgeHits.addAll(
+        ledgeSensorsHitCmp.lowerLedgeHits.addAll(
             gdxArrayOf(
                 LedgeHitData(true, 2f),
                 LedgeHitData(true, 3f),
@@ -375,11 +378,11 @@ class MushroomContextUnitTest {
     @Test
     fun `chasePlayer jumps over wall when blocked`() {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
-        val rayHitCmp = with(world) { mushroomEntity[RayHitComponent] }
+        val rayHitCmp = with(world) { mushroomEntity[BasicSensorsHitComponent] }
 
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2f, phyCmp.body.position.y)
-        rayHitCmp.wallHit = true
-        rayHitCmp.wallHeightHit = false
+        rayHitCmp.setSensorHit(SensorType.WALL_SENSOR, true)
+        rayHitCmp.setSensorHit(SensorType.WALL_HEIGHT_SENSOR, false)
 
         ctx.chasePlayer()
 

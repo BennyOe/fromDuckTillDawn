@@ -12,7 +12,6 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.blackboards.MinotaurContext
-import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AmbienceZoneContactComponent
 import io.bennyoe.components.AttackComponent
@@ -27,17 +26,26 @@ import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.LightComponent
 import io.bennyoe.components.MoveComponent
+import io.bennyoe.components.NoiseProfileComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
+import io.bennyoe.components.PlayerStealthComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
+import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.ai.FieldOfViewComponent
+import io.bennyoe.components.ai.FieldOfViewResultComponent
+import io.bennyoe.components.ai.HearingComponent
+import io.bennyoe.components.ai.LedgeSensorsComponent
+import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
-import io.bennyoe.components.ai.RayHitComponent
+import io.bennyoe.components.ai.StealthLabelComponent
+import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.animation.AnimationKey
 import io.bennyoe.components.animation.AnimationModel
@@ -78,6 +86,7 @@ class CharacterSpawner(
     val phyWorld: com.badlogic.gdx.physics.box2d.World,
     val lightEngine: Scene2dLightEngine,
     val stage: Stage,
+    val uiStage: Stage,
     val debugRenderer: DebugRenderer,
     dawnAtlases: TextureAtlases,
     mushroomAtlases: TextureAtlases,
@@ -113,9 +122,9 @@ class CharacterSpawner(
                 // use visual size for transform
                 val transformCmp =
                     TransformComponent(
-                        spawnPosCenter,
-                        visualWidth,
-                        visualHeight,
+                        position = spawnPosCenter,
+                        width = visualWidth,
+                        height = visualHeight,
                     )
                 entity += transformCmp
 
@@ -216,7 +225,7 @@ class CharacterSpawner(
                 entity += SoundProfileComponent(cfg.soundProfile)
 
                 if (cfg.entityCategory == EntityCategory.PLAYER) {
-                    spawnPlayerSpecifics(entity, physics)
+                    spawnPlayerSpecifics(entity, physics, cfg)
                 }
 
                 if (cfg.entityCategory == EntityCategory.ENEMY) {
@@ -283,19 +292,38 @@ class CharacterSpawner(
                 maxSightRadius = cfg.maxSightRadius,
             )
 
-        entity += RayHitComponent()
+        entity += LedgeSensorsComponent()
+        entity += LedgeSensorsHitComponent()
+
+        entity += BasicSensorsHitComponent()
+
+        entity += FieldOfViewResultComponent()
 
         entity +=
-            BehaviorTreeComponent(
-                world = world,
-                stage = stage,
-                treePath = cfg.aiTreePath,
-                // The blackboard must be created via a function reference (or lambda)
-                // because at this point we finally have access to the correct Entity, World, and Stage.
-                createBlackboard = { entity, world, stage ->
-                    MushroomContext(entity, world, stage, debugRenderer)
-                },
+            FieldOfViewComponent(
+                transformCmp,
+                14f,
+                relativeEyePos = 0.8f,
+                numberOfRays = 9,
+                viewAngle = 45f,
             )
+
+        entity += SuspicionComponent()
+
+        entity += HearingComponent(cfg.hearingRadius)
+        entity += StealthLabelComponent(uiStage)
+
+//        entity +=
+//            BehaviorTreeComponent(
+//                world = world,
+//                stage = stage,
+//                treePath = cfg.aiTreePath,
+//                // The blackboard must be created via a function reference (or lambda)
+//                // because at this point we finally have access to the correct Entity, World, and Stage.
+//                createBlackboard = { entity, world, stage ->
+//                    MushroomContext(entity, world, stage, debugRenderer)
+//                },
+//            )
     }
 
     private fun EntityCreateContext.spawnMinotaurSpecifics(
@@ -347,7 +375,7 @@ class CharacterSpawner(
                 sightSensorDef = cfg.sightSensorDefinition,
             )
 
-        entity += RayHitComponent()
+        entity += BasicSensorsHitComponent()
 
         entity +=
             BehaviorTreeComponent(
@@ -365,6 +393,7 @@ class CharacterSpawner(
     private fun EntityCreateContext.spawnPlayerSpecifics(
         entity: Entity,
         physics: PhysicComponent,
+        cfg: SpawnCfgFactory,
     ) {
         val phyCmp = entity[PhysicComponent]
         phyCmp.body.box(
@@ -405,6 +434,8 @@ class CharacterSpawner(
                     setOn(false)
                 }
 
+        entity += PlayerStealthComponent()
+
         entity += FlashlightComponent(flashlightSpot, flashLightHalo)
 
         entity += ReverbZoneContactComponent()
@@ -441,6 +472,11 @@ class CharacterSpawner(
                 type = ParticleType.AIR_BUBBLES,
             )
         entity += particle
+
+        entity +=
+            NoiseProfileComponent(
+                noises = cfg.noiseProfile,
+            )
 
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.HEAL.ordinal)
         messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ATTACK.ordinal)

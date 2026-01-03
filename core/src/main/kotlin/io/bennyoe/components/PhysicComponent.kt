@@ -109,7 +109,9 @@ class PhysicComponent : Component<PhysicComponent> {
                     }
                 }
 
-                else -> gdxError("No valid shape for creating a physics component given")
+                else -> {
+                    gdxError("No valid shape for creating a physics component given")
+                }
             }
         }
 

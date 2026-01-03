@@ -5,11 +5,13 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.utils.viewport.Viewport
 import io.bennyoe.lightEngine.scene2d.NormalMappedActor
+import io.bennyoe.systems.debug.DebugRenderer
 import ktx.math.vec2
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -47,19 +49,23 @@ class Scene2dLightEngine(
     entityCategory: Short = 0x0001,
     entityMask: Short = -1,
     lightActivationRadius: Float = -1f,
+    world: World? = null,
+    debugRenderer: DebugRenderer? = null,
     refreshRateHz: Float? = null,
 ) : AbstractLightEngine(
-        rayHandler,
-        cam,
-        batch,
-        viewport,
-        useDiffuseLight,
-        maxShaderLights,
-        entityCategory,
-        entityMask,
-        lightActivationRadius,
-        lightViewportScale,
-        refreshRateHz,
+        rayHandler = rayHandler,
+        cam = cam,
+        batch = batch,
+        viewport = viewport,
+        useDiffuseLight = useDiffuseLight,
+        maxShaderLights = maxShaderLights,
+        entityCategory = entityCategory,
+        entityMask = entityMask,
+        lightActivationRadius = lightActivationRadius,
+        lightViewportScale = lightViewportScale,
+        world = world,
+        debugRenderService = debugRenderer,
+        refreshRateHz = refreshRateHz,
     ) {
     /**
      * Performs the complete lighting render pass using normal mapping and Box2D shadows.

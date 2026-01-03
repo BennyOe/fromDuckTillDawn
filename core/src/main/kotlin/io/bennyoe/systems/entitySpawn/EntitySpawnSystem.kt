@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World
+import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.SpawnComponent
 import io.bennyoe.event.MapChangedEvent
@@ -19,17 +20,18 @@ import io.bennyoe.utility.findLayerDeep
 import io.bennyoe.utility.findLayersStartingWithDeep
 
 class EntitySpawnSystem(
-    stage: Stage = World.inject("stage"),
-    phyWorld: com.badlogic.gdx.physics.box2d.World = World.inject("phyWorld"),
-    lightEngine: Scene2dLightEngine = World.inject("lightEngine"),
-    debugRenderService: DefaultDebugRenderService = World.inject("debugRenderService"),
-    worldObjectsAtlas: TextureAtlas = World.inject("worldObjectsAtlas"),
-    dawnAtlases: TextureAtlases = World.inject("dawnAtlases"),
-    mushroomAtlases: TextureAtlases = World.inject("mushroomAtlases"),
-    minotaurAtlases: TextureAtlases = World.inject("minotaurAtlases"),
-    bgNormalAtlases: TextureAtlases = World.inject("bgNormalAtlases"),
-    foregroundAtlas: TextureAtlas = World.inject("foregroundAtlas"),
-    animatedBgAtlas: TextureAtlas = World.inject("animatedBgAtlas"),
+    stage: Stage = inject("stage"),
+    uiStage: Stage = inject("uiStage"),
+    phyWorld: com.badlogic.gdx.physics.box2d.World = inject("phyWorld"),
+    lightEngine: Scene2dLightEngine = inject("lightEngine"),
+    debugRenderService: DefaultDebugRenderService = inject("debugRenderService"),
+    worldObjectsAtlas: TextureAtlas = inject("worldObjectsAtlas"),
+    dawnAtlases: TextureAtlases = inject("dawnAtlases"),
+    mushroomAtlases: TextureAtlases = inject("mushroomAtlases"),
+    minotaurAtlases: TextureAtlases = inject("minotaurAtlases"),
+    bgNormalAtlases: TextureAtlases = inject("bgNormalAtlases"),
+    foregroundAtlas: TextureAtlas = inject("foregroundAtlas"),
+    animatedBgAtlas: TextureAtlas = inject("animatedBgAtlas"),
 ) : IteratingSystem(World.family { all(SpawnComponent) }),
     EventListener,
     PausableSystem {
@@ -38,7 +40,7 @@ class EntitySpawnSystem(
     private val skySpawner = SkySpawner(world, lightEngine, stage, worldObjectsAtlas)
     private val mapObjectSpawner = MapObjectSpawner(world, stage, phyWorld, lightEngine, worldObjectsAtlas)
     private val characterSpawner =
-        CharacterSpawner(world, phyWorld, lightEngine, stage, debugRenderService, dawnAtlases, mushroomAtlases, minotaurAtlases)
+        CharacterSpawner(world, phyWorld, lightEngine, stage, uiStage, debugRenderService, dawnAtlases, mushroomAtlases, minotaurAtlases)
     private val rainMaskSpawner = RainMaskSpawner(world, stage)
     private val waterSpawner = WaterSpawner(world, phyWorld)
     private val bgNormalSpawner = BgNormalSpawner(world, stage, bgNormalAtlases)

@@ -104,6 +104,7 @@ object MushroomCfg {
                             FloorType.GRASS to listOf(SoundAssets.MUSHROOM_FOOTSTEPS_GRASS),
                         ),
                 ),
+            hearingRadius = 10f,
             basicSensorList =
                 listOf(
                     // Wall Sensor: Checks for walls in front of the entity
@@ -111,7 +112,6 @@ object MushroomCfg {
                         bodyAnchorPoint = vec2(1f, -0.8f),
                         rayLengthOffset = vec2(0.5f, 0f),
                         type = SensorType.WALL_SENSOR,
-                        isHorizontal = true,
                         name = "mushroom_wall",
                         color = Color.BLUE,
                         hitFilter = {
@@ -124,7 +124,6 @@ object MushroomCfg {
                         bodyAnchorPoint = vec2(1f, 1.5f),
                         rayLengthOffset = vec2(0.5f, 0f),
                         type = SensorType.WALL_HEIGHT_SENSOR,
-                        isHorizontal = true,
                         name = "mushroom_wall_height",
                         color = Color.BLUE,
                         hitFilter = { it.entityCategory == EntityCategory.GROUND },
@@ -134,7 +133,6 @@ object MushroomCfg {
                         bodyAnchorPoint = vec2(1f, -1f),
                         rayLengthOffset = vec2(0f, -1.4f),
                         type = SensorType.GROUND_DETECT_SENSOR,
-                        isHorizontal = false,
                         name = "mushroom_ground",
                         color = Color.GREEN,
                     ),
@@ -143,7 +141,6 @@ object MushroomCfg {
                         bodyAnchorPoint = vec2(3.2f, -1f),
                         rayLengthOffset = vec2(0f, -1.4f),
                         type = SensorType.JUMP_SENSOR,
-                        isHorizontal = false,
                         name = "mushroom_jump",
                         color = Color.GREEN,
                     ),
@@ -152,7 +149,6 @@ object MushroomCfg {
                         bodyAnchorPoint = vec2(1f, -0.7f),
                         rayLengthOffset = vec2(1f, 0f),
                         type = SensorType.ATTACK_SENSOR,
-                        isHorizontal = true,
                         name = "mushroom_attack",
                         color = Color.ORANGE,
                         hitFilter = { it.entityCategory == EntityCategory.PLAYER },

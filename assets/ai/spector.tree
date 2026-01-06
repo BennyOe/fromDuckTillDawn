@@ -3,27 +3,55 @@ import idle:"io.bennyoe.ai.actions.spector.SpectorIdle"
 import patrol:"io.bennyoe.ai.actions.spector.SpectorPatrol"
 import chase:"io.bennyoe.ai.actions.spector.SpectorChase"
 import attack:"io.bennyoe.ai.actions.spector.SpectorAttack"
+import searching:"io.bennyoe.ai.actions.spector.SpectorSearching"
+import investigating:"io.bennyoe.ai.actions.spector.SpectorInvestigating"
 
+# Cancel Actions
+import cancelChase:"io.bennyoe.ai.actions.spector.SpectorCancelChase"
+import cancelSearching:"io.bennyoe.ai.actions.spector.SpectorCancelSearching"
+import cancelInvestigating:"io.bennyoe.ai.actions.spector.SpectorCancelInvestigating"
 
 import canAttack?:"io.bennyoe.ai.conditions.spector.CanAttack"
-import shouldChase?:"io.bennyoe.ai.conditions.spector.ShouldChase"
+import identified?:"io.bennyoe.ai.conditions.spector.Identification"
+import suspicious?:"io.bennyoe.ai.conditions.spector.Suspicious"
+import irritated?:"io.bennyoe.ai.conditions.spector.Irritated"
+
+# Cancel Conditions
+import shouldCancelChase?:"io.bennyoe.ai.conditions.spector.CancelChase"
+import shouldCancelSearching?:"io.bennyoe.ai.conditions.spector.CancelSearching"
+import shouldCancelInvestigating?:"io.bennyoe.ai.conditions.spector.CancelInvestigating"
 
 # -------------------------------------------------------------
-# Main-Logic:  Attack  →  Chase  →  Patrol
+# Main-Logic
 # -------------------------------------------------------------
 
-# This tree is lazy and will only evaluate the conditions when a task is finished.
 subtree name:"idlePatrolLoop"
   selector
     (random success: 0.4) idle duration:"uniform,1.0,1.5"
-    patrol duration:"uniform,4.0,6.0"
+    patrol duration:"uniform,4.0,6.0" direction:"uniform,1,2"
 
-# this tree is reactive to evaluate the conditions every tick,
-# so it can switch between actions dynamically and interrupt them
 root
   dynamicGuardSelector
+    # 1. Attack & Chase (Highest Priority)
     (canAttack?) sequence
       attack
       wait seconds:"uniform,1.5,2.0"
-    (shouldChase?) chase
+    (identified?) chase
+
+    # 2. Search (High Suspicion)
+    (suspicious?) sequence
+      # Move fast to last known position
+      moveTo target:"lastKnownPos" speed:1.5
+      # Active search pattern at destination
+      lookAround duration:"uniform,1.0,1.5"
+      moveTo target:"lastKnownPos" offset:2.0 # Move slightly away
+      lookAround duration:"uniform,2.0,3.0"
+
+    # 3. Investigate (Low Suspicion)
+    (irritated?) sequence
+      # Move slowly to noise/sighting
+      moveTo target:"lastKnownPos" speed:0.8
+      wait seconds:"uniform,1.5,2.5" # Just wait and look briefly
+
+    # 4. Default
     $idlePatrolLoop

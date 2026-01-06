@@ -1,6 +1,5 @@
 package io.bennyoe.ai.blackboards
 
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -15,16 +14,12 @@ import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BasicSensorsHitComponent
-import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
-import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.debug.DebugRenderer
-import io.bennyoe.systems.debug.addToDebugView
-import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.SensorType.ATTACK_SENSOR
 import io.bennyoe.utility.SensorType.GROUND_DETECT_SENSOR
 import io.bennyoe.utility.SensorType.JUMP_SENSOR
@@ -35,6 +30,10 @@ import ktx.collections.isNotEmpty
 import ktx.collections.lastIndex
 import ktx.log.logger
 import kotlin.math.abs
+
+private const val INVESTIGATION_THRESHOLD = 0.2f
+private const val SEARCH_THRESHOLD = 0.4f
+private const val CHASE_THRESHOLD = 0.6f
 
 class SpectorContext(
     entity: Entity,
@@ -57,6 +56,9 @@ class SpectorContext(
     val playerEntity = world.family { all(PlayerComponent, PhysicComponent) }.first()
     val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
     val suspicionCmp: SuspicionComponent
+    var isSearching: Boolean = false
+    var isInvestigating: Boolean = false
+    var isChasing: Boolean = false
 
     init {
         with(world) {
@@ -79,37 +81,6 @@ class SpectorContext(
 
     fun canAttack(): Boolean = basicSensorsHitCmp.getSensorHit(ATTACK_SENSOR)
 
-    fun hasPlayerNearby(): Boolean {
-        with(world) {
-            nearbyEnemiesCmp.target = nearbyEnemiesCmp.nearbyEntities
-                .firstOrNull {
-                    val bodyData = it[PhysicComponent].body.userData as EntityBodyData
-                    bodyData.entityCategory == EntityCategory.PLAYER
-                } ?: BehaviorTreeComponent.NO_TARGET
-        }
-        return nearbyEnemiesCmp.target != BehaviorTreeComponent.NO_TARGET
-    }
-
-    fun isPlayerInChaseRange(): Boolean {
-        val selfPos = phyCmp.body.position
-
-        // draw the chase range
-        TMP_CIRC
-            .set(
-                phyCmp.body.position.x,
-                phyCmp.body.position.y,
-                basicSensorsCmp.chaseRange,
-            )
-        TMP_CIRC.addToDebugView(debugRenderer, Color.GREEN, "chaseRange")
-
-        // calculate the distance to the player and return true if it is < chaseRange
-        val player = world.family { all(PlayerComponent, PhysicComponent) }.firstOrNull() ?: return false
-        val playerPos = with(world) { player[PhysicComponent].body.position }
-        val dist2 = selfPos.dst2(playerPos)
-
-        return dist2 <= basicSensorsCmp.chaseRange * basicSensorsCmp.chaseRange
-    }
-
     fun stopMovement() {
         intentionCmp.walkDirection = WalkDirection.NONE
     }
@@ -127,6 +98,32 @@ class SpectorContext(
         stopAttack()
     }
 
+    fun investigating(): Boolean {
+        isInvestigating = true
+        val dest = suspicionCmp.lastKnownPlayerPos ?: return false
+        val myPos = phyCmp.body.position
+
+        if (abs(myPos.x - dest.x) < 0.5f) {
+            intentionCmp.walkDirection = WalkDirection.NONE
+            return false
+        }
+        if (myPos.x < dest.x) intentionCmp.walkDirection = WalkDirection.RIGHT
+        if (myPos.x > dest.x) intentionCmp.walkDirection = WalkDirection.LEFT
+        return true
+    }
+
+    fun cancelInvestigating() {
+        isInvestigating = false
+    }
+
+    fun searching() {
+        isSearching = true
+    }
+
+    fun cancelSearching() {
+        isSearching = false
+    }
+
     fun patrol() {
         if (basicSensorsHitCmp.getSensorHit(WALL_SENSOR) || !basicSensorsHitCmp.getSensorHit(GROUND_DETECT_SENSOR)) {
             intentionCmp.walkDirection =
@@ -139,6 +136,7 @@ class SpectorContext(
     }
 
     fun chasePlayer() {
+        isChasing = true
         val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
 
         // update state
@@ -175,6 +173,10 @@ class SpectorContext(
         ) {
             intentionCmp.wantsToJump = true
         }
+    }
+
+    fun cancelChase() {
+        isChasing = false
     }
 
     /**
@@ -329,8 +331,23 @@ class SpectorContext(
         }
     }
 
+    fun isCool(): Boolean = suspicionCmp.combinedSuspicionStrength <= INVESTIGATION_THRESHOLD
+
+    fun isIrritated(): Boolean =
+        suspicionCmp.combinedSuspicionStrength > INVESTIGATION_THRESHOLD && suspicionCmp.combinedSuspicionStrength <= SEARCH_THRESHOLD
+
+    fun isSuspicious(): Boolean =
+        suspicionCmp.combinedSuspicionStrength > SEARCH_THRESHOLD && suspicionCmp.combinedSuspicionStrength <= CHASE_THRESHOLD
+
+    fun hasIdentified(): Boolean = suspicionCmp.combinedSuspicionStrength > CHASE_THRESHOLD
+
+    fun isCancelingChase(): Boolean = isChasing && suspicionCmp.combinedSuspicionStrength <= CHASE_THRESHOLD
+
+    fun isCancelingSearching(): Boolean = isSearching && suspicionCmp.combinedSuspicionStrength <= SEARCH_THRESHOLD
+
+    fun isCancelingInvestigating(): Boolean = isInvestigating && suspicionCmp.combinedSuspicionStrength < INVESTIGATION_THRESHOLD
+
     companion object {
-        val logger = logger<MinotaurContext>()
-        val TMP_CIRC = Circle()
+        val logger = logger<SpectorContext>()
     }
 }

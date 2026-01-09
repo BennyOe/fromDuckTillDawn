@@ -1,34 +1,36 @@
 package io.bennyoe.ai.actions.spector
 
-import com.badlogic.gdx.ai.GdxAI
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
-import com.badlogic.gdx.math.Vector2
 import io.bennyoe.ai.blackboards.SpectorContext
 import io.bennyoe.ai.core.AbstractAction
 import io.bennyoe.components.GameMood
 import ktx.log.logger
+import ktx.math.vec2
 
 class SpectorMoveTo(
     @JvmField
+    @TaskAttribute(required = true)
+    var target: String = "",
+    @JvmField
     @TaskAttribute
-    var target: String? = null
+    var speed: FloatDistribution? = null,
 ) : AbstractAction<SpectorContext>() {
+    var targetPos = vec2()
 
     override fun enter() {
-        SpectorAttack.logger.debug { "CancelChase Enter" }
         ctx.lastTaskName = this.javaClass.simpleName
         ctx.currentMood = GameMood.NORMAL
+        targetPos = ctx.getPositionToGoTo(target).cpy()
+        ctx.investigationIsFinished = false
     }
 
-    override fun onExecute(): Status {
-
-            return Status.SUCCEEDED
-        return Status.RUNNING
-    }
+    override fun onExecute(): Status = if (!ctx.moveToPosition(targetPos)) Status.RUNNING else Status.SUCCEEDED
 
     override fun exit() {
+        ctx.investigationIsFinished = true
     }
 
     // the copyTo must be overridden when @TaskAttribute is specified

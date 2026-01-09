@@ -12,7 +12,7 @@ class IsAlive : AbstractCondition<SpectorContext>() {
 }
 
 class Cool : AbstractCondition<SpectorContext>() {
-    override fun condition(): Boolean = entity.isCool()
+    override fun condition(): Boolean = entity.isRelaxed()
 }
 
 class Irritated : AbstractCondition<SpectorContext>() {
@@ -27,14 +27,3 @@ class Identification : AbstractCondition<SpectorContext>() {
     override fun condition(): Boolean = entity.hasIdentified()
 }
 
-class CancelChase : AbstractCondition<SpectorContext>() {
-    override fun condition(): Boolean = entity.isCancelingChase()
-}
-
-class CancelSearching : AbstractCondition<SpectorContext>() {
-    override fun condition(): Boolean = entity.isCancelingSearching()
-}
-
-class CancelInvestigating : AbstractCondition<SpectorContext>() {
-    override fun condition(): Boolean = entity.isCancelingInvestigating()
-}

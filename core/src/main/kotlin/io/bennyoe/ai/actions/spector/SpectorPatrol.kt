@@ -22,7 +22,6 @@ class SpectorPatrol(
 
     override fun enter() {
         logger.debug { "Patrol Enter" }
-        ctx.stopAttack()
         ctx.lastTaskName = this.javaClass.simpleName
         ctx.currentMood = GameMood.NORMAL
         ctx.intentionCmp.walkDirection = WalkDirection.entries[direction?.nextInt() ?: 1]

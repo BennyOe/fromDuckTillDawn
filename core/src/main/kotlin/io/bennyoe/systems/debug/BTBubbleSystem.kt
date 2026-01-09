@@ -10,6 +10,7 @@ import com.github.quillraven.fleks.Fixed
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
+import io.bennyoe.ai.blackboards.HasAwareness
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.debug.BTBubbleComponent
@@ -27,13 +28,14 @@ class BTBubbleSystem(
     override fun onTickEntity(entity: Entity) {
         val bTBubbleCmp = entity[BTBubbleComponent]
         val behaviorTreeCmp = entity[BehaviorTreeComponent]
-        bTBubbleCmp.bubble.displayState(
-            behaviorTreeCmp
-                .behaviorTree
-                .`object`
-                .lastTaskName
-                ?: "NO STATE",
-        )
+        val awareness = "(${(behaviorTreeCmp.blackboard as? HasAwareness<*>)?.awareness?.toString()})"
+        val lastTaskName = behaviorTreeCmp.behaviorTree.`object`.lastTaskName
+
+        val stateText =
+            listOfNotNull(awareness, lastTaskName)
+                .joinToString(separator = " ")
+                .ifBlank { "NO STATE" }
+        bTBubbleCmp.bubble.displayState(stateText)
     }
 
     override fun onAlphaEntity(

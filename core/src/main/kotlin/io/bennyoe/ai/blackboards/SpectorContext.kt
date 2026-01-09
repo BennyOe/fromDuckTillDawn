@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
-import io.bennyoe.components.HasGroundContact
+import io.bennyoe.ai.blackboards.SpectorContext.SpectorAwareness
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
@@ -14,21 +14,17 @@ import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BasicSensorsHitComponent
-import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.systems.debug.DebugRenderer
+import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.SensorType.ATTACK_SENSOR
 import io.bennyoe.utility.SensorType.GROUND_DETECT_SENSOR
-import io.bennyoe.utility.SensorType.JUMP_SENSOR
-import io.bennyoe.utility.SensorType.WALL_HEIGHT_SENSOR
 import io.bennyoe.utility.SensorType.WALL_SENSOR
-import ktx.collections.GdxArray
-import ktx.collections.isNotEmpty
-import ktx.collections.lastIndex
 import ktx.log.logger
+import ktx.math.vec2
 import kotlin.math.abs
 
 private const val INVESTIGATION_THRESHOLD = 0.2f
@@ -40,7 +36,8 @@ class SpectorContext(
     world: World,
     stage: Stage,
     debugRenderer: DebugRenderer,
-) : AbstractBlackboard(entity, world, stage, debugRenderer) {
+) : AbstractBlackboard(entity, world, stage, debugRenderer),
+    HasAwareness<SpectorAwareness> {
     val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
@@ -50,15 +47,20 @@ class SpectorContext(
     val healthCmp: HealthComponent
     val stateCmp: StateComponent<*, *>
     val basicSensorsCmp: BasicSensorsComponent
-    var nearestPlatformLedge: Float? = null
-    var nearestPlatformLedgeWithOffset: Float? = null
-    var platformRelation: PlatformRelation = PlatformRelation.SAME
     val playerEntity = world.family { all(PlayerComponent, PhysicComponent) }.first()
     val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
     val suspicionCmp: SuspicionComponent
-    var isSearching: Boolean = false
-    var isInvestigating: Boolean = false
-    var isChasing: Boolean = false
+    var searchIsFinished: Boolean = true
+    var investigationIsFinished: Boolean = true
+
+    override var awareness = SpectorAwareness.CALM
+
+    enum class SpectorAwareness {
+        CALM,
+        INVESTIGATING,
+        SEARCHING,
+        CHASING,
+    }
 
     init {
         with(world) {
@@ -75,6 +77,100 @@ class SpectorContext(
         }
     }
 
+    override fun updateAwareness() {
+        val suspicion = suspicionCmp.combinedSuspicionStrength
+
+        when (awareness) {
+            SpectorAwareness.CALM -> {
+                when {
+                    suspicion > CHASE_THRESHOLD -> {
+                        awareness = SpectorAwareness.CHASING
+                    }
+
+                    suspicion > SEARCH_THRESHOLD -> {
+                        awareness = SpectorAwareness.SEARCHING
+                        searchIsFinished = false
+                    }
+
+                    suspicion > INVESTIGATION_THRESHOLD -> {
+                        investigationIsFinished = false
+                        awareness = SpectorAwareness.INVESTIGATING
+                    }
+                }
+            }
+
+            SpectorAwareness.INVESTIGATING -> {
+                when {
+                    suspicion > CHASE_THRESHOLD -> {
+                        awareness = SpectorAwareness.CHASING
+                    }
+
+                    suspicion > SEARCH_THRESHOLD -> {
+                        awareness = SpectorAwareness.SEARCHING
+                        searchIsFinished = false
+                    }
+
+                    suspicion < INVESTIGATION_THRESHOLD && investigationIsFinished -> {
+                        awareness = SpectorAwareness.CALM
+                    }
+                }
+            }
+
+            SpectorAwareness.SEARCHING -> {
+                when {
+                    suspicion > CHASE_THRESHOLD -> {
+                        awareness = SpectorAwareness.CHASING
+                    }
+
+                    suspicion < SEARCH_THRESHOLD && searchIsFinished -> {
+                        awareness = SpectorAwareness.CALM
+                    }
+                }
+            }
+
+            SpectorAwareness.CHASING -> {
+                when {
+                    suspicion < SEARCH_THRESHOLD -> {
+                        awareness = SpectorAwareness.SEARCHING
+                        searchIsFinished = false
+                    }
+                }
+            }
+        }
+    }
+
+    fun getPositionToGoTo(target: String): Vector2 {
+        logger.debug { "Moving to position: ${suspicionCmp.lastKnownPlayerPos}" }
+        return when (target) {
+            "lastKnownPos" -> suspicionCmp.lastKnownPlayerPos
+            "player" -> playerPhysicCmp.body.position
+            else -> vec2(0f, 0f)
+        }!!
+    }
+
+    fun moveToPosition(pos: Vector2): Boolean {
+        logger.debug { "POSITION DIFFERENCE ====== ${abs(pos.x - phyCmp.body.position.x)}" }
+        // MODIFIED! If we are blocked by a wall or would walk off a ledge, stop and treat as "arrived"
+        // so sequences (investigate/search) can finish instead of getting stuck forever.
+        Circle(pos.x, pos.y, 0.2f).addToDebugView(service = debugRenderer, label = "lastKnownPos")
+        if (basicSensorsHitCmp.getSensorHit(WALL_SENSOR) || !basicSensorsHitCmp.getSensorHit(GROUND_DETECT_SENSOR)) {
+            intentionCmp.walkDirection = WalkDirection.NONE
+            return true
+        }
+        if (abs(pos.x - phyCmp.body.position.x) < 0.5f) {
+            intentionCmp.walkDirection = WalkDirection.NONE
+            return true
+        }
+
+        if (pos.x < phyCmp.body.position.x) {
+            intentionCmp.walkDirection = WalkDirection.LEFT
+        }
+        if (pos.x > phyCmp.body.position.x) {
+            intentionCmp.walkDirection = WalkDirection.RIGHT
+        }
+        return false
+    }
+
     fun isAlive(): Boolean = !healthCmp.isDead
 
     fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
@@ -85,43 +181,8 @@ class SpectorContext(
         intentionCmp.walkDirection = WalkDirection.NONE
     }
 
-    fun startAttack() {
-        intentionCmp.wantsToAttack = true
-    }
-
-    fun stopAttack() {
-        intentionCmp.wantsToAttack = false
-    }
-
     fun idle() {
         stopMovement()
-        stopAttack()
-    }
-
-    fun investigating(): Boolean {
-        isInvestigating = true
-        val dest = suspicionCmp.lastKnownPlayerPos ?: return false
-        val myPos = phyCmp.body.position
-
-        if (abs(myPos.x - dest.x) < 0.5f) {
-            intentionCmp.walkDirection = WalkDirection.NONE
-            return false
-        }
-        if (myPos.x < dest.x) intentionCmp.walkDirection = WalkDirection.RIGHT
-        if (myPos.x > dest.x) intentionCmp.walkDirection = WalkDirection.LEFT
-        return true
-    }
-
-    fun cancelInvestigating() {
-        isInvestigating = false
-    }
-
-    fun searching() {
-        isSearching = true
-    }
-
-    fun cancelSearching() {
-        isSearching = false
     }
 
     fun patrol() {
@@ -135,217 +196,13 @@ class SpectorContext(
         }
     }
 
-    fun chasePlayer() {
-        isChasing = true
-        val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
+    fun isRelaxed(): Boolean = awareness == SpectorAwareness.CALM
 
-        // update state
-        if (with(world) { playerEntity has HasGroundContact }) {
-            platformRelation = heightRelationToPlayer(phyCmp, playerPhysicCmp)
-        }
+    fun isIrritated(): Boolean = awareness == SpectorAwareness.INVESTIGATING
 
-        // reset if on same platform
-        if (platformRelation == PlatformRelation.SAME) {
-            nearestPlatformLedge = null
-            nearestPlatformLedgeWithOffset = null
-        }
+    fun isSuspicious(): Boolean = awareness == SpectorAwareness.SEARCHING
 
-        // wall and gap jumps
-        if (platformRelation != PlatformRelation.ABOVE) {
-            jumpOverWall()
-            jumpOverGap()
-        }
-
-        changePlatform(playerPos)
-
-        if (platformRelation == PlatformRelation.BELOW) {
-            calculateNearestPlatformEdgeOffset(ledgeSensorsHitCmp.upperLedgeHits)
-        } else if (platformRelation == PlatformRelation.ABOVE) {
-            calculateNearestPlatformEdgeOffset(ledgeSensorsHitCmp.lowerLedgeHits)
-        }
-
-        walkToPosition()
-
-        // jump when needed
-        if (intentionCmp.walkDirection == WalkDirection.NONE &&
-            platformRelation == PlatformRelation.BELOW &&
-            nearestPlatformLedgeWithOffset != null
-        ) {
-            intentionCmp.wantsToJump = true
-        }
-    }
-
-    fun cancelChase() {
-        isChasing = false
-    }
-
-    /**
-     * Determines the nearest reachable upper ledge offset for jumping up or dropping down.
-     * Starts from the currently selected ledge (`nearestPlatformLedge`) and checks neighboring sensors
-     * to the left and right. If a neighboring ledge is not blocked, its x-coordinate is selected
-     * as a better jump target.
-     */
-    private fun calculateNearestPlatformEdgeOffset(hits: GdxArray<LedgeHitData>) {
-        val index = hits.indexOfFirst { it.xCoordinate == nearestPlatformLedge }
-
-        if (index == -1 || hits[index].hit) {
-            nearestPlatformLedgeWithOffset = null
-            return
-        }
-
-        if (index > 1 && !hits[index - 2].hit) {
-            nearestPlatformLedgeWithOffset = hits[index - 2].xCoordinate
-            nearestPlatformLedge = null
-        } else if (index < hits.lastIndex - 1 && !hits[index + 2].hit) {
-            nearestPlatformLedgeWithOffset = hits[index + 2].xCoordinate
-            nearestPlatformLedge = null
-        }
-    }
-
-    private fun changePlatform(playerPos: Vector2) {
-        nearestPlatformLedge =
-            when (platformRelation) {
-                PlatformRelation.BELOW -> {
-                    if (ledgeSensorsHitCmp.upperLedgeHits.size == ledgeSensorsHitCmp.lowerLedgeHits.size &&
-                        ledgeSensorsHitCmp.upperLedgeHits.isNotEmpty()
-                    ) {
-                        findLedgeToJumpUp(ledgeSensorsHitCmp.upperLedgeHits, ledgeSensorsHitCmp.lowerLedgeHits, playerPos.x)
-                    } else {
-                        null
-                    }
-                }
-
-                PlatformRelation.ABOVE -> {
-                    if (ledgeSensorsHitCmp.lowerLedgeHits.isNotEmpty()) {
-                        findLedgeToDropDown(ledgeSensorsHitCmp.lowerLedgeHits, playerPos.x)
-                    } else {
-                        null
-                    }
-                }
-
-                else -> {
-                    null
-                }
-            }
-    }
-
-    // get the sensor located closest to the player and iterate to both sides until a upperLedgeSensor doesn't hit. If the lowerLedgeSensor hits
-    // this is the jump-point to the upper platform
-    private fun findLedgeToJumpUp(
-        upperLedgeHits: GdxArray<LedgeHitData>,
-        lowerLedgeHits: GdxArray<LedgeHitData>,
-        playerX: Float,
-    ): Float? {
-        val playerIndex =
-            upperLedgeHits
-                .minByOrNull { hit ->
-                    abs(hit.xCoordinate - playerX)
-                }?.let { hit -> upperLedgeHits.indexOf(hit) } ?: return null
-
-        // iterate in both directions from this sensor to find the closest with not upper hit and a bottom hit
-        for (offset in 0 until upperLedgeHits.size) {
-            val left = playerIndex - offset
-            val right = playerIndex + offset
-
-            if (left >= 0 && !upperLedgeHits[left].hit && lowerLedgeHits[left].hit) {
-                // add an extra offset to ensure there is enough space to jump up to the next platform
-                return upperLedgeHits[left].xCoordinate
-            }
-            if (right < upperLedgeHits.size && !upperLedgeHits[right].hit && lowerLedgeHits[right].hit) {
-                return upperLedgeHits[right].xCoordinate
-            }
-        }
-
-        return null
-    }
-
-    /**  same as [findLedgeToJumpUp] for falling down a platform **/
-    private fun findLedgeToDropDown(
-        lowerLedgeHits: GdxArray<LedgeHitData>,
-        playerX: Float,
-    ): Float? {
-        val playerIndex =
-            lowerLedgeHits
-                .minByOrNull { hit ->
-                    abs(hit.xCoordinate - playerX)
-                }?.let { hit -> lowerLedgeHits.indexOf(hit) } ?: return null
-
-        for (offset in 0 until lowerLedgeHits.size) {
-            val left = playerIndex - offset
-            val right = playerIndex + offset
-
-            // maybe the left != playerIndex is not needed
-            if (left >= 0 && !lowerLedgeHits[left].hit && left != playerIndex) {
-                return lowerLedgeHits[left].xCoordinate
-            }
-            // maybe the right != playerIndex is not needed
-            if (right < lowerLedgeHits.size && !lowerLedgeHits[right].hit && right != playerIndex) {
-                return lowerLedgeHits[right].xCoordinate
-            }
-        }
-
-        return null
-    }
-
-    private fun walkToPosition() {
-        val selfPos = phyCmp.body.position
-        val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
-        val goToPosition: Float = nearestPlatformLedgeWithOffset ?: playerPos.x
-        val dist = selfPos.x - goToPosition
-
-        when {
-            abs(dist) > X_THRESHOLD -> {
-                intentionCmp.walkDirection = if (dist < 0f) WalkDirection.RIGHT else WalkDirection.LEFT
-            }
-
-            else -> {
-                intentionCmp.walkDirection = WalkDirection.NONE
-            }
-        }
-    }
-
-    private fun jumpOverGap() {
-        if (!basicSensorsHitCmp.getSensorHit(GROUND_DETECT_SENSOR) && basicSensorsHitCmp.getSensorHit(JUMP_SENSOR)) {
-            intentionCmp.wantsToJump = true
-        }
-    }
-
-    private fun jumpOverWall() {
-        if (basicSensorsHitCmp.getSensorHit(WALL_SENSOR) && !basicSensorsHitCmp.getSensorHit(WALL_HEIGHT_SENSOR)) {
-            intentionCmp.wantsToJump = true
-        }
-    }
-
-    // calculate if the player is above, below or on same platform as enemy
-    private fun heightRelationToPlayer(
-        self: PhysicComponent,
-        player: PhysicComponent,
-    ): PlatformRelation {
-        val selfBottomY = self.body.position.y + self.offset.y - self.size.y * 0.5f
-        val playerBottomY = player.body.position.y + player.offset.y - player.size.y * 0.5f
-        val dy = selfBottomY - playerBottomY
-        return when {
-            dy > Y_THRESHOLD -> PlatformRelation.ABOVE
-            dy < -Y_THRESHOLD -> PlatformRelation.BELOW
-            else -> PlatformRelation.SAME
-        }
-    }
-
-    fun isCool(): Boolean = suspicionCmp.combinedSuspicionStrength <= INVESTIGATION_THRESHOLD
-
-    fun isIrritated(): Boolean =
-        suspicionCmp.combinedSuspicionStrength > INVESTIGATION_THRESHOLD && suspicionCmp.combinedSuspicionStrength <= SEARCH_THRESHOLD
-
-    fun isSuspicious(): Boolean =
-        suspicionCmp.combinedSuspicionStrength > SEARCH_THRESHOLD && suspicionCmp.combinedSuspicionStrength <= CHASE_THRESHOLD
-
-    fun hasIdentified(): Boolean = suspicionCmp.combinedSuspicionStrength > CHASE_THRESHOLD
-
-    fun isCancelingChase(): Boolean = isChasing && suspicionCmp.combinedSuspicionStrength <= CHASE_THRESHOLD
-
-    fun isCancelingSearching(): Boolean = isSearching && suspicionCmp.combinedSuspicionStrength <= SEARCH_THRESHOLD
-
-    fun isCancelingInvestigating(): Boolean = isInvestigating && suspicionCmp.combinedSuspicionStrength < INVESTIGATION_THRESHOLD
+    fun hasIdentified(): Boolean = awareness == SpectorAwareness.CHASING
 
     companion object {
         val logger = logger<SpectorContext>()

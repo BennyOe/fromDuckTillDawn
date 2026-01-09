@@ -26,4 +26,3 @@ class Suspicious : AbstractCondition<SpectorContext>() {
 class Identification : AbstractCondition<SpectorContext>() {
     override fun condition(): Boolean = entity.hasIdentified()
 }
-

@@ -1,6 +1,5 @@
 package io.bennyoe.ai.actions.spector
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution

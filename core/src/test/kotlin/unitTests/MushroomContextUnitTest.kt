@@ -28,6 +28,7 @@ import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
+import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
@@ -130,6 +131,7 @@ class MushroomContextUnitTest {
                 it += BasicSensorsComponent(emptyList(), 7f, transformCmp, 23f)
                 it += BasicSensorsHitComponent()
                 it += phyCmp
+                it += SuspicionComponent()
                 it +=
                     StateComponent(
                         world,

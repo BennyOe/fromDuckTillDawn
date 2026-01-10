@@ -19,6 +19,7 @@ import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
+import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.debug.DebugRenderer
@@ -55,6 +56,7 @@ class MushroomContext(
     var platformRelation: PlatformRelation = PlatformRelation.SAME
     val playerEntity = world.family { all(PlayerComponent, PhysicComponent) }.first()
     val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
+    val suspicionCmp: SuspicionComponent
 
     init {
         with(world) {
@@ -67,6 +69,7 @@ class MushroomContext(
             ledgeSensorsHitCmp = entity[LedgeSensorsHitComponent]
             stateCmp = entity[StateComponent]
             basicSensorsCmp = entity[BasicSensorsComponent]
+            suspicionCmp = entity[SuspicionComponent]
         }
     }
 

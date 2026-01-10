@@ -19,4 +19,10 @@ abstract class AbstractBlackboard(
     var currentMood: GameMood = GameMood.NORMAL
 }
 
+interface HasAwareness<T> {
+    var awareness: T
+
+    fun updateAwareness()
+}
+
 enum class PlatformRelation { SAME, ABOVE, BELOW }

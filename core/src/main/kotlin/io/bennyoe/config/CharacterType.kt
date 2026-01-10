@@ -4,4 +4,5 @@ enum class CharacterType {
     PLAYER,
     MUSHROOM,
     MINOTAUR,
+    SPECTOR,
 }

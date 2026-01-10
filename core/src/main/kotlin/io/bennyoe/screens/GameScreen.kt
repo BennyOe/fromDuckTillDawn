@@ -129,6 +129,10 @@ class GameScreen(
         TextureAtlases(
             assets[TextureAssets.MINOTAUR_ATLAS.descriptor],
         )
+    private val spectorAtlases =
+        TextureAtlases(
+            assets[TextureAssets.SPECTOR_ATLAS.descriptor],
+        )
     private val crowAtlases =
         TextureAtlases(
             assets[TextureAssets.CROW_ATLAS.descriptor],
@@ -204,6 +208,7 @@ class GameScreen(
                 add("dawnAtlases", dawnAtlases)
                 add("mushroomAtlases", mushroomAtlases)
                 add("minotaurAtlases", minotaurAtlases)
+                add("spectorAtlases", spectorAtlases)
                 add("crowAtlases", crowAtlases)
                 add("bgNormalAtlases", bgNormalAtlases)
                 add("particlesAtlas", particleAtlas)

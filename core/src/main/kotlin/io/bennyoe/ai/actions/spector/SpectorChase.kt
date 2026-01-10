@@ -8,18 +8,15 @@ class SpectorChase : AbstractAction<SpectorContext>() {
     private var timer = 0f
 
     override fun enter() {
-        // Reset timer when entering the action
         timer = 0f
     }
 
     override fun onExecute(): Status {
-        // MODIFIED: simple 10 second timer logic
         timer += Gdx.graphics.deltaTime
 
-        return if (timer >= 10f) {
+        return if (timer >= 3f) {
             Status.SUCCEEDED
         } else {
-            // Placeholder for actual chase logic (e.g. move to player)
             ctx.moveToPosition(ctx.playerPhysicCmp.body.position)
             Status.RUNNING
         }

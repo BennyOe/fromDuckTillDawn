@@ -1,13 +1,16 @@
 package io.bennyoe.ai.blackboards
 
 import com.badlogic.gdx.math.Circle
+import com.badlogic.gdx.math.MathUtils.random
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.blackboards.SpectorContext.SpectorAwareness
 import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
+import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
@@ -44,6 +47,8 @@ class SpectorContext(
     val intentionCmp: IntentionComponent
     val basicSensorsHitCmp: BasicSensorsHitComponent
     val ledgeSensorsHitCmp: LedgeSensorsHitComponent
+    val imageCmp: ImageComponent
+    val moveCmp: MoveComponent
     val healthCmp: HealthComponent
     val stateCmp: StateComponent<*, *>
     val basicSensorsCmp: BasicSensorsComponent
@@ -52,6 +57,7 @@ class SpectorContext(
     val suspicionCmp: SuspicionComponent
     var searchIsFinished: Boolean = true
     var investigationIsFinished: Boolean = true
+    val initialWalkSpeed: Float
 
     override var awareness = SpectorAwareness.CALM
 
@@ -71,9 +77,12 @@ class SpectorContext(
             intentionCmp = entity[IntentionComponent]
             basicSensorsHitCmp = entity[BasicSensorsHitComponent]
             ledgeSensorsHitCmp = entity[LedgeSensorsHitComponent]
+            imageCmp = entity[ImageComponent]
+            moveCmp = entity[MoveComponent]
             stateCmp = entity[StateComponent]
             basicSensorsCmp = entity[BasicSensorsComponent]
             suspicionCmp = entity[SuspicionComponent]
+            initialWalkSpeed = moveCmp.maxWalkSpeed
         }
     }
 
@@ -143,20 +152,18 @@ class SpectorContext(
         logger.debug { "Moving to position: ${suspicionCmp.lastKnownPlayerPos}" }
         return when (target) {
             "lastKnownPos" -> suspicionCmp.lastKnownPlayerPos
-            "player" -> playerPhysicCmp.body.position
+            "investigateLeft" -> vec2(phyCmp.body.position.x - random(.8f, 3f), phyCmp.body.position.y)
+            "investigateRight" -> vec2(phyCmp.body.position.x + random(.8f, 3f), phyCmp.body.position.y)
             else -> vec2(0f, 0f)
         }!!
     }
 
+    fun abortMoveDueToWallOrGap(): Boolean =
+        basicSensorsHitCmp.getSensorHit(WALL_SENSOR) || !basicSensorsHitCmp.getSensorHit(GROUND_DETECT_SENSOR)
+
     fun moveToPosition(pos: Vector2): Boolean {
-        logger.debug { "POSITION DIFFERENCE ====== ${abs(pos.x - phyCmp.body.position.x)}" }
-        // MODIFIED! If we are blocked by a wall or would walk off a ledge, stop and treat as "arrived"
-        // so sequences (investigate/search) can finish instead of getting stuck forever.
         Circle(pos.x, pos.y, 0.2f).addToDebugView(service = debugRenderer, label = "lastKnownPos")
-        if (basicSensorsHitCmp.getSensorHit(WALL_SENSOR) || !basicSensorsHitCmp.getSensorHit(GROUND_DETECT_SENSOR)) {
-            intentionCmp.walkDirection = WalkDirection.NONE
-            return true
-        }
+
         if (abs(pos.x - phyCmp.body.position.x) < 0.5f) {
             intentionCmp.walkDirection = WalkDirection.NONE
             return true

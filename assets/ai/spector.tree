@@ -5,6 +5,8 @@ import moveTo:"io.bennyoe.ai.actions.spector.SpectorMoveTo"
 import search:"io.bennyoe.ai.actions.spector.SpectorSearch"
 import chase:"io.bennyoe.ai.actions.spector.SpectorChase"
 import investigate:"io.bennyoe.ai.actions.spector.SpectorInvestigate"
+import cancelInvestigate:"io.bennyoe.ai.actions.spector.SpectorCancelInvestigation"
+import cancelSearch:"io.bennyoe.ai.actions.spector.SpectorCancelSearch"
 
 # Conditions
 import cool?:"io.bennyoe.ai.conditions.spector.Cool"
@@ -29,13 +31,35 @@ root
 
     # 2) SEARCHING
     (suspicious?) sequence
+      selector
+        moveTo target:"lastKnownPos" speed:8.0
+        idle duration:"uniform,0.1,0.1"
       search
-      wait seconds:"uniform,2.0,4.0"
+      repeat times:2
+        sequence
+          sequence
+            moveTo target:"investigateLeft" speed:4.0
+            search
+          sequence
+            moveTo target:"investigateRight" speed:4.0
+            search
+      cancelSearch
 
-    # 3) INVESTIGATING
+# 3) INVESTIGATING
     (irritated?) sequence
-      moveTo target:"lastKnownPos" speed:"uniform,1.0,2.0"
-      wait seconds:"uniform,1.5,2.5"
+      selector
+        moveTo target:"lastKnownPos" speed:4.0
+        idle duration:"uniform,0.1,0.1"
+      investigate
+      repeat times:2
+        sequence
+          sequence
+            moveTo target:"investigateLeft" speed:2.0
+            investigate
+          sequence
+            moveTo target:"investigateRight" speed:2.0
+            investigate
+      cancelInvestigate
 
     # 4) COOL (default)
     $idlePatrolLoop

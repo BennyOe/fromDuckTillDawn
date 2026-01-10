@@ -5,21 +5,19 @@ import io.bennyoe.ai.blackboards.SpectorContext
 import io.bennyoe.ai.core.AbstractAction
 import ktx.log.logger
 
-const val INVESTIGATION_DURATION = 2f
-
-class SpectorInvestigate : AbstractAction<SpectorContext>() {
+class SpectorCancelSearch : AbstractAction<SpectorContext>() {
     var timer = 0f
 
     override fun enter() {
         timer = 0f
         ctx.lastTaskName = this.javaClass.simpleName
-        ctx.idle()
     }
 
     override fun onExecute(): Status {
         timer += Gdx.graphics.deltaTime
 
         return if (timer >= INVESTIGATION_DURATION) {
+            ctx.searchIsFinished = true
             Status.SUCCEEDED
         } else {
             ctx.stopMovement()
@@ -31,6 +29,6 @@ class SpectorInvestigate : AbstractAction<SpectorContext>() {
     }
 
     companion object {
-        val logger = logger<SpectorCancelInvestigation>()
+        val logger = logger<SpectorCancelSearch>()
     }
 }

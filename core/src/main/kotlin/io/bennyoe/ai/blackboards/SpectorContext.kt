@@ -39,7 +39,7 @@ class SpectorContext(
     world: World,
     stage: Stage,
     debugRenderer: DebugRenderer,
-) : AbstractBlackboard(entity, world, stage, debugRenderer),
+) : AbstractBlackboard(entity, stage, world, debugRenderer),
     HasAwareness<SpectorAwareness> {
     val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent
@@ -164,7 +164,7 @@ class SpectorContext(
     fun moveToPosition(pos: Vector2): Boolean {
         Circle(pos.x, pos.y, 0.2f).addToDebugView(service = debugRenderer, label = "lastKnownPos")
 
-        if (abs(pos.x - phyCmp.body.position.x) < 0.5f) {
+        if (abs(pos.x - phyCmp.body.position.x) < 1.8f) {
             intentionCmp.walkDirection = WalkDirection.NONE
             return true
         }

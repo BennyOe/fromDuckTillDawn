@@ -11,8 +11,8 @@ const val X_THRESHOLD = 0.1f
 
 abstract class AbstractBlackboard(
     protected val entity: Entity,
-    protected val world: World,
     protected val stage: Stage,
+    open val world: World,
     val debugRenderer: DebugRenderer,
 ) {
     var lastTaskName: String? = null

@@ -25,7 +25,7 @@ class MushroomChase : AbstractAction<MushroomContext>() {
     }
 
     override fun onExecute(): Status {
-        ctx.chasePlayer()
+        ctx.chasePlayer(ctx.world)
         if (currentDuration <= 0f) {
             if (abs(xPosition - ctx.phyCmp.body.position.x) < EPS) {
                 logger.debug { "CHASE HUNG" }

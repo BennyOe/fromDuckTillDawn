@@ -32,7 +32,7 @@ class MinotaurContext(
     world: World,
     stage: Stage,
     debugRenderer: DebugRenderer,
-) : AbstractBlackboard(entity, world, stage, debugRenderer) {
+) : AbstractBlackboard(entity, stage, world, debugRenderer) {
     val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent
     val transformCmp: TransformComponent

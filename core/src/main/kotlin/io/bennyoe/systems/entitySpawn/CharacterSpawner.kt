@@ -12,6 +12,7 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.blackboards.MinotaurContext
+import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.ai.blackboards.SpectorContext
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AmbienceZoneContactComponent
@@ -320,17 +321,17 @@ class CharacterSpawner(
         entity += HearingComponent(cfg.hearingRadius)
         entity += StealthLabelComponent(uiStage)
 
-//        entity +=
-//            BehaviorTreeComponent(
-//                world = world,
-//                stage = stage,
-//                treePath = cfg.aiTreePath,
-//                // The blackboard must be created via a function reference (or lambda)
-//                // because at this point we finally have access to the correct Entity, World, and Stage.
-//                createBlackboard = { entity, world, stage ->
-//                    MushroomContext(entity, world, stage, debugRenderer)
-//                },
-//            )
+        entity +=
+            BehaviorTreeComponent(
+                stage = stage,
+                world = world,
+                treePath = cfg.aiTreePath,
+                // The blackboard must be created via a function reference (or lambda)
+                // because at this point we finally have access to the correct Entity, World, and Stage.
+                createBlackboard = { entity, world, stage ->
+                    MushroomContext(entity, world, stage, debugRenderer)
+                },
+            )
     }
 
     private fun EntityCreateContext.spawnMinotaurSpecifics(

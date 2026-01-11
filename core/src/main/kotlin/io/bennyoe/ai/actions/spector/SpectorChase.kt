@@ -9,6 +9,7 @@ class SpectorChase : AbstractAction<SpectorContext>() {
 
     override fun enter() {
         timer = 0f
+        ctx.moveCmp.maxWalkSpeed = 8f
     }
 
     override fun onExecute(): Status {
@@ -20,5 +21,9 @@ class SpectorChase : AbstractAction<SpectorContext>() {
             ctx.moveToPosition(ctx.playerPhysicCmp.body.position)
             Status.RUNNING
         }
+    }
+
+    override fun exit() {
+        ctx.moveCmp.maxWalkSpeed = ctx.initialWalkSpeed
     }
 }

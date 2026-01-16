@@ -1,6 +1,7 @@
 package io.bennyoe.ai.actions.spector
 
 import com.badlogic.gdx.ai.GdxAI
+import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import com.badlogic.gdx.ai.utils.random.FloatDistribution
 import com.badlogic.gdx.ai.utils.random.IntegerDistribution
@@ -35,6 +36,13 @@ class SpectorPatrol(
             return Status.SUCCEEDED
         }
         return Status.RUNNING
+    }
+
+    // the copyTo must be overridden when @TaskAttribute is specified
+    override fun copyTo(task: Task<SpectorContext>): Task<SpectorContext> {
+        (task as SpectorPatrol).duration = duration
+        task.direction = direction
+        return task
     }
 
     companion object {

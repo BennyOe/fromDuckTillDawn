@@ -32,9 +32,6 @@ class SpectorIdle(
         return Status.RUNNING
     }
 
-    override fun exit() {
-    }
-
     // the copyTo must be overridden when @TaskAttribute is specified
     override fun copyTo(task: Task<SpectorContext>): Task<SpectorContext> {
         (task as SpectorIdle).duration = duration

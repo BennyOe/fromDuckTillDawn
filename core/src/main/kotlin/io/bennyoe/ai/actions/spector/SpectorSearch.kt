@@ -10,6 +10,7 @@ class SpectorSearch : AbstractAction<SpectorContext>() {
 
     override fun enter() {
         timer = 0f
+        ctx.stopAttack()
         ctx.currentMood = GameMood.NORMAL
     }
 

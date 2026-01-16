@@ -29,9 +29,6 @@ class SpectorInvestigate : AbstractAction<SpectorContext>() {
         }
     }
 
-    override fun exit() {
-    }
-
     companion object {
         val logger = logger<SpectorCancelInvestigation>()
     }

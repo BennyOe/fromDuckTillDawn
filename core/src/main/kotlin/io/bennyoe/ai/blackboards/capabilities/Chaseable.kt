@@ -1,8 +1,10 @@
 package io.bennyoe.ai.blackboards.capabilities
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector2
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
+import io.bennyoe.ai.blackboards.MushroomContext.Companion.TMP_CIRC
 import io.bennyoe.ai.blackboards.PlatformRelation
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.ImageComponent
@@ -13,6 +15,9 @@ import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
+import io.bennyoe.systems.debug.DebugRenderer
+import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.SensorType
 import ktx.collections.GdxArray
 import ktx.collections.isNotEmpty
@@ -145,6 +150,29 @@ interface Chaseable : ChaseState {
                     else -> if ((playerPos.x - phyCmp.body.position.x) >= 0f) WalkDirection.RIGHT else WalkDirection.LEFT
                 }
         }
+    }
+
+    fun isPlayerInChaseRange(
+        world: World,
+        debugRenderer: DebugRenderer,
+    ): Boolean {
+        val selfPos = phyCmp.body.position
+
+        // draw the chase range
+        TMP_CIRC
+            .set(
+                phyCmp.body.position.x,
+                phyCmp.body.position.y,
+                basicSensorsCmp.chaseRange,
+            )
+        TMP_CIRC.addToDebugView(debugRenderer, Color.GREEN, "chaseRange")
+
+        // calculate the distance to the player and return true if it is < chaseRange
+        val player = world.family { all(PlayerComponent, PhysicComponent) }.firstOrNull() ?: return false
+        val playerPos = with(world) { player[PhysicComponent].body.position }
+        val dist2 = selfPos.dst2(playerPos)
+
+        return dist2 <= basicSensorsCmp.chaseRange * basicSensorsCmp.chaseRange
     }
 
     /**

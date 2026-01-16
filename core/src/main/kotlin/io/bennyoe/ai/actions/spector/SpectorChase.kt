@@ -10,7 +10,8 @@ class SpectorChase : AbstractAction<SpectorContext>() {
 
     override fun enter() {
         timer = 0f
-        ctx.moveCmp.maxWalkSpeed = 8f
+        ctx.moveCmp.maxWalkSpeed = 4f
+        ctx.intentionCmp.wantsToChase = true
         ctx.stopAttack()
         ctx.currentMood = GameMood.CHASE
     }

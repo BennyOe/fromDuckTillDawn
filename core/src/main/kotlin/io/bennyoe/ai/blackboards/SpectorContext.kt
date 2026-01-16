@@ -33,13 +33,14 @@ import ktx.log.logger
 import ktx.math.vec2
 import kotlin.math.abs
 
-private const val INVESTIGATION_THRESHOLD = 0.2f
-private const val SEARCH_THRESHOLD = 0.4f
-private const val CHASE_THRESHOLD = 0.6f
+private const val INVESTIGATION_THRESHOLD = 0.1f
+private const val SEARCH_THRESHOLD = 0.3f
+private const val CHASE_THRESHOLD = 0.4f
+private const val CHASE_RELEASE_THRESHOLD = 0.2f
 
 class SpectorContext(
     override val entity: Entity,
-    world: World,
+    override val world: World,
     stage: Stage,
     debugRenderer: DebugRenderer,
 ) : AbstractBlackboard(entity, stage, world, debugRenderer),
@@ -144,7 +145,7 @@ class SpectorContext(
 
             SpectorAwareness.CHASING -> {
                 when {
-                    suspicion < SEARCH_THRESHOLD -> {
+                    !isPlayerInChaseRange(world, debugRenderer) && suspicion < CHASE_RELEASE_THRESHOLD -> {
                         awareness = SpectorAwareness.SEARCHING
                         searchIsFinished = false
                     }
@@ -187,7 +188,15 @@ class SpectorContext(
 
     fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
 
-    fun canAttack(): Boolean = basicSensorsHitCmp.getSensorHit(ATTACK_SENSOR)
+    fun canAttack(): Boolean {
+        val minDistanceX = 0.25f
+        return (
+            abs(
+                phyCmp.body.position.x - playerPhysicCmp.body.position.x,
+            ) < minDistanceX && platformRelation == PlatformRelation.SAME
+        ) ||
+            basicSensorsHitCmp.getSensorHit(ATTACK_SENSOR)
+    }
 
     fun startAttack() {
         intentionCmp.wantsToAttack = true

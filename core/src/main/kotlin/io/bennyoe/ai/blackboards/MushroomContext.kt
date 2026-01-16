@@ -1,6 +1,5 @@
 package io.bennyoe.ai.blackboards
 
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
@@ -24,7 +23,6 @@ import io.bennyoe.components.animation.AnimationComponent
 import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.systems.debug.DebugRenderer
-import io.bennyoe.systems.debug.addToDebugView
 import io.bennyoe.utility.EntityBodyData
 import io.bennyoe.utility.SensorType.ATTACK_SENSOR
 import io.bennyoe.utility.SensorType.GROUND_DETECT_SENSOR
@@ -94,25 +92,7 @@ class MushroomContext(
         return nearbyEnemiesCmp.target != BehaviorTreeComponent.NO_TARGET
     }
 
-    fun isPlayerInChaseRange(): Boolean {
-        val selfPos = phyCmp.body.position
-
-        // draw the chase range
-        TMP_CIRC
-            .set(
-                phyCmp.body.position.x,
-                phyCmp.body.position.y,
-                basicSensorsCmp.chaseRange,
-            )
-        TMP_CIRC.addToDebugView(debugRenderer, Color.GREEN, "chaseRange")
-
-        // calculate the distance to the player and return true if it is < chaseRange
-        val player = world.family { all(PlayerComponent, PhysicComponent) }.firstOrNull() ?: return false
-        val playerPos = with(world) { player[PhysicComponent].body.position }
-        val dist2 = selfPos.dst2(playerPos)
-
-        return dist2 <= basicSensorsCmp.chaseRange * basicSensorsCmp.chaseRange
-    }
+    fun isPlayerInChaseRange(): Boolean = super.isPlayerInChaseRange(world, debugRenderer)
 
     fun stopMovement() {
         intentionCmp.walkDirection = WalkDirection.NONE

@@ -469,9 +469,9 @@ class CharacterSpawner(
             FieldOfViewComponent(
                 transformCmp,
                 14f,
-                relativeEyePos = 0.8f,
+                relativeEyePos = 0f,
                 numberOfRays = 9,
-                viewAngle = 45f,
+                viewAngle = 80f,
             )
 
         entity += SuspicionComponent()

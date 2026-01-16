@@ -4,9 +4,8 @@ import com.badlogic.gdx.math.Vector2
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.blackboards.PlatformRelation
-import io.bennyoe.ai.blackboards.X_THRESHOLD
-import io.bennyoe.ai.blackboards.Y_THRESHOLD
 import io.bennyoe.components.HasGroundContact
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
 import io.bennyoe.components.WalkDirection
@@ -18,9 +17,15 @@ import io.bennyoe.utility.SensorType
 import ktx.collections.GdxArray
 import ktx.collections.isNotEmpty
 import ktx.collections.lastIndex
+import ktx.log.logger
 import kotlin.math.abs
 
+private const val Y_THRESHOLD = 0.3f
+private const val X_THRESHOLD = 0.1f
+private const val JUMP_LOCK_TICK_LIMIT = 4
+
 interface Chaseable : ChaseState {
+    val entity: Entity
     val intentionCmp: IntentionComponent
     val basicSensorsHitCmp: BasicSensorsHitComponent
     val ledgeSensorsHitCmp: LedgeSensorsHitComponent
@@ -28,43 +33,81 @@ interface Chaseable : ChaseState {
     val playerEntity: Entity
     val phyCmp: PhysicComponent
     val playerPhysicCmp: PhysicComponent
+    val imageCmp: ImageComponent
 
     fun chasePlayer(world: World) {
         val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
+        val isGrounded = with(world) { entity has HasGroundContact }
+
+        if (isJumpLocked) {
+            jumpLockTicks += 1
+
+            if (isGrounded) {
+                if (jumpLockTicks > JUMP_LOCK_TICK_LIMIT) {
+                    isJumpLocked = false
+                    jumpLockTicks = 0
+                    intentionCmp.wantsToJump = false
+                    nearestPlatformLedge = null
+                    nearestPlatformLedgeWithOffset = null
+                }
+            } else {
+                intentionCmp.walkDirection = lockedWalkDirection
+                return
+            }
+        } else {
+            jumpLockTicks = 0
+        }
 
         // update state
-        if (with(world) { playerEntity has HasGroundContact }) {
+        if (isGrounded) {
             platformRelation = heightRelationToPlayer(phyCmp, playerPhysicCmp)
-        }
 
-        // reset if on same platform
-        if (platformRelation == PlatformRelation.SAME) {
-            nearestPlatformLedge = null
-            nearestPlatformLedgeWithOffset = null
-        }
+            // reset if on same platform
+            if (platformRelation == PlatformRelation.SAME) {
+                nearestPlatformLedge = null
+                nearestPlatformLedgeWithOffset = null
+            }
 
-        // wall and gap jumps
-        if (platformRelation != PlatformRelation.ABOVE) {
-            jumpOverWall()
-            jumpOverGap()
-        }
+            // wall and gap jumps
+            if (platformRelation != PlatformRelation.PLAYER_BELOW) {
+                jumpOverWall()
+                jumpOverGap()
+            }
 
-        changePlatform(playerPos)
+            changePlatform(playerPos)
 
-        if (platformRelation == PlatformRelation.BELOW) {
-            calculateNearestPlatformEdgeOffset(ledgeSensorsHitCmp.upperLedgeHits)
-        } else if (platformRelation == PlatformRelation.ABOVE) {
-            calculateNearestPlatformEdgeOffset(ledgeSensorsHitCmp.lowerLedgeHits)
+            if (platformRelation == PlatformRelation.PLAYER_ABOVE) {
+                calculateNearestPlatformEdgeOffset(ledgeSensorsHitCmp.upperLedgeHits)
+            } else if (platformRelation == PlatformRelation.PLAYER_BELOW) {
+                calculateNearestPlatformEdgeOffset(ledgeSensorsHitCmp.lowerLedgeHits)
+            }
         }
 
         walkToPosition(world)
 
         // jump when needed
-        if (intentionCmp.walkDirection == WalkDirection.NONE &&
-            platformRelation == PlatformRelation.BELOW &&
-            nearestPlatformLedgeWithOffset != null
-        ) {
+        val targetX = nearestPlatformLedgeWithOffset
+        val distToTargetX = if (targetX != null) (targetX - phyCmp.body.position.x) else null
+
+        val shouldJumpUp =
+            intentionCmp.walkDirection == WalkDirection.NONE &&
+                platformRelation == PlatformRelation.PLAYER_ABOVE &&
+                distToTargetX != null &&
+                abs(distToTargetX) <= X_THRESHOLD
+
+        if (shouldJumpUp) {
             intentionCmp.wantsToJump = true
+
+            isJumpLocked = true
+            jumpLockTicks = 0
+
+            val epsilon = 0.05f
+            lockedWalkDirection =
+                when {
+                    distToTargetX > epsilon -> WalkDirection.RIGHT
+                    distToTargetX < -epsilon -> WalkDirection.LEFT
+                    else -> if ((playerPos.x - phyCmp.body.position.x) >= 0f) WalkDirection.RIGHT else WalkDirection.LEFT
+                }
         }
     }
 
@@ -94,7 +137,7 @@ interface Chaseable : ChaseState {
     private fun changePlatform(playerPos: Vector2) {
         nearestPlatformLedge =
             when (platformRelation) {
-                PlatformRelation.BELOW -> {
+                PlatformRelation.PLAYER_ABOVE -> {
                     if (ledgeSensorsHitCmp.upperLedgeHits.size == ledgeSensorsHitCmp.lowerLedgeHits.size &&
                         ledgeSensorsHitCmp.upperLedgeHits.isNotEmpty()
                     ) {
@@ -104,7 +147,7 @@ interface Chaseable : ChaseState {
                     }
                 }
 
-                PlatformRelation.ABOVE -> {
+                PlatformRelation.PLAYER_BELOW -> {
                     if (ledgeSensorsHitCmp.lowerLedgeHits.isNotEmpty()) {
                         findLedgeToDropDown(ledgeSensorsHitCmp.lowerLedgeHits, playerPos.x)
                     } else {
@@ -163,12 +206,10 @@ interface Chaseable : ChaseState {
             val left = playerIndex - offset
             val right = playerIndex + offset
 
-            // maybe the left != playerIndex is not needed
-            if (left >= 0 && !lowerLedgeHits[left].hit && left != playerIndex) {
+            if (left >= 0 && !lowerLedgeHits[left].hit) {
                 return lowerLedgeHits[left].xCoordinate
             }
-            // maybe the right != playerIndex is not needed
-            if (right < lowerLedgeHits.size && !lowerLedgeHits[right].hit && right != playerIndex) {
+            if (right < lowerLedgeHits.size && !lowerLedgeHits[right].hit) {
                 return lowerLedgeHits[right].xCoordinate
             }
         }
@@ -179,7 +220,13 @@ interface Chaseable : ChaseState {
     private fun walkToPosition(world: World) {
         val selfPos = phyCmp.body.position
         val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
-        val goToPosition: Float = nearestPlatformLedgeWithOffset ?: playerPos.x
+
+        val goToPosition: Float =
+            if (platformRelation == PlatformRelation.SAME) {
+                playerPos.x
+            } else {
+                nearestPlatformLedgeWithOffset ?: playerPos.x
+            }
         val dist = selfPos.x - goToPosition
 
         when {
@@ -194,14 +241,24 @@ interface Chaseable : ChaseState {
     }
 
     private fun jumpOverGap() {
+        logger.debug {
+            "GroundSensor=${basicSensorsHitCmp.getSensorHit(SensorType.GROUND_DETECT_SENSOR)} " +
+                "JumpSensor=${basicSensorsHitCmp.getSensorHit(SensorType.JUMP_SENSOR)}"
+        }
         if (!basicSensorsHitCmp.getSensorHit(SensorType.GROUND_DETECT_SENSOR) && basicSensorsHitCmp.getSensorHit(SensorType.JUMP_SENSOR)) {
             intentionCmp.wantsToJump = true
+            isJumpLocked = true
+            jumpLockTicks = 0
+            lockedWalkDirection = intentionCmp.walkDirection
         }
     }
 
     private fun jumpOverWall() {
         if (basicSensorsHitCmp.getSensorHit(SensorType.WALL_SENSOR) && !basicSensorsHitCmp.getSensorHit(SensorType.WALL_HEIGHT_SENSOR)) {
             intentionCmp.wantsToJump = true
+            isJumpLocked = true
+            jumpLockTicks = 0
+            lockedWalkDirection = intentionCmp.walkDirection
         }
     }
 
@@ -214,10 +271,14 @@ interface Chaseable : ChaseState {
         val playerBottomY = player.body.position.y + player.offset.y - player.size.y * 0.5f
         val dy = selfBottomY - playerBottomY
         return when {
-            dy > Y_THRESHOLD -> PlatformRelation.ABOVE
-            dy < -Y_THRESHOLD -> PlatformRelation.BELOW
+            dy > Y_THRESHOLD -> PlatformRelation.PLAYER_BELOW
+            dy < -Y_THRESHOLD -> PlatformRelation.PLAYER_ABOVE
             else -> PlatformRelation.SAME
         }
+    }
+
+    companion object {
+        val logger = logger<Chaseable>()
     }
 }
 
@@ -225,10 +286,18 @@ interface ChaseState {
     var nearestPlatformLedge: Float?
     var nearestPlatformLedgeWithOffset: Float?
     var platformRelation: PlatformRelation
+    var preferredAttackSideSign: Int
+    var isJumpLocked: Boolean
+    var lockedWalkDirection: WalkDirection
+    var jumpLockTicks: Int
 }
 
 class DefaultChaseState : ChaseState {
     override var nearestPlatformLedge: Float? = null
     override var nearestPlatformLedgeWithOffset: Float? = null
     override var platformRelation: PlatformRelation = PlatformRelation.SAME
+    override var preferredAttackSideSign: Int = -1
+    override var isJumpLocked: Boolean = false
+    override var lockedWalkDirection: WalkDirection = WalkDirection.NONE
+    override var jumpLockTicks: Int = 0
 }

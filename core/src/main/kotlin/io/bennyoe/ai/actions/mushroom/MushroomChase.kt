@@ -26,22 +26,10 @@ class MushroomChase : AbstractAction<MushroomContext>() {
 
     override fun onExecute(): Status {
         ctx.chasePlayer(ctx.world)
-        if (currentDuration <= 0f) {
-            if (abs(xPosition - ctx.phyCmp.body.position.x) < EPS) {
-                logger.debug { "CHASE HUNG" }
-                return Status.FAILED
-            } else {
-                xPosition = ctx.phyCmp.body.position.x
-                currentDuration = DURATION_TIMER
-            }
-        } else {
-            currentDuration -= GdxAI.getTimepiece().deltaTime
-        }
         return Status.RUNNING
     }
 
     override fun exit() {
-        currentDuration = DURATION_TIMER
         ctx.nearestPlatformLedge = null
         ctx.intentionCmp.wantsToChase = false
     }

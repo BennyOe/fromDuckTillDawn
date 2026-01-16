@@ -9,9 +9,9 @@ import io.bennyoe.ai.blackboards.capabilities.ChaseState
 import io.bennyoe.ai.blackboards.capabilities.Chaseable
 import io.bennyoe.ai.blackboards.capabilities.DefaultChaseState
 import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
@@ -30,9 +30,10 @@ import io.bennyoe.utility.SensorType.ATTACK_SENSOR
 import io.bennyoe.utility.SensorType.GROUND_DETECT_SENSOR
 import io.bennyoe.utility.SensorType.WALL_SENSOR
 import ktx.log.logger
+import kotlin.math.abs
 
 class MushroomContext(
-    entity: Entity,
+    override val entity: Entity,
     override val world: World,
     stage: Stage,
     debugRenderer: DebugRenderer,
@@ -44,6 +45,7 @@ class MushroomContext(
     override val basicSensorsHitCmp: BasicSensorsHitComponent
     override val ledgeSensorsHitCmp: LedgeSensorsHitComponent
     override val basicSensorsCmp: BasicSensorsComponent
+    override val imageCmp: ImageComponent
     override val playerEntity = world.family { all(PlayerComponent, PhysicComponent) }.first()
     override val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
     val animCmp: AnimationComponent
@@ -64,6 +66,7 @@ class MushroomContext(
             stateCmp = entity[StateComponent]
             basicSensorsCmp = entity[BasicSensorsComponent]
             suspicionCmp = entity[SuspicionComponent]
+            imageCmp = entity[ImageComponent]
         }
     }
 
@@ -71,7 +74,14 @@ class MushroomContext(
 
     fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
 
-    fun canAttack(): Boolean = basicSensorsHitCmp.getSensorHit(ATTACK_SENSOR)
+    fun canAttack(): Boolean {
+        val minDistanceX = 0.25f
+        return (
+            abs(
+                phyCmp.body.position.x - playerPhysicCmp.body.position.x,
+            ) < minDistanceX && platformRelation == PlatformRelation.SAME
+        ) || basicSensorsHitCmp.getSensorHit(ATTACK_SENSOR)
+    }
 
     fun hasPlayerNearby(): Boolean {
         with(world) {

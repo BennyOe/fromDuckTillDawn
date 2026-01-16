@@ -18,7 +18,6 @@ import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
@@ -252,7 +251,7 @@ class MushroomContextUnitTest {
         ctx.nearestPlatformLedge = 10f
         ctx.nearestPlatformLedgeWithOffset = 10.5f
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertEquals(null, ctx.nearestPlatformLedge)
         assertEquals(null, ctx.nearestPlatformLedgeWithOffset)
@@ -267,7 +266,7 @@ class MushroomContextUnitTest {
         rayHitCmp.setSensorHit(SensorType.GROUND_DETECT_SENSOR, false)
         rayHitCmp.setSensorHit(SensorType.JUMP_SENSOR, true)
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertTrue(intentionCmp.wantsToJump)
         assertEquals(WalkDirection.RIGHT, intentionCmp.walkDirection)
@@ -291,7 +290,7 @@ class MushroomContextUnitTest {
             ),
         )
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertNotNull(ctx.nearestPlatformLedgeWithOffset)
     }
@@ -301,7 +300,7 @@ class MushroomContextUnitTest {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2, phyCmp.body.position.y)
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertEquals(WalkDirection.RIGHT, intentionCmp.walkDirection)
     }
@@ -313,7 +312,7 @@ class MushroomContextUnitTest {
 
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 3f, phyCmp.body.position.y - 2f)
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertEquals(WalkDirection.RIGHT, intentionCmp.walkDirection)
         assertFalse(intentionCmp.wantsToJump)
@@ -336,7 +335,7 @@ class MushroomContextUnitTest {
             ),
         )
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertNull(ctx.nearestPlatformLedge)
         assertEquals(WalkDirection.LEFT, intentionCmp.walkDirection)
@@ -373,7 +372,7 @@ class MushroomContextUnitTest {
         )
         intentionCmp.walkDirection = WalkDirection.NONE
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertTrue(intentionCmp.wantsToJump)
     }
@@ -387,7 +386,7 @@ class MushroomContextUnitTest {
         rayHitCmp.setSensorHit(SensorType.WALL_SENSOR, true)
         rayHitCmp.setSensorHit(SensorType.WALL_HEIGHT_SENSOR, false)
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertTrue(intentionCmp.wantsToJump)
     }
@@ -400,7 +399,7 @@ class MushroomContextUnitTest {
         ctx.nearestPlatformLedge = 8f
         ctx.nearestPlatformLedgeWithOffset = 8.5f
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertEquals(WalkDirection.NONE, intentionCmp.walkDirection)
         assertFalse(intentionCmp.wantsToJump)

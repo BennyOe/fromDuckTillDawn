@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
@@ -13,6 +14,7 @@ import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
@@ -61,6 +63,7 @@ class MushroomContextUnitTest {
     private lateinit var stage: Stage
 
     private val intentionCmp = IntentionComponent()
+    private val imageMock = mockk<Image>(relaxed = true)
     private val healthCmp = HealthComponent()
     private val nearbyCmp = NearbyEnemiesComponent()
     private val transformCmp = mockk<TransformComponent>(relaxed = true)
@@ -84,14 +87,18 @@ class MushroomContextUnitTest {
     fun setup() {
         Gdx.app = mockk<Application>(relaxed = true)
         Gdx.files = mockk<Files>(relaxed = true)
+        stage = mockk(relaxed = true)
+
+        val imageCmp =
+            ImageComponent(stage).apply {
+                image = imageMock
+            }
 
         val handleMock = mockk<FileHandle>(relaxed = true)
 
         every { handleMock.readString() } returns "sequence {\n  task {}\n}"
 
         world = configureWorld { }
-
-        stage = mockk(relaxed = true)
 
         playerEntity =
             world.entity {
@@ -106,6 +113,7 @@ class MushroomContextUnitTest {
                 it += AttackComponent()
                 it += playerPhyCmp
                 it += IntentionComponent()
+                it += imageCmp
                 it += MoveComponent()
                 it += HealthComponent()
                 it += PlayerComponent
@@ -128,7 +136,9 @@ class MushroomContextUnitTest {
                 it += nearbyCmp
                 it += animCmp
                 it += LedgeSensorsHitComponent()
+                it += HasGroundContact
                 it += BasicSensorsComponent(emptyList(), 7f, transformCmp, 23f)
+                it += imageCmp
                 it += BasicSensorsHitComponent()
                 it += phyCmp
                 it += SuspicionComponent()

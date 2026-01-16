@@ -1,6 +1,5 @@
 package io.bennyoe.ai.actions.spector
 
-import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.ai.blackboards.SpectorContext
 import io.bennyoe.ai.core.AbstractAction
 import io.bennyoe.components.GameMood

@@ -1,12 +1,10 @@
 package io.bennyoe.ai.actions.mushroom
 
-import com.badlogic.gdx.ai.GdxAI
 import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.ai.core.AbstractAction
 import io.bennyoe.components.GameMood
 import io.bennyoe.components.WalkDirection
 import ktx.log.logger
-import kotlin.math.abs
 
 const val DURATION_TIMER = .5f
 const val EPS = 1.0f

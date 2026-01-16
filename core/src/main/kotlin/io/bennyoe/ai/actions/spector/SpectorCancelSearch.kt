@@ -3,6 +3,7 @@ package io.bennyoe.ai.actions.spector
 import com.badlogic.gdx.Gdx
 import io.bennyoe.ai.blackboards.SpectorContext
 import io.bennyoe.ai.core.AbstractAction
+import io.bennyoe.components.GameMood
 import ktx.log.logger
 
 class SpectorCancelSearch : AbstractAction<SpectorContext>() {
@@ -11,6 +12,7 @@ class SpectorCancelSearch : AbstractAction<SpectorContext>() {
     override fun enter() {
         timer = 0f
         ctx.lastTaskName = this.javaClass.simpleName
+        ctx.currentMood = GameMood.NORMAL
     }
 
     override fun onExecute(): Status {

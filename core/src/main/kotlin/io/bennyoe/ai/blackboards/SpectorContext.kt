@@ -7,12 +7,14 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.blackboards.SpectorContext.SpectorAwareness
+import io.bennyoe.ai.blackboards.capabilities.ChaseState
+import io.bennyoe.ai.blackboards.capabilities.Chaseable
+import io.bennyoe.ai.blackboards.capabilities.DefaultChaseState
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsComponent
@@ -36,25 +38,27 @@ private const val SEARCH_THRESHOLD = 0.4f
 private const val CHASE_THRESHOLD = 0.6f
 
 class SpectorContext(
-    entity: Entity,
+    override val entity: Entity,
     world: World,
     stage: Stage,
     debugRenderer: DebugRenderer,
 ) : AbstractBlackboard(entity, stage, world, debugRenderer),
-    HasAwareness<SpectorAwareness> {
+    HasAwareness<SpectorAwareness>,
+    ChaseState by DefaultChaseState(),
+    Chaseable {
+    override val phyCmp: PhysicComponent
+    override val intentionCmp: IntentionComponent
+    override val basicSensorsHitCmp: BasicSensorsHitComponent
+    override val ledgeSensorsHitCmp: LedgeSensorsHitComponent
+    override val basicSensorsCmp: BasicSensorsComponent
+    override val playerEntity = world.family { all(PlayerComponent, PhysicComponent) }.first()
+    override val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
+    override val imageCmp: ImageComponent
     val nearbyEnemiesCmp: NearbyEnemiesComponent
-    val phyCmp: PhysicComponent
     val animCmp: AnimationComponent
-    val intentionCmp: IntentionComponent
-    val basicSensorsHitCmp: BasicSensorsHitComponent
-    val ledgeSensorsHitCmp: LedgeSensorsHitComponent
-    val imageCmp: ImageComponent
     val moveCmp: MoveComponent
     val healthCmp: HealthComponent
     val stateCmp: StateComponent<*, *>
-    val basicSensorsCmp: BasicSensorsComponent
-    val playerEntity = world.family { all(PlayerComponent, PhysicComponent) }.first()
-    val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
     val suspicionCmp: SuspicionComponent
     var searchIsFinished: Boolean = true
     var investigationIsFinished: Boolean = true
@@ -184,6 +188,14 @@ class SpectorContext(
     fun isAnimationFinished(): Boolean = animCmp.isAnimationFinished()
 
     fun canAttack(): Boolean = basicSensorsHitCmp.getSensorHit(ATTACK_SENSOR)
+
+    fun startAttack() {
+        intentionCmp.wantsToAttack = true
+    }
+
+    fun stopAttack() {
+        intentionCmp.wantsToAttack = false
+    }
 
     fun stopMovement() {
         intentionCmp.walkDirection = WalkDirection.NONE

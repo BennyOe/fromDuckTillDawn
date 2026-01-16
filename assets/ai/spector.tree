@@ -7,8 +7,10 @@ import chase:"io.bennyoe.ai.actions.spector.SpectorChase"
 import investigate:"io.bennyoe.ai.actions.spector.SpectorInvestigate"
 import cancelInvestigate:"io.bennyoe.ai.actions.spector.SpectorCancelInvestigation"
 import cancelSearch:"io.bennyoe.ai.actions.spector.SpectorCancelSearch"
+import attack:"io.bennyoe.ai.actions.spector.SpectorAttack"
 
 # Conditions
+import canAttack?:"io.bennyoe.ai.conditions.spector.CanAttack"
 import cool?:"io.bennyoe.ai.conditions.spector.Cool"
 import irritated?:"io.bennyoe.ai.conditions.spector.Irritated"
 import suspicious?:"io.bennyoe.ai.conditions.spector.Suspicious"
@@ -25,9 +27,11 @@ subtree name:"idlePatrolLoop"
 
 root
   dynamicGuardSelector
-    # 1) CHASING (highest priority)
-    (identified?) sequence
-      chase
+    # 1) CHASING  & ATTACKING (highest priority)
+    (canAttack?) sequence
+      attack
+      wait seconds:"uniform,1.5,2.0"
+    (identified?) chase
 
     # 2) SEARCHING
     (suspicious?) sequence

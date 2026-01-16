@@ -4,6 +4,7 @@ import com.badlogic.gdx.ai.btree.Task
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute
 import io.bennyoe.ai.blackboards.SpectorContext
 import io.bennyoe.ai.core.AbstractAction
+import io.bennyoe.components.GameMood
 import io.bennyoe.config.GameConstants.WALK_MAX_SPEED
 import ktx.log.logger
 import ktx.math.vec2
@@ -25,6 +26,7 @@ class SpectorMoveTo(
         targetPos = ctx.getPositionToGoTo(target).cpy()
         ctx.moveCmp.maxWalkSpeed = speed
         if (targetPos.x < ctx.phyCmp.body.position.x) ctx.imageCmp.flipImage = true else ctx.imageCmp.flipImage = false
+        ctx.currentMood = GameMood.NORMAL
     }
 
     override fun onExecute(): Status {

@@ -3,6 +3,7 @@ package io.bennyoe.ai.actions.spector
 import com.badlogic.gdx.Gdx
 import io.bennyoe.ai.blackboards.SpectorContext
 import io.bennyoe.ai.core.AbstractAction
+import io.bennyoe.components.GameMood
 import ktx.log.logger
 
 const val INVESTIGATION_DURATION = 2f
@@ -14,6 +15,7 @@ class SpectorInvestigate : AbstractAction<SpectorContext>() {
         timer = 0f
         ctx.lastTaskName = this.javaClass.simpleName
         ctx.idle()
+        ctx.currentMood = GameMood.NORMAL
     }
 
     override fun onExecute(): Status {

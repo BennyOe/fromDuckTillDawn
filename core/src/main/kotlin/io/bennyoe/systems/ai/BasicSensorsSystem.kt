@@ -9,10 +9,10 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.SensorDef
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.systems.debug.DebugType
 import io.bennyoe.systems.debug.DefaultDebugRenderService
 import io.bennyoe.systems.debug.addToDebugView

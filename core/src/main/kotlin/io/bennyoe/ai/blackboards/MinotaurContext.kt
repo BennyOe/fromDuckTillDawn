@@ -8,7 +8,6 @@ import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
@@ -16,6 +15,7 @@ import io.bennyoe.components.ai.BasicSensorsComponent
 import io.bennyoe.components.ai.BasicSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.state.minotaur.MinotaurFSM
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.utility.SensorType.ATTACK_SENSOR
@@ -32,7 +32,7 @@ class MinotaurContext(
     world: World,
     stage: Stage,
     debugRenderer: DebugRenderer,
-) : AbstractBlackboard(entity, world, stage, debugRenderer) {
+) : AbstractBlackboard(entity, stage, world, debugRenderer) {
     val nearbyEnemiesCmp: NearbyEnemiesComponent
     val phyCmp: PhysicComponent
     val transformCmp: TransformComponent

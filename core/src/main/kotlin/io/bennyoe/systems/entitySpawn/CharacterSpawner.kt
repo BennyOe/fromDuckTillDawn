@@ -12,6 +12,8 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.EntityCreateContext
 import com.github.quillraven.fleks.World
 import io.bennyoe.ai.blackboards.MinotaurContext
+import io.bennyoe.ai.blackboards.MushroomContext
+import io.bennyoe.ai.blackboards.SpectorContext
 import io.bennyoe.assets.TextureAtlases
 import io.bennyoe.components.AmbienceZoneContactComponent
 import io.bennyoe.components.AttackComponent
@@ -30,7 +32,6 @@ import io.bennyoe.components.NoiseProfileComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.PlayerStealthComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.StateComponent
@@ -51,6 +52,10 @@ import io.bennyoe.components.animation.AnimationKey
 import io.bennyoe.components.animation.AnimationModel
 import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.components.characterMarker.MinotaurComponent
+import io.bennyoe.components.characterMarker.MushroomComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
+import io.bennyoe.components.characterMarker.SpectorComponent
 import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
@@ -67,6 +72,9 @@ import io.bennyoe.state.mushroom.MushroomStateContext
 import io.bennyoe.state.player.PlayerCheckAliveState
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.state.player.PlayerStateContext
+import io.bennyoe.state.spector.SpectorCheckAliveState
+import io.bennyoe.state.spector.SpectorFSM
+import io.bennyoe.state.spector.SpectorStateContext
 import io.bennyoe.systems.debug.DebugRenderer
 import io.bennyoe.systems.render.ZIndex
 import io.bennyoe.utility.EntityBodyData
@@ -91,12 +99,14 @@ class CharacterSpawner(
     dawnAtlases: TextureAtlases,
     mushroomAtlases: TextureAtlases,
     minotaurAtlases: TextureAtlases,
+    spectorAtlases: TextureAtlases,
 ) {
     private val atlasMap: Map<AnimationModel, TextureAtlas> =
         mapOf(
             AnimationModel.PLAYER_DAWN to dawnAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MUSHROOM to mushroomAtlases.diffuseAtlas,
             AnimationModel.ENEMY_MINOTAUR to minotaurAtlases.diffuseAtlas,
+            AnimationModel.ENEMY_SPECTOR to spectorAtlases.diffuseAtlas,
         )
 
     private val sizesCache = mutableMapOf<String, Vector2>()
@@ -168,6 +178,17 @@ class CharacterSpawner(
                     )
                 physics.categoryBits = cfg.entityCategory.bit
 
+                // Ground detect sensor
+                physics.body.box(
+                    physics.size.x * 0.99f,
+                    0.01f,
+                    Vector2(physics.offset.x, physics.offset.y - physics.size.y * 0.5f),
+                ) {
+                    isSensor = true
+                    userData = FixtureSensorData(entity, SensorType.GROUND_DETECT_SENSOR)
+                    filter.categoryBits = EntityCategory.SENSOR.bit
+                    filter.maskBits = EntityCategory.GROUND.bit
+                }
                 // Ground type sensor
                 physics.body.box(
                     physics.size.x * 0.99f,
@@ -225,13 +246,14 @@ class CharacterSpawner(
                 entity += SoundProfileComponent(cfg.soundProfile)
 
                 if (cfg.entityCategory == EntityCategory.PLAYER) {
-                    spawnPlayerSpecifics(entity, physics, cfg)
+                    spawnPlayerSpecifics(entity, cfg)
                 }
 
                 if (cfg.entityCategory == EntityCategory.ENEMY) {
                     when (characterType) {
                         CharacterType.MUSHROOM -> spawnMushroomSpecifics(entity, cfg, transformCmp)
                         CharacterType.MINOTAUR -> spawnMinotaurSpecifics(entity, cfg, transformCmp)
+                        CharacterType.SPECTOR -> spawnSpectorSpecifics(entity, cfg, transformCmp)
                         else -> gdxError("No spawner for character $characterType found")
                     }
                 }
@@ -244,6 +266,8 @@ class CharacterSpawner(
         cfg: SpawnCfgFactory,
         transformCmp: TransformComponent,
     ) {
+        entity += MushroomComponent
+
         entity += IntentionComponent()
 
         entity += NearbyEnemiesComponent()
@@ -313,17 +337,17 @@ class CharacterSpawner(
         entity += HearingComponent(cfg.hearingRadius)
         entity += StealthLabelComponent(uiStage)
 
-//        entity +=
-//            BehaviorTreeComponent(
-//                world = world,
-//                stage = stage,
-//                treePath = cfg.aiTreePath,
-//                // The blackboard must be created via a function reference (or lambda)
-//                // because at this point we finally have access to the correct Entity, World, and Stage.
-//                createBlackboard = { entity, world, stage ->
-//                    MushroomContext(entity, world, stage, debugRenderer)
-//                },
-//            )
+        entity +=
+            BehaviorTreeComponent(
+                stage = stage,
+                world = world,
+                treePath = cfg.aiTreePath,
+                // The blackboard must be created via a function reference (or lambda)
+                // because at this point we finally have access to the correct Entity, World, and Stage.
+                createBlackboard = { entity, world, stage ->
+                    MushroomContext(entity, world, stage, debugRenderer)
+                },
+            )
     }
 
     private fun EntityCreateContext.spawnMinotaurSpecifics(
@@ -331,6 +355,8 @@ class CharacterSpawner(
         cfg: SpawnCfgFactory,
         transformCmp: TransformComponent,
     ) {
+        entity += MinotaurComponent
+
         entity += IntentionComponent()
 
         entity += NearbyEnemiesComponent()
@@ -390,22 +416,87 @@ class CharacterSpawner(
             )
     }
 
+    private fun EntityCreateContext.spawnSpectorSpecifics(
+        entity: Entity,
+        cfg: SpawnCfgFactory,
+        transformCmp: TransformComponent,
+    ) {
+        entity += SpectorComponent
+
+        entity += IntentionComponent()
+
+        entity += NearbyEnemiesComponent()
+
+        val state =
+            StateComponent(
+                world = world,
+                owner = SpectorStateContext(entity, world, stage),
+                initialState = SpectorFSM.IDLE(),
+                globalState = SpectorCheckAliveState(),
+            )
+        entity += state
+        messageDispatcher.addListener(state.stateMachine, FsmMessageTypes.ENEMY_IS_HIT.ordinal)
+
+        val phyCmp = entity[PhysicComponent]
+
+        // create normal nearbyEnemiesSensor
+        phyCmp.body.circle(
+            cfg.nearbyEnemiesDefaultSensorRadius,
+            cfg.nearbyEnemiesSensorOffset,
+        ) {
+            isSensor = true
+            userData = FixtureSensorData(entity, SensorType.NEARBY_ENEMY_SENSOR)
+            filter.categoryBits = EntityCategory.SENSOR.bit
+            filter.maskBits = EntityCategory.PLAYER.bit
+        }
+
+        entity +=
+            BasicSensorsComponent(
+                sensorList = cfg.basicSensorList,
+                chaseRange = cfg.nearbyEnemiesExtendedSensorRadius,
+                transformCmp = transformCmp,
+                maxSightRadius = cfg.maxSightRadius,
+            )
+
+        entity += LedgeSensorsComponent()
+        entity += LedgeSensorsHitComponent()
+
+        entity += BasicSensorsHitComponent()
+
+        entity += FieldOfViewResultComponent()
+
+        entity +=
+            FieldOfViewComponent(
+                transformCmp,
+                14f,
+                relativeEyePos = 0f,
+                numberOfRays = 9,
+                viewAngle = 80f,
+            )
+
+        entity += SuspicionComponent()
+
+        entity += HearingComponent(cfg.hearingRadius)
+        entity += StealthLabelComponent(uiStage)
+
+        entity +=
+            BehaviorTreeComponent(
+                world = world,
+                stage = stage,
+                treePath = cfg.aiTreePath,
+                // The blackboard must be created via a function reference (or lambda)
+                // because at this point we finally have access to the correct Entity, World, and Stage.
+                createBlackboard = { entity, world, stage ->
+                    SpectorContext(entity, world, stage, debugRenderer)
+                },
+            )
+    }
+
     private fun EntityCreateContext.spawnPlayerSpecifics(
         entity: Entity,
-        physics: PhysicComponent,
         cfg: SpawnCfgFactory,
     ) {
         val phyCmp = entity[PhysicComponent]
-        phyCmp.body.box(
-            physics.size.x * 0.99f,
-            0.01f,
-            Vector2(physics.offset.x, physics.offset.y - physics.size.y * 0.5f),
-        ) {
-            isSensor = true
-            userData = FixtureSensorData(entity, SensorType.GROUND_DETECT_SENSOR)
-            filter.categoryBits = EntityCategory.SENSOR.bit
-            filter.maskBits = EntityCategory.GROUND.bit
-        }
         val flashlightSpot =
             lightEngine
                 .addSpotLight(
@@ -434,6 +525,8 @@ class CharacterSpawner(
                     setOn(false)
                 }
 
+        entity += PlayerComponent
+
         entity += PlayerStealthComponent()
 
         entity += FlashlightComponent(flashlightSpot, flashLightHalo)
@@ -446,9 +539,6 @@ class CharacterSpawner(
         entity += input
 
         entity += IntentionComponent()
-
-        val player = PlayerComponent()
-        entity += player
 
         val state =
             StateComponent(

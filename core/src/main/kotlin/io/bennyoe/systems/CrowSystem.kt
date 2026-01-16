@@ -6,11 +6,11 @@ import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
-import io.bennyoe.components.CrowComponent
 import io.bennyoe.components.DisabledComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.TimeOfDay
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.characterMarker.CrowComponent
 import io.bennyoe.utility.getViewportDimensions
 import ktx.log.logger
 import ktx.math.vec2

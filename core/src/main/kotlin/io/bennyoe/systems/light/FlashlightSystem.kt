@@ -5,8 +5,8 @@ import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World
 import io.bennyoe.components.FlashlightComponent
 import io.bennyoe.components.ImageComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import ktx.math.vec2
 
 class FlashlightSystem :

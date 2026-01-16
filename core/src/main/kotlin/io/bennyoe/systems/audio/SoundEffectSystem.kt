@@ -13,10 +13,10 @@ import de.pottgames.tuningfork.BufferedSoundSource
 import de.pottgames.tuningfork.StreamedSoundSource
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.event.PlayLoopingSoundEvent
 import io.bennyoe.event.PlaySoundEvent
 import io.bennyoe.event.StopLoopingSoundEvent
@@ -29,7 +29,6 @@ import io.bennyoe.lightEngine.core.LightningEvent
 import ktx.assets.async.AssetStorage
 import ktx.log.logger
 import ktx.math.vec3
-import kotlin.collections.set
 
 private const val MIN_PITCH = 0.8f
 private const val MAX_PITCH = 1.3f

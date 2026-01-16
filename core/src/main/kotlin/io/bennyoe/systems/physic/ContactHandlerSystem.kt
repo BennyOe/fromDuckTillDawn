@@ -279,9 +279,9 @@ class ContactHandlerSystem(
 
     private fun handleGroundBegin(p: Parts) {
         // 1) Player-Ground-Sensor vs Ground
-        val player = p.entityWithSensorWhenTouchingGround(SensorType.GROUND_DETECT_SENSOR)
-        if (player?.entityCategory == EntityCategory.PLAYER) {
-            with(world) { player.entity[PhysicComponent].activeGroundContacts++ }
+        val character = p.entityWithSensorWhenTouchingGround(SensorType.GROUND_DETECT_SENSOR)
+        if (character != null) {
+            with(world) { character.entity[PhysicComponent].activeGroundContacts++ }
         }
 
         // 2) Enemy-Projectile vs Ground
@@ -295,12 +295,10 @@ class ContactHandlerSystem(
 
     private fun handleGroundEnd(p: Parts) {
         // GROUND_DETECT_SENSOR leaves GROUND -> decrease ground contacts if PLAYER
-        val player = p.entityWithSensorWhenTouchingGround(SensorType.GROUND_DETECT_SENSOR) ?: return
-        if (player.entityCategory == EntityCategory.PLAYER) {
-            with(world) {
-                if (player.entity has PhysicComponent) {
-                    player.entity[PhysicComponent].activeGroundContacts--
-                }
+        val character = p.entityWithSensorWhenTouchingGround(SensorType.GROUND_DETECT_SENSOR) ?: return
+        with(world) {
+            if (character.entity has PhysicComponent) {
+                character.entity[PhysicComponent].activeGroundContacts--
             }
         }
     }

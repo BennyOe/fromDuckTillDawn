@@ -1,0 +1,69 @@
+# Imports ------------------------------------------------------
+import idle:"io.bennyoe.ai.actions.spector.SpectorIdle"
+import patrol:"io.bennyoe.ai.actions.spector.SpectorPatrol"
+import moveTo:"io.bennyoe.ai.actions.spector.SpectorMoveTo"
+import search:"io.bennyoe.ai.actions.spector.SpectorSearch"
+import chase:"io.bennyoe.ai.actions.spector.SpectorChase"
+import investigate:"io.bennyoe.ai.actions.spector.SpectorInvestigate"
+import cancelInvestigate:"io.bennyoe.ai.actions.spector.SpectorCancelInvestigation"
+import cancelSearch:"io.bennyoe.ai.actions.spector.SpectorCancelSearch"
+import attack:"io.bennyoe.ai.actions.spector.SpectorAttack"
+
+# Conditions
+import canAttack?:"io.bennyoe.ai.conditions.spector.CanAttack"
+import cool?:"io.bennyoe.ai.conditions.spector.Cool"
+import irritated?:"io.bennyoe.ai.conditions.spector.Irritated"
+import suspicious?:"io.bennyoe.ai.conditions.spector.Suspicious"
+import identified?:"io.bennyoe.ai.conditions.spector.Identification"
+
+# -------------------------------------------------------------
+# Main-Logic
+# -------------------------------------------------------------
+
+subtree name:"idlePatrolLoop"
+  selector
+    (random success: 0.4) idle duration:"uniform,1.0,1.5"
+    patrol duration:"uniform,4.0,6.0" direction:"uniform,1,2"
+
+root
+  dynamicGuardSelector
+    # 1) CHASING  & ATTACKING (highest priority)
+    (canAttack?) sequence
+      attack
+      wait seconds:"uniform,1.5,2.0"
+    (identified?) chase
+
+    # 2) SEARCHING
+    (suspicious?) sequence
+      selector
+        moveTo target:"lastKnownPos" speed:8.0
+        idle duration:"uniform,0.1,0.1"
+      search
+      repeat times:2
+        sequence
+          sequence
+            moveTo target:"investigateLeft" speed:4.0
+            search
+          sequence
+            moveTo target:"investigateRight" speed:4.0
+            search
+      cancelSearch
+
+# 3) INVESTIGATING
+    (irritated?) sequence
+      selector
+        moveTo target:"lastKnownPos" speed:4.0
+        idle duration:"uniform,0.1,0.1"
+      investigate
+      repeat times:2
+        sequence
+          sequence
+            moveTo target:"investigateLeft" speed:2.0
+            investigate
+          sequence
+            moveTo target:"investigateRight" speed:2.0
+            investigate
+      cancelInvestigate
+
+    # 4) COOL (default)
+    $idlePatrolLoop

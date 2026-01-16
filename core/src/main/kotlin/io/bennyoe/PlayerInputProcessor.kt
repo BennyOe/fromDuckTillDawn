@@ -6,8 +6,8 @@ import com.github.quillraven.fleks.World
 import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.InputComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.components.debug.DebugComponent
 import io.bennyoe.state.FsmMessageTypes
 import io.bennyoe.state.player.PlayerFSM

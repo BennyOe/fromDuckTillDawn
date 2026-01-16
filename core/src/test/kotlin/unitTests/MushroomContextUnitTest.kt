@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.World
 import com.github.quillraven.fleks.configureWorld
@@ -13,12 +14,12 @@ import io.bennyoe.ai.blackboards.MushroomContext
 import io.bennyoe.components.AttackComponent
 import io.bennyoe.components.HasGroundContact
 import io.bennyoe.components.HealthComponent
+import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.InputComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
@@ -28,7 +29,9 @@ import io.bennyoe.components.ai.BehaviorTreeComponent
 import io.bennyoe.components.ai.LedgeHitData
 import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
+import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
@@ -60,6 +63,7 @@ class MushroomContextUnitTest {
     private lateinit var stage: Stage
 
     private val intentionCmp = IntentionComponent()
+    private val imageMock = mockk<Image>(relaxed = true)
     private val healthCmp = HealthComponent()
     private val nearbyCmp = NearbyEnemiesComponent()
     private val transformCmp = mockk<TransformComponent>(relaxed = true)
@@ -83,14 +87,18 @@ class MushroomContextUnitTest {
     fun setup() {
         Gdx.app = mockk<Application>(relaxed = true)
         Gdx.files = mockk<Files>(relaxed = true)
+        stage = mockk(relaxed = true)
+
+        val imageCmp =
+            ImageComponent(stage).apply {
+                image = imageMock
+            }
 
         val handleMock = mockk<FileHandle>(relaxed = true)
 
         every { handleMock.readString() } returns "sequence {\n  task {}\n}"
 
         world = configureWorld { }
-
-        stage = mockk(relaxed = true)
 
         playerEntity =
             world.entity {
@@ -105,9 +113,10 @@ class MushroomContextUnitTest {
                 it += AttackComponent()
                 it += playerPhyCmp
                 it += IntentionComponent()
+                it += imageCmp
                 it += MoveComponent()
                 it += HealthComponent()
-                it += PlayerComponent()
+                it += PlayerComponent
                 it += InputComponent()
                 it += JumpComponent()
                 it += HasGroundContact
@@ -127,9 +136,12 @@ class MushroomContextUnitTest {
                 it += nearbyCmp
                 it += animCmp
                 it += LedgeSensorsHitComponent()
+                it += HasGroundContact
                 it += BasicSensorsComponent(emptyList(), 7f, transformCmp, 23f)
+                it += imageCmp
                 it += BasicSensorsHitComponent()
                 it += phyCmp
+                it += SuspicionComponent()
                 it +=
                     StateComponent(
                         world,
@@ -249,7 +261,7 @@ class MushroomContextUnitTest {
         ctx.nearestPlatformLedge = 10f
         ctx.nearestPlatformLedgeWithOffset = 10.5f
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertEquals(null, ctx.nearestPlatformLedge)
         assertEquals(null, ctx.nearestPlatformLedgeWithOffset)
@@ -264,7 +276,7 @@ class MushroomContextUnitTest {
         rayHitCmp.setSensorHit(SensorType.GROUND_DETECT_SENSOR, false)
         rayHitCmp.setSensorHit(SensorType.JUMP_SENSOR, true)
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertTrue(intentionCmp.wantsToJump)
         assertEquals(WalkDirection.RIGHT, intentionCmp.walkDirection)
@@ -288,7 +300,7 @@ class MushroomContextUnitTest {
             ),
         )
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertNotNull(ctx.nearestPlatformLedgeWithOffset)
     }
@@ -298,7 +310,7 @@ class MushroomContextUnitTest {
         val playerPhysicCmp = with(world) { playerEntity[PhysicComponent] }
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 2, phyCmp.body.position.y)
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertEquals(WalkDirection.RIGHT, intentionCmp.walkDirection)
     }
@@ -310,7 +322,7 @@ class MushroomContextUnitTest {
 
         playerPhysicCmp.body.position.set(phyCmp.body.position.x + 3f, phyCmp.body.position.y - 2f)
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertEquals(WalkDirection.RIGHT, intentionCmp.walkDirection)
         assertFalse(intentionCmp.wantsToJump)
@@ -333,7 +345,7 @@ class MushroomContextUnitTest {
             ),
         )
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertNull(ctx.nearestPlatformLedge)
         assertEquals(WalkDirection.LEFT, intentionCmp.walkDirection)
@@ -370,7 +382,7 @@ class MushroomContextUnitTest {
         )
         intentionCmp.walkDirection = WalkDirection.NONE
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertTrue(intentionCmp.wantsToJump)
     }
@@ -384,7 +396,7 @@ class MushroomContextUnitTest {
         rayHitCmp.setSensorHit(SensorType.WALL_SENSOR, true)
         rayHitCmp.setSensorHit(SensorType.WALL_HEIGHT_SENSOR, false)
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertTrue(intentionCmp.wantsToJump)
     }
@@ -397,7 +409,7 @@ class MushroomContextUnitTest {
         ctx.nearestPlatformLedge = 8f
         ctx.nearestPlatformLedgeWithOffset = 8.5f
 
-        ctx.chasePlayer()
+        ctx.chasePlayer(world)
 
         assertEquals(WalkDirection.NONE, intentionCmp.walkDirection)
         assertFalse(intentionCmp.wantsToJump)

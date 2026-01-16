@@ -15,8 +15,8 @@ import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.CameraComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.config.GameConstants.CAMERA_SMOOTHING_FACTOR
 import io.bennyoe.event.MapChangedEvent
 import io.bennyoe.systems.debug.DebugType

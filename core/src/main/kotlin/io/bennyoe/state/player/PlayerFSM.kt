@@ -24,9 +24,6 @@ sealed class PlayerFSM : AbstractFSM<PlayerStateContext>() {
     protected var doubleJumpFallDelay = 0f
 
     data object IDLE : PlayerFSM() {
-        // TODO after discussing the jump mechanics I maybe need to adjust that JUMP is only possible when the prevState is also IDLE. Because now
-        //  it is possible to JUMP & BASH against a wall and the JUMP and DOUBLE_JUMP again
-
         override fun enter(ctx: PlayerStateContext) {
             logger.debug { "Entering IDLE" }
             ctx.setAnimation(PlayerAnimation.IDLE)

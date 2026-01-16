@@ -327,7 +327,7 @@
     <property name="floorType" value="grass"/>
    </properties>
   </object>
-  <object id="8" name="1" x="529.843" y="352.539" width="92.0487" height="28.5391">
+  <object id="8" name="1" x="529.843" y="349.539" width="92.0487" height="28.5391">
    <properties>
     <property name="floorType" value="stone"/>
    </properties>

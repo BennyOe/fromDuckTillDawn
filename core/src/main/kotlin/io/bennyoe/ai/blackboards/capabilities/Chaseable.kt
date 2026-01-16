@@ -24,6 +24,30 @@ private const val Y_THRESHOLD = 0.3f
 private const val X_THRESHOLD = 0.1f
 private const val JUMP_LOCK_TICK_LIMIT = 4
 
+/**
+ * Capability for enemies that can *chase the player across platforms*.
+ *
+ * This interface encapsulates the *high-level chase logic* and uses a combination of:
+ * - **platform relation** (is the enemy on the same / above / below the player),
+ * - **basic sensors** (ground/wall/gap detection),
+ * - **ledge sensors** (finding a safe edge to jump up or drop down),
+ * - **a short jump lock** (to avoid constant re-evaluation mid-air).
+ *
+ * ### Core idea
+ * When grounded, the enemy continuously:
+ * 1. Determines its [platformRelation] relative to the player via [heightRelationToPlayer].
+ * 2. Uses sensors to trigger **wall jumps** ([jumpOverWall]) and **gap jumps** ([jumpOverGap]).
+ * 3. Decides whether to stay on the current platform or change platform via [changePlatform].
+ * 4. Picks the nearest valid ledge target and walks toward it via [walkToPosition].
+ * 5. If it arrives at a ledge that allows reaching the player above, it triggers a jump and
+ *    enters a short *jump locked* state to prevent oscillations.
+ *
+ * ### Jump lock
+ * If a jump is triggered, [isJumpLocked] is set to `true` and [lockedWalkDirection] is stored.
+ * While in the air, the enemy keeps walking in that locked direction and does **not**
+ * re-run the platform decision logic. Once grounded again, the lock is released after
+ * [JUMP_LOCK_TICK_LIMIT] ticks to prevent flickering states right after landing.
+ */
 interface Chaseable : ChaseState {
     val entity: Entity
     val intentionCmp: IntentionComponent
@@ -35,6 +59,18 @@ interface Chaseable : ChaseState {
     val playerPhysicCmp: PhysicComponent
     val imageCmp: ImageComponent
 
+    /**
+     * Execute one chase update tick.
+     *
+     * High-level flow:
+     * - Handle jump lock (keep direction mid-air; unlock after landing + a small cooldown).
+     * - When grounded:
+     *   - recompute platform relation to the player,
+     *   - run wall/gap jump checks (unless player is below),
+     *   - decide if we should change platform and compute ledge target offsets.
+     * - Walk toward the chosen target x-coordinate (player x or ledge x).
+     * - If we are at the correct x-position for a "jump up" situation, trigger a jump and lock.
+     */
     fun chasePlayer(world: World) {
         val playerPos = with(world) { playerEntity[PhysicComponent].body.position }
         val isGrounded = with(world) { entity has HasGroundContact }
@@ -161,8 +197,10 @@ interface Chaseable : ChaseState {
             }
     }
 
-    // get the sensor located closest to the player and iterate to both sides until a upperLedgeSensor doesn't hit. If the lowerLedgeSensor hits
-    // this is the jump-point to the upper platform
+    /**
+     * get the sensor located closest to the player and iterate to both sides until a upperLedgeSensor doesn't hit. If the lowerLedgeSensor hits
+     * this is the jump-point to the upper platform
+     **/
     private fun findLedgeToJumpUp(
         upperLedgeHits: GdxArray<LedgeHitData>,
         lowerLedgeHits: GdxArray<LedgeHitData>,
@@ -241,10 +279,6 @@ interface Chaseable : ChaseState {
     }
 
     private fun jumpOverGap() {
-        logger.debug {
-            "GroundSensor=${basicSensorsHitCmp.getSensorHit(SensorType.GROUND_DETECT_SENSOR)} " +
-                "JumpSensor=${basicSensorsHitCmp.getSensorHit(SensorType.JUMP_SENSOR)}"
-        }
         if (!basicSensorsHitCmp.getSensorHit(SensorType.GROUND_DETECT_SENSOR) && basicSensorsHitCmp.getSensorHit(SensorType.JUMP_SENSOR)) {
             intentionCmp.wantsToJump = true
             isJumpLocked = true
@@ -282,6 +316,12 @@ interface Chaseable : ChaseState {
     }
 }
 
+/**
+ * Mutable chase state for [Chaseable].
+ *
+ * This is separated from the capability logic so multiple AI states/capabilities can share
+ * the same evolving chase context.
+ */
 interface ChaseState {
     var nearestPlatformLedge: Float?
     var nearestPlatformLedgeWithOffset: Float?
@@ -292,6 +332,9 @@ interface ChaseState {
     var jumpLockTicks: Int
 }
 
+/**
+ * Default implementation of [ChaseState] with neutral initial values.
+ */
 class DefaultChaseState : ChaseState {
     override var nearestPlatformLedge: Float? = null
     override var nearestPlatformLedgeWithOffset: Float? = null

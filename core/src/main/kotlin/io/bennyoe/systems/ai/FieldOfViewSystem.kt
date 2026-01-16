@@ -16,10 +16,10 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.FieldOfViewComponent
 import io.bennyoe.components.ai.FieldOfViewResultComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.ENABLE_DEBUG
 import io.bennyoe.systems.debug.DebugType

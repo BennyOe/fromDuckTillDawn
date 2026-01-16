@@ -5,7 +5,6 @@ import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
 import com.github.quillraven.fleks.World.Companion.family
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.PlayerStealthComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.ai.FieldOfViewComponent
@@ -13,6 +12,7 @@ import io.bennyoe.components.ai.FieldOfViewResultComponent
 import io.bennyoe.components.ai.HearingComponent
 import io.bennyoe.components.ai.StealthLabelComponent
 import io.bennyoe.components.ai.SuspicionComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.event.NoiseEvent
 import ktx.log.logger
 

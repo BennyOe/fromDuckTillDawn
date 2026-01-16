@@ -7,8 +7,8 @@ import com.github.quillraven.fleks.World.Companion.family
 import com.github.quillraven.fleks.World.Companion.inject
 import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.IsDivingComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.PlayerStealthComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.ui.GameView
 
 class UiDataSystem(

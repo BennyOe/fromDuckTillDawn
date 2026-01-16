@@ -30,6 +30,7 @@ import io.bennyoe.components.ai.LedgeSensorsHitComponent
 import io.bennyoe.components.ai.NearbyEnemiesComponent
 import io.bennyoe.components.ai.SuspicionComponent
 import io.bennyoe.components.animation.AnimationComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.state.mushroom.MushroomCheckAliveState
 import io.bennyoe.state.mushroom.MushroomFSM
@@ -108,7 +109,7 @@ class MushroomContextUnitTest {
                 it += IntentionComponent()
                 it += MoveComponent()
                 it += HealthComponent()
-                it += PlayerComponent()
+                it += PlayerComponent
                 it += InputComponent()
                 it += JumpComponent()
                 it += HasGroundContact

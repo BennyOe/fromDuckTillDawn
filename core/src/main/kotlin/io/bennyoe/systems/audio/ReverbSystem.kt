@@ -6,10 +6,10 @@ import de.pottgames.tuningfork.EaxReverb
 import de.pottgames.tuningfork.SoundEffect
 import de.pottgames.tuningfork.SoundSource
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.audio.AudioComponent
 import io.bennyoe.components.audio.ReverbZoneComponent
 import io.bennyoe.components.audio.ReverbZoneContactComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import ktx.log.logger
 
 private const val REVERB_TAIL = 5f

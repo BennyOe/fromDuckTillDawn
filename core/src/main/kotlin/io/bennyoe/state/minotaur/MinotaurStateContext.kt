@@ -17,12 +17,12 @@ import io.bennyoe.components.HealthComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IntentionComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ProjectileComponent
 import io.bennyoe.components.ProjectileType
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WalkDirection
 import io.bennyoe.components.ai.BasicSensorsHitComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.GRAVITY
 import io.bennyoe.event.CameraShakeEvent

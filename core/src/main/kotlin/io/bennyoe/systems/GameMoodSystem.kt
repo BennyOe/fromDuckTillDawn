@@ -6,8 +6,8 @@ import com.github.quillraven.fleks.World.Companion.family
 import io.bennyoe.components.GameMood
 import io.bennyoe.components.GameStateComponent
 import io.bennyoe.components.HealthComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.ai.BehaviorTreeComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 
 class GameMoodSystem : IteratingSystem(family { all(BehaviorTreeComponent) }) {
     private val gameStateEntity by lazy { world.family { all(GameStateComponent) }.first() }

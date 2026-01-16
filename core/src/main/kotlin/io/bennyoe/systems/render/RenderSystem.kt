@@ -24,12 +24,12 @@ import io.bennyoe.components.HitEffectComponent
 import io.bennyoe.components.ImageComponent
 import io.bennyoe.components.IsForeground
 import io.bennyoe.components.ParticleComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.RainMaskComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.TiledTextureComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WaterComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.config.GameConstants.SHOW_ONLY_DEBUG
 import io.bennyoe.config.GameConstants.UNIT_SCALE
 import io.bennyoe.event.MapChangedEvent

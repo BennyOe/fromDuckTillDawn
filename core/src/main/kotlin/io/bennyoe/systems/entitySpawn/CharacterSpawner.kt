@@ -32,7 +32,6 @@ import io.bennyoe.components.NoiseProfileComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.ParticleType
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.PlayerStealthComponent
 import io.bennyoe.components.ShaderRenderingComponent
 import io.bennyoe.components.StateComponent
@@ -53,6 +52,10 @@ import io.bennyoe.components.animation.AnimationKey
 import io.bennyoe.components.animation.AnimationModel
 import io.bennyoe.components.audio.ReverbZoneContactComponent
 import io.bennyoe.components.audio.SoundProfileComponent
+import io.bennyoe.components.characterMarker.MinotaurComponent
+import io.bennyoe.components.characterMarker.MushroomComponent
+import io.bennyoe.components.characterMarker.PlayerComponent
+import io.bennyoe.components.characterMarker.SpectorComponent
 import io.bennyoe.config.CharacterType
 import io.bennyoe.config.EntityCategory
 import io.bennyoe.config.GameConstants.UNIT_SCALE
@@ -175,6 +178,17 @@ class CharacterSpawner(
                     )
                 physics.categoryBits = cfg.entityCategory.bit
 
+                // Ground detect sensor
+                physics.body.box(
+                    physics.size.x * 0.99f,
+                    0.01f,
+                    Vector2(physics.offset.x, physics.offset.y - physics.size.y * 0.5f),
+                ) {
+                    isSensor = true
+                    userData = FixtureSensorData(entity, SensorType.GROUND_DETECT_SENSOR)
+                    filter.categoryBits = EntityCategory.SENSOR.bit
+                    filter.maskBits = EntityCategory.GROUND.bit
+                }
                 // Ground type sensor
                 physics.body.box(
                     physics.size.x * 0.99f,
@@ -232,7 +246,7 @@ class CharacterSpawner(
                 entity += SoundProfileComponent(cfg.soundProfile)
 
                 if (cfg.entityCategory == EntityCategory.PLAYER) {
-                    spawnPlayerSpecifics(entity, physics, cfg)
+                    spawnPlayerSpecifics(entity, cfg)
                 }
 
                 if (cfg.entityCategory == EntityCategory.ENEMY) {
@@ -252,6 +266,8 @@ class CharacterSpawner(
         cfg: SpawnCfgFactory,
         transformCmp: TransformComponent,
     ) {
+        entity += MushroomComponent
+
         entity += IntentionComponent()
 
         entity += NearbyEnemiesComponent()
@@ -339,6 +355,8 @@ class CharacterSpawner(
         cfg: SpawnCfgFactory,
         transformCmp: TransformComponent,
     ) {
+        entity += MinotaurComponent
+
         entity += IntentionComponent()
 
         entity += NearbyEnemiesComponent()
@@ -403,6 +421,8 @@ class CharacterSpawner(
         cfg: SpawnCfgFactory,
         transformCmp: TransformComponent,
     ) {
+        entity += SpectorComponent
+
         entity += IntentionComponent()
 
         entity += NearbyEnemiesComponent()
@@ -474,20 +494,9 @@ class CharacterSpawner(
 
     private fun EntityCreateContext.spawnPlayerSpecifics(
         entity: Entity,
-        physics: PhysicComponent,
         cfg: SpawnCfgFactory,
     ) {
         val phyCmp = entity[PhysicComponent]
-        phyCmp.body.box(
-            physics.size.x * 0.99f,
-            0.01f,
-            Vector2(physics.offset.x, physics.offset.y - physics.size.y * 0.5f),
-        ) {
-            isSensor = true
-            userData = FixtureSensorData(entity, SensorType.GROUND_DETECT_SENSOR)
-            filter.categoryBits = EntityCategory.SENSOR.bit
-            filter.maskBits = EntityCategory.GROUND.bit
-        }
         val flashlightSpot =
             lightEngine
                 .addSpotLight(
@@ -516,6 +525,8 @@ class CharacterSpawner(
                     setOn(false)
                 }
 
+        entity += PlayerComponent
+
         entity += PlayerStealthComponent()
 
         entity += FlashlightComponent(flashlightSpot, flashLightHalo)
@@ -528,9 +539,6 @@ class CharacterSpawner(
         entity += input
 
         entity += IntentionComponent()
-
-        val player = PlayerComponent()
-        entity += player
 
         val state =
             StateComponent(

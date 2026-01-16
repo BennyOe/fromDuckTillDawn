@@ -19,10 +19,10 @@ import io.bennyoe.components.JumpComponent
 import io.bennyoe.components.MoveComponent
 import io.bennyoe.components.ParticleComponent
 import io.bennyoe.components.PhysicComponent
-import io.bennyoe.components.PlayerComponent
 import io.bennyoe.components.StateComponent
 import io.bennyoe.components.TransformComponent
 import io.bennyoe.components.WATER_CONTACT_GRACE_PERIOD
+import io.bennyoe.components.characterMarker.PlayerComponent
 import io.bennyoe.config.GameConstants.PHYSIC_TIME_STEP
 import io.bennyoe.state.player.PlayerFSM
 import io.bennyoe.systems.PausableSystem

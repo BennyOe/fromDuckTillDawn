@@ -130,7 +130,7 @@ object MushroomCfg {
                     ),
                     // Ground Sensor: Detects the ground (or lack thereof/ledge) in front
                     SensorDef(
-                        bodyAnchorPoint = vec2(1f, -1f),
+                        bodyAnchorPoint = vec2(1f, -0.8f),
                         rayLengthOffset = vec2(0f, -1.4f),
                         type = SensorType.GROUND_DETECT_SENSOR,
                         name = "mushroom_ground",
@@ -138,7 +138,7 @@ object MushroomCfg {
                     ),
                     // Jump Sensor: Checks for a landing spot across a gap
                     SensorDef(
-                        bodyAnchorPoint = vec2(3.2f, -1f),
+                        bodyAnchorPoint = vec2(7.2f, -0.8f),
                         rayLengthOffset = vec2(0f, -1.4f),
                         type = SensorType.JUMP_SENSOR,
                         name = "mushroom_jump",
